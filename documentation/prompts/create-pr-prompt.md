@@ -15,8 +15,9 @@ de trabalho.
 
 - Uma Spec (especificação) devidamente implementada e validada.
 - Uma Bug Report (relatório de bug) devidamente implementada e validada.
-- Uma branch de funcionalidade (`feature/`), correção (`fix/`) ou refatoração
-  (`refactor/`) com as alterações comitadas.
+- ID da task do Jira (ex: `ANI-123`)
+
+> Se a task do Jira não estiver presente, não execute o prompt.
 
 ---
 
@@ -70,17 +71,11 @@ O corpo do PR deve seguir o template abaixo.
 
 ---
 
+> O titulo do PR deve conter como prefixo o id da task do jira (ex: `[ANI-12] Adiciona tela de sign up`).
+
 ## 🎯 Objetivo (obrigatório)
 
 Explique por que este PR foi criado e qual seu propósito central.
-
-## #️⃣ Issues relacionadas (opcional)
-
-Vincule tarefas/buffs:
-
-```
-resolve https://github.com/JohnPetros/equiny/issues/<issue_number>
-```
 
 ---
 
@@ -124,7 +119,7 @@ Passo a passo claro para o revisor validar:
 
 ⚠️ Não usar GitHub MCP. ⚠️ Não usar APIs MCP. Usar exclusivamente **gh**.
 
-> Repositorio: https://github.com/JohnPetros/equiny-mobile
+> Repositorio: https://github.com/CtrI-Alt-Del/animus-mobile
 
 Comando padrão:
 
