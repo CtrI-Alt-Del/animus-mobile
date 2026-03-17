@@ -42,6 +42,7 @@ de trabalho.
   - direto
   - em PT-BR
   - refletir a essência da alteração
+  - Incluir a task do Jira como prefixo (ex: `[ANI-12] Adiciona tela de sign up`)
 
 Exemplos:
 
