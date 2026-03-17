@@ -43,3 +43,24 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# AI Agents
+.agent
+.agents
+.windsurf
+.codex
+.opencode
+.cursor
+.gemini
+.replit
+.serena
+opencode.jsonc
+prompt.md
+CLAUDE.md
+GEMII.md
+
+# Local environment
+.env
+
+# Terminal Paste Image folder
+.cp-images/
