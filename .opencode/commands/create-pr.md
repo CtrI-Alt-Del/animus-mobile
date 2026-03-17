@@ -42,7 +42,6 @@ de trabalho.
   - direto
   - em PT-BR
   - refletir a essência da alteração
-  - Deve incluir a task do Jira como prefixo (ex: `[ANI-12] Adiciona tela de sign up`)
 
 Exemplos:
 
@@ -71,6 +70,8 @@ O corpo do PR deve seguir o template abaixo.
 - usar `##` e níveis abaixo
 
 ---
+
+> O titulo do PR deve conter como prefixo o id da task do jira (ex: `[ANI-12] Adiciona tela de sign up`).
 
 ## 🎯 Objetivo (obrigatório)
 
