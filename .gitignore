@@ -65,3 +65,5 @@ GEMINI.md
 
 # Terminal Paste Image folder
 .cp-images/
+
+node_modules/
