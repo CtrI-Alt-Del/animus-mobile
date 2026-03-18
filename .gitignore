@@ -58,7 +58,7 @@ app.*.map.json
 opencode.jsonc
 prompt.md
 CLAUDE.md
-GEMII.md
+GEMINI.md
 
 # Local environment
 .env
