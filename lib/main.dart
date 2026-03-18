@@ -1,4 +1,4 @@
-import 'package:example/app.dart';
+import 'package:animus_mobile/app.dart';
 import 'package:flutter/material.dart';
 
 void main() {

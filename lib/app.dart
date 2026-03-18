@@ -1,4 +1,5 @@
-import 'package:example/router.dart';
+import 'package:animus_mobile/router.dart';
+import 'package:animus_mobile/theme.dart';
 import 'package:flutter/material.dart';
 
 class AnimusApp extends StatelessWidget {
@@ -7,10 +8,8 @@ class AnimusApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Animus Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      title: 'Animus',
+      theme: AppTheme.light,
       routerConfig: appRouter,
     );
   }

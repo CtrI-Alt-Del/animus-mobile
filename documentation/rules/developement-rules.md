@@ -1,70 +1,48 @@
-Aqui está a tradução para o português:
-
 # Fluxo de Trabalho de Desenvolvimento
 
-## Estratégia de Branches
+## Estrategia de branches
 
-O Stardust utiliza um fluxo de trabalho de *feature-branch* (ramificação por funcionalidade) baseado na branch `main`.
+O projeto utiliza fluxo baseado em `main` com branches curtas por objetivo.
 
-```
-main
-  │
-  ├── feature/user-filtering
-  ├── feature/star-users-dialog
-  ├── fix/achievement-unlock
-  └── refactor/sortable-column
+### Nomenclatura
 
-```
-
-### Nomenclatura de Branches
-
-| Prefixo | Propósito | Exemplo |
+| Prefixo | Proposito | Exemplo |
 | --- | --- | --- |
-| `feature/` | Nova funcionalidade | `feature/challenges-table-skeleton` |
-| `fix/` | Correção de bugs | `fix/svg-title-error` |
-| `refactor/` | Melhorias de código | `refactor/period-picker` |
-| `docs/` | Atualizações de documentação | `docs/api-endpoints` |
+| `feature/` | Nova funcionalidade | `feature/ani-25-sign-up-screen` |
+| `fix/` | Correcao de bug | `fix/ani-40-windows-console-stream` |
+| `refactor/` | Melhoria estrutural sem mudar comportamento | `refactor/ani-44-router-cleanup` |
+| `docs/` | Ajustes de documentacao | `docs/ani-51-architecture-update` |
 
-## Convenção de Commits
+## Convencao de PR
 
-Os commits seguem o padrão [Conventional Commits](https://www.conventionalcommits.org/) com emojis e escopos opcionais.
+- O titulo do PR deve iniciar com o ID da task Jira: `[ANI-123] <titulo objetivo>`.
+- O PR deve descrever objetivo, escopo, validacao e impactos.
+- Sempre registrar comandos usados para validar (`flutter analyze`, `flutter test`).
 
-### Formato
+## Convencao de commits
 
+Os commits seguem [Conventional Commits](https://www.conventionalcommits.org/) com escopo opcional.
+
+Formato:
+
+```text
+<type>(<scope>): <mensagem>
 ```
-<emoji> <prefixo>: <mensagem>
 
+Tipos recomendados: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`.
+
+Exemplos:
+
+```text
+feat(auth): criar tela inicial de cadastro
+fix(windows): corrigir redirecionamento de stderr no runner
+docs(rules): alinhar guideline com estado atual do bootstrap
 ```
 
-### Tipos de Commit
+## Checklist antes de subir alteracoes
 
-| Tipo | Emoji | Descrição |
-| --- | --- | --- |
-| `domain` | 🌐 | Mudanças na camada core |
-| `rest` | 📶 | Mudanças na API REST |
-| `ui` | 🖥️ | Componentes de UI (Interface do Usuário) |
-| `db` | 💾 | Mudanças no banco de dados |
-| `interface` | 📑 | Definições de interface |
-| `type` | 🏷️ | Definições de tipos |
-| `docs` | 📚 | Documentação |
-| `fix` | 🐛 | Correção de bugs |
-| `refactor` | ♻️ | Refatoração |
-| `test` | 🧪 | Testes |
-| `config` | ⚙️ | Configuração |
-| `validation` | 📮 | Schemas de validação |
-| `deps` | 📦 | Dependências |
-
-### Exemplos
-
-```bash
-# Com escopo
-🐛 fix: garantir que apenas uma conquista seja desbloqueada por vez
-
-# Sem escopo
-📑 interface: adicionar AchievementsRepository
-
-# Casos de uso (nenhum verbo necessário)
-♻️ refactor: listar todos os desafios
-🧪 test: caso de uso de listar todos os desafios
-
-```
+1. Atualizar documentacao impactada pela mudanca.
+2. Executar `flutter analyze` sem erros.
+3. Executar `flutter test` com cenarios relevantes.
+4. Garantir ausencia de segredos em arquivos versionados.
+5. Confirmar se o titulo do PR segue o padrao com Jira.

@@ -1,74 +1,46 @@
-# Arquitetura do Equiny Mobile
+# Arquitetura do Animus Mobile
 
 ## Visao Geral
 
-O Equiny usa arquitetura em camadas inspirada em Clean Architecture para reduzir acoplamento e facilitar testes. E um app de e-commerce em Flutter/Dart integrado a uma API RESTful chamdo Equiny Server.
+O Animus Mobile e um aplicativo Flutter para apoiar a analise de precedentes juridicos. A arquitetura segue separacao por camadas para reduzir acoplamento, facilitar testes e permitir evolucao incremental dos dominios.
+
+Dominios de negocio do produto:
+
+- `auth`: cadastro, login, perfil e sessao do usuario.
+- `intake`: envio de peticao e analise com IA de precedentes.
+- `storage`: historico, organizacao e exportacao de analises.
+- `notification`: notificacoes assicronas de eventos importantes.
 
 ## Camadas
 
-- **UI (`lib/ui/`)**: Widgets, telas e presenters (MVP). Estado com Riverpod + Signals.
-- **Core (`lib/core/`)**: DTOs, interfaces e tipos de resposta (ex.: `RestResponse`).
-- **Rest (`lib/rest/`)**: Implementacoes HTTP e servicos externos (Dio + API RESTful).
-- **Drivers (`lib/drivers/`)**: Infraestrutura externa (ex.: `.env`).
+- **UI (`lib/ui/`)**: telas, widgets e fluxo de navegacao.
+- **Core (`lib/core/`)**: contratos, DTOs e regras de dominio.
+- **REST (`lib/rest/`)**: clientes HTTP, services e mapeadores.
+- **Drivers (`lib/drivers/`)**: infraestrutura e adaptadores externos.
 
-## Injecao de Dependencias
+## Estado atual do repositorio
 
-Riverpod centraliza a composicao de dependencias: providers para drivers, rest client, servicos e rotas.
+Este repositorio esta em fase de bootstrap. A base inicial contem:
 
-## Padroes Principais
+- ponto de entrada da aplicacao (`lib/main.dart`);
+- configuracao da app e tema (`lib/app.dart`, `lib/theme.dart`);
+- rotas iniciais (`lib/router.dart`, `lib/constants/routes.dart`);
+- primeira tela de autenticacao (`lib/ui/auth/widgets/pages/sign_up_screen/index.dart`).
 
-- **MVP** na UI para separar View e Presenter.
-- **DTO** para contratos de dados entre camadas.
-- **Adapter** para adaptar Dio ao `RestClient`.
-- **Service/Mapper** para integrar Yampi e converter dados externos.
+As pastas `core`, `rest` e `drivers` estao previstas na arquitetura e serao expandidas conforme as proximas entregas.
 
-## Decisoes Arquiteturais
+## Integracoes previstas
 
-- Camadas garantem testabilidade e substituicao de implementacoes.
-- Riverpod + Signals oferecem DI robusta e estado reativo granular.
-- Yampi simplifica operacao de e-commerce via API REST.
+- API backend para autenticacao e analise juridica.
+- Persistencia local para configuracoes de sessao.
+- Servicos de notificacao push.
 
-## Armadilhas a Evitar
+A URL do backend deve ser configurada via `--dart-define` (`ANIMUS_SERVER_APP_URL`) para evitar acoplamento a ambiente local.
 
-1. Logica de dominio fora do `core/`.
-2. Chamar API diretamente na UI.
-3. Dependencias circulares entre camadas.
-4. Presenter fazendo requisicoes diretas.
-5. DTOs mutaveis (prefira `final`).
+## Principios arquiteturais
 
-## Stack Tecnologica
-
-| Tecnologia | Pacote | Finalidade |
-|------------|--------|------------|
-| **Linguagem** | Dart | Linguagem principal |
-| **Framework** | Flutter | Framework multiplataforma |
-| **API** | Yampi Dev | Plataforma de e-commerce (RESTful) |
-| **HTTP Client** | Dio | Requisicoes HTTP e interceptors |
-| **Estado & DI** | flutter_riverpod | Injecao de dependencias e estado global |
-| **Reatividade** | signals / signals_flutter | Estado reativo granular |
-| **Rotas** | go_router | Navegacao declarativa |
-| **UI Kit** | shadcn_flutter | Componentes de interface |
-| **Animacoes** | flutter_animate, animate_do, lottie | Micro-interacoes e animacoes |
-| **Icones** | font_awesome_flutter | Icones vetoriais |
-| **SVG** | flutter_svg | Renderizacao de SVGs |
-| **Env** | flutter_dotenv | Variaveis de ambiente (.env) |
-| **Storage** | shared_preferences | Persistencia local (key-value) |
-| **Formatacao** | intl | Internacionalizacao e formatacao de datas/moeda |
-| **Conectividade** | internet_connection_checker_plus | Verificacao de conexao de rede |
-| **URL** | url_launcher | Abertura de links externos (WhatsApp, email) |
-| **Info do App** | package_info_plus | Versao e metadados do app |
-| **Testes** | mocktail, faker, network_image_mock | Mocks e dados falsos para testes |
-
-## Estrutura de Diretorios (essencial)
-
-```
-lib/
-├── core/
-├── rest/
-├── drivers/
-└── ui/
-```
-
-## Equiny Server
-
-A API RESTful principal do Equiny é a Equiny Server, construinda com FastAPI, logo todos as respostas da API sao JSON, cujo atributos são sempre em snake_case.
+1. UI nao acessa API diretamente.
+2. Regras de dominio ficam na camada Core.
+3. Drivers e REST implementam contratos definidos no Core.
+4. Componentes de UI devem ser pequenos e focados em responsabilidade unica.
+5. Evolucoes multi-camada devem respeitar fronteiras e nomenclatura do projeto.

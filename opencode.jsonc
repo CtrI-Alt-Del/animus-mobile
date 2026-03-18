@@ -4,9 +4,6 @@
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
-      "headers": {
-        "CONTEXT7_API_KEY": "ctx7sk-cde5d35d-542f-45df-8704-307b2564ef1e"
-      },
       "enabled": true
     },
     "serena": {
@@ -19,6 +16,15 @@
         "start-mcp-server"
       ],
       "enabled": true
+    },
+    "pencil": {
+      "command": [
+        "C:\\Users\\petros\\AppData\\Local\\Programs\\Pencil\\resources\\app.asar.unpacked\\out\\mcp-server-windows-x64.exe",
+        "--app",
+        "desktop"
+      ],
+      "enabled": true,
+      "type": "local"
     },
     "atlassian": {
       "type": "remote",

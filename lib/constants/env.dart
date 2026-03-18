@@ -1,3 +1,6 @@
 class Env {
-  static const String animusServerAppUrl = 'http://localhost:8000';
+  static const String animusServerAppUrl = String.fromEnvironment(
+    'ANIMUS_SERVER_APP_URL',
+    defaultValue: 'https://example.invalid',
+  );
 }
