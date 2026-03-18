@@ -38,7 +38,7 @@ lib/ui/
 ## Organizacao esperada
 
 ```text
-lib/ui/{feature}/
+lib/ui/{modulo}/
 ├── widgets/
 ├── components/
 └── screens/
@@ -46,15 +46,15 @@ lib/ui/{feature}/
 
 | Area | Deve concentrar | Nao deve concentrar |
 | --- | --- | --- |
-| `lib/ui/{feature}/widgets/` | widgets da feature que nao sao raiz de rota e nao pertencem a `components/` | telas raiz da feature ou componentes compartilhados globais |
-| `lib/ui/{feature}/components/` | componentes reutilizaveis dentro da propria feature | logica transversal da aplicacao |
-| `lib/ui/{feature}/screens/` | telas raiz, fluxos de rota e composicoes de entrada da feature | widgets internos genericos sem papel de tela |
+| `lib/ui/{modulo}/widgets/` | widgets da modulo que nao sao raiz de rota e nao pertencem a `components/` | telas raiz da modulo ou componentes compartilhados globais |
+| `lib/ui/{modulo}/components/` | componentes reutilizaveis dentro da propria modulo | logica transversal da aplicacao |
+| `lib/ui/{modulo}/screens/` | telas raiz, fluxos de rota e composicoes de entrada da modulo | widgets internos genericos sem papel de tela |
 | `lib/ui/shared/` | tema, shells e composicoes transversais | widgets acoplados a um unico fluxo |
 
 ## Regras de organizacao e nomeacao
 
 - Cada widget complexo deve viver em sua propria pasta.
-- Cada `{feature}` deve seguir a estrutura base com `widgets/`, `components/` e `screens/` na raiz da feature.
+- Cada `{modulo}` deve seguir a estrutura base com `widgets/`, `components/` e `screens/` na raiz da modulo.
 - Widgets internos devem abrir subpastas dedicadas dentro do widget pai.
 - Nao se deve criar pastas genericas extras apenas para agrupar um unico widget interno.
 - A pasta publica do widget pode expor um `index.dart` para reduzir imports profundos.
@@ -65,7 +65,7 @@ lib/ui/{feature}/
 | --- | --- | --- |
 | `View` | classe visual que renderiza e encaminha eventos | `sign_up_screen_view.dart` |
 | `Presenter` | classe que concentra estado reativo, validacoes e handlers | `sign_up_screen_presenter.dart` |
-| `Screen` | widget raiz de rota | `{feature}_screen_view.dart` |
+| `Screen` | widget raiz de rota | `{modulo}_screen_view.dart` |
 | `Component` | widget interno ou reutilizavel com responsabilidade propria | `match_notification_modal` |
 | `Presenter Provider` | provider Riverpod que compoe dependencias do presenter | `signUpScreenPresenterProvider` |
 | `Barrel publico` | `index.dart` usado como fronteira publica da pasta | `typedef SignUpScreen = SignUpScreenView;` |
@@ -97,7 +97,7 @@ lib/ui/{feature}/
 
 ## Componentizacao por pasta
 
-- E obrigatoria quando o widget cresce, quando ha subpartes com responsabilidade propria ou quando ha reuso dentro da feature.
+- E obrigatoria quando o widget cresce, quando ha subpartes com responsabilidade propria ou quando ha reuso dentro da modulo.
 - Se o widget passou a depender de metodos `_build...` demais, isso costuma indicar que ele deve ser quebrado em componentes menores.
 
 ## Quando evitar abstracao extra
@@ -120,7 +120,7 @@ lib/ui/{feature}/
 - Navegacao, inscricoes em canais, chamadas assincronas e validacoes de formulario devem ficar no Presenter ou em providers dedicados.
 - Quando a View precisar de um helper vindo de driver ou provider, o uso deve continuar restrito a preocupacoes visuais.
 
-# Checklist Rapido para Novas Features na Camada
+# Checklist Rapido para Novas Modulos na Camada
 
 - [ ] A tela ou componente novo esta em pasta propria, com fronteira clara entre publico e interno.
 - [ ] O fluxo de interacao esta centralizado no Presenter, com estado observavel e handlers nomeados por intencao.
