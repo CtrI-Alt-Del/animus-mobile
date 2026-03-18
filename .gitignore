@@ -50,6 +50,7 @@ app.*.map.json
 .windsurf
 .codex
 .opencode
+.claude
 .cursor
 .gemini
 .replit
