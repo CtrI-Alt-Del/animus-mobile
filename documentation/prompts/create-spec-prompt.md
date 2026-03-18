@@ -1,11 +1,11 @@
 ---
-description: Prompt para criar uma especificação técnica detalhada com base no PRD e na arquitetura do equiny_mobile.
+description: Prompt para criar uma especificação técnica detalhada com base no PRD e na arquitetura do animus_mobile.
 ---
 
 # Prompt: Criar Spec
 
 **Objetivo:** Detalhar a implementação técnica de uma feature, fix ou
-refatoração no `equiny_mobile`, atuando como um Tech Lead Sênior. O documento
+refatoração no `animus_mobile`, atuando como um Tech Lead Sênior. O documento
 deve servir como uma ponte estritamente definida entre o PRD e o código, com
 nível de detalhe suficiente para que a implementação seja direta e sem
 ambiguidades.
