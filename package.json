@@ -1,0 +1,31 @@
+{
+  "name": "animus-mobile",
+  "version": "1.0.0",
+  "description": "Aplicativo mobile do **Animus**, uma plataforma de analise de precedentes juridicos a partir de peticoes iniciais. Este cliente foi desenvolvido em **Flutter**, com foco em separacao por camadas, evolucao incremental dos dominios e integracao com servicos de autenticacao, analise juridica com IA, historico de analises e notificacoes.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CtrI-Alt-Del/animus-mobile.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CtrI-Alt-Del/animus-mobile/issues"
+  },
+  "homepage": "https://github.com/CtrI-Alt-Del/animus-mobile#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "husky": "^9.1.7"
+  }
+}
