@@ -130,6 +130,7 @@ Use frontmatter e hierarquia de cabeçalhos sem pular níveis.
 ---
 title: <Título claro>
 prd: <caminho para o PRD referente à spec, localizado um nível acima do diretório da spec>
+ticket: <link do ticket da tarefa no Jira>
 status: <open|closed>
 last_updated_at: <YYYY-MM-DD>
 ---
@@ -177,14 +178,7 @@ Categorias relevantes para o mobile (usar apenas se aplicável):
 
 ---
 
-# 4. Regras de Negócio e Invariantes (Obrigatório)
-
-[Liste as regras e invariantes que a implementação deve garantir.
-Ex: "o formulário só pode ser submetido após todos os campos obrigatórios serem válidos".]
-
----
-
-# 5. O que já existe? (Obrigatório)
+# 4. O que já existe? (Obrigatório)
 
 [Liste recursos da codebase que serão utilizados ou impactados. Inclua apenas
 itens realmente relevantes para implementar a mudança.]
@@ -196,7 +190,7 @@ itens realmente relevantes para implementar a mudança.]
 
 ---
 
-# 6. O que deve ser criado? (Depende da tarefa)
+# 5. O que deve ser criado? (Depende da tarefa)
 
 [Descreva novos componentes dividindo por camadas. Para cada arquivo novo,
 detalhe e marque explicitamente como **novo arquivo**.]
@@ -302,7 +296,7 @@ lib/ui/<modulo>/widgets/screens/<tela>/
 
 ---
 
-# 7. O que deve ser modificado? (Depende da tarefa)
+# 6. O que deve ser modificado? (Depende da tarefa)
 
 [Descreva alterações em código existente.]
 
@@ -316,7 +310,7 @@ lib/ui/<modulo>/widgets/screens/<tela>/
 
 ---
 
-# 8. O que deve ser removido? (Depende da tarefa)
+# 7. O que deve ser removido? (Depende da tarefa)
 
 [Descreva remoções de código legado, widgets obsoletos ou limpeza de
 refatoração.]
@@ -331,7 +325,7 @@ refatoração.]
 
 ---
 
-# 9. Decisões Técnicas e Trade-offs (Obrigatório)
+# 8. Decisões Técnicas e Trade-offs (Obrigatório)
 
 [Registre decisões relevantes para revisão futura.]
 
@@ -344,7 +338,7 @@ Para cada decisão importante:
 
 ---
 
-# 10. Diagramas e Referências (Obrigatório)
+# 9. Diagramas e Referências (Obrigatório)
 
 - **Fluxo de dados:** diagrama em notação ASCII mostrando a interação entre
   camadas para o fluxo principal da feature. Ex:
@@ -364,7 +358,7 @@ signals (isLoading, form)        AuthServiceImpl (rest)
 
 ---
 
-# 11. Pendências / Dúvidas (Quando aplicável)
+# 10. Pendências / Dúvidas (Quando aplicável)
 
 [Liste perguntas em aberto, incongruências e pontos que dependem de
 confirmação.]
@@ -380,7 +374,7 @@ Para cada item:
 
 ---
 
-## Restrições (Obrigatório)
+# Restrições (Obrigatório)
 
 - **Não inclua testes automatizados na spec.**
 - A `View` não deve conter lógica de negócio — toda orquestração fica no
