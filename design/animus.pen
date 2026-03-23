@@ -6036,7 +6036,7 @@
                               "name": "p1dot",
                               "width": 6,
                               "height": 6,
-                              "fill": "$green",
+                              "fill": "$indigo",
                               "cornerRadius": 3
                             },
                             {
@@ -6067,7 +6067,7 @@
                               "name": "p2dot",
                               "width": 6,
                               "height": 6,
-                              "fill": "$amber",
+                              "fill": "$indigo",
                               "cornerRadius": 3
                             },
                             {
@@ -6098,7 +6098,7 @@
                               "name": "p3dot",
                               "width": 6,
                               "height": 6,
-                              "fill": "$red-error",
+                              "fill": "$indigo",
                               "cornerRadius": 3
                             },
                             {
@@ -6115,41 +6115,6 @@
                               "fontWeight": "normal"
                             }
                           ]
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "Koy9d",
-                      "name": "precCount",
-                      "fill": "#6366F112",
-                      "cornerRadius": 10,
-                      "gap": 6,
-                      "padding": [
-                        8,
-                        12
-                      ],
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon_font",
-                          "id": "qgU26",
-                          "name": "precIcon",
-                          "width": 14,
-                          "height": 14,
-                          "iconFontName": "scale",
-                          "iconFontFamily": "lucide",
-                          "fill": "$indigo"
-                        },
-                        {
-                          "type": "text",
-                          "id": "IDyZq",
-                          "name": "precText",
-                          "fill": "$indigo",
-                          "content": "5 precedentes relevantes encontrados",
-                          "fontFamily": "DM Sans",
-                          "fontSize": 12,
-                          "fontWeight": "600"
                         }
                       ]
                     }
