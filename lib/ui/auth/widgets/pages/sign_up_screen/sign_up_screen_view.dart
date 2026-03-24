@@ -1,81 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'sign_up_screen_presenter.dart';
+import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/sign_up_form/index.dart';
 
-class SignUpScreenView extends ConsumerWidget {
+class SignUpScreenView extends StatelessWidget {
   const SignUpScreenView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final SignUpScreenPresenter presenter = ref.watch(signUpScreenPresenterProvider);
-
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Criar conta')),
+      backgroundColor: const Color(0xFF05060B),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Form(
-                key: presenter.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Cadastro no Animus',
-                      style: Theme.of(context).textTheme.headlineSmall,
+        child: Column(
+          children: <Widget>[
+            const _TopProgressBar(),
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 28,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 402),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Text(
+                          'Criar Conta',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Preencha seus dados para comecar',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: const Color(0xFF7F8194)),
+                        ),
+                        const SizedBox(height: 22),
+                        const SignUpForm(),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Preencha os dados para criar sua conta.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: presenter.nameController,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome completo',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: presenter.validateName,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: presenter.emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'E-mail',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: presenter.validateEmail,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: presenter.passwordController,
-                      obscureText: true,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => presenter.submit(context),
-                      decoration: const InputDecoration(
-                        labelText: 'Senha',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: presenter.validatePassword,
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: () => presenter.submit(context),
-                      child: const Text('Cadastrar'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _TopProgressBar extends StatelessWidget {
+  const _TopProgressBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 2,
+      child: Row(
+        children: const <Widget>[
+          Expanded(child: ColoredBox(color: Color(0xFF5A5CFF))),
+          Expanded(child: ColoredBox(color: Color(0xFF1A1C28))),
+        ],
       ),
     );
   }

@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
   Widget createWidget() {
-    return const ProviderScope(
-      child: MaterialApp(home: SignUpScreenView()),
-    );
+    return const ProviderScope(child: MaterialApp(home: SignUpScreenView()));
   }
 
   testWidgets('renderiza campos e botao de cadastro', (
