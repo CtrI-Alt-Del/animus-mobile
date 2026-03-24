@@ -56,6 +56,7 @@ lib/ui/{modulo}/
 - Cada widget complexo deve viver em sua propria pasta.
 - Cada `{modulo}` deve seguir a estrutura base com `widgets/`, `components/` e `screens/` na raiz da modulo.
 - Widgets internos devem abrir subpastas dedicadas dentro do widget pai.
+- Nao criar pasta intermediaria `widgets/` dentro da pasta de um widget pai; criar diretamente as pastas dos widgets internos.
 - Nao se deve criar pastas genericas extras apenas para agrupar um unico widget interno.
 - A pasta publica do widget pode expor um `index.dart` para reduzir imports profundos.
 
@@ -133,6 +134,7 @@ lib/ui/{modulo}/
 - Views focadas em layout, binding e dispatch de eventos.
 - Presenters com estado reativo, validacao de formulario, handlers de CTA e coordenacao de dependencias.
 - Componentes internos organizados em subpastas quando a tela crescer ou quando houver reuso local.
+- Mensagens de validacao de formulario providas pelo Presenter (a View apenas consome os mapas/formatadores).
 - Uso consistente de tema, textos, feedbacks e empty states alinhados ao fluxo do produto.
 
 ## ❌ O que NUNCA deve conter
