@@ -138,17 +138,15 @@ final class AppTheme {
     ),
   );
 
-  static final ThemeData light = _buildTheme();
+  static final ThemeData dark = _buildTheme();
 
   static ThemeData _buildTheme() {
-    const ColorScheme colorScheme = ColorScheme(
+    final ColorScheme colorScheme = ColorScheme.fromSeed(
+      seedColor: _indigo,
       brightness: Brightness.dark,
       primary: _indigo,
-      onPrimary: _white,
       secondary: _green,
-      onSecondary: _bgPage,
       error: _redError,
-      onError: _white,
       surface: _bgCard,
       onSurface: _textPrimary,
     );
@@ -178,7 +176,6 @@ final class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontFamily: 'Fraunces',
           fontSize: 22,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.3,
@@ -315,7 +312,6 @@ final class AppTheme {
     double letterSpacing,
   ) {
     return (base ?? const TextStyle()).copyWith(
-      fontFamily: 'Fraunces',
       fontSize: size,
       fontWeight: weight,
       letterSpacing: letterSpacing,
@@ -330,7 +326,6 @@ final class AppTheme {
     double letterSpacing,
   ) {
     return (base ?? const TextStyle()).copyWith(
-      fontFamily: 'DM Sans',
       fontSize: size,
       fontWeight: weight,
       letterSpacing: letterSpacing,
