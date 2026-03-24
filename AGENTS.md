@@ -10,3 +10,4 @@ MCPs:
 - Use MCP da Atlassian para recuperar informações do Confluence e do Jira
 - Use o MCP do Context7 para buscar documentação atualizada de algum aspecto específico de algum framework, biblioteca ou configuração externa
 - Use o MCP do Serena para navegar pela codebase de forma otimizada
+- Use o MCP do Pencil para buscar contexto da telas de Design do app em `design\animus.pen`

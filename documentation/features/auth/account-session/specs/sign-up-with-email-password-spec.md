@@ -1,10 +1,17 @@
 ---
 title: Sign Up com E-mail e Senha
-prd: documentation/features/auth/account-session/prd.md
+prd: https://joaogoliveiragarcia.atlassian.net/wiki/x/AwACAQ
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-40
 status: open
-last_updated_at: 2026-03-20
+last_updated_at: 2026-03-23
 ---
+
+## Histórico de Alterações
+
+| Data | Seções | Motivo |
+|---|---|---|
+| 2026-03-23 | #5, #6, #9, #10 | Refatoração estrutural da UI de cadastro com criação do widget interno `sign_up_form` com presenter próprio e extração de widgets internos para reduzir acoplamento da tela raiz. |
+| 2026-03-23 | #5, #6, #9 | Centralização das mensagens de validação do formulário no `sign_up_form_presenter` e extração de `_RuleItem` para widget interno em `password_strength_indicator/rule_item`. |
 
 # 1. Objetivo
 
@@ -137,6 +144,16 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 - **Tipo:** View only
 - **Props:** `required int score`, `required bool hasMinLength`, `required bool hasUppercaseLetter`, `required bool hasNumber`
 - **Responsabilidade:** renderizar o indicador de força de senha com checklist das três regras explícitas do produto, sem conter lógica de negócio.
+- **Widget interno obrigatório:** `lib/ui/auth/widgets/pages/sign_up_screen/password_strength_indicator/rule_item/rule_item_view.dart` para substituir qualquer classe privada local (`_RuleItem`).
+
+- **Localização:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/` (**novo arquivo** em pasta nova)
+- **Tipo:** widget interno com presenter dedicado
+- **Arquivos:** `sign_up_form_view.dart`, `sign_up_form_presenter.dart`, `index.dart`
+- **Responsabilidade:** encapsular o formulário reativo de cadastro, coordenar o estado visual do formulário e isolar a composição de campos/CTA da tela raiz `sign_up_screen`.
+
+- **Localização:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/general_error_alert/` e `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_up_submit_button/` (**novos arquivos** em pastas novas)
+- **Tipo:** widgets internos do formulário
+- **Responsabilidade:** separar feedback de erro geral e CTA de submissão em componentes com responsabilidade única, sem criar pasta intermediária `widgets/`.
 
 ## Camada UI (Barrel Files / `index.dart`)
 
@@ -172,6 +189,19 @@ lib/ui/auth/widgets/pages/
     password_strength_indicator/
       index.dart
       password_strength_indicator_view.dart
+      rule_item/
+        index.dart
+        rule_item_view.dart
+    sign_up_form/
+      index.dart
+      sign_up_form_view.dart
+      sign_up_form_presenter.dart
+      general_error_alert/
+        index.dart
+        general_error_alert_view.dart
+      sign_up_submit_button/
+        index.dart
+        sign_up_submit_button_view.dart
   email_confirmation_screen/
     index.dart
     email_confirmation_screen_view.dart
@@ -197,7 +227,7 @@ lib/ui/auth/widgets/pages/
 - **Justificativa:** sem um tema de `shadcn_flutter`, a nova UI de auth ficaria visualmente inconsistente e parcialmente acoplada ao tema Material anterior.
 
 - **Arquivo:** `lib/constants/routes.dart`
-- **Mudança:** adicionar a constante `emailConfirmation` e o helper `String emailConfirmationLocation({required String email})` para construir a rota com query string de forma centralizada.
+- **Mudança:** adicionar a constante `emailConfirmation` e o helper `String emailConfirmation({required String email})` para construir a rota com query string de forma centralizada.
 - **Justificativa:** o presenter precisa navegar para a tela de confirmação sem montar URLs manualmente em múltiplos pontos.
 
 - **Arquivo:** `lib/router.dart`
@@ -252,16 +282,32 @@ lib/ui/auth/widgets/pages/
     - `void toggleConfirmPasswordVisibility()` — alterna a visibilidade do campo `confirmPassword`.
     - `String? fieldErrorMessage(FormControl<Object?> control)` — traduz erros do `reactive_forms` e erros remotos para texto de UI.
     - `void applyServerFieldErrors(RestResponse<Object?> response)` — converte `409/422` em `setErrors(...)` nos controles corretos.
-    - `Future<void> submit(BuildContext context)` — marca o formulário como touched, valida o `FormGroup`, chama `AuthService.signUp`, mapeia erros de backend para os controles/`generalError` e navega para `Routes.emailConfirmationLocation(email: email)` em caso de `201`.
+    - `Future<void> submit(BuildContext context)` — marca o formulário como touched, valida o `FormGroup`, chama `AuthService.signUp`, mapeia erros de backend para os controles/`generalError` e navega para `Routes.emailConfirmation(email: email)` em caso de `201`.
 
 - **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_view.dart`
-- **Mudança:** substituir os widgets Material atuais por composição com `shadcn_flutter`, adicionar `confirmPassword`, indicador de força e feedbacks inline ligados a `reactive_forms` e ao estado auxiliar do presenter.
-- **Justificativa:** a View atual não atende os requisitos do ticket nem o guideline visual definido para novas features.
+- **Mudança:** transformar a tela raiz em composição enxuta (header + container) delegando toda a árvore do formulário para o widget interno `SignUpForm`.
+- **Justificativa:** reduz complexidade da tela principal e reforça o padrão de componentização por pasta da camada UI.
 - **Detalhamento funcional esperado no arquivo:**
-  - Base class: `ConsumerWidget`
-  - Bibliotecas de UI: `flutter_riverpod`, `signals_flutter`, `shadcn_flutter`, `reactive_forms`
-  - Estados visuais: `Content`, `Loading` no CTA, `Error` inline por campo via `reactive_forms` e `generalError`
-  - Hierarquia principal: `Scaffold` -> `SafeArea` -> `Center` -> `SingleChildScrollView` -> `Card` -> `ReactiveForm` -> campos -> `PasswordStrengthIndicator` -> CTA
+  - Base class: `StatelessWidget`
+  - Responsabilidade: layout estrutural e sem lógica reativa de formulário.
+  - Hierarquia principal: `Scaffold` -> `SafeArea` -> `Center` -> `SingleChildScrollView` -> `Card` -> header -> `SignUpForm`.
+
+- **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_up_form_presenter.dart` (**novo arquivo**)
+- **Mudança:** criar presenter interno para o formulário, consumindo o `signUpScreenPresenterProvider` como fonte de estado e ações do fluxo de cadastro.
+- **Justificativa:** isola responsabilidades de apresentação do formulário sem duplicar regras de negócio do presenter de tela.
+- **Regra adicional:** todas as mensagens de validação do formulário devem ser providas pelo presenter (`nameValidationMessages`, `emailValidationMessages`, `passwordValidationMessages`, `confirmPasswordValidationMessages`), sem mapas locais de validação na View.
+
+- **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_up_form_view.dart` (**novo arquivo**)
+- **Mudança:** mover os campos `reactive_forms`, `PasswordStrengthIndicator`, feedback de erro e CTA para um widget interno dedicado.
+- **Justificativa:** encapsula o conteúdo reativo do formulário e facilita evolução incremental dos componentes internos.
+
+- **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/general_error_alert/general_error_alert_view.dart` (**novo arquivo**)
+- **Mudança:** extrair alerta de erro geral para widget interno reutilizável dentro do formulário.
+- **Justificativa:** remove blocos visuais privados da view principal e melhora legibilidade.
+
+- **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_up_submit_button/sign_up_submit_button_view.dart` (**novo arquivo**)
+- **Mudança:** extrair botão de submissão com loading para widget interno.
+- **Justificativa:** separa variação de estado visual do CTA em unidade própria.
 
 - **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/index.dart`
 - **Mudança:** manter o barrel público com `typedef SignUpScreen = SignUpScreenView`, ajustando apenas imports se necessário.
@@ -308,7 +354,7 @@ lib/ui/auth/widgets/pages/
 
 ## 8.4 Usar query string para transportar o e-mail até a rota de confirmação
 
-- **Decisão:** a rota de confirmação recebe `email` via query string, construída por `Routes.emailConfirmationLocation(...)`.
+- **Decisão:** a rota de confirmação recebe `email` via query string, construída por `Routes.emailConfirmation(...)`.
 - **Alternativas consideradas:** passar `email` em `state.extra`; armazenar o e-mail temporariamente em estado global.
 - **Motivo da escolha:** query string sobrevive melhor a refresh e mantém o contrato da rota explícito no `router.dart`.
 - **Impactos / trade-offs:** o `router` precisa validar a presença do parâmetro e redirecionar quando ele estiver ausente.
@@ -334,7 +380,7 @@ SignUpScreenView
               -> AccountMapper.toSignUpJson(...)
               -> RestClient.post('/auth/sign-up')
               -> AccountMapper.toDto(...)
-      -> [201] GoRouter.go(Routes.emailConfirmationLocation(email: email))
+      -> [201] GoRouter.go(Routes.emailConfirmation(email: email))
       -> [409/422/rede] atualiza erros do `FormGroup` ou `generalError`
 
 EmailConfirmationScreenView
@@ -359,13 +405,14 @@ SignUpScreenView
             Column
               Title
               Description
-              NameField
-              EmailField
-              PasswordField
-              PasswordStrengthIndicator
-              ConfirmPasswordField
-              GeneralErrorAlert?
-              SubmitButton
+              SignUpFormView
+                NameField
+                EmailField
+                PasswordField
+                PasswordStrengthIndicator
+                ConfirmPasswordField
+                GeneralErrorAlertView?
+                SignUpSubmitButtonView
 
 EmailConfirmationScreenView
   Scaffold
