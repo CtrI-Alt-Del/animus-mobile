@@ -11,16 +11,6 @@ import 'package:animus_mobile/core/auth/interfaces/auth_service.dart';
 import 'package:animus_mobile/core/shared/responses/rest_response.dart';
 import 'package:animus_mobile/rest/services/auth_rest_service.dart';
 
-final signUpScreenPresenterProvider =
-    Provider.autoDispose<SignUpScreenPresenter>((Ref ref) {
-      final AuthService authService = ref.watch(authServiceProvider);
-      final SignUpScreenPresenter presenter = SignUpScreenPresenter(
-        authService: authService,
-      );
-      ref.onDispose(presenter.dispose);
-      return presenter;
-    });
-
 class SignUpScreenPresenter {
   final AuthService _authService;
 
@@ -352,3 +342,13 @@ class SignUpScreenPresenter {
     return errors;
   }
 }
+
+final signUpScreenPresenterProvider =
+    Provider.autoDispose<SignUpScreenPresenter>((Ref ref) {
+      final AuthService authService = ref.watch(authServiceProvider);
+      final SignUpScreenPresenter presenter = SignUpScreenPresenter(
+        authService: authService,
+      );
+      ref.onDispose(presenter.dispose);
+      return presenter;
+    });

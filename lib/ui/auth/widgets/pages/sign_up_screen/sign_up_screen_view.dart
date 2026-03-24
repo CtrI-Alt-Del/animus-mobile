@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/sign_up_form/index.dart';
+import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/top_progress_bar/index.dart';
 
 class SignUpScreenView extends StatelessWidget {
   const SignUpScreenView({super.key});
@@ -12,7 +13,7 @@ class SignUpScreenView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            const _TopProgressBar(),
+            const TopProgressBar(),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
@@ -49,23 +50,6 @@ class SignUpScreenView extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _TopProgressBar extends StatelessWidget {
-  const _TopProgressBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 2,
-      child: Row(
-        children: const <Widget>[
-          Expanded(child: ColoredBox(color: Color(0xFF5A5CFF))),
-          Expanded(child: ColoredBox(color: Color(0xFF1A1C28))),
-        ],
       ),
     );
   }
