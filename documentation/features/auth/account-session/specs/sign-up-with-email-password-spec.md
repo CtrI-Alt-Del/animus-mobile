@@ -63,7 +63,7 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 
 ## Camada Core
 
-- **`AuthService`** (`lib/core/auth/interfaces/auth_service.dart`) — contrato placeholder e sem uso; hoje expõe apenas `isLoggedInWithCredentialsAndToken`, incompatível com o PRD desta feature.
+- **`AuthService`** (`lib/core/auth/interfaces/auth_service.dart`) — contrato em evolução; hoje expõe `signIn(...)`, ainda parcialmente incompatível com o PRD desta feature.
 - **`AccountDto`** (`lib/core/auth/dtos/account_dto.dart`) — DTO de conta já existente, mas com shape desalinhado do backend (`password` obrigatório e `isActive` sem evidência no domínio documentado).
 - **`RestClient`** (`lib/core/shared/interfaces/rest_client.dart`) — contrato base para operações HTTP a ser reutilizado pelo service de autenticação.
 - **`RestResponse`** (`lib/core/shared/responses/rest_response.dart`) — wrapper comum de sucesso/falha; hoje não preserva payload estruturado de erro, o que limita o mapeamento inline na UI.
