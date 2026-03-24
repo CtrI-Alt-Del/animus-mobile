@@ -1,10 +1,20 @@
-import 'package:dio/dio.dart';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:animus_mobile/constants/env.dart';
+import 'package:animus_mobile/core/shared/interfaces/rest_client.dart';
 import 'package:animus_mobile/core/shared/responses/rest_response.dart';
 import 'package:animus_mobile/core/shared/types/json.dart';
-import 'package:animus_mobile/core/shared/interfaces/rest_client.dart';
 
 typedef QueryParams = Map<String, dynamic>;
+
+final Provider<RestClient> restClientProvider = Provider<RestClient>((Ref ref) {
+  final DioRestClient client = DioRestClient();
+  client.setBaseUrl(Env.animusServerAppUrl);
+  return client;
+});
 
 class DioRestClient implements RestClient {
   final Dio _dio;
@@ -92,23 +102,37 @@ class DioRestClient implements RestClient {
       return RestResponse<Json>(body: body, statusCode: response.statusCode);
     } on DioException catch (error) {
       final dynamic data = error.response?.data;
-      String? errorMessage;
-      if (data is Json &&
-          data['title'] is String &&
-          data['message'] is String) {
-        errorMessage = data['message'] as String;
-      } else {
-        errorMessage = error.message;
-      }
+      final Json? errorBody = data is Json ? data : null;
+      final String? errorMessage = _resolveErrorMessage(error, errorBody);
       return RestResponse<Json>(
         statusCode: error.response?.statusCode,
         errorMessage: errorMessage,
+        errorBody: errorBody,
       );
     } catch (error) {
       return RestResponse<Json>(
-        statusCode: 500,
+        statusCode: HttpStatus.internalServerError,
         errorMessage: error.toString(),
       );
     }
+  }
+
+  String? _resolveErrorMessage(DioException error, Json? errorBody) {
+    if (errorBody == null) {
+      return error.message;
+    }
+
+    final dynamic title = errorBody['title'];
+    final dynamic message = errorBody['message'];
+
+    if (title is String && message is String && message.isNotEmpty) {
+      return message;
+    }
+
+    if (message is String && message.isNotEmpty) {
+      return message;
+    }
+
+    return error.message;
   }
 }

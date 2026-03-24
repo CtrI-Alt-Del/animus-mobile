@@ -5,15 +5,13 @@ class AccountDto {
   final String name;
   final String email;
   final bool isVerified;
-  final bool isActive;
-  final List<SocialAccountDto>? socialAccounts;
+  final List<SocialAccountDto> socialAccounts;
 
   const AccountDto({
     required this.name,
     required this.email,
     this.id,
     this.isVerified = false,
-    this.isActive = true,
-    this.socialAccounts,
+    this.socialAccounts = const <SocialAccountDto>[],
   });
 }
