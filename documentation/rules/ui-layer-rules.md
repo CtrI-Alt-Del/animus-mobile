@@ -136,10 +136,12 @@ lib/ui/{modulo}/
 - Componentes internos organizados em subpastas quando a tela crescer ou quando houver reuso local.
 - Mensagens de validacao de formulario providas pelo Presenter (a View apenas consome os mapas/formatadores).
 - Uso consistente de tema, textos, feedbacks e empty states alinhados ao fluxo do produto.
+- Widgets privados com responsabilidade visual propria devem ser extraidos para widgets internos em pasta propria dentro da pasta do widget pai.
 
 ## ❌ O que NUNCA deve conter
 
 - Regra de negocio dentro de Views.
 - Parse de API ou montagem manual de payload na camada visual.
-- Chamadas diretas a `Dio`, `WebSocketChannel`, `SharedPreferences` ou `dotenv` para substituir trabalho de outras camadas.
+- Chamadas diretas a `Dio`, `SharedPreferences` ou `dotenv` para substituir trabalho de outras camadas.
 - Widgets gigantes sustentados por dezenas de `_build...` quando a estrutura ja pede separacao.
+- Widgets privados definidos no mesmo arquivo da View quando houver responsabilidade propria que possa ser isolada em widget interno com pasta dedicada.

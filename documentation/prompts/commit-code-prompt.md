@@ -31,9 +31,34 @@ Nunca apenas sugira commits. Nunca pare somente na mensagem. **Sempre execute os
 
 Antes de qualquer comando git, valide se a entrada do usuario forneceu a task Jira.
 
-- Se **nao** houver `JIRA-TASK-ID` valido (formato `ANI-123`), **interrompa a execucao imediatamente**
-- Nao execute `git status`, `git add` ou `git commit` sem task Jira
-- Responda exatamente: `ERROR: Missing Jira task id (expected format: ANI-123)`
+> ⚠️ **REGRA DE INFERENCIA PELO NOME DA BRANCH**
+>
+> Se o usuario **nao informar** o `JIRA-TASK-ID`, voce **NAO deve interromper imediatamente**.
+> Antes, execute obrigatoriamente:
+>
+> ```bash
+> git branch --show-current
+> ```
+>
+> Extraia o ID no formato `ANI-123` do nome da branch. Exemplos de branches validas:
+>
+> - `feature/ANI-42-add-login` → `ANI-42`
+> - `ANI-77-fix-duplicate-achievement` → `ANI-77`
+> - `bugfix/ANI-123` → `ANI-123`
+>
+> Use o ID extraido como `JIRA-TASK-ID` para todos os commits.
+>
+> **Somente se a branch nao contiver um ID valido no formato `ANI-123`**, interrompa a execucao com:
+>
+> ```
+> ERROR: Missing Jira task id (expected format: ANI-123). Branch name also does not contain a valid task id.
+> ```
+
+Regras de validacao do ID:
+
+- Se **fornecido pelo usuario** no formato `ANI-123` → use diretamente
+- Se **nao fornecido** → tente extrair do nome da branch com `git branch --show-current`
+- Se **nenhuma das duas fontes** tiver um ID valido → interrompa a execucao
 
 ---
 
