@@ -1,4 +1,4 @@
-import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:flutter/material.dart';
 
 import 'package:animus_mobile/router.dart';
 import 'package:animus_mobile/theme.dart';
@@ -8,9 +8,11 @@ class AnimusApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShadcnApp.router(
+    return MaterialApp.router(
       title: 'Animus',
-      theme: AppTheme.light,
+      theme: AppTheme.dark,
+      darkTheme: AppTheme.dark,
+      themeMode: AppTheme.defaultThemeMode,
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
     );

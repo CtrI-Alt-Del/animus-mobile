@@ -5,16 +5,6 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_presenter.dart';
 
-final signUpFormPresenterProvider = Provider.autoDispose<SignUpFormPresenter>((
-  Ref ref,
-) {
-  final SignUpScreenPresenter screenPresenter = ref.watch(
-    signUpScreenPresenterProvider,
-  );
-
-  return SignUpFormPresenter(screenPresenter: screenPresenter);
-});
-
 class SignUpFormPresenter {
   final SignUpScreenPresenter _screenPresenter;
 
@@ -101,3 +91,13 @@ final Map<String, String Function(Object)> _confirmPasswordValidationMessages =
       ValidationMessage.mustMatch: (_) => 'As senhas precisam ser iguais.',
       'server': (Object error) => error.toString(),
     };
+
+final signUpFormPresenterProvider = Provider.autoDispose<SignUpFormPresenter>((
+  Ref ref,
+) {
+  final SignUpScreenPresenter screenPresenter = ref.watch(
+    signUpScreenPresenterProvider,
+  );
+
+  return SignUpFormPresenter(screenPresenter: screenPresenter);
+});
