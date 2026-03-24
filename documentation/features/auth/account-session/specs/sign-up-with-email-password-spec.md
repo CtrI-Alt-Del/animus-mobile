@@ -3,13 +3,14 @@ title: Sign Up com E-mail e Senha
 prd: https://joaogoliveiragarcia.atlassian.net/wiki/x/AwACAQ
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-40
 status: open
-last_updated_at: 2026-03-23
+last_updated_at: 2026-03-24
 ---
 
 ## Histórico de Alterações
 
 | Data | Seções | Motivo |
 |---|---|---|
+| 2026-03-24 | #5, #6, #9 | Extração do `TopProgressBar` para widget interno próprio de `sign_up_screen`, removendo classe privada local da view raiz e alinhando a composição por pastas da camada UI. |
 | 2026-03-23 | #5, #6, #9, #10 | Refatoração estrutural da UI de cadastro com criação do widget interno `sign_up_form` com presenter próprio e extração de widgets internos para reduzir acoplamento da tela raiz. |
 | 2026-03-23 | #5, #6, #9 | Centralização das mensagens de validação do formulário no `sign_up_form_presenter` e extração de `_RuleItem` para widget interno em `password_strength_indicator/rule_item`. |
 
@@ -155,6 +156,11 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 - **Tipo:** widgets internos do formulário
 - **Responsabilidade:** separar feedback de erro geral e CTA de submissão em componentes com responsabilidade única, sem criar pasta intermediária `widgets/`.
 
+- **Localização:** `lib/ui/auth/widgets/pages/sign_up_screen/top_progress_bar/` (**novo arquivo** em pasta nova)
+- **Tipo:** view only
+- **Arquivos:** `top_progress_bar_view.dart`, `index.dart`
+- **Responsabilidade:** renderizar a barra visual superior de progresso da tela de cadastro como widget interno dedicado, substituindo classe privada local em `sign_up_screen_view.dart`.
+
 ## Camada UI (Barrel Files / `index.dart`)
 
 - **Localização:** `lib/ui/auth/widgets/pages/email_confirmation_screen/index.dart` (**novo arquivo**)
@@ -192,6 +198,9 @@ lib/ui/auth/widgets/pages/
       rule_item/
         index.dart
         rule_item_view.dart
+    top_progress_bar/
+      index.dart
+      top_progress_bar_view.dart
     sign_up_form/
       index.dart
       sign_up_form_view.dart
@@ -285,7 +294,7 @@ lib/ui/auth/widgets/pages/
     - `Future<void> submit(BuildContext context)` — marca o formulário como touched, valida o `FormGroup`, chama `AuthService.signUp`, mapeia erros de backend para os controles/`generalError` e navega para `Routes.emailConfirmation(email: email)` em caso de `201`.
 
 - **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_view.dart`
-- **Mudança:** transformar a tela raiz em composição enxuta (header + container) delegando toda a árvore do formulário para o widget interno `SignUpForm`.
+- **Mudança:** transformar a tela raiz em composição enxuta (barra superior + header + container), delegando a barra de progresso para o widget interno `TopProgressBar` e toda a árvore do formulário para o widget interno `SignUpForm`.
 - **Justificativa:** reduz complexidade da tela principal e reforça o padrão de componentização por pasta da camada UI.
 - **Detalhamento funcional esperado no arquivo:**
   - Base class: `StatelessWidget`
@@ -312,6 +321,10 @@ lib/ui/auth/widgets/pages/
 - **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/index.dart`
 - **Mudança:** manter o barrel público com `typedef SignUpScreen = SignUpScreenView`, ajustando apenas imports se necessário.
 - **Justificativa:** o padrão já está correto e deve permanecer como fronteira pública da pasta.
+
+- **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/top_progress_bar/top_progress_bar_view.dart` (**novo arquivo**)
+- **Mudança:** extrair a barra superior de progresso da tela para widget interno dedicado (`TopProgressBarView`), com barrel local em `top_progress_bar/index.dart`.
+- **Justificativa:** evita classe privada de responsabilidade visual própria dentro da view raiz e mantém consistência com a regra de componentização por pasta.
 
 ---
 
@@ -399,6 +412,7 @@ EmailConfirmationScreenView
 SignUpScreenView
   Scaffold
     SafeArea
+      TopProgressBarView
       Center
         SingleChildScrollView
           Card
@@ -430,6 +444,7 @@ EmailConfirmationScreenView
 ## Referências
 
 - `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_view.dart` — referência direta do widget que será evoluído.
+- `lib/ui/auth/widgets/pages/sign_up_screen/top_progress_bar/top_progress_bar_view.dart` — referência do widget interno responsável pela barra superior de progresso.
 - `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_presenter.dart` — referência direta do presenter que será refatorado.
 - `lib/ui/auth/widgets/pages/sign_up_screen/index.dart` — referência do padrão de barrel file já adotado no módulo.
 - `lib/core/shared/responses/rest_response.dart` — base para a evolução do wrapper de erro/sucesso.
