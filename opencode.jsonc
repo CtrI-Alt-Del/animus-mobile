@@ -19,7 +19,7 @@
     },
     "pencil": {
       "command": [
-        "C:\\Users\\petros\\AppData\\Local\\Programs\\Pencil\\resources\\app.asar.unpacked\\out\\mcp-server-windows-x64.exe",
+        "C:\\Users\\ADS_DSM\\AppData\\Local\\Programs\\Pencil\\resources\\app.asar.unpacked\\out\\mcp-server-windows-x64.exe",
         "--app",
         "desktop"
       ],
