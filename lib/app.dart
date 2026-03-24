@@ -9,7 +9,7 @@ class AnimusApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Animus',
-      theme: AppTheme.light,
+      theme: AppTheme.dark,
       routerConfig: appRouter,
     );
   }
