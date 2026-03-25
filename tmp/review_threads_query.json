@@ -1,0 +1,1 @@
+{"query":"query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { pullRequest(number: $number) { reviewThreads(first: 100) { nodes { id isResolved comments(first: 20) { nodes { body path line author { login } createdAt } } } } } } }","variables":{"owner":"CtrI-Alt-Del","repo":"animus-mobile","number":3}}
