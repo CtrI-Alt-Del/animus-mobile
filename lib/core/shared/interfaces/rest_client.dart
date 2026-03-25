@@ -1,5 +1,5 @@
-import 'package:animus_mobile/core/shared/responses/rest_response.dart';
-import 'package:animus_mobile/core/shared/types/json.dart';
+import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/core/shared/types/json.dart';
 
 abstract class RestClient {
   Future<RestResponse<Json>> get(String path, {Json? queryParams});

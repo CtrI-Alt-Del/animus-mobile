@@ -1,9 +1,8 @@
-class SessionDto {
-  final String accessToken;
-  final String refreshToken;
+import 'package:animus/core/auth/dtos/token_dto.dart';
 
-  const SessionDto({
-    required this.accessToken,
-    required this.refreshToken,
-  });
+class SessionDto {
+  final TokenDto accessToken;
+  final TokenDto refreshToken;
+
+  const SessionDto({required this.accessToken, required this.refreshToken});
 }

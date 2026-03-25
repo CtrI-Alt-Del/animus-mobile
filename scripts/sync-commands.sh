@@ -7,6 +7,7 @@ OUT_DIRS=(
   ".opencode/commands"
   ".claude/commands"
   ".codex/prompts"
+  ".agent/workflows"
 )
 
 # Garante que existem prompts

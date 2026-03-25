@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-const Color _amber = Color(0xFFFFB547);
+const Color _amber = Color(0xFFFBE26D);
+const Color _amberStrong = Color(0xFFC4A535);
 const Color _bgCard = Color(0xFF16161A);
 const Color _bgElevated = Color(0xFF1A1A1E);
 const Color _bgPage = Color(0xFF0B0B0E);
@@ -27,8 +28,13 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
     required this.surfaceElevated,
     required this.borderSubtle,
     required this.borderStrong,
+    required this.textPrimary,
+    required this.textSecondary,
     required this.textMuted,
     required this.textTertiary,
+    required this.accent,
+    required this.accentStrong,
+    required this.white,
     required this.success,
     required this.successDark,
     required this.warning,
@@ -42,8 +48,13 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
   final Color surfaceElevated;
   final Color borderSubtle;
   final Color borderStrong;
+  final Color textPrimary;
+  final Color textSecondary;
   final Color textMuted;
   final Color textTertiary;
+  final Color accent;
+  final Color accentStrong;
+  final Color white;
   final Color success;
   final Color successDark;
   final Color warning;
@@ -58,8 +69,13 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
     Color? surfaceElevated,
     Color? borderSubtle,
     Color? borderStrong,
+    Color? textPrimary,
+    Color? textSecondary,
     Color? textMuted,
     Color? textTertiary,
+    Color? accent,
+    Color? accentStrong,
+    Color? white,
     Color? success,
     Color? successDark,
     Color? warning,
@@ -73,8 +89,13 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
       surfaceElevated: surfaceElevated ?? this.surfaceElevated,
       borderSubtle: borderSubtle ?? this.borderSubtle,
       borderStrong: borderStrong ?? this.borderStrong,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
       textMuted: textMuted ?? this.textMuted,
       textTertiary: textTertiary ?? this.textTertiary,
+      accent: accent ?? this.accent,
+      accentStrong: accentStrong ?? this.accentStrong,
+      white: white ?? this.white,
       success: success ?? this.success,
       successDark: successDark ?? this.successDark,
       warning: warning ?? this.warning,
@@ -100,9 +121,16 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
           Color.lerp(borderSubtle, other.borderSubtle, t) ?? borderSubtle,
       borderStrong:
           Color.lerp(borderStrong, other.borderStrong, t) ?? borderStrong,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t) ?? textPrimary,
+      textSecondary:
+          Color.lerp(textSecondary, other.textSecondary, t) ?? textSecondary,
       textMuted: Color.lerp(textMuted, other.textMuted, t) ?? textMuted,
       textTertiary:
           Color.lerp(textTertiary, other.textTertiary, t) ?? textTertiary,
+      accent: Color.lerp(accent, other.accent, t) ?? accent,
+      accentStrong:
+          Color.lerp(accentStrong, other.accentStrong, t) ?? accentStrong,
+      white: Color.lerp(white, other.white, t) ?? white,
       success: Color.lerp(success, other.success, t) ?? success,
       successDark: Color.lerp(successDark, other.successDark, t) ?? successDark,
       warning: Color.lerp(warning, other.warning, t) ?? warning,
@@ -118,14 +146,21 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
 final class AppTheme {
   const AppTheme._();
 
+  static const ThemeMode defaultThemeMode = ThemeMode.dark;
+
   static const AppThemeTokens tokens = AppThemeTokens(
     surfacePage: _bgPage,
     surfaceCard: _bgCard,
     surfaceElevated: _bgElevated,
     borderSubtle: _borderSubtle,
     borderStrong: _borderStrong,
+    textPrimary: _textPrimary,
+    textSecondary: _textSecondary,
     textMuted: _textMuted,
     textTertiary: _textTertiary,
+    accent: _amber,
+    accentStrong: _amberStrong,
+    white: _white,
     success: _green,
     successDark: _greenDark,
     warning: _amber,
@@ -287,21 +322,21 @@ final class AppTheme {
     );
 
     return base.copyWith(
-      displayLarge: _serif(base.displayLarge, 32, FontWeight.w600, -0.8),
-      displayMedium: _serif(base.displayMedium, 28, FontWeight.w500, -0.8),
-      displaySmall: _serif(base.displaySmall, 24, FontWeight.w600, -0.5),
-      headlineLarge: _serif(base.headlineLarge, 28, FontWeight.w500, -0.8),
-      headlineMedium: _serif(base.headlineMedium, 24, FontWeight.w600, -0.5),
-      headlineSmall: _serif(base.headlineSmall, 18, FontWeight.w600, -0.3),
-      titleLarge: _sans(base.titleLarge, 20, FontWeight.w700, -0.2),
-      titleMedium: _sans(base.titleMedium, 18, FontWeight.w600, -0.2),
-      titleSmall: _sans(base.titleSmall, 16, FontWeight.w600, 0),
-      bodyLarge: _sans(base.bodyLarge, 16, FontWeight.w400, 0),
-      bodyMedium: _sans(base.bodyMedium, 12, FontWeight.w400, 0),
-      bodySmall: _sans(base.bodySmall, 10, FontWeight.w400, 0),
-      labelLarge: _sans(base.labelLarge, 16, FontWeight.w700, 0),
-      labelMedium: _sans(base.labelMedium, 12, FontWeight.w500, 0),
-      labelSmall: _sans(base.labelSmall, 10, FontWeight.w600, 0),
+      displayLarge: _serif(base.displayLarge, 56, FontWeight.w600, -1.2),
+      displayMedium: _serif(base.displayMedium, 48, FontWeight.w500, -1.0),
+      displaySmall: _serif(base.displaySmall, 40, FontWeight.w600, -0.8),
+      headlineLarge: _serif(base.headlineLarge, 36, FontWeight.w500, -0.8),
+      headlineMedium: _serif(base.headlineMedium, 32, FontWeight.w600, -0.6),
+      headlineSmall: _serif(base.headlineSmall, 28, FontWeight.w600, -0.4),
+      titleLarge: _sans(base.titleLarge, 26, FontWeight.w700, -0.3),
+      titleMedium: _sans(base.titleMedium, 22, FontWeight.w600, -0.2),
+      titleSmall: _sans(base.titleSmall, 20, FontWeight.w600, 0.0),
+      bodyLarge: _sans(base.bodyLarge, 22, FontWeight.w400, 0.0),
+      bodyMedium: _sans(base.bodyMedium, 18, FontWeight.w400, 0.0),
+      bodySmall: _sans(base.bodySmall, 14, FontWeight.w400, 0.0),
+      labelLarge: _sans(base.labelLarge, 18, FontWeight.w700, 0.0),
+      labelMedium: _sans(base.labelMedium, 16, FontWeight.w500, 0.0),
+      labelSmall: _sans(base.labelSmall, 14, FontWeight.w600, 0.0),
     );
   }
 

@@ -1,81 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'sign_up_screen_presenter.dart';
+import 'package:animus/theme.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/brand_header/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/header/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/top_progress_bar/index.dart';
 
-class SignUpScreenView extends ConsumerWidget {
+class SignUpScreenView extends StatelessWidget {
   const SignUpScreenView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final SignUpScreenPresenter presenter = ref.watch(signUpScreenPresenterProvider);
+  Widget build(BuildContext context) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Criar conta')),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Form(
-                key: presenter.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Cadastro no Animus',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Preencha os dados para criar sua conta.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: presenter.nameController,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome completo',
-                        border: OutlineInputBorder(),
+      backgroundColor: tokens.surfacePage,
+      body: Column(
+        children: <Widget>[
+          const TopProgressBar(),
+          Expanded(
+            child: SafeArea(
+              bottom: false,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 402),
+                  child: Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                          child: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                30,
+                                20,
+                                24,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: <Widget>[
+                                  const BrandHeader(),
+                                  const SizedBox(height: 24),
+                                  const Header(),
+                                  const SizedBox(height: 24),
+                                  const SignUpForm(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                      validator: presenter.validateName,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: presenter.emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'E-mail',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: presenter.validateEmail,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: presenter.passwordController,
-                      obscureText: true,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => presenter.submit(context),
-                      decoration: const InputDecoration(
-                        labelText: 'Senha',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: presenter.validatePassword,
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: () => presenter.submit(context),
-                      child: const Text('Cadastrar'),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

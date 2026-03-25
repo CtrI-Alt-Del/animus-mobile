@@ -118,6 +118,8 @@ lib/rest/
 - Conversao explicita entre `snake_case` remoto e DTOs do Core.
 - Retorno tipado com `RestResponse<T>` e `PaginationResponse<T>` quando aplicavel.
 - Tratamento defensivo de erro e de formatos variaveis de resposta na borda da integracao.
+- Mappers de DTO com responsabilidade coesa por agregado ou caso de uso, mantendo cada `{nome}_mapper.dart` restrito ao mapeamento do proprio DTO (`toDto` e, quando necessario, `toJson` do proprio DTO).
+- Montagem de payload de request diretamente no service da camada REST, com `Map<String, dynamic>` local ao metodo, quando o payload nao representa DTO compartilhado.
 
 ## ❌ O que NUNCA deve conter
 
@@ -125,3 +127,5 @@ lib/rest/
 - Regra de negocio de produto escondida em service ou mapper.
 - Vazamento de `Dio`, `Response`, `Map<String, dynamic>` cru ou nomes de campos remotos para a UI.
 - Services gigantes que agregam dominios sem relacao ou mappers com side effects.
+- Centralizar em mapper de DTO serializacao de requests de fluxos nao relacionados ao proprio DTO (ex.: `toSignUpJson`, `toResendVerificationEmailJson`, `toVerifyEmailJson` dentro de mapper de conta).
+- Criar mapper dedicado apenas para payload de request que e usado em um unico metodo de service, em vez de montar o `Map<String, dynamic>` diretamente no proprio service.

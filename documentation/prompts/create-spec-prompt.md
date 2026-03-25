@@ -1,11 +1,11 @@
 ---
-description: Prompt para criar uma especificação técnica detalhada com base no PRD e na arquitetura do animus_mobile.
+description: Prompt para criar uma especificação técnica detalhada com base no PRD e na arquitetura do animus.
 ---
 
 # Prompt: Criar Spec
 
 **Objetivo:** Detalhar a implementação técnica de uma feature, fix ou
-refatoração no `animus_mobile`, atuando como um Tech Lead Sênior. O documento
+refatoração no `animus`, atuando como um Tech Lead Sênior. O documento
 deve servir como uma ponte estritamente definida entre o PRD e o código, com
 nível de detalhe suficiente para que a implementação seja direta e sem
 ambiguidades.
@@ -47,7 +47,7 @@ Com base no PRD e no esboço da tarefa, classifique as camadas envolvidas:
 
 Consulte as regras específicas por camada conforme o escopo:
 
-- `documentation/rules/ui-layer-rules.md` — MVP, `shadcn_flutter`, Signals, Riverpod
+- `documentation/rules/ui-layer-rules.md` — MVP, Material UI, Signals, Riverpod
 - `documentation/rules/core-layer-rules.md` — DTOs, interfaces, tipos de resposta
 - `documentation/rules/rest-layer-rules.md` — Services, Mappers, RestClient, Dio
 - `documentation/rules/drivers-layer-rules.md` — adaptadores de infra externos
@@ -94,7 +94,7 @@ Com base na pesquisa, tome as decisões de implementação:
 - **MCP Serena:** use para localizar arquivos e implementações similares na
   codebase. Acione sempre na fase de pesquisa.
 - **MCP Context7:** use quando houver dúvida sobre uso correto de uma biblioteca
-  específica (ex: `shadcn_flutter`, `signals`, `go_router`, `dio`, `riverpod`,
+  específica (ex: `signals`, `go_router`, `dio`, `riverpod`,
   `reactive_forms`). Não use para decisões de arquitetura.
 - **Google Stitch:** use quando houver `screen_id` para validar layout e
   hierarquia visual antes de detalhar widgets.
@@ -108,7 +108,7 @@ Com base na pesquisa, tome as decisões de implementação:
 
 - Seja direto; prefira listas e tabelas a blocos longos de texto.
 - Use **negrito** para conceitos/decisões e `code` para termos técnicos
-  (ex: `Riverpod`, `Signals`, `GoRouter`, `Dio`, `shadcn_flutter`, `DTO`).
+  (ex: `Riverpod`, `Signals`, `GoRouter`, `Dio`, `DTO`).
 - Escreva em PT-BR; mantenha termos de programação em inglês e em `code`.
 - **Nível de detalhe esperado em métodos:** descreva a assinatura Dart (nome,
   parâmetros tipados e retorno) e uma linha de responsabilidade. Não escreva
@@ -246,7 +246,7 @@ detalhe e marque explicitamente como **novo arquivo**.]
 - **Localização:** `lib/ui/<modulo>/widgets/<pasta>/<nome>_view.dart` (**novo arquivo** se aplicável)
 - **Base class:** `ConsumerWidget` | `StatelessWidget`
 - **Props:** parâmetros recebidos com tipos
-- **Bibliotecas de UI:** ex: `flutter_riverpod`, `signals_flutter`, `shadcn_flutter`, `reactive_forms`
+- **Bibliotecas de UI:** ex: `flutter_riverpod`, `signals_flutter`, `reactive_forms`
 - **Estados visuais** *(quando aplicável):* Loading, Error, Empty, Content
 
 ## Camada UI (Widgets Internos)
@@ -392,8 +392,7 @@ Para cada item:
 - Se uma seção não se aplicar, preencher explicitamente com **Não aplicável**.
 - Toda widget com lógica ou subwidgets complexos deve ter pasta própria com
   `index.dart`, `*_view.dart` e `*_presenter.dart` (quando houver estado).
-- Use exclusivamente `shadcn_flutter` para componentes de UI — sem
-  `Material UI` direto.
+- Use componentes Flutter Material alinhados ao tema do projeto.
 - A spec deve ser consistente com os padrões da codebase (nomenclatura
   `snake_case` para arquivos, `PascalCase` para classes, barrel files por
   widget).
