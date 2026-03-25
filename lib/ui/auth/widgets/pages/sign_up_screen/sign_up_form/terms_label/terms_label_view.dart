@@ -16,15 +16,17 @@ class TermsLabelView extends StatelessWidget {
     return Row(
       children: <Widget>[
         SizedBox(
-          height: 20,
-          width: 20,
-          child: ReactiveCheckbox(
-            formControlName: 'termsAccepted',
-            activeColor: tokens.accent,
-            checkColor: tokens.white,
-            side: BorderSide(color: tokens.accent.withValues(alpha: 0.35)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+          height: 48,
+          width: 48,
+          child: Center(
+            child: ReactiveCheckbox(
+              formControlName: 'termsAccepted',
+              activeColor: tokens.accent,
+              checkColor: tokens.white,
+              side: BorderSide(color: tokens.accent.withValues(alpha: 0.35)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
             ),
           ),
         ),

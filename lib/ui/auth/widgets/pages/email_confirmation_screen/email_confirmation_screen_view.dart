@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'package:animus/theme.dart';
 import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_presenter.dart';
 import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/message_box/index.dart';
 
@@ -17,13 +18,16 @@ class EmailConfirmationScreenView extends ConsumerWidget {
     final EmailConfirmationScreenPresenter presenter = ref.watch(
       emailConfirmationScreenPresenterProvider(email),
     );
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0E),
+      backgroundColor: tokens.surfacePage,
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            Container(height: 2, color: const Color(0xFFFBE26D)),
+            Container(height: 2, color: tokens.accent),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
@@ -38,20 +42,19 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               Icon(
                                 Icons.balance,
-                                color: Color(0xFFFBE26D),
+                                color: tokens.accent,
                                 size: 28,
                               ),
                               SizedBox(width: 8),
                               Text(
                                 'Animus',
-                                style: TextStyle(
-                                  color: Color(0xFFFBE26D),
-                                  fontSize: 38,
+                                style: textTheme.headlineMedium?.copyWith(
+                                  color: tokens.accent,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: -0.8,
                                 ),
@@ -59,21 +62,19 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'Inteligencia juridica ao seu lado',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color(0x99FBE26D),
-                              fontSize: 13,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: tokens.accent.withValues(alpha: 0.6),
                             ),
                           ),
                           const SizedBox(height: 28),
-                          const Text(
+                          Text(
                             'Verifique seu e-mail',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color(0xFFFAFAF9),
-                              fontSize: 36,
+                            style: textTheme.headlineLarge?.copyWith(
+                              color: tokens.textPrimary,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.8,
                             ),
@@ -83,9 +84,8 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                             'Enviamos um codigo OTP de 6 digitos para $email. '
                             'Digite o codigo para liberar o acesso ao app.',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xFF6B6B70),
-                              fontSize: 14,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: tokens.textSecondary,
                               height: 1.4,
                             ),
                           ),
@@ -96,26 +96,25 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                               vertical: 14,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1A1A1E),
+                              color: tokens.surfaceElevated,
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: const Color(0x33FBE26D),
+                                color: tokens.accent.withValues(alpha: 0.2),
                               ),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: <Widget>[
                                 Icon(
                                   Icons.mark_email_read_outlined,
-                                  color: Color(0xFFFBE26D),
+                                  color: tokens.accent,
                                   size: 18,
                                 ),
-                                SizedBox(width: 12),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     'Codigo enviado para o e-mail cadastrado. Validade de 1 hora.',
-                                    style: TextStyle(
-                                      color: Color(0xFFFAFAF9),
-                                      fontSize: 13,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: tokens.textPrimary,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -128,15 +127,14 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                             numberOfFields: 6,
                             fieldWidth: 52,
                             borderRadius: BorderRadius.circular(12),
-                            borderColor: const Color(0xFF2A2A2E),
-                            focusedBorderColor: const Color(0xFFFBE26D),
-                            enabledBorderColor: const Color(0xFF2A2A2E),
-                            fillColor: const Color(0xFF1A1A1E),
+                            borderColor: tokens.borderSubtle,
+                            focusedBorderColor: tokens.accent,
+                            enabledBorderColor: tokens.borderSubtle,
+                            fillColor: tokens.surfaceElevated,
                             filled: true,
                             showFieldAsBox: true,
-                            textStyle: const TextStyle(
-                              color: Color(0xFFFAFAF9),
-                              fontSize: 20,
+                            textStyle: textTheme.titleMedium?.copyWith(
+                              color: tokens.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                             onCodeChanged: (String code) {
@@ -150,12 +148,11 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                             },
                           ),
                           const SizedBox(height: 10),
-                          const Text(
+                          Text(
                             'Codigo valido por 1 hora. Se ele expirar, voce pode solicitar um novo envio.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color(0xFF8E8E93),
-                              fontSize: 13,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: tokens.textMuted,
                             ),
                           ),
                           Watch((BuildContext context) {
@@ -169,9 +166,8 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                               child: Text(
                                 error,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Color(0xFFEF4444),
-                                  fontSize: 13,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: tokens.danger,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -187,7 +183,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                               padding: const EdgeInsets.only(top: 10),
                               child: MessageBox(
                                 message: feedback,
-                                color: const Color(0xFFFBE26D),
+                                color: tokens.accent,
                               ),
                             );
                           }),
@@ -202,7 +198,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                               padding: const EdgeInsets.only(top: 10),
                               child: MessageBox(
                                 message: error,
-                                color: const Color(0xFFEF4444),
+                                color: tokens.danger,
                               ),
                             );
                           }),
@@ -217,11 +213,10 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                     ? null
                                     : () => presenter.verifyOtp(context),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFBE26D),
-                                  foregroundColor: const Color(0xFF0B0B0E),
-                                  disabledBackgroundColor: const Color(
-                                    0xFFFBE26D,
-                                  ).withValues(alpha: 0.6),
+                                  backgroundColor: tokens.accent,
+                                  foregroundColor: tokens.surfacePage,
+                                  disabledBackgroundColor: tokens.accent
+                                      .withValues(alpha: 0.6),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -230,8 +225,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                   isVerifying
                                       ? 'Validando...'
                                       : 'Confirmar e-mail',
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  style: textTheme.labelMedium?.copyWith(
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -252,11 +246,10 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 spacing: 4,
                                 children: <Widget>[
-                                  const Text(
+                                  Text(
                                     'Nao recebeu o codigo?',
-                                    style: TextStyle(
-                                      color: Color(0xFF8E8E93),
-                                      fontSize: 13,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: tokens.textMuted,
                                     ),
                                   ),
                                   InkWell(
@@ -269,9 +262,9 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                           : 'Reenviar',
                                       style: TextStyle(
                                         color: resendBlocked
-                                            ? const Color(0xFF6B6B70)
-                                            : const Color(0xFFFBE26D),
-                                        fontSize: 13,
+                                            ? tokens.textSecondary
+                                            : tokens.accent,
+                                        fontSize: textTheme.bodySmall?.fontSize,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -280,9 +273,8 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                     resendCountdown > 0
                                         ? 'em ${presenter.resendCountdownLabel}'
                                         : '',
-                                    style: const TextStyle(
-                                      color: Color(0xFF8E8E93),
-                                      fontSize: 13,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: tokens.textMuted,
                                     ),
                                   ),
                                 ],
