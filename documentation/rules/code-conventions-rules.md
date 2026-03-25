@@ -36,10 +36,10 @@ Este documento estabelece as convenções de código adotadas no projeto Animus 
 As importações devem ser organizadas em blocos separados por uma linha em branco, seguindo a hierarquia de camadas:
 
 1.  **Bibliotecas Externas e SDK:** (`dart:*`, `package:flutter/*`, pacotes de terceiros).
-2.  **Camada Core:** (`package:animus_mobile/core/*`).
-3.  **Camada Rest:** (`package:animus_mobile/rest/*`).
-4.  **Camada Drivers:** (`package:animus_mobile/drivers/*`).
-5.  **Camada UI:** (`package:animus_mobile/ui/*`).
+2.  **Camada Core:** (`package:animus/core/*`).
+3.  **Camada Rest:** (`package:animus/rest/*`).
+4.  **Camada Drivers:** (`package:animus/drivers/*`).
+5.  **Camada UI:** (`package:animus/ui/*`).
 
 ### Exemplo
 ```dart
@@ -47,20 +47,19 @@ As importações devem ser organizadas em blocos separados por uma linha em bran
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 // 2. Camada Core
-import 'package:animus_mobile/core/catalog/dtos/product_dto.dart';
-import 'package:animus_mobile/core/catalog/interfaces/catalog_service.dart';
+import 'package:animus/core/catalog/dtos/product_dto.dart';
+import 'package:animus/core/catalog/interfaces/catalog_service.dart';
 
 // 3. Camada Rest
-import 'package:animus_mobile/rest/dio/dio_rest_client.dart';
+import 'package:animus/rest/dio/dio_rest_client.dart';
 
 // 5. Camada UI
-import 'package:animus_mobile/ui/catalog/widgets/screens/catalog/products-list/product-card/product_card_presenter.dart';
+import 'package:animus/ui/catalog/widgets/screens/catalog/products-list/product-card/product_card_presenter.dart';
 ```
 
 ## 5. Manutenibilidade & Regras Gerais
 *   **Imutabilidade:** Prefira o uso de `final` em campos de classes e variáveis locais sempre que possível.
 *   **Tratamento de Erros:** Utilize o `RestResponse<T>` definido no Core para encapsular falhas de API.
-*   **Imports Relativos:** Evite imports relativos (`../../`) para arquivos fora do diretório local; utilize sempre o caminho absoluto do pacote (`package:animus_mobile/...`).
+*   **Imports Relativos:** Evite imports relativos (`../../`) para arquivos fora do diretório local; utilize sempre o caminho absoluto do pacote (`package:animus/...`).

@@ -4,10 +4,10 @@ description: Prompt para concluir uma spec com validação final, atualização 
 
 # Prompt: Conclude Spec
 
-**Objetivo:** Finalizar e consolidar a implementação de uma Spec técnica,
-garantindo que o código esteja polido, documentado e validado — produzindo ao
-final um checklist de validação, os documentos atualizados e um rascunho
-estruturado para o Pull Request.
+**Objetivo:** Finalizar e consolidar a implementação de uma Spec técnica no
+Animus Mobile, garantindo que o código Flutter esteja polido, documentado e
+validado no contexto do app — produzindo ao final um checklist de validação, os
+documentos atualizados e um resumo estruturado para PR.
 
 ---
 
@@ -15,13 +15,7 @@ estruturado para o Pull Request.
 
 - **Spec Técnica:** O documento que guiou a implementação
   (`documentation/features/<modulo>/specs/<nome>-spec.md`), injetado
-  integralmente no contexto.
-- **Diff do Código:** As alterações realizadas nas camadas UI, Core, Rest e
-  Drivers, injetadas como contexto para permitir verificação real dos requisitos.
-
-> ⚠️ Ambas as entradas devem estar presentes no contexto antes da execução.
-> Não simule a verificação caso alguma delas esteja ausente — interrompa e
-> sinalize o que está faltando.
+  como caminho para o arquivo no contexto.
 
 ---
 
@@ -30,51 +24,78 @@ estruturado para o Pull Request.
 Esta fase é analítica e deve ser concluída antes de qualquer atualização de
 documento.
 
-**1.1 Formatação**
+**1.1 Testes**
 
-Execute `dart format .` na raiz do projeto. Nenhum arquivo deve permanecer fora
-do padrão Dart. Caso existam arquivos alterados pelo formatter, liste-os
-explicitamente antes de prosseguir.
+Execute `flutter test` na raiz do projeto. Todos os testes - novos e
+existentes - devem estar passando. Caso algum falhe, interrompa e reporte.
 
-**1.2 Análise Estática**
-
-Execute `flutter analyze` na raiz do projeto. O resultado final deve ser
-**"No issues found"**. Caso existam warnings ou erros, liste-os explicitamente e
-aguarde correção antes de prosseguir.
-
-**1.3 Testes Unitários**
-
-Execute `flutter test` na raiz do projeto. Todos os testes — novos e existentes
-— devem estar passando. Caso algum falhe, interrompa e reporte.
+Se a Spec impactar apenas uma parte do app, voce pode executar primeiro o
+arquivo ou diretório de teste mais específico para feedback rapido, mas a
+validacao final deve considerar `flutter test` na raiz.
 
 > Falhas pré-existentes fora do escopo da Spec devem ser sinalizadas
 > explicitamente, indicando que são regressões anteriores e não introduzidas
 > pela implementação atual.
 
-**1.3.1 Cobertura de Testes**
+**1.1.1 Cobertura de Testes**
 
-Com base no diff injetado no contexto, verifique se os novos comportamentos
-introduzidos pela Spec possuem testes correspondentes. Considere como caminhos
-críticos que exigem cobertura (conforme
-`documentation/rules/unit-tests-rules.md`):
+Com base no diff injetado no contexto e nas regras em
+`documentation/rules/unit-tests-rules.md`,
+`documentation/rules/ui-layer-rules.md`,
+`documentation/rules/core-layer-rules.md`,
+`documentation/rules/rest-layer-rules.md` e
+`documentation/rules/drivers-layer-rules.md`, verifique se os novos
+comportamentos introduzidos pela Spec possuem testes correspondentes.
+Considere como caminhos críticos que exigem cobertura:
 
-- Lógica de negócio nova ou modificada na camada Core (Use Cases, Entidades)
-- Casos de erro e edge cases relevantes
-- Contratos de integração entre camadas (ex: Core ↔ Drivers, Core ↔ Rest)
-- Lógica de estado em Presenters (valores de `Signal`, fluxos de loading/erro)
+- Lógica nova ou modificada em `lib/core` (DTOs, contratos, respostas tipadas e
+  regras de domínio)
+- Casos de erro e edge cases relevantes (validações, falhas de integração,
+  estados inválidos)
+- Mapeadores e services em `lib/rest` (payloads, parsing, tratamento de erro,
+  tradução entre contrato remoto e DTO)
+- Drivers e adaptadores em `lib/drivers` (storage, cache, plugins e integrações
+  de plataforma)
+- Widgets, presenters e fluxos de UI alterados em `lib/ui`, incluindo estados
+  de loading, empty, erro e interações relevantes
 
 Ao final desta etapa, produza um relatório de cobertura no seguinte formato:
 ```markdown
 ## Cobertura de Testes
 
-- [x] <Comportamento A> — coberto em `test/caminho/do/arquivo_test.dart`
-- [x] <Comportamento B> — coberto em `test/caminho/do/arquivo_test.dart`
+- [x] <Comportamento A> - coberto em `test/caminho/do/test_arquivo.dart`
+- [x] <Comportamento B> - coberto em `test/caminho/do/test_arquivo.dart`
 - [ ] <Comportamento C> — **sem cobertura** (detalhe o que está faltando)
 ```
 
-Caso existam lacunas em caminhos críticos, liste-as como pendências e aguarde
-decisão antes de prosseguir para a Fase 2. Não avance com itens críticos
-descobertos.
+**1.1.2 Criação de Testes para Componentes sem Cobertura**
+
+Caso existam itens sem cobertura no relatório acima, acione um **subagent**
+para criá-los antes de avançar para a Fase 2.
+
+O subagent deve receber como contexto:
+
+- O prompt `documentation/prompts/create-tests-prompt.md` como instrução base.
+- A lista de componentes sem cobertura identificados no relatório (1.1.1),
+  com os caminhos reais dos arquivos fonte (`lib/...`).
+- O caminho da Spec técnica, para referência de contratos e comportamentos
+  esperados.
+
+> O subagent e responsavel por criar os arquivos de teste, seguir as regras de
+> nomenclatura e estrutura do projeto, e garantir que `flutter test` passe ao
+> final. Nao avance para a Fase 2 enquanto o subagent nao concluir sem falhas.
+
+**1.2 Lint e Formatação**
+
+Execute `dart format .` e `flutter analyze` na raiz do projeto. Nenhum warning
+ou erro deve restar. Caso existam, liste-os explicitamente e corrija antes de
+prosseguir.
+
+**1.3 Checagem de Tipos**
+
+Execute `flutter analyze` na raiz do projeto como checagem estatica final.
+O analisador Dart/Flutter deve retornar zero erros. Liste qualquer violacao
+explicitamente e corrija antes de prosseguir.
 
 **1.4 Cobertura de Requisitos**
 
@@ -85,22 +106,43 @@ no seguinte formato:
 ```markdown
 ## Checklist de Validação
 
-- [x] <Requisito A> — implementado em `lib/caminho/do/arquivo.dart`
-- [x] <Requisito B> — implementado em `lib/caminho/do/arquivo.dart`
+- [x] <Requisito A> - implementado em `lib/core/...`, `lib/rest/...`, `lib/drivers/...` ou `lib/ui/...`
+- [x] <Requisito B> - implementado em `lib/core/...`, `lib/rest/...`, `lib/drivers/...` ou `lib/ui/...`
 - [ ] <Requisito C> — **ausente ou incompleto** (detalhe o gap)
 ```
 
-**1.5 Conformidade com as Diretrizes do Projeto**
+**1.5 Conformidade Arquitetural e de Padrões**
 
-Verifique se os arquivos alterados respeitam as regras das camadas envolvidas:
+Leia `documentation/rules/rules.md` para identificar quais documentos de regras
+são acionados pelas camadas impactadas pela Spec. Em seguida, leia cada um dos
+docs relevantes e valide o código implementado contra eles.
 
-- `documentation/rules/ui-layer-rules.md` — MVP, Signals, Riverpod, shadcn_flutter
-- `documentation/rules/core-layer-rules.md` — Entidades, Use Cases, interfaces
-- `documentation/rules/rest-layer-rules.md` — clientes HTTP, tratamento de respostas
-- `documentation/rules/drivers-layer-rules.md` — adaptadores para libs externas
-- `documentation/rules/code-conventions-rules.md` — nomenclatura, barrel files, estrutura de diretórios
+Verifique obrigatoriamente os documentos acionados pelas camadas impactadas.
+Em geral, os mais comuns no Animus Mobile sao:
 
-Liste explicitamente qualquer desvio identificado.
+- `documentation/rules/core-layer-rules.md` - `lib/core` puro, contendo DTOs,
+  contratos e tipos compartilhados sem dependencias de infraestrutura
+- `documentation/rules/rest-layer-rules.md` - services HTTP, clients e mappers
+  focados em integracao e traducao de dados
+- `documentation/rules/drivers-layer-rules.md` - adaptadores de plugins, cache,
+  storage, env e outros recursos concretos da plataforma
+- `documentation/rules/ui-layer-rules.md` - padrao MVP, widgets Flutter,
+  presenters, composicao de telas e estado visual
+- `documentation/rules/websocket-layer-rules.md` - listeners, envelopes e
+  integracoes realtime, quando a Spec tocar comunicacao ao vivo
+- `documentation/rules/code-conventions-rules.md` - nomenclatura, organizacao
+  de modulos, imports e padroes gerais de codigo
+- `documentation/rules/unit-tests-rules.md` - estrutura, mocks, fakers e
+  convencoes de testes
+
+Para cada regra violada, reporte:
+
+- **Arquivo:** caminho relativo do arquivo com o desvio
+- **Regra violada:** referência ao doc e à regra específica
+- **Desvio encontrado:** descrição objetiva do problema
+- **Correção necessária:** o que deve ser ajustado
+
+Corrija todos os desvios encontrados antes de avançar para a Fase 2.
 
 ---
 
@@ -111,38 +153,39 @@ pendências.
 
 **2.1 Atualização da Spec Técnica**
 
-Refine o documento da Spec para refletir decisões de design tomadas durante a
-implementação ou desvios de caminho. A audiência é técnica — mantenha o nível
-de detalhe de engenharia. Atualize também:
+Atualize apenas os metadados da Spec para refletir a conclusão da implementação:
 
-- **Status:** `concluído`
+- **Status:** `closed`
 - **Última atualização:** `{{ today }}`
 
-**2.2 Diagramas ASCII**
+Não altere o conteúdo técnico da spec nesta fase — desvios de implementação
+devem ter sido capturados pelo `update-spec-prompt` durante o desenvolvimento.
 
-Avalie se as mudanças implementadas alteraram fluxos de dados, sequências de
-chamadas entre camadas ou a navegação de telas. Se sim, gere ou atualize um
-diagrama ASCII dentro da Spec para facilitar a visualização da implementação
-final.
+**2.2 Atualização do PRD**
 
-**2.3 Atualização do PRD / Milestone**
+Atualize o PRD associado à Spec. Ele está localizado no nível acima do diretório
+da spec — ex.: se a spec está em
+`documentation/features/<modulo>/specs/<nome>-spec.md`, o PRD está em
+`documentation/features/<modulo>/prd.md`.
 
-O PRD está vinculado a um Milestone no GitHub. Use o GitHub CLI para ler e
-atualizar o milestone correspondente, marcando como concluídos os itens
-endereçados pela implementação.
+Marque como concluídos os itens endereçados pela implementação. A audiência aqui
+é de produto — traduza o impacto técnico para linguagem de negócio.
 
-```bash
-# Exemplo: listar milestones
-gh api repos/:owner/:repo/milestones
+> 💡 Não copie conteúdo técnico de baixo nível para o PRD — sintetize o valor
+> entregue.
 
-# Exemplo: atualizar milestone (ajuste o número e o body conforme necessário)
-gh api --method PATCH repos/:owner/:repo/milestones/:number \
-  -f description="..."
-```
+**Divergência spec → PRD:** Caso a implementação concluída introduza algum
+aspecto que contradiga ou não esteja coberto pelo PRD (ex: regra de negócio
+refinada, escopo ampliado ou reduzido, comportamento diferente do especificado),
+atualize o PRD para refletir a realidade entregue. Registre a divergência no
+campo **"O que mudou em relação à Spec original"** do resumo de conclusão da spec (seção 3.1).
 
-> 💡 Trate Spec e PRD como documentos com propósitos distintos. Não copie
-> conteúdo técnico de baixo nível para o PRD — sintetize o valor entregue em
-> linguagem de produto/negócio.
+**2.3 Atualização da Arquitetura (se aplicável)**
+
+Caso a implementacao tenha introduzido novo fluxo de dados, novo contrato entre
+camadas, nova integracao (REST, WebSocket, cache, storage ou plugin) ou mudanca
+relevante na estrutura de diretorios, atualize `documentation/architecture.md`
+para refletir a realidade atual do projeto.
 
 **2.4 Atualização de Rules (se aplicável)**
 
@@ -156,9 +199,9 @@ padrão e exemplos práticos.
 
 Esta fase produz o artefato final para facilitar a abertura do Pull Request.
 
-**3.1 Rascunho do Pull Request**
+**3.1 Resumo de conclusão da spec**
 
-Gere um rascunho de descrição de PR com a seguinte estrutura obrigatória:
+Gere um resumo de conclusão com a seguinte estrutura obrigatória:
 ```markdown
 ## O que foi feito
 
@@ -170,24 +213,28 @@ Gere um rascunho de descrição de PR com a seguinte estrutura obrigatória:
 
 ## O que mudou em relação à Spec original
 
-<Desvios ou refinamentos ocorridos durante a implementação. Se nenhum, declare
+<Desvios ou refinamentos ocorridos durante a implementação, incluindo
+divergências que implicaram atualização do PRD. Se nenhum, declarar
 explicitamente "Nenhum desvio em relação à Spec original.">
 
 ## Pontos de atenção para o revisor
 
-<Riscos, áreas sensíveis, dependências externas ou decisões que merecem revisão
-cuidadosa. Se nenhum, declare explicitamente "Nenhum ponto de atenção
-identificado.">
+<Riscos, areas sensiveis, dependencias externas ou decisoes que merecem revisao
+cuidadosa. Inclua mudancas de contrato REST/WebSocket, DTOs compartilhados,
+impactos em cache/local storage, efeitos em navegacao, dependencias de plugin,
+uso de `--dart-define` ou side effects relevantes em presenters/services. Se
+nenhum, declare explicitamente "Nenhum ponto de atencao identificado.">
 
 ## Checklist
 
-- [ ] `dart format .` executado sem arquivos alterados
-- [ ] `flutter analyze` retornou "No issues found"
+- [ ] `dart format .` aplicado nos arquivos impactados
+- [ ] `flutter analyze` passou sem warnings ou erros
 - [ ] `flutter test` passou sem falhas (ou regressões pré-existentes devidamente sinalizadas)
 - [ ] Cobertura de testes verificada e lacunas críticas endereçadas
-- [ ] Conformidade com as diretrizes das camadas validada
-- [ ] Spec atualizada com status `concluído`, data e diagramas (se aplicável)
-- [ ] PRD / Milestone atualizado com os itens concluídos
+- [ ] Limites arquiteturais validados
+- [ ] Spec atualizada com status `closed` e data
+- [ ] PRD atualizado com os itens concluídos (e divergências registradas, se houver)
+- [ ] `architecture.md` atualizado (se aplicável)
 - [ ] Rules atualizadas (se novos padrões foram introduzidos)
 ```
 
@@ -197,8 +244,9 @@ identificado.">
 
 Ao final da execução, devem ter sido produzidos:
 
-1. **Relatório de cobertura de testes** (Fase 1.3.1)
-2. **Checklist de validação** de requisitos (Fase 1.4)
-3. **Spec atualizada** com status `concluído`, data e diagramas ASCII (Fase 2.1 e 2.2)
-4. **PRD / Milestone atualizado** via GitHub CLI (Fase 2.3)
-5. **Rascunho de PR** com estrutura completa (Fase 3.1)
+1. **Relatório de cobertura de testes** (Fase 1.1.1)
+2. **Testes criados pelo subagent** para componentes sem cobertura (Fase 1.1.2, quando aplicável)
+3. **Checklist de validação** de requisitos (Fase 1.4)
+4. **Spec atualizada** com status `closed` e data (Fase 2.1)
+5. **PRD atualizado** com itens marcados como concluídos e divergências registradas, se houver (Fase 2.2)
+6. **Resumo de conclusão da spec** com estrutura completa (Fase 3.1)
