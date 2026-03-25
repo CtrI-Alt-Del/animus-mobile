@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/theme.dart';
+
 class GeneralErrorAlertView extends StatelessWidget {
   final String? message;
 
@@ -11,20 +13,24 @@ class GeneralErrorAlertView extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final Color error = Theme.of(context).colorScheme.error;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFF3A1D25),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE55454)),
+          color: error.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: error),
         ),
         child: Text(
           message!,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: const Color(0xFFFFB8B8)),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: tokens.white.withValues(alpha: 0.9),
+          ),
         ),
       ),
     );

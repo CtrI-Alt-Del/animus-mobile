@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
-import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_presenter.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_presenter.dart';
 
 class SignUpFormPresenter {
   final SignUpScreenPresenter _screenPresenter;

@@ -1,4 +1,4 @@
-import 'package:animus_mobile/core/auth/dtos/social_account_dto.dart';
+import 'package:animus/core/auth/dtos/social_account_dto.dart';
 
 class AccountDto {
   final String? id;
