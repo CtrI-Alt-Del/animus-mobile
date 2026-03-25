@@ -103,9 +103,14 @@ class EmailConfirmationScreenPresenter {
 
     if (response.isSuccessful) {
       final CacheDriver cacheDriver = await _cacheDriverFactory();
-      cacheDriver.set(CacheKeys.accessToken, response.body.accessToken.value);
-      cacheDriver.set(CacheKeys.refreshToken, response.body.refreshToken.value);
-      await Future<void>.delayed(const Duration(milliseconds: 350));
+      await cacheDriver.set(
+        CacheKeys.accessToken,
+        response.body.accessToken.value,
+      );
+      await cacheDriver.set(
+        CacheKeys.refreshToken,
+        response.body.refreshToken.value,
+      );
       if (context.mounted) {
         context.go(Routes.home);
       }

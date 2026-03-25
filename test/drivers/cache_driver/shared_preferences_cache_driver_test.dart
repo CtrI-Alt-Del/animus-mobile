@@ -12,14 +12,12 @@ void main() {
   test('persiste e remove valores string', () async {
     final driver = await SharedPreferencesCacheDriver.create();
 
-    driver.set('token', 'abc');
-    await Future<void>.delayed(Duration.zero);
+    await driver.set('token', 'abc');
 
-    expect(driver.get('token'), 'abc');
+    expect(await driver.get('token'), 'abc');
 
-    driver.delete('token');
-    await Future<void>.delayed(Duration.zero);
+    await driver.delete('token');
 
-    expect(driver.get('token'), isNull);
+    expect(await driver.get('token'), isNull);
   });
 }

@@ -18,17 +18,17 @@ class _InMemoryCacheDriver implements CacheDriver {
   final Map<String, String> values = <String, String>{};
 
   @override
-  void delete(String key) {
+  Future<void> delete(String key) async {
     values.remove(key);
   }
 
   @override
-  String? get(String key) {
+  Future<String?> get(String key) async {
     return values[key];
   }
 
   @override
-  void set(String key, String value) {
+  Future<void> set(String key, String value) async {
     values[key] = value;
   }
 }
@@ -70,12 +70,10 @@ void main() {
 
       await _pumpVerifyHarness(tester, presenter);
       await tester.tap(find.byType(ElevatedButton));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 350));
       await tester.pumpAndSettle();
 
-      expect(cacheDriver.get(CacheKeys.accessToken), 'access-token');
-      expect(cacheDriver.get(CacheKeys.refreshToken), 'refresh-token');
+      expect(await cacheDriver.get(CacheKeys.accessToken), 'access-token');
+      expect(await cacheDriver.get(CacheKeys.refreshToken), 'refresh-token');
       expect(find.text('home'), findsOneWidget);
     });
 

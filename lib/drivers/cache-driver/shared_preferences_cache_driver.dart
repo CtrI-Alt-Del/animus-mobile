@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
@@ -23,17 +21,17 @@ class SharedPreferencesCacheDriver implements CacheDriver {
   }
 
   @override
-  String? get(String key) {
+  Future<String?> get(String key) async {
     return _preferences.getString(key);
   }
 
   @override
-  void set(String key, String value) {
-    unawaited(_preferences.setString(key, value));
+  Future<void> set(String key, String value) async {
+    await _preferences.setString(key, value);
   }
 
   @override
-  void delete(String key) {
-    unawaited(_preferences.remove(key));
+  Future<void> delete(String key) async {
+    await _preferences.remove(key);
   }
 }
