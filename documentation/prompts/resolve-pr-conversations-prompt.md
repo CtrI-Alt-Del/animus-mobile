@@ -1,168 +1,135 @@
-# Prompt: Resolve PR Conversations (usando gh CLI)
-
-**Objetivo Principal**
-Analisar, implementar e resolver todas as conversas e feedbacks pendentes em um Pull Request (PR) específico do GitHub. O foco é garantir que todos os pontos de melhoria, correções de bugs e sugestões de design levantadas pelos revisores sejam devidamente endereçados no código.
-
-**Entrada:**
-
-* **Link do PR:** URL completa do Pull Request no GitHub (ex: `https://github.com/owner/repo/pull/123`).
-
+---
+description: Resolver conversas nao resolvidas de PR com correcoes e validacao no contexto do Animus Mobile
 ---
 
-## Diretrizes de Execução
+# Prompt: Resolver conversas de PR
 
-### 1️⃣ Extração de Contexto
+## Objetivo principal
 
-* Identifique o `owner`, `repo` e `pullNumber` a partir da URL fornecida.
-* Utilize o **gh CLI** para obter os detalhes do PR.
+Analisar, implementar e resolver todas as conversas **pendentes e nao resolvidas** em um Pull Request (PR) do GitHub, respeitando a arquitetura e as regras do projeto **Animus Mobile** (Flutter).
 
-Exemplo:
+> Escopo obrigatorio: trate apenas threads com `isResolved: false`. Ignore por completo conversas ja resolvidas.
 
-```
-gh pr view <pullNumber> --repo owner/repo --comments
-```
+## Entrada
 
----
+- Link completo do PR (ex.: `https://github.com/owner/repo/pull/123`).
 
-### 2️⃣ Mapeamento de Conversas
+## Diretrizes de execucao
 
-* Liste todos os comentários de revisão do PR.
+### 1. Coleta de contexto do PR
 
-Comandos possíveis:
+- Extraia `owner`, `repo` e `pullNumber` da URL.
+- Use exclusivamente `gh` CLI para consultar e resolver review threads.
 
-```
-gh pr view <pullNumber> --repo owner/repo --json reviewThreads
-```
+### 2. Mapeamento de threads nao resolvidas
 
-ou via API:
+- Liste as review threads via GraphQL:
 
-```
-gh api repos/owner/repo/pulls/<pullNumber>/comments
-```
-
-* Filtre as conversas:
-
-  * não resolvidas
-  * com change request
-  * com sugestões de alteração de código
-
----
-
-### 3️⃣ Análise e Implementação
-
-Para cada comentário:
-
-* Identifique:
-
-  * arquivo afetado
-  * trecho de código
-  * sugestão do revisor
-
-* Aplique as alterações no código local usando ferramentas de edição de arquivo:
-
-  * replace_file_content
-  * multi_replace_file_content
-
-* Garanta conformidade com:
-
-```
-documentation/code-conventions-guidelines.md
-documentation/architecture.md
+```bash
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      pullRequest(number: $number) {
+        reviewThreads(first: 100) {
+          nodes {
+            id
+            isResolved
+            comments(first: 20) {
+              nodes {
+                body
+                path
+                line
+                author { login }
+                createdAt
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+' -f owner={owner} -f repo={repo} -F number={pullNumber}
 ```
 
----
+- Filtre estritamente por `isResolved: false`.
+- Se nao houver nenhuma thread pendente, encerre informando que nao ha trabalho a fazer.
 
-### 4️⃣ Validação das Alterações
+### 3. Analise e implementacao por thread
 
-Após implementar:
+Para cada conversa nao resolvida:
 
-Rodar analyzer:
+- Leia o contexto completo da thread (comentario inicial + replies).
+- Localize arquivo/linha e identifique a camada impactada.
+- Aplique as correcoes no codigo local, seguindo as regras do projeto.
 
-```
-flutter analyze
-```
+Consulte o indice de regras em `documentation/rules/rules.md` e leia os guias necessarios:
 
-Rodar testes:
+- UI -> `documentation/rules/ui-layer-rules.md`
+- Core -> `documentation/rules/core-layer-rules.md`
+- REST -> `documentation/rules/rest-layer-rules.md`
+- Drivers -> `documentation/rules/drivers-layer-rules.md`
+- WebSocket -> `documentation/rules/websocket-layer-rules.md`
+- Convencoes -> `documentation/rules/code-conventions-rules.md`
+- Testes -> `documentation/rules/unit-tests-rules.md`
 
-```
-flutter test
-```
+Tambem valide aderencia aos principios em `documentation/architecture.md`.
 
----
+### 4. Validacao local obrigatoria
 
-### 5️⃣ Finalização
+Depois de implementar as correcoes:
 
-Fornecer resumo detalhado:
-
-* quais conversas foram resolvidas
-* quais arquivos foram alterados
-* quais padrões foram ajustados
-* quais bugs foram corrigidos
-
----
-
-## FLUXO DE TRABALHO (Workflow)
-
-### ✅ Passo 1 — Coleta de Dados
-
-Listar comentários do PR:
-
-```
-gh api repos/owner/repo/pulls/<pullNumber>/comments
-```
-
-ou
-
-```
-gh pr view <pullNumber> --comments
-```
-
----
-
-### ✅ Passo 2 — Diagnóstico
-
-Para cada thread:
-
-* arquivo afetado
-* problema descrito
-* solução proposta
-
----
-
-### ✅ Passo 3 — Execução
-
-Modificar arquivos locais conforme necessário.
-
-Se o comentário for ambíguo → pedir esclarecimento antes de alterar.
-
----
-
-### ✅ Passo 4 — Conclusão
-
-Relatório de progresso:
-
-```
-[x] Arquivo X — comentário Y resolvido (descrição)
-[x] Arquivo Z — ajuste de padrão aplicado
-```
-
----
-
-### ✅ Passo 5 — Validação
-
-Executar:
-
-```
+```bash
+dart format .
 flutter analyze
 flutter test
 ```
 
----
+Se algum comando falhar:
 
-### ✅ Passo 6 — Atualização da Documentação
+- corrija os problemas;
+- rode novamente ate obter estado estavel;
+- so depois resolva a thread no GitHub.
 
-Atualizar, se necessário:
+### 5. Resolver thread no GitHub
 
-* Spec
-* Bug Report
-* PRD relacionado
+Quando a correcao estiver validada, resolva a thread correspondente:
+
+```bash
+gh api graphql -f query='
+  mutation($threadId: ID!) {
+    resolveReviewThread(input: { threadId: $threadId }) {
+      thread {
+        id
+        isResolved
+      }
+    }
+  }
+' -f threadId={threadId}
+```
+
+Use o `threadId` exato da etapa de coleta.
+
+### 6. Conclusao e relatorio
+
+No retorno final, inclua **somente** as conversas nao resolvidas que foram tratadas nesta execucao:
+
+- arquivo e linha afetados;
+- problema apontado pelo revisor;
+- alteracao implementada;
+- status da validacao (`dart format`, `flutter analyze`, `flutter test`);
+- confirmacao de thread resolvida.
+
+Nao liste conversas que ja estavam resolvidas antes de iniciar.
+
+## Workflow resumido
+
+1. Coletar threads do PR.
+2. Filtrar somente `isResolved: false`.
+3. Implementar correcoes com base nas regras de camada.
+4. Validar localmente (`dart format .`, `flutter analyze`, `flutter test`).
+5. Resolver cada thread via GraphQL.
+6. Entregar relatorio final objetivo das threads tratadas.
+
+## Pos-condicao opcional
+
+Se as correcoes alterarem comportamento funcional documentado, atualize o artefato correspondente (Spec, PRD ou Bug Report) antes de finalizar.
