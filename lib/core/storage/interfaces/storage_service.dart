@@ -1,4 +1,4 @@
-import 'package:animus_mobile/core/storage/dtos/upload_url_dto.dart';
+import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 
 abstract class StorageService {
   Future<UploadUrlDto> getUploadUrl(String filePath);

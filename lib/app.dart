@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:animus_mobile/router.dart';
-import 'package:animus_mobile/theme.dart';
+import 'package:animus/router.dart';
+import 'package:animus/theme.dart';
 
 class AnimusApp extends StatelessWidget {
   const AnimusApp({super.key});

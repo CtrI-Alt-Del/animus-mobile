@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:animus_mobile/core/storage/dtos/upload_url_dto.dart';
+import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 
 abstract class FileStorageDriver {
   String getFileUrl(String filePath);

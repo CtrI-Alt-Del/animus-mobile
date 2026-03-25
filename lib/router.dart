@@ -1,8 +1,8 @@
 import 'package:go_router/go_router.dart';
 
-import 'package:animus_mobile/constants/routes.dart';
-import 'package:animus_mobile/ui/auth/widgets/pages/email_confirmation_screen/index.dart';
-import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/index.dart';
+import 'package:animus/constants/routes.dart';
+import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: Routes.signUp,
@@ -13,7 +13,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SignUpScreen(),
     ),
     GoRoute(
-      path: Routes.emailConfirmationPath,
+      path: Routes.emailConfirmation,
       redirect: (context, state) {
         final String? email = state.uri.queryParameters['email'];
         if (email == null || email.trim().isEmpty) {

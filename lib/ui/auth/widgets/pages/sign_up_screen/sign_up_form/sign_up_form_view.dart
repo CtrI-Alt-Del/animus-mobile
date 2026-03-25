@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
-import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/password_strength_indicator/index.dart';
-import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/sign_up_form/general_error_alert/index.dart';
-import 'package:animus_mobile/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_up_submit_button/index.dart';
+import 'package:animus/theme.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/password_strength_indicator/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/general_error_alert/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/input_decoration/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_in_hint/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_up_submit_button/index.dart';
+import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/terms_label/index.dart';
 
 import 'sign_up_form_presenter.dart';
 
@@ -17,6 +21,9 @@ class SignUpFormView extends ConsumerWidget {
     final SignUpFormPresenter presenter = ref.watch(
       signUpFormPresenterProvider,
     );
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     return ReactiveForm(
       formGroup: presenter.form,
@@ -26,8 +33,9 @@ class SignUpFormView extends ConsumerWidget {
           ReactiveTextField<String>(
             formControlName: 'name',
             textInputAction: TextInputAction.next,
-            style: const TextStyle(color: Colors.white),
-            decoration: _inputDecoration(
+            style: textTheme.labelMedium?.copyWith(color: tokens.textPrimary),
+            decoration: SignUpInputDecoration.build(
+              context: context,
               hintText: 'Nome completo',
               icon: Icons.person_outline,
             ),
@@ -38,8 +46,9 @@ class SignUpFormView extends ConsumerWidget {
             formControlName: 'email',
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
-            style: const TextStyle(color: Colors.white),
-            decoration: _inputDecoration(
+            style: textTheme.labelMedium?.copyWith(color: tokens.textPrimary),
+            decoration: SignUpInputDecoration.build(
+              context: context,
               hintText: 'Email',
               icon: Icons.mail_outline,
             ),
@@ -52,17 +61,18 @@ class SignUpFormView extends ConsumerWidget {
               formControlName: 'password',
               textInputAction: TextInputAction.next,
               obscureText: !isVisible,
-              style: const TextStyle(color: Colors.white),
+              style: textTheme.labelMedium?.copyWith(color: tokens.textPrimary),
               onChanged: (FormControl<String> control) {
                 presenter.onPasswordChanged(control.value);
               },
-              decoration: _inputDecoration(
+              decoration: SignUpInputDecoration.build(
+                context: context,
                 hintText: 'Senha',
                 icon: Icons.lock_outline,
                 suffixIcon: IconButton(
                   icon: Icon(
                     isVisible ? Icons.visibility_off : Icons.visibility,
-                    color: const Color(0xFF666A85),
+                    color: tokens.accent,
                   ),
                   onPressed: presenter.togglePasswordVisibility,
                 ),
@@ -88,15 +98,16 @@ class SignUpFormView extends ConsumerWidget {
               formControlName: 'confirmPassword',
               textInputAction: TextInputAction.done,
               obscureText: !isVisible,
-              style: const TextStyle(color: Colors.white),
+              style: textTheme.labelMedium?.copyWith(color: tokens.textPrimary),
               onSubmitted: (_) => presenter.submit(context),
-              decoration: _inputDecoration(
+              decoration: SignUpInputDecoration.build(
+                context: context,
                 hintText: 'Confirmar senha',
                 icon: Icons.lock_outline,
                 suffixIcon: IconButton(
                   icon: Icon(
                     isVisible ? Icons.visibility_off : Icons.visibility,
-                    color: const Color(0xFF666A85),
+                    color: tokens.accent,
                   ),
                   onPressed: presenter.toggleConfirmPasswordVisibility,
                 ),
@@ -105,7 +116,7 @@ class SignUpFormView extends ConsumerWidget {
             );
           }),
           const SizedBox(height: 12),
-          const _TermsLabel(),
+          const TermsLabel(),
           const SizedBox(height: 12),
           Watch((BuildContext context) {
             final String? error = presenter.generalError.watch(context);
@@ -123,103 +134,8 @@ class SignUpFormView extends ConsumerWidget {
             );
           }),
           const SizedBox(height: 14),
-          const _SignInHint(),
+          const SignInHint(),
         ],
-      ),
-    );
-  }
-}
-
-InputDecoration _inputDecoration({
-  required String hintText,
-  required IconData icon,
-  Widget? suffixIcon,
-}) {
-  const Color borderColor = Color(0xFF24283A);
-  return InputDecoration(
-    hintText: hintText,
-    hintStyle: const TextStyle(color: Color(0xFF666A85), fontSize: 14),
-    filled: true,
-    fillColor: const Color(0xFF0F1220),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
-    prefixIcon: Icon(icon, color: const Color(0xFF666A85), size: 18),
-    suffixIcon: suffixIcon,
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: borderColor),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Color(0xFF6268FF), width: 1.1),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Color(0xFFE55454)),
-    ),
-    focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Color(0xFFE55454), width: 1.1),
-    ),
-  );
-}
-
-class _TermsLabel extends StatelessWidget {
-  const _TermsLabel();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Container(
-          height: 14,
-          width: 14,
-          decoration: BoxDecoration(
-            color: const Color(0xFF6268FF),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Icon(Icons.check, size: 11, color: Colors.white),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: RichText(
-            text: const TextSpan(
-              style: TextStyle(color: Color(0xFF6C708A), fontSize: 11),
-              children: <TextSpan>[
-                TextSpan(text: 'Li e concordo com os '),
-                TextSpan(
-                  text: 'Termos de Uso',
-                  style: TextStyle(color: Color(0xFF6670FF)),
-                ),
-                TextSpan(text: ' e Politica de Privacidade'),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SignInHint extends StatelessWidget {
-  const _SignInHint();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: RichText(
-        text: const TextSpan(
-          style: TextStyle(color: Color(0xFF6C708A), fontSize: 12),
-          children: <TextSpan>[
-            TextSpan(text: 'Ja tem conta? '),
-            TextSpan(
-              text: 'Entrar',
-              style: TextStyle(
-                color: Color(0xFF6670FF),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

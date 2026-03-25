@@ -14,7 +14,7 @@ class MessageBoxView extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color),
       ),
-      child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
+      child: Text(message, style: Theme.of(context).textTheme.bodySmall),
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:animus_mobile/core/intake/dtos/petition_document_dto.dart';
+import 'package:animus/core/intake/dtos/petition_document_dto.dart';
 
 class PetitionDto {
   final String? id;

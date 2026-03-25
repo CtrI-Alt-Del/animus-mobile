@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:animus_mobile/core/shared/types/json.dart';
+import 'package:animus/core/shared/types/json.dart';
 
 class RestResponse<Body> {
   final Body? _body;

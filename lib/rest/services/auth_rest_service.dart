@@ -1,18 +1,10 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:animus_mobile/core/auth/dtos/account_dto.dart';
-import 'package:animus_mobile/core/auth/interfaces/auth_service.dart';
-import 'package:animus_mobile/core/shared/interfaces/rest_client.dart';
-import 'package:animus_mobile/core/shared/responses/rest_response.dart';
-import 'package:animus_mobile/rest/dio/dio_rest_client.dart';
-import 'package:animus_mobile/rest/mappers/auth/account_mapper.dart';
-
-final Provider<AuthService> authServiceProvider = Provider<AuthService>((
-  Ref ref,
-) {
-  final RestClient restClient = ref.watch(restClientProvider);
-  return AuthRestService(restClient: restClient);
-});
+import 'package:animus/core/auth/dtos/account_dto.dart';
+import 'package:animus/core/auth/dtos/session_dto.dart';
+import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/shared/interfaces/rest_client.dart';
+import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/rest/mappers/auth/account_mapper.dart';
+import 'package:animus/rest/mappers/auth/session_mapper.dart';
 
 class AuthRestService implements AuthService {
   final RestClient _restClient;
@@ -28,11 +20,11 @@ class AuthRestService implements AuthService {
   }) async {
     final response = await _restClient.post(
       '/auth/sign-up',
-      body: AccountMapper.toSignUpJson(
-        name: name,
-        email: email,
-        password: password,
-      ),
+      body: <String, dynamic>{
+        'name': name,
+        'email': email,
+        'password': password,
+      },
     );
 
     return response.mapBody<AccountDto>(AccountMapper.toDto);
@@ -44,20 +36,37 @@ class AuthRestService implements AuthService {
   }) async {
     final response = await _restClient.post(
       '/auth/resend-verification-email',
-      body: AccountMapper.toResendVerificationEmailJson(email: email),
+      body: <String, dynamic>{'email': email},
     );
 
     if (response.isFailure) {
-      final String fallbackErrorMessage =
-          response.errorBody?['message'] as String? ??
-          'Request failed with status ${response.statusCode}';
+      String? errorMessage;
+      try {
+        errorMessage = response.errorMessage;
+      } catch (_) {
+        errorMessage = null;
+      }
+
       return RestResponse<void>(
         statusCode: response.statusCode,
-        errorMessage: fallbackErrorMessage,
+        errorMessage: errorMessage,
         errorBody: response.errorBody,
       );
     }
 
     return RestResponse<void>(statusCode: response.statusCode);
+  }
+
+  @override
+  Future<RestResponse<SessionDto>> verifyEmail({
+    required String email,
+    required String otp,
+  }) async {
+    final response = await _restClient.post(
+      '/auth/verify-email',
+      body: <String, dynamic>{'email': email, 'otp': otp},
+    );
+
+    return response.mapBody<SessionDto>(SessionMapper.toDto);
   }
 }

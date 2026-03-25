@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import 'package:animus/theme.dart';
 
 class SignUpSubmitButtonView extends StatelessWidget {
   final bool isSubmitting;
@@ -14,18 +17,22 @@ class SignUpSubmitButtonView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return SizedBox(
       height: 52,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          gradient: enabled
-              ? const LinearGradient(
-                  colors: <Color>[Color(0xFF6970FF), Color(0xFF5760F5)],
-                )
-              : const LinearGradient(
-                  colors: <Color>[Color(0xFF33374D), Color(0xFF2B2F42)],
-                ),
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.topLeft,
+            colors: enabled
+                ? <Color>[tokens.accent, tokens.accentStrong]
+                : <Color>[tokens.borderStrong, tokens.borderSubtle],
+          ),
         ),
         child: ElevatedButton(
           onPressed: enabled ? onPressed : null,
@@ -34,23 +41,25 @@ class SignUpSubmitButtonView extends StatelessWidget {
             shadowColor: Colors.transparent,
             disabledBackgroundColor: Colors.transparent,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
           child: isSubmitting
-              ? const SizedBox(
+              ? SizedBox(
                   height: 16,
                   width: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
+                    color: tokens.surfacePage,
                   ),
                 )
-              : const Text(
+              : Text(
                   'Criar Conta',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                  style: GoogleFonts.fraunces(
+                    textStyle: textTheme.labelLarge?.copyWith(
+                      color: tokens.surfacePage,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
         ),

@@ -6,10 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
-import 'package:animus_mobile/constants/routes.dart';
-import 'package:animus_mobile/core/auth/interfaces/auth_service.dart';
-import 'package:animus_mobile/core/shared/responses/rest_response.dart';
-import 'package:animus_mobile/rest/services/auth_rest_service.dart';
+import 'package:animus/constants/routes.dart';
+import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/rest/services/index.dart';
 
 class SignUpScreenPresenter {
   final AuthService _authService;
@@ -19,6 +19,10 @@ class SignUpScreenPresenter {
       'name': FormControl<String>(validators: [Validators.required]),
       'email': FormControl<String>(
         validators: [Validators.required, Validators.email],
+      ),
+      'termsAccepted': FormControl<bool>(
+        value: false,
+        validators: [Validators.requiredTrue],
       ),
       'password': FormControl<String>(
         validators: [
@@ -89,6 +93,9 @@ class SignUpScreenPresenter {
 
   FormControl<String> get passwordControl =>
       form.control('password') as FormControl<String>;
+
+  FormControl<bool> get termsAcceptedControl =>
+      form.control('termsAccepted') as FormControl<bool>;
 
   FormControl<String> get confirmPasswordControl =>
       form.control('confirmPassword') as FormControl<String>;
@@ -194,7 +201,7 @@ class SignUpScreenPresenter {
     if (response.isSuccessful) {
       final String email = (emailControl.value ?? '').trim();
       if (context.mounted) {
-        context.go(Routes.emailConfirmation(email: email));
+        context.go(Routes.getEmailConfirmation(email: email));
       }
       isSubmitting.value = false;
       return;
