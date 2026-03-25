@@ -20,22 +20,30 @@ Dominios de negocio do produto:
 
 ## Estado atual do repositorio
 
-Este repositorio esta em fase de bootstrap. A base inicial contem:
+O bootstrap inicial ja evoluiu para o primeiro fluxo completo de autenticacao por
+e-mail e senha. A base atual contem:
 
-- ponto de entrada da aplicacao (`lib/main.dart`);
-- configuracao da app e tema (`lib/app.dart`, `lib/theme.dart`);
-- rotas iniciais (`lib/router.dart`, `lib/constants/routes.dart`);
-- primeira tela de autenticacao (`lib/ui/auth/widgets/pages/sign_up_screen/index.dart`).
-
-As pastas `core`, `rest` e `drivers` estao previstas na arquitetura e serao expandidas conforme as proximas entregas.
+- ponto de entrada da aplicacao (`lib/main.dart`) com carregamento de ambiente;
+- configuracao da app e tema Material (`lib/app.dart`, `lib/theme.dart`);
+- rotas de cadastro e confirmacao de e-mail por OTP (`lib/router.dart`, `lib/constants/routes.dart`);
+- fluxo de cadastro em MVP na camada UI (`lib/ui/auth/widgets/pages/sign_up_screen/`);
+- tela dedicada de confirmacao de e-mail (`lib/ui/auth/widgets/pages/email_confirmation_screen/`);
+- contratos de autenticacao e sessao no Core (`lib/core/auth/`);
+- implementacao REST concreta para `signUp`, `verifyEmail` e `resendVerificationEmail` (`lib/rest/services/auth_rest_service.dart`);
+- persistencia local de tokens via driver de cache com `SharedPreferences` (`lib/drivers/cache-driver/shared_preferences_cache_driver.dart`).
 
 ## Integracoes previstas
 
 - API backend para autenticacao e analise juridica.
-- Persistencia local para configuracoes de sessao.
+- Persistencia local para tokens e configuracoes de sessao.
 - Servicos de notificacao push.
 
 A URL do backend deve ser configurada via `--dart-define` (`ANIMUS_SERVER_APP_URL`) para evitar acoplamento a ambiente local.
+
+No fluxo atual de autenticacao, a camada REST consome os endpoints `POST /auth/sign-up`,
+`POST /auth/verify-email` e `POST /auth/resend-verification-email`. Em caso de sucesso na
+confirmacao de e-mail, a UI persiste `accessToken` e `refreshToken` via `CacheDriver`
+antes de navegar para `Routes.home`.
 
 ## Principios arquiteturais
 
