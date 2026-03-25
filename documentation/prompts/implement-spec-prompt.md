@@ -46,5 +46,5 @@ Executar o plano de implementação técnica de forma iterativa, organizada e va
     *   **Camada UI:** 
         *   Sempre que criar um widget interno, crie uma pasta dedicada para ele dentro da estrutura do widget pai.
         *   Sempre use o padrão MVP (Model-View-Presenter) para a criação de widgets.
-        *   **Importante:** Utilize exclusivamente o `shadcn_flutter` para componentes de interface, evitando o uso de `Material UI`.
+        *   **Importante:** Utilize componentes Flutter Material alinhados ao tema global do app.
 

@@ -1,129 +1,139 @@
 ---
-description: Atualiza uma spec técnica durante a implementação, aplicando modo leve ou pesado conforme o tipo de mudança.
+description: Atualiza uma spec tecnica durante a implementacao, aplicando modo leve ou pesado conforme o tipo de mudanca.
 ---
 
 # Prompt: Atualizar Spec
 
-**Objetivo:** Aplicar uma mudança durante a implementação, atualizando o código
-e a spec de forma consistente com a arquitetura hexagonal, os apps/pacotes do
-monorepo StarDust e as regras documentadas em `documentation/rules/`. O modo é
-determinado automaticamente pelo tipo de mudança.
+**Objetivo:** Aplicar uma mudanca durante a implementacao, atualizando o codigo
+e a spec de forma consistente com a arquitetura em camadas do Animus Mobile,
+os dominios do app e as regras documentadas em `documentation/rules/`. O modo
+e determinado automaticamente pelo tipo de mudanca.
 
 ---
 
 ## Entrada
 
 - **Caminho da spec** a ser atualizada.
-- **Descrição da mudança:** o que precisa mudar e por quê.
+- **Descricao da mudanca:** o que precisa mudar e por que.
 - **Contexto do plano** (opcional) derivado desta spec.
 
 > Antes de alterar qualquer coisa, leia:
-> - `documentation/overview.md`
 > - `documentation/architecture.md`
 > - `documentation/rules/rules.md`
+> - `documentation/tooling.md`
 
 ---
 
-## Passo 1 — Classificar a mudança
+## Passo 1 - Classificar a mudanca
 
 | Categoria | Exemplos | Modo |
-|---|---|---|
-| **Correção factual** | Nome de classe, caminho, assinatura, typo | **Leve** |
-| **Contrato** | DTO, schema HTTP, interface de port, retorno de método | **Pesado** |
+| --- | --- | --- |
+| **Correcao factual** | Nome de classe, caminho, assinatura, typo | **Leve** |
+| **Contrato** | DTO, mapper, interface de `service`/`driver`, assinatura de `presenter` | **Pesado** |
 | **Escopo** | Adiciona ou remove item do in-scope / out-of-scope | **Pesado** |
-| **Regra de negócio** | Nova invariante, alteração de validação de domínio | **Pesado** |
-| **Decisão de design** | Troca de abordagem técnica, estratégia de cache, tipo de evento | **Pesado** |
+| **Regra de negocio** | Nova invariante, alteracao de validacao, fluxo offline, tratamento de erro | **Pesado** |
+| **Decisao de design** | Troca de abordagem tecnica, estrategia de estado, navegacao, integracao REST/driver | **Pesado** |
 
 > Se misturar categorias, use o **modo mais restritivo**.
-> Se a mudança não estiver clara, use a tool `question` antes de prosseguir.
+> Se a mudanca nao estiver clara, use a tool `question` antes de prosseguir.
 
 ---
 
-## Modo Leve — Correção Factual
+## Modo Leve - Correcao Factual
 
-1. Aplique a correção no código.
+1. Aplique a correcao no codigo.
 2. Edite apenas o trecho incorreto na spec.
 3. Atualize `last_updated_at` no frontmatter.
-4. Confirme que não há outras ocorrências do mesmo dado errado na spec.
-5. Se a correção citar paths, contratos ou nomes de símbolos, valide na codebase.
+4. Confirme que nao ha outras ocorrencias do mesmo dado errado na spec.
+5. Se a correcao citar paths, contratos ou nomes de simbolos, valide na codebase.
 
 ---
 
-## Modo Pesado — Mudança Estrutural
+## Modo Pesado - Mudanca Estrutural
 
-**2.1 Diagnóstico**
-- Mapeie todas as seções da spec afetadas em cascata.
-- Mapeie todos os arquivos de código impactados pela mudança nos apps
-  (`apps/web`, `apps/server`, `apps/studio`) e pacotes (`packages/core`,
-  `packages/validation`, `packages/email`, `packages/lsp`) afetados.
+**2.1 Diagnostico**
+- Mapeie todas as secoes da spec afetadas em cascata.
+- Mapeie todos os arquivos de codigo impactados pela mudanca nas camadas
+  `lib/ui/`, `lib/core/`, `lib/rest/` e `lib/drivers/`.
+- Considere tambem impactos em `lib/router.dart`, `lib/constants/` e `test/`
+  quando a mudanca afetar navegacao, configuracao ou cobertura existente.
 - Se contradizer o PRD, use a tool `question` antes de prosseguir.
-- Use **Serena** para confirmar consistência com a codebase e localizar
-  implementações similares.
+- Use **Serena** para confirmar consistencia com a codebase e localizar
+  implementacoes similares.
 
-**2.2 Implementação**
-- Aplique as mudanças no código nos arquivos mapeados no diagnóstico.
+**2.2 Implementacao**
+- Aplique as mudancas no codigo nos arquivos mapeados no diagnostico.
 - Consulte as regras da camada correspondente em `documentation/rules/` antes de alterar.
-- Preserve os limites arquiteturais: `core` continua agnóstico a framework;
-  apps implementam adapters; UI consome contratos já definidos; validações
-  compartilhadas ficam em `packages/validation` quando fizer sentido.
+- Preserve os limites arquiteturais: `core` continua agnostico a detalhes de
+  infraestrutura; `rest` e `drivers` implementam contratos definidos no `core`;
+  `ui` consome contratos e presenters sem acessar API diretamente.
+- Ao alterar widgets com logica, mantenha o padrao MVP adotado pelo projeto e o
+  uso de componentes Flutter Material alinhados ao tema do projeto.
 
-**2.3 Edição da spec**
-- Edite **somente** as seções mapeadas no diagnóstico.
+**2.3 Edicao da spec**
+- Edite **somente** as secoes mapeadas no diagnostico.
 - Atualize `last_updated_at` mantendo o formato `YYYY-MM-DD`.
-- Seções que deixarem de se aplicar: escreva **Não aplicável**.
-- Mantenha caminhos reais relativos ao monorepo e marque arquivos novos como
+- Secoes que deixarem de se aplicar: escreva **Nao aplicavel**.
+- Mantenha caminhos reais relativos ao repositorio e marque arquivos novos como
   `**novo arquivo**`.
+- Ao citar fluxo principal, reflita o encadeamento real da feature, por exemplo:
+  `View -> Presenter -> Provider -> Interface do Core -> Implementacao REST/Driver`.
 
 **2.4 Rules**
 
-Se a mudança introduz ou altera um padrão de camada, atualize o doc de rules
-correspondente em `documentation/rules/` (consulte o índice em `rules.md`):
+Se a mudanca introduz ou altera um padrao de camada, atualize o doc de rules
+correspondente em `documentation/rules/` (consulte o indice em `rules.md`):
 
-- **Novo padrão:** adicione com descrição e exemplo prático.
-- **Alteração de padrão:** corrija ou complemente — não apague o contexto anterior.
+- **Novo padrao:** adicione com descricao e exemplo pratico.
+- **Alteracao de padrao:** corrija ou complemente - nao apague o contexto anterior.
 
-> Se não introduzir nem alterar padrão, pule este passo.
+> Se nao introduzir nem alterar padrao, pule este passo.
 
 **2.5 Impacto no plano** *(quando plano existir)*
 
-Produza um relatório com tarefas removidas, alteradas e novas. **Aguarde
-confirmação** antes de editar o plano.
+Produza um relatorio com tarefas removidas, alteradas e novas. **Aguarde
+confirmacao** antes de editar o plano.
 
-**2.6 Verificação**
+**2.6 Verificacao**
 - Spec consistente internamente.
-- Spec consistente com PRD, arquitetura e codebase atual.
-- **Pendências / Dúvidas** atualizado se a mudança gerou incertezas.
+- Spec consistente com PRD, arquitetura, regras e codebase atual.
+- `Pendencias / Duvidas` atualizado se a mudanca gerou incertezas.
 
 ---
 
-## Passo Final — Qualidade
+## Passo Final - Qualidade
 
 Execute e corrija qualquer falha antes de encerrar:
 
 ```bash
-npm run codecheck && npm run typecheck && npm run test
+dart format .
+flutter analyze
+flutter test
 ```
 
-> Para mudanças localizadas, você pode validar primeiro no workspace afetado
-> (ex: `npm run codecheck -w @stardust/web`), mas antes de encerrar a tarefa a
-> verificação final deve refletir o impacto real da mudança.
+> Para mudancas localizadas, voce pode validar primeiro no diretorio ou escopo
+> afetado, mas antes de encerrar a tarefa a verificacao final deve refletir o
+> impacto real da mudanca.
 
-> Falhas pré-existentes fora do escopo devem ser sinalizadas como regressões
-> anteriores. Não encerre com falhas em aberto causadas pela mudança atual.
+> Falhas pre-existentes fora do escopo devem ser sinalizadas como regressao
+> anterior. Nao encerre com falhas em aberto causadas pela mudanca atual.
 
 ---
 
-## Restrições
+## Restricoes
 
-- Edições cirúrgicas — não reescreva a spec inteira.
-- Não invente arquivos, métodos ou contratos sem evidência na codebase ou no PRD.
-- `packages/core` não pode depender de `Next.js`, `React`, `Hono`, `Supabase`,
-  `Inngest` ou qualquer SDK/framework de infraestrutura. Se a mudança violar
-  isso, recuse e registre em **Pendências / Dúvidas**.
-- Referências a código existente: caminho relativo real do monorepo
-  (ex: `apps/server/src/...`, `apps/web/src/...`, `packages/core/src/...`);
+- Edicoes cirurgicas - nao reescreva a spec inteira.
+- Nao invente arquivos, widgets, presenters, services, drivers, DTOs ou
+  contratos sem evidencia na codebase ou no PRD.
+- `lib/core/` nao pode depender de `Flutter`, `Dio`, `GoRouter`, plugins,
+  SDKs de plataforma ou qualquer detalhe concreto de infraestrutura. Se a
+  mudanca violar isso, recuse e registre em **Pendencias / Duvidas**.
+- Referencias a codigo existente: caminho relativo real do repositorio
+  (ex: `lib/ui/...`, `lib/rest/...`, `lib/core/...`, `lib/drivers/...`);
   novos arquivos: `**novo arquivo**`.
-- Não promova lógica de negócio para `apps/*` se ela pertencer ao domínio.
-- Não descreva `class` instanciada com `new` como padrão quando o projeto usar
-  Factory Functions para services, actions, controllers e módulos semelhantes.
-- Não edite o plano sem confirmação explícita.
+- Nao promova regra de negocio para `ui`, `rest` ou `drivers` se ela pertencer
+  ao dominio.
+- Nao descreva `View` fazendo chamadas diretas a cliente HTTP, plugin,
+  armazenamento local ou roteador se o projeto usar `Presenter` e contratos de
+  camada para isso.
+- Nao edite o plano sem confirmacao explicita.

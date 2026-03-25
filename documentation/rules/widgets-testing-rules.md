@@ -1,4 +1,4 @@
-# Diretrizes para Testes Unitários e de Widget
+# Diretrizes para Testes de Widget 
 
 Este documento descreve as práticas, padrões e convenções adotadas para testes automatizados no projeto, baseando-se na análise dos testes existentes (ex: `products-list`).
 
@@ -11,7 +11,7 @@ As principais bibliotecas utilizadas para testes são:
 *   **flutter_riverpod**: Para injeção de dependência e controle de estado nos testes.
 *   **signals_flutter**: Para gerenciamento de estado reativo (testar valores de `Signal`).
 *   **network_image_mock**: Para lidar com `Image.network` em testes de widget sem fazer requisições reais.
-*   **shadcn_flutter**: Biblioteca de UI utilizada (os testes devem envolver componentes com `ShadcnApp` se necessário).
+*   **flutter/material**: Base dos componentes de UI (os testes devem envolver `MaterialApp` e tema quando necessário).
 
 ## 2. Convenções de Nomenclatura
 

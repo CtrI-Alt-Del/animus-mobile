@@ -2,21 +2,13 @@
 title: Sign Up com E-mail e Senha
 prd: https://joaogoliveiragarcia.atlassian.net/wiki/x/AwACAQ
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-40
-status: open
-last_updated_at: 2026-03-24
+status: closed
+last_updated_at: 2026-03-25
 ---
-
-## Histórico de Alterações
-
-| Data | Seções | Motivo |
-|---|---|---|
-| 2026-03-24 | #5, #6, #9 | Extração do `TopProgressBar` para widget interno próprio de `sign_up_screen`, removendo classe privada local da view raiz e alinhando a composição por pastas da camada UI. |
-| 2026-03-23 | #5, #6, #9, #10 | Refatoração estrutural da UI de cadastro com criação do widget interno `sign_up_form` com presenter próprio e extração de widgets internos para reduzir acoplamento da tela raiz. |
-| 2026-03-23 | #5, #6, #9 | Centralização das mensagens de validação do formulário no `sign_up_form_presenter` e extração de `_RuleItem` para widget interno em `password_strength_indicator/rule_item`. |
 
 # 1. Objetivo
 
-Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `animus_mobile`, evoluindo o bootstrap atual de autenticação para um fluxo funcional com formulário reativo, indicador visual de força de senha, integração com `POST /auth/sign-up`, tratamento de erros inline e navegação para uma tela dedicada de confirmação de e-mail com reenvio do link. A entrega precisa respeitar a arquitetura em camadas já prevista no projeto, introduzindo a primeira implementação concreta de `AuthService` na camada `rest` e alinhando a UI ao uso de `shadcn_flutter`, `Riverpod`, `signals` e `reactive_forms`.
+Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `animus`, evoluindo o bootstrap atual de autenticação para um fluxo funcional com formulário reativo, indicador visual de força de senha, integração com `POST /auth/sign-up`, tratamento de erros inline e navegação para uma tela dedicada de confirmação de e-mail por OTP de 6 dígitos com opção de reenvio do código. A entrega precisa respeitar a arquitetura em camadas já prevista no projeto, introduzindo a primeira implementação concreta de `AuthService` na camada `rest` e alinhando a UI ao uso de Flutter Material, `Riverpod`, `signals` e `reactive_forms`.
 
 ---
 
@@ -24,21 +16,22 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 
 ## 2.1 In-scope
 
-- Refatorar `lib/ui/auth/widgets/pages/sign_up_screen/` para um fluxo MVP com `reactive_forms`, `signals`, `Riverpod` e componentes de `shadcn_flutter`.
+- Refatorar `lib/ui/auth/widgets/pages/sign_up_screen/` para um fluxo MVP com `reactive_forms`, `signals`, `Riverpod` e componentes Flutter Material.
 - Exibir campos de `name`, `email`, `password` e `confirmPassword` com validação client-side e mensagens inline.
+- Manter checkbox de aceite de Termos de Uso e Politica de Privacidade como parte do formulario de cadastro.
 - Exibir indicador visual de força de senha em tempo real com base nas três regras explícitas do produto: tamanho mínimo, presença de letra maiúscula e presença de número.
 - Implementar o contrato `AuthService.signUp(...)` e sua primeira implementação REST usando `DioRestClient`.
-- Implementar o contrato `AuthService.resendVerificationEmail(...)` para suportar a tela pós-cadastro.
-- Criar a tela `email_confirmation_screen` e a rota correspondente para o estado pós-cadastro.
+- Implementar os contratos `AuthService.verifyEmail(...)` e `AuthService.resendVerificationEmail(...)` para suportar a confirmação por OTP no pós-cadastro.
+- Criar a tela `email_confirmation_screen` com campo OTP e a rota correspondente para o estado pós-cadastro.
+- Persistir os tokens da sessão em cache local após `verifyEmail` bem-sucedido usando `CacheDriver` + `SharedPreferences` com `CacheKeys`.
 - Ajustar `RestResponse` e `DioRestClient` para preservar payload estruturado de erro, permitindo mapear erros de backend para a UI sem vazar `Json` cru para a View.
-- Atualizar o bootstrap visual da app para suportar `shadcn_flutter` no root (`app.dart` / `theme.dart`).
+- Manter o bootstrap visual da app com Flutter Material no root (`app.dart` / `theme.dart`).
 
 ## 2.2 Out-of-scope
 
 - Implementação do login via e-mail e senha.
 - Implementação do login com Google.
-- Implementação do fluxo de clique no link de verificação de e-mail (`POST /auth/verify-email`).
-- Persistência de sessão, refresh token e logout.
+- Logout e limpeza de sessão local.
 - Redefinição de senha e edição de perfil.
 - Alterações no backend, contratos HTTP fora de `sign-up` e `resend-verification-email`, ou automação de testes.
 
@@ -49,17 +42,22 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 ## 3.1 Funcionais
 
 - O usuário deve conseguir preencher `name`, `email`, `password` e `confirmPassword` na tela de cadastro.
+- O formulário deve exigir aceite explicito dos Termos de Uso e da Politica de Privacidade antes da submissao.
 - O formulário deve validar localmente: nome obrigatório, e-mail em formato válido, senha com no mínimo 8 caracteres, ao menos 1 letra maiúscula e ao menos 1 número, além de confirmação de senha idêntica.
 - A força da senha deve ser exibida em tempo real, sem depender de resposta do backend.
 - Ao submeter com dados válidos, o app deve chamar `POST /auth/sign-up` com payload `{ "name", "email", "password" }`.
-- Em `201`, o app deve redirecionar para a tela de confirmação de e-mail, exibindo o e-mail usado no cadastro e CTA para reenvio do link.
+- Em `201`, o app deve redirecionar para a tela de confirmação de e-mail, exibindo o e-mail usado no cadastro, campo OTP de 6 dígitos, CTA de confirmação e CTA para reenvio do código.
 - Em `409`, o app deve exibir erro inline no campo `email`.
 - Em `422`, o app deve mapear erros estruturados do backend para os campos correspondentes sempre que houver chave reconhecível (`name`, `email`, `password`); quando não houver chave reconhecível, deve exibir `generalError`.
-- Durante `signUp` e `resendVerificationEmail`, o CTA correspondente deve ficar desabilitado e com feedback visual de carregamento.
+- Ao confirmar OTP válido em `POST /auth/verify-email`, o app deve finalizar a confirmação sem exigir novo cadastro.
+- Após sucesso em `verifyEmail`, o app deve salvar `accessToken.value` e `refreshToken.value` em cache local via `CacheDriver` usando `CacheKeys.accessToken` e `CacheKeys.refreshToken` antes de navegar.
+- Após salvar os tokens, o app deve aguardar um pequeno timer antes do redirecionamento para `Routes.home`.
+- Quando o OTP for inválido ou expirado, o app deve exibir erro inline no campo OTP e manter opção de reenvio.
+- Durante `signUp`, `verifyEmail` e `resendVerificationEmail`, o CTA correspondente deve ficar desabilitado e com feedback visual de carregamento.
 
 ## 3.2 Não funcionais
 
-- **Performance:** cada CTA remoto (`signUp` e `resendVerificationEmail`) deve permitir apenas uma requisição em voo por vez.
+- **Performance:** cada CTA remoto (`signUp`, `verifyEmail` e `resendVerificationEmail`) deve permitir apenas uma requisição em voo por vez.
 - **Acessibilidade:** labels e mensagens de erro devem ser textuais; o indicador de força de senha não pode depender apenas de cor.
 - **Offline/Conectividade:** falhas de rede não podem limpar os campos já preenchidos; a tela deve permanecer no estado atual com `generalError` visível.
 - **Segurança:** `password` e `confirmPassword` não devem ser persistidos fora do estado em memória do `FormGroup` do presenter; `AccountDto` não deve expor senha em texto puro.
@@ -71,7 +69,7 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 
 ## Camada Core
 
-- **`AuthService`** (`lib/core/auth/interfaces/auth_service.dart`) — contrato em evolução; hoje expõe `signIn(...)`, ainda parcialmente incompatível com o PRD desta feature.
+- **`AuthService`** (`lib/core/auth/interfaces/auth_service.dart`) — contrato já expõe `signUp(...)`, `verifyEmail(...)` e `resendVerificationEmail(...)`; falta completar implementação REST para confirmação OTP.
 - **`AccountDto`** (`lib/core/auth/dtos/account_dto.dart`) — DTO de conta já existente, mas com shape desalinhado do backend (`password` obrigatório e `isActive` sem evidência no domínio documentado).
 - **`RestClient`** (`lib/core/shared/interfaces/rest_client.dart`) — contrato base para operações HTTP a ser reutilizado pelo service de autenticação.
 - **`RestResponse`** (`lib/core/shared/responses/rest_response.dart`) — wrapper comum de sucesso/falha; hoje não preserva payload estruturado de erro, o que limita o mapeamento inline na UI.
@@ -93,7 +91,7 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 - **`Routes`** (`lib/constants/routes.dart`) — concentra caminhos conhecidos do app; ainda não possui rota para confirmação de e-mail.
 - **`appRouter`** (`lib/router.dart`) — roteador atual com `GoRouter`; hoje registra apenas `Routes.signUp` e o redirect de `Routes.home`.
 - **`Env`** (`lib/constants/env.dart`) — expõe `ANIMUS_SERVER_APP_URL`, que deve continuar sendo a origem do `baseUrl` HTTP.
-- **`AnimusApp`** (`lib/app.dart`) e **`AppTheme`** (`lib/theme.dart`) — bootstrap visual atual em `MaterialApp.router`; precisam acomodar `shadcn_flutter` para esta feature.
+- **`AnimusApp`** (`lib/app.dart`) e **`AppTheme`** (`lib/theme.dart`) — bootstrap visual atual em `MaterialApp.router`; devem permanecer como base visual da feature.
 
 ---
 
@@ -107,6 +105,7 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 - **Provider Riverpod:** `authServiceProvider`
 - **Métodos:**
   - `Future<RestResponse<AccountDto>> signUp({required String name, required String email, required String password})` — envia `POST /auth/sign-up`, converte `201` em `AccountDto` e preserva `statusCode`, `errorMessage` e `errorBody` em falhas.
+  - `Future<RestResponse<SessionDto>> verifyEmail({required String email, required String otp})` — envia `POST /auth/verify-email`, converte resposta de sucesso para `SessionDto` e preserva payload de erro estruturado em falhas de OTP.
   - `Future<RestResponse<void>> resendVerificationEmail({required String email})` — envia `POST /auth/resend-verification-email` e retorna o status tipado de reenvio sem expor payload cru.
 
 ## Camada REST (Mappers)
@@ -114,30 +113,46 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 - **Localização:** `lib/rest/mappers/auth/account_mapper.dart` (**novo arquivo**)
 - **Métodos:**
   - `AccountDto toDto(Map<String, dynamic> json)` — mapeia `id`, `name`, `email`, `is_verified` e `social_accounts` para `AccountDto`.
-  - `Map<String, dynamic> toSignUpJson({required String name, required String email, required String password})` — produz o payload de `POST /auth/sign-up`.
-  - `Map<String, dynamic> toResendVerificationEmailJson({required String email})` — produz o payload de `POST /auth/resend-verification-email`.
+  - `SessionDto toDto(Map<String, dynamic> json)` em `session_mapper.dart` — mapeia `access_token` e `refresh_token` para `SessionDto`, convertendo cada token para `TokenDto` (`value`, `expiresAt`).
+  - Payloads de request (`sign-up`, `verify-email`, `resend-verification-email`) devem ser montados diretamente no `AuthRestService` como `Map<String, dynamic>` inline do método.
+
+## Camada Core (Cache)
+
+- **Localização:** `lib/core/shared/interfaces/cache_driver.dart`
+- **Contrato:**
+  - `String? get(String key)`
+  - `void set(String key, String value)`
+  - `void delete(String key)`
+
+## Camada Drivers (Cache)
+
+- **Localização:** `lib/drivers/cache-driver/shared_preferences_cache_driver.dart` (**novo arquivo**)
+- **Implementa:** `CacheDriver`
+- **Detalhes:** usa `SharedPreferences` para implementar `get/set/delete` e persistir `CacheKeys.accessToken` e `CacheKeys.refreshToken`.
 
 ## Camada UI (Presenters)
 
 - **Localização:** `lib/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_presenter.dart` (**novo arquivo**)
 - **Dependências injetadas:** `AuthService`
 - **Estado (`signals`):**
-  - Signals simples: `signal<bool> isResending`, `signal<String?> generalError`, `signal<String?> feedbackMessage`
+  - Signals simples: `signal<bool> isResending`, `signal<bool> isVerifying`, `signal<String?> generalError`, `signal<String?> feedbackMessage`
+  - Formulário: `FormGroup` com controle `otp` e validação de 6 dígitos numéricos.
   - Computeds: não aplicável
 - **Provider Riverpod:** `emailConfirmationScreenPresenterProvider`
 - **Métodos:**
-  - `Future<void> resendVerificationEmail()` — dispara o reenvio do link para o `email` recebido pela tela, controla loading e atualiza `feedbackMessage` ou `generalError`.
+  - `Future<void> verifyOtp(BuildContext context)` — valida formulário OTP, chama `AuthService.verifyEmail(...)`, salva `accessToken.value` e `refreshToken.value` em cache (`CacheKeys`) via `SharedPreferencesCacheDriver`, aguarda pequeno timer e só então navega para `Routes.home`.
+  - `Future<void> resendVerificationEmail()` — dispara o reenvio do código OTP para o `email` recebido pela tela, controla loading e atualiza `feedbackMessage` ou `generalError`.
 
 ## Camada UI (Views)
 
 - **Localização:** `lib/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_view.dart` (**novo arquivo**)
 - **Base class:** `ConsumerWidget`
 - **Props:** `required String email`
-- **Bibliotecas de UI:** `flutter_riverpod`, `signals_flutter`, `shadcn_flutter`, `reactive_forms`
+- **Bibliotecas de UI:** `flutter_riverpod`, `signals_flutter`, `reactive_forms`
 - **Estados visuais:**
-  - `Content` — texto explicativo com o e-mail cadastrado e CTA de reenvio.
-  - `Loading` — botão de reenvio desabilitado com indicador visual.
-  - `Error` — alerta textual acima do CTA.
+  - `Content` — texto explicativo com o e-mail cadastrado, campo OTP de 6 dígitos e CTAs de confirmar/reenviar código.
+  - `Loading` — botões de confirmar e reenvio desabilitados com indicador visual no CTA em execução.
+  - `Error` — erro inline no campo OTP e alerta textual para erros gerais.
 
 ## Camada UI (Widgets Internos)
 
@@ -150,7 +165,7 @@ Esta spec define a implementação do fluxo de cadastro via e-mail e senha no `a
 - **Localização:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/` (**novo arquivo** em pasta nova)
 - **Tipo:** widget interno com presenter dedicado
 - **Arquivos:** `sign_up_form_view.dart`, `sign_up_form_presenter.dart`, `index.dart`
-- **Responsabilidade:** encapsular o formulário reativo de cadastro, coordenar o estado visual do formulário e isolar a composição de campos/CTA da tela raiz `sign_up_screen`.
+- **Responsabilidade:** encapsular o formulário reativo de cadastro, incluindo checkbox de aceite dos termos, coordenar o estado visual do formulário e isolar a composição de campos/CTA da tela raiz `sign_up_screen`.
 
 - **Localização:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/general_error_alert/` e `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_up_submit_button/` (**novos arquivos** em pastas novas)
 - **Tipo:** widgets internos do formulário
@@ -201,10 +216,13 @@ lib/ui/auth/widgets/pages/
     top_progress_bar/
       index.dart
       top_progress_bar_view.dart
-    sign_up_form/
-      index.dart
-      sign_up_form_view.dart
-      sign_up_form_presenter.dart
+      sign_up_form/
+        index.dart
+        sign_up_form_view.dart
+        sign_up_form_presenter.dart
+        terms_label/
+          index.dart
+          terms_label_view.dart
       general_error_alert/
         index.dart
         general_error_alert_view.dart
@@ -224,16 +242,16 @@ lib/ui/auth/widgets/pages/
 ## App / Bootstrap
 
 - **Arquivo:** `pubspec.yaml`
-- **Mudança:** adicionar as dependências de `shadcn_flutter`, `signals` e `reactive_forms` compatíveis com o SDK atual do projeto.
-- **Justificativa:** a spec exige `shadcn_flutter` para UI, `signals` para estado local e `reactive_forms` para validação de formulários; essas bibliotecas ainda não estão declaradas no app bootstrap.
+- **Mudança:** adicionar as dependências de `signals` e `reactive_forms` compatíveis com o SDK atual do projeto.
+- **Justificativa:** a spec exige `signals` para estado local e `reactive_forms` para validação de formulários.
 
 - **Arquivo:** `lib/app.dart`
-- **Mudança:** substituir `MaterialApp.router` por `ShadcnApp.router`, preservando `title` e `routerConfig`.
-- **Justificativa:** os componentes de `shadcn_flutter` precisam ser inicializados no root da aplicação para que a tela de auth use o mesmo sistema visual e de tema.
+- **Mudança:** manter `MaterialApp.router`, preservando `title` e `routerConfig`.
+- **Justificativa:** o projeto deve usar Flutter Material como base de UI.
 
 - **Arquivo:** `lib/theme.dart`
-- **Mudança:** trocar o tema Material atual por um `ThemeData` de `shadcn_flutter` focado em light theme, mantendo uma direção visual neutra e consistente com o bootstrap.
-- **Justificativa:** sem um tema de `shadcn_flutter`, a nova UI de auth ficaria visualmente inconsistente e parcialmente acoplada ao tema Material anterior.
+- **Mudança:** manter `ThemeData` Material e ajustar somente tokens visuais necessários para a feature.
+- **Justificativa:** preservar consistência visual sem introduzir toolkit de UI externo.
 
 - **Arquivo:** `lib/constants/routes.dart`
 - **Mudança:** adicionar a constante `emailConfirmation` e o helper `String emailConfirmation({required String email})` para construir a rota com query string de forma centralizada.
@@ -248,6 +266,7 @@ lib/ui/auth/widgets/pages/
 - **Arquivo:** `lib/core/auth/interfaces/auth_service.dart`
 - **Mudança:** substituir o método placeholder atual pelos contratos:
   - `Future<RestResponse<AccountDto>> signUp({required String name, required String email, required String password})`
+  - `Future<RestResponse<SessionDto>> verifyEmail({required String email, required String otp})`
   - `Future<RestResponse<void>> resendVerificationEmail({required String email})`
 - **Justificativa:** o contrato atual não atende o PRD nem o ticket ANI-40 e não possui uso real na codebase.
 
@@ -259,11 +278,29 @@ lib/ui/auth/widgets/pages/
 - **Mudança:** adicionar suporte a `Json? errorBody` e ajustar `mapBody` para propagar falhas preservando `statusCode`, `errorMessage` e `errorBody` em vez de lançar exceção imediatamente.
 - **Justificativa:** o presenter precisa mapear erros estruturados de `409/422` para erros inline sem depender de parsing na View e sem perder metadados durante o mapeamento REST -> DTO.
 
+- **Arquivo:** `lib/core/shared/interfaces/cache_driver.dart`
+- **Mudança:** manter o contrato string-based (`get/set/delete`) e reutilizá-lo para persistência de tokens de sessão.
+- **Justificativa:** preservar compatibilidade do contrato compartilhado e evitar acoplamento do Core a um DTO específico de sessão.
+
 ## Camada REST
 
 - **Arquivo:** `lib/rest/dio/dio_rest_client.dart`
 - **Mudança:** expor `restClientProvider`, configurar o `baseUrl` a partir de `Env.animusServerAppUrl` e popular `errorBody` quando a resposta de erro vier em `Json`.
 - **Justificativa:** o primeiro service concreto de auth precisa receber `RestClient` via Riverpod e preservar o payload de erro do backend para a UI.
+
+- **Arquivo:** `lib/rest/services/auth_rest_service.dart`
+- **Mudança:** implementar `verifyEmail(...)` com `POST /auth/verify-email`, mapeando sucesso para `SessionDto` e preservando `errorBody` para erros de OTP.
+- **Justificativa:** o PRD RF01 exige confirmação por OTP no pós-cadastro antes de liberar acesso.
+
+- **Arquivo:** `lib/rest/mappers/auth/account_mapper.dart` e `lib/rest/mappers/auth/session_mapper.dart` (**novo arquivo**)
+- **Mudança:** manter `AccountMapper` restrito a `toDto(...)`, manter `SessionMapper` para `SessionDto` e mover a serialização de request para `AuthRestService`.
+- **Justificativa:** preservar coesão de mapper por DTO e evitar mapper dedicado para payload de request pontual.
+
+## Camada Drivers
+
+- **Arquivo:** `lib/drivers/cache-driver/shared_preferences_cache_driver.dart` (**novo arquivo**)
+- **Mudança:** implementar `CacheDriver` com `SharedPreferences` para `get/set/delete` de `String` e uso de `CacheKeys` para tokens.
+- **Justificativa:** garantir persistência local de sessão sem vazar SDK externo para fora da camada de infraestrutura.
 
 ## Camada UI
 
@@ -292,6 +329,14 @@ lib/ui/auth/widgets/pages/
     - `String? fieldErrorMessage(FormControl<Object?> control)` — traduz erros do `reactive_forms` e erros remotos para texto de UI.
     - `void applyServerFieldErrors(RestResponse<Object?> response)` — converte `409/422` em `setErrors(...)` nos controles corretos.
     - `Future<void> submit(BuildContext context)` — marca o formulário como touched, valida o `FormGroup`, chama `AuthService.signUp`, mapeia erros de backend para os controles/`generalError` e navega para `Routes.emailConfirmation(email: email)` em caso de `201`.
+
+- **Arquivo:** `lib/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_presenter.dart`
+- **Mudança:** evoluir o presenter para suportar validação e confirmação de OTP (`verifyOtp`), persistir tokens em cache (`CacheKeys`) e aguardar pequeno delay antes da navegação para `home`.
+- **Justificativa:** a tela pós-cadastro precisa concluir verificação e inicializar sessão local com transição visual estável antes de trocar de rota.
+
+- **Arquivo:** `lib/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_view.dart`
+- **Mudança:** incluir campo OTP de 6 dígitos com erro inline e CTA principal de confirmação, mantendo CTA secundário de reenvio.
+- **Justificativa:** alinhamento com regra de UI/UX do PRD RF01 para confirmação de e-mail por código OTP.
 
 - **Arquivo:** `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_view.dart`
 - **Mudança:** transformar a tela raiz em composição enxuta (barra superior + header + container), delegando a barra de progresso para o widget interno `TopProgressBar` e toda a árvore do formulário para o widget interno `SignUpForm`.
@@ -334,7 +379,7 @@ lib/ui/auth/widgets/pages/
 
 - **Arquivo:** `lib/core/auth/interfaces/auth_service.dart`
 - **Motivo da remoção:** o método `isLoggedInWithCredentialsAndToken` é um placeholder sem uso e não corresponde a nenhum requisito do PRD ou do ticket.
-- **Impacto esperado:** todos os consumers passam a depender exclusivamente de `signUp` e `resendVerificationEmail`.
+- **Impacto esperado:** todos os consumers passam a depender de `signUp`, `verifyEmail` e `resendVerificationEmail`.
 
 - **Arquivo:** `lib/core/auth/dtos/account_dto.dart`
 - **Motivo da remoção:** os campos `password` e `isActive` não têm evidência no retorno do backend documentado para o mobile.
@@ -358,12 +403,12 @@ lib/ui/auth/widgets/pages/
 - **Motivo da escolha:** a codebase ainda não possui drivers concretos, o ticket original aponta impacto principal em `ui` e a introdução de um driver genérico agora adicionaria churn arquitetural sem ganho proporcional para um único fluxo.
 - **Impactos / trade-offs:** a navegação continua acoplada à camada UI por enquanto, mas a orquestração permanece no presenter e pode ser abstraída depois se mais fluxos de auth passarem a compartilhar navegação complexa.
 
-## 8.3 Criar uma tela dedicada de confirmação de e-mail
+## 8.3 Criar uma tela dedicada de confirmação OTP
 
-- **Decisão:** criar `email_confirmation_screen` como nova tela em vez de exibir um `dialog` ou `snackbar` de sucesso na própria `sign_up_screen`.
+- **Decisão:** criar `email_confirmation_screen` com campo OTP e CTA de confirmação em vez de exibir apenas um `dialog`, `snackbar` ou confirmação textual sem input.
 - **Alternativas consideradas:** exibir confirmação inline na mesma tela; navegar direto para login com mensagem transitória.
-- **Motivo da escolha:** o PRD exige um estado pós-cadastro com instrução clara e opção de reenvio; uma tela dedicada é o formato mais estável para esse comportamento e reaproveita melhor o fluxo futuro de e-mail não confirmado.
-- **Impactos / trade-offs:** adiciona uma rota e um presenter a mais, mas reduz acoplamento do fluxo pós-cadastro com o formulário original.
+- **Motivo da escolha:** o PRD exige digitação de OTP de 6 dígitos, tratamento de código inválido/expirado e opção de reenvio no pós-cadastro; uma tela dedicada é o formato mais estável para esse comportamento.
+- **Impactos / trade-offs:** adiciona validação de formulário e nova chamada remota (`verifyEmail`) na tela de confirmação, mas mantém o fluxo explícito e preparado para evoluções de autenticação.
 
 ## 8.4 Usar query string para transportar o e-mail até a rota de confirmação
 
@@ -372,12 +417,12 @@ lib/ui/auth/widgets/pages/
 - **Motivo da escolha:** query string sobrevive melhor a refresh e mantém o contrato da rota explícito no `router.dart`.
 - **Impactos / trade-offs:** o `router` precisa validar a presença do parâmetro e redirecionar quando ele estiver ausente.
 
-## 8.5 Adotar `shadcn_flutter` já no bootstrap do app
+## 8.5 Manter Flutter Material como base de UI
 
-- **Decisão:** migrar `lib/app.dart` para `ShadcnApp.router` e ajustar `lib/theme.dart` agora, junto com a feature.
-- **Alternativas consideradas:** manter `MaterialApp.router` e usar `shadcn_flutter` apenas localmente na tela; adiar a migração visual para outra tarefa.
-- **Motivo da escolha:** a diretriz da spec exige `shadcn_flutter` para novas features e a mudança é pequena no estado atual do bootstrap.
-- **Impactos / trade-offs:** a feature deixa de ser puramente de auth e toca o bootstrap visual, mas evita retrabalho imediato nas próximas telas do módulo.
+- **Decisão:** manter `lib/app.dart` com `MaterialApp.router` e preservar `lib/theme.dart` no ecossistema Material.
+- **Alternativas consideradas:** adotar toolkit de UI externo para a tela de auth.
+- **Motivo da escolha:** diretriz atual do projeto: manter UI em Flutter Material.
+- **Impactos / trade-offs:** reduz dependencias externas e simplifica manutencao visual no app.
 
 ---
 
@@ -390,17 +435,29 @@ SignUpScreenView
   -> SignUpScreenPresenter.submit(context)
       -> AuthService.signUp(name, email, password)
           -> AuthRestService.signUp(...)
-              -> AccountMapper.toSignUpJson(...)
+              -> payload Map inline no service
               -> RestClient.post('/auth/sign-up')
               -> AccountMapper.toDto(...)
       -> [201] GoRouter.go(Routes.emailConfirmation(email: email))
       -> [409/422/rede] atualiza erros do `FormGroup` ou `generalError`
 
 EmailConfirmationScreenView
+  -> EmailConfirmationScreenPresenter.verifyOtp(context)
+      -> AuthService.verifyEmail(email, otp)
+          -> AuthRestService.verifyEmail(...)
+              -> payload Map inline no service
+              -> RestClient.post('/auth/verify-email')
+              -> SessionMapper.toDto(...)
+      -> [sucesso] SharedPreferencesCacheDriver.set(CacheKeys.accessToken, session.accessToken.value)
+      -> [sucesso] SharedPreferencesCacheDriver.set(CacheKeys.refreshToken, session.refreshToken.value)
+      -> [sucesso] aguarda pequeno timer
+      -> [sucesso] GoRouter.go(Routes.home)
+      -> [otp inválido/expirado] erro inline no campo OTP
+      -> [falha geral] generalError
   -> EmailConfirmationScreenPresenter.resendVerificationEmail()
       -> AuthService.resendVerificationEmail(email)
           -> AuthRestService.resendVerificationEmail(...)
-              -> AccountMapper.toResendVerificationEmailJson(...)
+              -> payload Map inline no service
               -> RestClient.post('/auth/resend-verification-email')
       -> [204] feedbackMessage
       -> [falha] generalError
@@ -436,8 +493,10 @@ EmailConfirmationScreenView
           Column
             Title
             Description(email)
+            OtpField(6 digitos)
             FeedbackAlert?
             ErrorAlert?
+            ConfirmOtpButton
             ResendButton
 ```
 
@@ -446,20 +505,29 @@ EmailConfirmationScreenView
 - `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_view.dart` — referência direta do widget que será evoluído.
 - `lib/ui/auth/widgets/pages/sign_up_screen/top_progress_bar/top_progress_bar_view.dart` — referência do widget interno responsável pela barra superior de progresso.
 - `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_presenter.dart` — referência direta do presenter que será refatorado.
+- `lib/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_view.dart` — referência da tela de confirmação OTP no app.
+- `lib/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_presenter.dart` — referência do presenter responsável por `verifyEmail` e reenvio de OTP.
 - `lib/ui/auth/widgets/pages/sign_up_screen/index.dart` — referência do padrão de barrel file já adotado no módulo.
+- `lib/core/shared/interfaces/cache_driver.dart` — contrato de cache string-based reutilizado para persistência de tokens de sessão.
 - `lib/core/shared/responses/rest_response.dart` — base para a evolução do wrapper de erro/sucesso.
 - `lib/rest/dio/dio_rest_client.dart` — base para a primeira implementação concreta de `AuthService`.
+- `lib/drivers/cache-driver/shared_preferences_cache_driver.dart` — implementação concreta de cache com `SharedPreferences`.
+- `lib/constants/cache_keys.dart` — chaves de persistência de `accessToken` e `refreshToken`.
 - `lib/constants/routes.dart` e `lib/router.dart` — pontos de entrada para a nova rota pós-cadastro.
 
-> Lacuna identificada na codebase: não foram encontrados services REST de auth, mappers de auth nem outras telas de auth além do bootstrap de `sign_up_screen`; esta feature inaugura esses padrões no mobile.
+### Design (Pencil)
+
+- Tela de confirmação OTP: `design/animus.pen` (Node ID: `FD7WK`).
+
+> Observação de contexto: no diagnóstico inicial desta feature não havia services REST de auth, mappers de auth nem outras telas de auth além do bootstrap de `sign_up_screen`; esta spec consolidou a introdução desses padrões no mobile.
 
 ---
 
 # 10. Pendências / Dúvidas
 
-- **Descrição da pendência:** o shape exato do payload de erro de `409/422` do backend não está documentado no repositório mobile nem no ticket ANI-40.
-- **Impacto na implementação:** o mapeamento inline de erros server-side depende de reconhecer a estrutura de erro (`message`, `detail[]`, ou formato equivalente).
-- **Ação sugerida:** implementar suporte híbrido no mobile para `errorMessage` simples e para o padrão `detail[]` do FastAPI; validar o contrato final com o backend assim que a integração for ligada em ambiente compartilhado.
+- **Descrição da pendência:** o shape exato do payload de erro de `409/422` (sign-up) e de OTP inválido/expirado (`verify-email`) não está documentado no repositório mobile nem no ticket ANI-40.
+- **Impacto na implementação:** o mapeamento inline de erros server-side depende de reconhecer a estrutura de erro (`message`, `detail[]`, ou formato equivalente), inclusive no campo OTP.
+- **Ação sugerida:** implementar suporte híbrido no mobile para `errorMessage` simples e para o padrão `detail[]` do FastAPI; validar o contrato final de erro de OTP com o backend assim que a integração for ligada em ambiente compartilhado.
 
 ---
 
@@ -472,5 +540,5 @@ EmailConfirmationScreenView
 - Esta spec não inventa novos fluxos de negócio além do que está evidenciado no PRD RF01, no ticket ANI-40 e no ticket técnico ANI-35.
 - Toda referência a código existente usa caminho relativo real em `lib/...`.
 - Toda widget com responsabilidade própria foi colocada em pasta própria com `index.dart` quando aplicável.
-- A UI nova deve usar `shadcn_flutter`; componentes Material atuais da tela de cadastro precisam ser removidos na implementação.
+- A UI nova deve usar Flutter Material; nao introduzir toolkit de UI externo.
 - A spec mantém a nomenclatura da codebase: arquivos em `snake_case`, classes em `PascalCase`, providers e métodos em `camelCase`.
