@@ -29,5 +29,15 @@ void main() {
       expect(mapped.errorMessage, 'Erro de validacao');
       expect(mapped.errorBody, response.errorBody);
     });
+
+    test('usa status de erro quando falha nao possui status explicito', () {
+      final RestResponse<void> response = RestResponse<void>(
+        errorMessage: 'Falha de rede',
+      );
+
+      expect(response.isFailure, isTrue);
+      expect(response.statusCode, 500);
+      expect(response.errorMessage, 'Falha de rede');
+    });
   });
 }

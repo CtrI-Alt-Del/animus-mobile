@@ -14,7 +14,11 @@ class RestResponse<Body> {
     String? errorMessage,
     Json? errorBody,
   }) : _body = body,
-       _statusCode = statusCode ?? HttpStatus.ok,
+       _statusCode =
+           statusCode ??
+           ((errorMessage != null || errorBody != null)
+               ? HttpStatus.internalServerError
+               : HttpStatus.ok),
        _errorMessage = errorMessage,
        _errorBody = errorBody;
 
