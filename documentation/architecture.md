@@ -38,7 +38,10 @@ e-mail e senha. A base atual contem:
 - Persistencia local para tokens e configuracoes de sessao.
 - Servicos de notificacao push.
 
-A URL do backend deve ser configurada via `--dart-define` (`ANIMUS_SERVER_APP_URL`) para evitar acoplamento a ambiente local.
+A URL do backend e carregada via `flutter_dotenv`, a partir da chave `ANIMUS_SERVER_APP_URL`
+definida no arquivo `.env`. O repositorio inclui `.env.example` como referencia de configuracao
+local e os ambientes automatizados devem garantir a geracao desse arquivo antes de rodar build,
+analyze ou test.
 
 No fluxo atual de autenticacao, a camada REST consome os endpoints `POST /auth/sign-up`,
 `POST /auth/verify-email` e `POST /auth/resend-verification-email`. Em caso de sucesso na
