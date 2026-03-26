@@ -1,28 +1,39 @@
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_screen_presenter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../fakers/auth/account_dto_faker.dart';
 
 class _MockAuthService extends Mock implements AuthService {}
 
+class _MockNavigationDriver extends Mock implements NavigationDriver {}
+
 void main() {
   late _MockAuthService authService;
+  late _MockNavigationDriver navigationDriver;
 
   setUp(() {
     authService = _MockAuthService();
+    navigationDriver = _MockNavigationDriver();
+    when(() => navigationDriver.canGoBack()).thenReturn(false);
+    when(() => navigationDriver.goBack()).thenReturn(null);
+    when(
+      () => navigationDriver.goTo(any(), data: any(named: 'data')),
+    ).thenReturn(null);
   });
 
   group('validacoes', () {
     late SignUpScreenPresenter presenter;
 
     setUp(() {
-      presenter = SignUpScreenPresenter(authService: authService);
+      presenter = SignUpScreenPresenter(
+        authService: authService,
+        navigationDriver: navigationDriver,
+      );
     });
 
     tearDown(() {
@@ -71,10 +82,11 @@ void main() {
   });
 
   group('submit', () {
-    testWidgets('navega para confirmacao no sucesso', (
-      WidgetTester tester,
-    ) async {
-      final presenter = SignUpScreenPresenter(authService: authService);
+    test('navega para confirmacao no sucesso', () async {
+      final presenter = SignUpScreenPresenter(
+        authService: authService,
+        navigationDriver: navigationDriver,
+      );
       addTearDown(presenter.dispose);
       _fillValidForm(presenter);
 
@@ -89,11 +101,14 @@ void main() {
             RestResponse(body: AccountDtoFaker.make(), statusCode: 201),
       );
 
-      await _pumpSubmitHarness(tester, presenter);
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
+      await presenter.submit();
 
-      expect(find.text('email-confirmation:ada@example.com'), findsOneWidget);
+      verify(
+        () => navigationDriver.goTo(
+          Routes.getEmailConfirmation(email: 'ada@example.com'),
+          data: any(named: 'data'),
+        ),
+      ).called(1);
       verify(
         () => authService.signUp(
           name: 'Ada Lovelace',
@@ -103,16 +118,15 @@ void main() {
       ).called(1);
     });
 
-    testWidgets('nao submete enquanto termos nao forem aceitos', (
-      WidgetTester tester,
-    ) async {
-      final presenter = SignUpScreenPresenter(authService: authService);
+    test('nao submete enquanto termos nao forem aceitos', () async {
+      final presenter = SignUpScreenPresenter(
+        authService: authService,
+        navigationDriver: navigationDriver,
+      );
       addTearDown(presenter.dispose);
       _fillValidForm(presenter, acceptTerms: false);
 
-      await _pumpSubmitHarness(tester, presenter);
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
+      await presenter.submit();
 
       verifyNever(
         () => authService.signUp(
@@ -122,13 +136,13 @@ void main() {
         ),
       );
       expect(presenter.termsAcceptedControl.valid, isFalse);
-      expect(find.text('idle'), findsOneWidget);
     });
 
-    testWidgets('mapeia conflito 409 para erro inline de email', (
-      WidgetTester tester,
-    ) async {
-      final presenter = SignUpScreenPresenter(authService: authService);
+    test('mapeia conflito 409 para erro inline de email', () async {
+      final presenter = SignUpScreenPresenter(
+        authService: authService,
+        navigationDriver: navigationDriver,
+      );
       addTearDown(presenter.dispose);
       _fillValidForm(presenter);
 
@@ -146,9 +160,7 @@ void main() {
         ),
       );
 
-      await _pumpSubmitHarness(tester, presenter);
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
+      await presenter.submit();
 
       expect(presenter.emailControl.hasError('server'), isTrue);
       expect(
@@ -158,10 +170,11 @@ void main() {
       expect(presenter.generalError.value, isNull);
     });
 
-    testWidgets('mapeia 422 para erros reconhecidos de campo', (
-      WidgetTester tester,
-    ) async {
-      final presenter = SignUpScreenPresenter(authService: authService);
+    test('mapeia 422 para erros reconhecidos de campo', () async {
+      final presenter = SignUpScreenPresenter(
+        authService: authService,
+        navigationDriver: navigationDriver,
+      );
       addTearDown(presenter.dispose);
       _fillValidForm(presenter);
 
@@ -190,19 +203,18 @@ void main() {
         ),
       );
 
-      await _pumpSubmitHarness(tester, presenter);
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
+      await presenter.submit();
 
       expect(presenter.emailControl.getError('server'), 'Email invalido');
       expect(presenter.passwordControl.getError('server'), 'Senha fraca');
       expect(presenter.generalError.value, isNull);
     });
 
-    testWidgets('exibe erro geral em falha nao tratada', (
-      WidgetTester tester,
-    ) async {
-      final presenter = SignUpScreenPresenter(authService: authService);
+    test('exibe erro geral em falha nao tratada', () async {
+      final presenter = SignUpScreenPresenter(
+        authService: authService,
+        navigationDriver: navigationDriver,
+      );
       addTearDown(presenter.dispose);
       _fillValidForm(presenter);
 
@@ -220,12 +232,9 @@ void main() {
         ),
       );
 
-      await _pumpSubmitHarness(tester, presenter);
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
+      await presenter.submit();
 
       expect(presenter.generalError.value, 'Falha inesperada');
-      expect(find.text('idle'), findsOneWidget);
     });
   });
 }
@@ -240,41 +249,4 @@ void _fillValidForm(
   presenter.confirmPasswordControl.value = 'Password1';
   presenter.termsAcceptedControl.value = acceptTerms;
   presenter.onPasswordChanged('Password1');
-}
-
-Future<void> _pumpSubmitHarness(
-  WidgetTester tester,
-  SignUpScreenPresenter presenter,
-) async {
-  final GoRouter router = GoRouter(
-    initialLocation: '/',
-    routes: <RouteBase>[
-      GoRoute(
-        path: '/',
-        builder: (BuildContext context, GoRouterState state) {
-          return Scaffold(
-            body: Column(
-              children: <Widget>[
-                ElevatedButton(
-                  onPressed: () => presenter.submit(context),
-                  child: const Text('submit'),
-                ),
-                Text(presenter.isSubmitting.value ? 'submitting' : 'idle'),
-              ],
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: Routes.emailConfirmation,
-        builder: (BuildContext context, GoRouterState state) {
-          return Text(
-            'email-confirmation:${state.uri.queryParameters['email']}',
-          );
-        },
-      ),
-    ],
-  );
-
-  await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 }

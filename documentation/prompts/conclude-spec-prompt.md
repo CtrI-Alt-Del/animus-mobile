@@ -49,15 +49,19 @@ comportamentos introduzidos pela Spec possuem testes correspondentes.
 Considere como caminhos críticos que exigem cobertura:
 
 - Lógica nova ou modificada em `lib/core` (DTOs, contratos, respostas tipadas e
-  regras de domínio)
+  regras de domínio) — cobertos exclusivamente com **testes unitários**
 - Casos de erro e edge cases relevantes (validações, falhas de integração,
-  estados inválidos)
+  estados inválidos) — cobertos exclusivamente com **testes unitários**
 - Mapeadores e services em `lib/rest` (payloads, parsing, tratamento de erro,
-  tradução entre contrato remoto e DTO)
+  tradução entre contrato remoto e DTO) — cobertos exclusivamente com **testes unitários**
 - Drivers e adaptadores em `lib/drivers` (storage, cache, plugins e integrações
-  de plataforma)
+  de plataforma) — **não crie novos testes nesta etapa de conclude spec**;
+  apenas verifique e sinalize a cobertura já existente quando houver
 - Widgets, presenters e fluxos de UI alterados em `lib/ui`, incluindo estados
-  de loading, empty, erro e interações relevantes
+  de loading, empty, erro e interações relevantes — **testes de widget são
+  permitidos somente para componentes da camada `lib/ui`; arquivos fora de
+  `lib/ui` (core, rest, drivers) devem ser cobertos exclusivamente com testes
+  unitários, nunca com testes de widget**
 
 Ao final desta etapa, produza um relatório de cobertura no seguinte formato:
 ```markdown
@@ -80,6 +84,17 @@ O subagent deve receber como contexto:
   com os caminhos reais dos arquivos fonte (`lib/...`).
 - O caminho da Spec técnica, para referência de contratos e comportamentos
   esperados.
+
+> ⚠️ **Restrição obrigatória ao subagent:** testes de widget **só são
+> permitidos para componentes da camada `lib/ui`**. Arquivos fora de `lib/ui`
+> (core, rest, drivers) devem ser cobertos exclusivamente com **testes
+> unitários** — nunca com testes de widget, independentemente do contexto ou
+> da solicitação.
+
+> ⚠️ **Restrição adicional obrigatória ao subagent:** **não criar testes para
+> arquivos em `lib/drivers`** durante o conclude spec. Para drivers, apenas
+> registre no relatório se existe ou não cobertura já presente; não abra
+> lacunas criando novos testes nessa fase.
 
 > O subagent e responsavel por criar os arquivos de teste, seguir as regras de
 > nomenclatura e estrutura do projeto, e garantir que `flutter test` passe ao
@@ -134,6 +149,10 @@ Em geral, os mais comuns no Animus Mobile sao:
   de modulos, imports e padroes gerais de codigo
 - `documentation/rules/unit-tests-rules.md` - estrutura, mocks, fakers e
   convencoes de testes
+
+Ao validar a camada `lib/drivers`, trate cobertura de testes apenas como
+diagnóstico: a fase de conclude spec **não deve criar novos testes para
+drivers**, mesmo quando houver lacunas.
 
 Para cada regra violada, reporte:
 

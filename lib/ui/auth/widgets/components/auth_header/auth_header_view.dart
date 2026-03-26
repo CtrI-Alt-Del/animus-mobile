@@ -3,8 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:animus/theme.dart';
 
-class HeaderView extends StatelessWidget {
-  const HeaderView({super.key});
+class AuthHeaderView extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const AuthHeaderView({
+    required this.title,
+    required this.subtitle,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +23,7 @@ class HeaderView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Text(
-          'Criar Conta',
+          title,
           style: GoogleFonts.fraunces(
             textStyle: textTheme.headlineSmall?.copyWith(
               color: tokens.textPrimary,
@@ -27,7 +34,7 @@ class HeaderView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Preencha seus dados para comecar',
+          subtitle,
           style: textTheme.bodySmall?.copyWith(color: tokens.textSecondary),
         ),
       ],
