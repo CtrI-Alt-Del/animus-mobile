@@ -45,9 +45,7 @@ void main() {
 
     when(() => navigationDriver.canGoBack()).thenReturn(false);
     when(() => navigationDriver.goBack()).thenReturn(null);
-    when(
-      () => navigationDriver.goTo(any(), data: any(named: 'data')),
-    ).thenReturn(null);
+    when(() => navigationDriver.goTo(any())).thenReturn(null);
   });
 
   test('verifyOtp persiste tokens e navega para home no sucesso', () async {
@@ -76,9 +74,7 @@ void main() {
 
     expect(cacheDriver.get(CacheKeys.accessToken), 'access-token');
     expect(cacheDriver.get(CacheKeys.refreshToken), 'refresh-token');
-    verify(
-      () => navigationDriver.goTo(Routes.home, data: any(named: 'data')),
-    ).called(1);
+    verify(() => navigationDriver.goTo(Routes.home)).called(1);
   });
 
   test('verifyOtp mapeia erro de otp para feedback inline', () async {
