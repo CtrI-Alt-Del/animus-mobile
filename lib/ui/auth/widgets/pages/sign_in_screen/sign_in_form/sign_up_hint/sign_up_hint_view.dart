@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
 
-class SignInHintView extends StatelessWidget {
+class SignUpHintView extends StatelessWidget {
   final VoidCallback onTap;
 
-  const SignInHintView({required this.onTap, super.key});
+  const SignUpHintView({required this.onTap, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class SignInHintView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(
-            'Ja tem conta? ',
+            'Nao tem conta? ',
             style: textTheme.labelSmall?.copyWith(
               color: tokens.textMuted,
               fontWeight: FontWeight.w400,
@@ -32,7 +32,7 @@ class SignInHintView extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(
-              'Entrar',
+              'Criar conta',
               style: textTheme.labelSmall?.copyWith(
                 color: tokens.accent,
                 fontWeight: FontWeight.w600,

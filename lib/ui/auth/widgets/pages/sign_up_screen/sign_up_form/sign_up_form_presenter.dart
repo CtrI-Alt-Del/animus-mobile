@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -58,8 +57,12 @@ class SignUpFormPresenter {
     _screenPresenter.toggleConfirmPasswordVisibility();
   }
 
-  Future<void> submit(BuildContext context) {
-    return _screenPresenter.submit(context);
+  Future<void> submit() {
+    return _screenPresenter.submit();
+  }
+
+  void goToSignIn() {
+    _screenPresenter.goToSignIn();
   }
 }
 
