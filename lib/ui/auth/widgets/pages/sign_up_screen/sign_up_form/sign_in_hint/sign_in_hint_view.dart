@@ -14,8 +14,9 @@ class SignInHintView extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
           Text(
             'Ja tem conta? ',
@@ -26,11 +27,6 @@ class SignInHintView extends StatelessWidget {
           ),
           TextButton(
             onPressed: onTap,
-            style: TextButton.styleFrom(
-              minimumSize: Size.zero,
-              padding: EdgeInsets.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
             child: Text(
               'Entrar',
               style: textTheme.labelSmall?.copyWith(

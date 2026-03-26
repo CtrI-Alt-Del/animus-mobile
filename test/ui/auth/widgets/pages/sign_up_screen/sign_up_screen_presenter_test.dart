@@ -21,9 +21,7 @@ void main() {
     navigationDriver = _MockNavigationDriver();
     when(() => navigationDriver.canGoBack()).thenReturn(false);
     when(() => navigationDriver.goBack()).thenReturn(null);
-    when(
-      () => navigationDriver.goTo(any(), data: any(named: 'data')),
-    ).thenReturn(null);
+    when(() => navigationDriver.goTo(any())).thenReturn(null);
   });
 
   group('validacoes', () {
@@ -106,7 +104,6 @@ void main() {
       verify(
         () => navigationDriver.goTo(
           Routes.getEmailConfirmation(email: 'ada@example.com'),
-          data: any(named: 'data'),
         ),
       ).called(1);
       verify(

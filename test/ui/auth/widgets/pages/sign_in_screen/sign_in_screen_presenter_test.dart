@@ -32,9 +32,7 @@ void main() {
     when(() => cacheDriver.set(any(), any())).thenReturn(null);
     when(() => navigationDriver.canGoBack()).thenReturn(false);
     when(() => navigationDriver.goBack()).thenReturn(null);
-    when(
-      () => navigationDriver.goTo(any(), data: any(named: 'data')),
-    ).thenReturn(null);
+    when(() => navigationDriver.goTo(any())).thenReturn(null);
   });
 
   SignInScreenPresenter createPresenter() {
@@ -69,9 +67,7 @@ void main() {
       verify(
         () => cacheDriver.set(CacheKeys.refreshToken, 'refresh-token'),
       ).called(1);
-      verify(
-        () => navigationDriver.goTo(Routes.home, data: any(named: 'data')),
-      ).called(1);
+      verify(() => navigationDriver.goTo(Routes.home)).called(1);
       expect(presenter.generalError.value, isNull);
       expect(presenter.isSubmitting.value, isFalse);
     });
@@ -100,7 +96,7 @@ void main() {
 
       expect(presenter.generalError.value, 'E-mail ou senha incorretos.');
       verifyNever(() => cacheDriver.set(any(), any()));
-      verifyNever(() => navigationDriver.goTo(any(), data: any(named: 'data')));
+      verifyNever(() => navigationDriver.goTo(any()));
     });
 
     test(
@@ -133,7 +129,6 @@ void main() {
         verify(
           () => navigationDriver.goTo(
             Routes.getEmailConfirmation(email: 'ada@example.com'),
-            data: any(named: 'data'),
           ),
         ).called(1);
         expect(presenter.generalError.value, isNull);
@@ -167,7 +162,6 @@ void main() {
         verify(
           () => navigationDriver.goTo(
             Routes.getEmailConfirmation(email: 'ada@example.com'),
-            data: any(named: 'data'),
           ),
         ).called(1);
         expect(presenter.generalError.value, isNull);
