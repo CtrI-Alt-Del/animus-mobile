@@ -1,0 +1,137 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  pull_request:
+    branches:
+      - main
+      - production
+
+jobs:
+  validate-branches:
+    name: "Validate Branch Rules"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check Main -> Production Merge"
+        if: github.base_ref == 'production' && github.head_ref != 'main'
+        run: exit 1
+
+      - name: "Block Production -> Main Merge"
+        if: github.base_ref == 'main' && github.head_ref == 'production'
+        run: exit 1
+
+      - name: "Approve valid merge"
+        if: (github.base_ref == 'production' && github.head_ref == 'main') || (github.base_ref == 'main' && github.head_ref != 'production')
+        run: true
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [validate-branches]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env (CI)
+        run: echo "ANIMUS_SERVER_APP_URL=http://localhost:3000" > .env
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Typecheck
+        run: flutter analyze
+
+  codecheck:
+    name: Codecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [typecheck]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env (CI)
+        run: echo "ANIMUS_SERVER_APP_URL=http://localhost:3000" > .env
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Format (check)
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [codecheck]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env (CI)
+        run: echo "ANIMUS_SERVER_APP_URL=http://localhost:3000" > .env
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Tests
+        run: flutter test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [tests]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env (CI)
+        run: echo "ANIMUS_SERVER_APP_URL=http://localhost:3000" > .env
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android (debug)
+        run: flutter build apk --debug
