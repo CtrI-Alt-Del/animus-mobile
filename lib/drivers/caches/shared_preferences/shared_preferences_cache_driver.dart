@@ -5,22 +5,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-typedef CacheDriverFactory = Future<CacheDriver> Function();
-
-final Provider<CacheDriverFactory> cacheDriverFactoryProvider =
-    Provider<CacheDriverFactory>((Ref ref) {
-      return SharedPreferencesCacheDriver.create;
+final Provider<SharedPreferences> sharedPreferencesProvider =
+    Provider<SharedPreferences>((Ref ref) {
+      throw UnimplementedError(
+        'sharedPreferencesProvider must be overridden in main.dart',
+      );
     });
+
+final Provider<CacheDriver> cacheDriverProvider = Provider<CacheDriver>((
+  Ref ref,
+) {
+  final SharedPreferences preferences = ref.watch(sharedPreferencesProvider);
+  return SharedPreferencesCacheDriver(preferences);
+});
 
 class SharedPreferencesCacheDriver implements CacheDriver {
   final SharedPreferences _preferences;
 
-  const SharedPreferencesCacheDriver._(this._preferences);
-
-  static Future<SharedPreferencesCacheDriver> create() async {
-    final SharedPreferences preferences = await SharedPreferences.getInstance();
-    return SharedPreferencesCacheDriver._(preferences);
-  }
+  const SharedPreferencesCacheDriver(this._preferences);
 
   @override
   String? get(String key) {

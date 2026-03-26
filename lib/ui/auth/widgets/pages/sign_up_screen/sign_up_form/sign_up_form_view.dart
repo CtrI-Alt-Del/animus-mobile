@@ -99,7 +99,7 @@ class SignUpFormView extends ConsumerWidget {
               textInputAction: TextInputAction.done,
               obscureText: !isVisible,
               style: textTheme.labelMedium?.copyWith(color: tokens.textPrimary),
-              onSubmitted: (_) => presenter.submit(context),
+              onSubmitted: (_) => presenter.submit(),
               decoration: SignUpInputDecoration.build(
                 context: context,
                 hintText: 'Confirmar senha',
@@ -130,11 +130,11 @@ class SignUpFormView extends ConsumerWidget {
             return SignUpSubmitButton(
               isSubmitting: isSubmitting,
               enabled: canSubmit,
-              onPressed: () => presenter.submit(context),
+              onPressed: presenter.submit,
             );
           }),
           const SizedBox(height: 14),
-          const SignInHint(),
+          SignInHint(onTap: presenter.goToSignIn),
         ],
       ),
     );

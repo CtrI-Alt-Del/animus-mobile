@@ -13,6 +13,19 @@ class AuthRestService implements AuthService {
     : _restClient = restClient;
 
   @override
+  Future<RestResponse<SessionDto>> signIn({
+    required String email,
+    required String password,
+  }) async {
+    final response = await _restClient.post(
+      '/auth/sign-in',
+      body: <String, dynamic>{'email': email, 'password': password},
+    );
+
+    return response.mapBody<SessionDto>(SessionMapper.toDto);
+  }
+
+  @override
   Future<RestResponse<AccountDto>> signUp({
     required String name,
     required String email,

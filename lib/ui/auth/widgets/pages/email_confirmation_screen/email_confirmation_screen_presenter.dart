@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -11,14 +9,17 @@ import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/auth/dtos/session_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
-import 'package:animus/drivers/cache-driver/shared_preferences_cache_driver.dart';
+import 'package:animus/drivers/cache/index.dart';
+import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class EmailConfirmationScreenPresenter {
   final String email;
   final AuthService _authService;
-  final CacheDriverFactory _cacheDriverFactory;
+  final CacheDriver _cacheDriver;
+  final NavigationDriver _navigationDriver;
   Timer? _resendTimer;
 
   final FormGroup form = FormGroup(<String, AbstractControl<Object>>{
@@ -41,9 +42,11 @@ class EmailConfirmationScreenPresenter {
   EmailConfirmationScreenPresenter({
     required this.email,
     required AuthService authService,
-    required CacheDriverFactory cacheDriverFactory,
+    required CacheDriver cacheDriver,
+    required NavigationDriver navigationDriver,
   }) : _authService = authService,
-       _cacheDriverFactory = cacheDriverFactory;
+       _cacheDriver = cacheDriver,
+       _navigationDriver = navigationDriver;
 
   FormControl<String> get otpControl =>
       form.control('otp') as FormControl<String>;
@@ -80,7 +83,7 @@ class EmailConfirmationScreenPresenter {
     return 'Codigo OTP invalido ou expirado.';
   }
 
-  Future<void> verifyOtp(BuildContext context) async {
+  Future<void> verifyOtp() async {
     if (isVerifying.value) {
       return;
     }
@@ -102,13 +105,13 @@ class EmailConfirmationScreenPresenter {
     );
 
     if (response.isSuccessful) {
-      final CacheDriver cacheDriver = await _cacheDriverFactory();
-      cacheDriver.set(CacheKeys.accessToken, response.body.accessToken.value);
-      cacheDriver.set(CacheKeys.refreshToken, response.body.refreshToken.value);
+      _cacheDriver.set(CacheKeys.accessToken, response.body.accessToken.value);
+      _cacheDriver.set(
+        CacheKeys.refreshToken,
+        response.body.refreshToken.value,
+      );
       await Future<void>.delayed(const Duration(milliseconds: 350));
-      if (context.mounted) {
-        context.go(Routes.home);
-      }
+      _navigationDriver.goTo(Routes.home);
       isVerifying.value = false;
       return;
     }
@@ -194,14 +197,16 @@ class EmailConfirmationScreenPresenter {
 final emailConfirmationScreenPresenterProvider = Provider.autoDispose
     .family<EmailConfirmationScreenPresenter, String>((Ref ref, String email) {
       final AuthService authService = ref.watch(authServiceProvider);
-      final CacheDriverFactory cacheDriverFactory = ref.watch(
-        cacheDriverFactoryProvider,
+      final CacheDriver cacheDriver = ref.watch(cacheDriverProvider);
+      final NavigationDriver navigationDriver = ref.watch(
+        navigationDriverProvider,
       );
       final EmailConfirmationScreenPresenter presenter =
           EmailConfirmationScreenPresenter(
             email: email,
             authService: authService,
-            cacheDriverFactory: cacheDriverFactory,
+            cacheDriver: cacheDriver,
+            navigationDriver: navigationDriver,
           );
       ref.onDispose(presenter.dispose);
       return presenter;

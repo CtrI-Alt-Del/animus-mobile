@@ -1,18 +1,19 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class SignUpScreenPresenter {
   final AuthService _authService;
+  final NavigationDriver _navigationDriver;
 
   final FormGroup form = FormGroup(
     <String, AbstractControl<Object>>{
@@ -73,8 +74,11 @@ class SignUpScreenPresenter {
   late final StreamSubscription<dynamic> _formStatusSubscription;
   late final StreamSubscription<dynamic> _formValueSubscription;
 
-  SignUpScreenPresenter({required AuthService authService})
-    : _authService = authService {
+  SignUpScreenPresenter({
+    required AuthService authService,
+    required NavigationDriver navigationDriver,
+  }) : _authService = authService,
+       _navigationDriver = navigationDriver {
     _passwordValue.value = passwordControl.value ?? '';
 
     _formStatusSubscription = form.statusChanged.listen((dynamic _) {
@@ -177,7 +181,7 @@ class SignUpScreenPresenter {
     }
   }
 
-  Future<void> submit(BuildContext context) async {
+  Future<void> submit() async {
     if (isSubmitting.value) {
       return;
     }
@@ -200,15 +204,17 @@ class SignUpScreenPresenter {
 
     if (response.isSuccessful) {
       final String email = (emailControl.value ?? '').trim();
-      if (context.mounted) {
-        context.go(Routes.getEmailConfirmation(email: email));
-      }
+      _navigationDriver.goTo(Routes.getEmailConfirmation(email: email));
       isSubmitting.value = false;
       return;
     }
 
     applyServerFieldErrors(response);
     isSubmitting.value = false;
+  }
+
+  void goToSignIn() {
+    _navigationDriver.goTo(Routes.signIn);
   }
 
   void dispose() {
@@ -353,8 +359,12 @@ class SignUpScreenPresenter {
 final signUpScreenPresenterProvider =
     Provider.autoDispose<SignUpScreenPresenter>((Ref ref) {
       final AuthService authService = ref.watch(authServiceProvider);
+      final NavigationDriver navigationDriver = ref.watch(
+        navigationDriverProvider,
+      );
       final SignUpScreenPresenter presenter = SignUpScreenPresenter(
         authService: authService,
+        navigationDriver: navigationDriver,
       );
       ref.onDispose(presenter.dispose);
       return presenter;
