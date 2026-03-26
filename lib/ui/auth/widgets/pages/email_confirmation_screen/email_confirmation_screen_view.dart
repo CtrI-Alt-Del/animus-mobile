@@ -146,7 +146,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                             },
                             onSubmit: (String verificationCode) {
                               presenter.otpControl.value = verificationCode;
-                              presenter.verifyOtp(context);
+                              presenter.verifyOtp();
                             },
                           ),
                           const SizedBox(height: 10),
@@ -215,7 +215,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                               child: ElevatedButton(
                                 onPressed: isVerifying
                                     ? null
-                                    : () => presenter.verifyOtp(context),
+                                    : presenter.verifyOtp,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFFBE26D),
                                   foregroundColor: const Color(0xFF0B0B0E),
