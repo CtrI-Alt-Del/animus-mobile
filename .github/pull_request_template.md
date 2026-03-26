@@ -31,7 +31,7 @@ Opcional. Remova esta secao se nao se aplicar.
 <!--
 Se houver novas dependencias, detalhe:
 - nome do pacote
-- onde foi adicionado (pyproject.toml, uv.lock, etc.)
+- onde foi adicionado (pubspec.yaml, pubspec.lock, package.json, package-lock.json, etc.)
 - motivo da adicao
 - impacto esperado (build, runtime, seguranca, custo)
 -->
@@ -53,10 +53,10 @@ Sugestao de conteudo:
 <!--
 Inclua um passo a passo claro para o revisor validar o fluxo.
 Exemplos:
-1. Execute uv run poe codecheck
-2. Execute uv run poe typecheck
-3. Execute uv run poe test
-4. Valide manualmente o endpoint/fluxo impactado
+1. Execute dart format --output=none --set-exit-if-changed .
+2. Execute flutter analyze
+3. Execute flutter test
+4. (Opcional) Execute flutter build apk --debug
 -->
 
 ## Observações
