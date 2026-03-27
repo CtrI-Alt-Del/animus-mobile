@@ -231,6 +231,15 @@ void main() {
     presenter.togglePasswordVisibility();
     expect(presenter.isPasswordVisible.value, isFalse);
   });
+
+  test('goToForgotPassword navega para forgot password', () {
+    final SignInScreenPresenter presenter = createPresenter();
+    addTearDown(presenter.dispose);
+
+    presenter.goToForgotPassword();
+
+    verify(() => navigationDriver.goTo(Routes.forgotPassword)).called(1);
+  });
 }
 
 void _fillValidForm(SignInScreenPresenter presenter) {
