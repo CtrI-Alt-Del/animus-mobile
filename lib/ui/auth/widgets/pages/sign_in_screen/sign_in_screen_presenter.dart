@@ -129,6 +129,10 @@ class SignInScreenPresenter {
     _navigationDriver.goTo(Routes.signUp);
   }
 
+  void goToForgotPassword() {
+    _navigationDriver.goTo(Routes.forgotPassword);
+  }
+
   String _resolveGeneralError(RestResponse<dynamic> response) {
     final String? bodyMessage = response.errorBody?['message'] as String?;
     if (bodyMessage != null && bodyMessage.isNotEmpty) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:animus/router.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/auth/widgets/components/password_reset_link_listener/index.dart';
 
 class AnimusApp extends StatelessWidget {
   const AnimusApp({super.key});
@@ -15,6 +16,11 @@ class AnimusApp extends StatelessWidget {
       themeMode: AppTheme.defaultThemeMode,
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
+      builder: (BuildContext context, Widget? child) {
+        return PasswordResetLinkListener(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
