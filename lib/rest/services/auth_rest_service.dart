@@ -13,6 +13,32 @@ class AuthRestService implements AuthService {
     : _restClient = restClient;
 
   @override
+  Future<RestResponse<void>> forgotPassword({required String email}) async {
+    final response = await _restClient.post(
+      '/auth/password/forgot',
+      body: <String, dynamic>{'email': email},
+    );
+
+    return _toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<void>> resetPassword({
+    required String accountId,
+    required String newPassword,
+  }) async {
+    final response = await _restClient.post(
+      '/auth/password/reset',
+      body: <String, dynamic>{
+        'account_id': accountId,
+        'new_password': newPassword,
+      },
+    );
+
+    return _toVoidResponse(response);
+  }
+
+  @override
   Future<RestResponse<SessionDto>> signIn({
     required String email,
     required String password,
@@ -41,6 +67,36 @@ class AuthRestService implements AuthService {
     );
 
     return response.mapBody<AccountDto>(AccountMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<String>> verifyResetToken({required String token}) async {
+    final response = await _restClient.post(
+      '/auth/password/verify-reset-token',
+      body: <String, dynamic>{'token': token},
+    );
+
+    if (response.isFailure) {
+      return RestResponse<String>(
+        statusCode: response.statusCode,
+        errorMessage: _resolveErrorMessage(response),
+        errorBody: response.errorBody,
+      );
+    }
+
+    final dynamic accountId = response.body['account_id'];
+    if (accountId is! String || accountId.isEmpty) {
+      return RestResponse<String>(
+        statusCode: response.statusCode,
+        errorMessage: 'Invalid verify reset token response.',
+        errorBody: response.errorBody,
+      );
+    }
+
+    return RestResponse<String>(
+      body: accountId,
+      statusCode: response.statusCode,
+    );
   }
 
   @override
@@ -81,5 +137,27 @@ class AuthRestService implements AuthService {
     );
 
     return response.mapBody<SessionDto>(SessionMapper.toDto);
+  }
+
+  RestResponse<void> _toVoidResponse(
+    RestResponse<Map<String, dynamic>> response,
+  ) {
+    if (response.isFailure) {
+      return RestResponse<void>(
+        statusCode: response.statusCode,
+        errorMessage: _resolveErrorMessage(response),
+        errorBody: response.errorBody,
+      );
+    }
+
+    return RestResponse<void>(statusCode: response.statusCode);
+  }
+
+  String? _resolveErrorMessage(RestResponse<Map<String, dynamic>> response) {
+    try {
+      return response.errorMessage;
+    } catch (_) {
+      return null;
+    }
   }
 }

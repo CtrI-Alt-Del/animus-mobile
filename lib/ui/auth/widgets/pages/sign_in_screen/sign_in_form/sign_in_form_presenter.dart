@@ -37,6 +37,10 @@ class SignInFormPresenter {
   void goToSignUp() {
     _screenPresenter.goToSignUp();
   }
+
+  void goToForgotPassword() {
+    _screenPresenter.goToForgotPassword();
+  }
 }
 
 final Map<String, String Function(Object)> _emailValidationMessages =
