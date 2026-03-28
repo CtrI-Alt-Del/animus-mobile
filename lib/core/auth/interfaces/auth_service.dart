@@ -8,6 +8,8 @@ abstract class AuthService {
     required String password,
   });
 
+  Future<RestResponse<SessionDto>> signInWithGoogle({required String idToken});
+
   Future<RestResponse<AccountDto>> signUp({
     required String name,
     required String email,

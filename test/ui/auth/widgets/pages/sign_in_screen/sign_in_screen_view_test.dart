@@ -43,8 +43,10 @@ _MockSignInFormPresenter _createPresenter() {
   when(() => presenter.form).thenReturn(form);
   when(() => presenter.generalError).thenReturn(signal<String?>(null));
   when(() => presenter.isSubmitting).thenReturn(signal<bool>(false));
+  when(() => presenter.isGoogleSubmitting).thenReturn(signal<bool>(false));
   when(() => presenter.isPasswordVisible).thenReturn(signal<bool>(false));
   when(() => presenter.canSubmit).thenReturn(signal<bool>(true));
+  when(() => presenter.canTriggerGoogleAuth).thenReturn(signal<bool>(true));
   when(
     () => presenter.emailValidationMessages,
   ).thenReturn(<String, String Function(Object)>{});
@@ -52,6 +54,7 @@ _MockSignInFormPresenter _createPresenter() {
     () => presenter.passwordValidationMessages,
   ).thenReturn(<String, String Function(Object)>{});
   when(() => presenter.submit()).thenAnswer((_) async {});
+  when(() => presenter.continueWithGoogle()).thenAnswer((_) async {});
   when(() => presenter.togglePasswordVisibility()).thenReturn(null);
   when(() => presenter.goToSignUp()).thenReturn(null);
   return presenter;
