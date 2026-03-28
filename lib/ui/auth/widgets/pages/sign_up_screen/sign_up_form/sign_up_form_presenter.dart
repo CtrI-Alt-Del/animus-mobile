@@ -16,6 +16,8 @@ class SignUpFormPresenter {
 
   Signal<bool> get isSubmitting => _screenPresenter.isSubmitting;
 
+  Signal<bool> get isGoogleSubmitting => _screenPresenter.isGoogleSubmitting;
+
   Signal<bool> get isPasswordVisible => _screenPresenter.isPasswordVisible;
 
   Signal<bool> get isConfirmPasswordVisible =>
@@ -32,6 +34,9 @@ class SignUpFormPresenter {
       _screenPresenter.passwordStrengthScore;
 
   ReadonlySignal<bool> get canSubmit => _screenPresenter.canSubmit;
+
+  ReadonlySignal<bool> get canTriggerGoogleAuth =>
+      _screenPresenter.canTriggerGoogleAuth;
 
   Map<String, String Function(Object)> get nameValidationMessages =>
       _nameValidationMessages;
@@ -59,6 +64,10 @@ class SignUpFormPresenter {
 
   Future<void> submit() {
     return _screenPresenter.submit();
+  }
+
+  Future<void> continueWithGoogle() {
+    return _screenPresenter.continueWithGoogle();
   }
 
   void goToSignIn() {

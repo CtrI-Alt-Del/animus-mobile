@@ -4,10 +4,10 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/theme.dart';
+import 'package:animus/ui/auth/widgets/components/google_auth_button/index.dart';
+import 'package:animus/ui/auth/widgets/components/or_divider/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/sign_in_form/forgot_password_hint/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/sign_in_form/general_error_alert/index.dart';
-import 'package:animus/ui/auth/widgets/pages/sign_in_screen/sign_in_form/google_sign_in_button/index.dart';
-import 'package:animus/ui/auth/widgets/pages/sign_in_screen/sign_in_form/or_divider/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/sign_in_form/sign_in_submit_button/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/sign_in_form/sign_up_hint/index.dart';
 
@@ -85,7 +85,19 @@ class SignInFormView extends ConsumerWidget {
           const SizedBox(height: 12),
           const OrDivider(),
           const SizedBox(height: 12),
-          const GoogleSignInButton(enabled: false),
+          Watch((BuildContext context) {
+            final bool isGoogleSubmitting = presenter.isGoogleSubmitting.watch(
+              context,
+            );
+            final bool canTriggerGoogleAuth = presenter.canTriggerGoogleAuth
+                .watch(context);
+
+            return GoogleAuthButton(
+              enabled: canTriggerGoogleAuth,
+              isLoading: isGoogleSubmitting,
+              onPressed: presenter.continueWithGoogle,
+            );
+          }),
           const SizedBox(height: 12),
           SignUpHint(onTap: presenter.goToSignUp),
         ],
