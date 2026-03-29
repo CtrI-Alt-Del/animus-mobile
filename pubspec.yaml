@@ -42,6 +42,7 @@ dependencies:
   reactive_forms: ^18.1.1
   google_fonts: ^8.0.2
   flutter_dotenv: ^6.0.0
+  google_sign_in: ^6.1.18
   shared_preferences: ^2.5.3
   flutter_otp_text_field: ^1.5.1+1
   flutter_svg: ^2.2.2

@@ -52,35 +52,59 @@ void main() {
     verifyNever(() => presenter.submit());
   });
 
-  testWidgets('delegates sign up tap and password visibility toggle', (
+  testWidgets('reflete loading e disabled do CTA Google', (
     WidgetTester tester,
   ) async {
-    final Signal<bool> isPasswordVisible = signal<bool>(false);
     final _MockSignInFormPresenter presenter = _createPresenter(
-      isPasswordVisible: isPasswordVisible,
+      isGoogleSubmitting: signal<bool>(true),
+      canTriggerGoogleAuth: signal<bool>(false),
     );
-    when(() => presenter.togglePasswordVisibility()).thenAnswer((_) {
-      isPasswordVisible.value = !isPasswordVisible.value;
-    });
 
     await tester.pumpWidget(_createWidget(presenter));
-    await tester.pumpAndSettle();
-
-    expect(find.byIcon(Icons.visibility), findsOneWidget);
-    expect(find.byIcon(Icons.visibility_off), findsNothing);
-
-    await tester.tap(find.byIcon(Icons.visibility));
     await tester.pump();
 
-    verify(() => presenter.togglePasswordVisibility()).called(1);
-    expect(find.byIcon(Icons.visibility_off), findsOneWidget);
-    expect(find.byIcon(Icons.visibility), findsNothing);
+    final OutlinedButton googleButton = tester.widget<OutlinedButton>(
+      find.byType(OutlinedButton),
+    );
 
-    await tester.tap(find.text('Criar conta'));
-    await tester.pump();
-
-    verify(() => presenter.goToSignUp()).called(1);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(googleButton.onPressed, isNull);
+    verifyNever(() => presenter.continueWithGoogle());
   });
+
+  testWidgets(
+    'delegates sign up tap, google CTA and password visibility toggle',
+    (WidgetTester tester) async {
+      final Signal<bool> isPasswordVisible = signal<bool>(false);
+      final _MockSignInFormPresenter presenter = _createPresenter(
+        isPasswordVisible: isPasswordVisible,
+      );
+      when(() => presenter.togglePasswordVisibility()).thenAnswer((_) {
+        isPasswordVisible.value = !isPasswordVisible.value;
+      });
+
+      await tester.pumpWidget(_createWidget(presenter));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.visibility), findsOneWidget);
+      expect(find.byIcon(Icons.visibility_off), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.visibility));
+      await tester.pump();
+      await tester.tap(find.text('Continuar com Google'));
+      await tester.pump();
+
+      verify(() => presenter.togglePasswordVisibility()).called(1);
+      verify(() => presenter.continueWithGoogle()).called(1);
+      expect(find.byIcon(Icons.visibility_off), findsOneWidget);
+      expect(find.byIcon(Icons.visibility), findsNothing);
+
+      await tester.tap(find.text('Criar conta'));
+      await tester.pump();
+
+      verify(() => presenter.goToSignUp()).called(1);
+    },
+  );
 }
 
 Widget _createWidget(_MockSignInFormPresenter presenter) {
@@ -93,8 +117,10 @@ Widget _createWidget(_MockSignInFormPresenter presenter) {
 _MockSignInFormPresenter _createPresenter({
   Signal<String?>? generalError,
   Signal<bool>? isSubmitting,
+  Signal<bool>? isGoogleSubmitting,
   Signal<bool>? isPasswordVisible,
   ReadonlySignal<bool>? canSubmit,
+  ReadonlySignal<bool>? canTriggerGoogleAuth,
 }) {
   final _MockSignInFormPresenter presenter = _MockSignInFormPresenter();
   final FormGroup form = FormGroup(<String, AbstractControl<Object>>{
@@ -110,9 +136,15 @@ _MockSignInFormPresenter _createPresenter({
     () => presenter.isSubmitting,
   ).thenReturn(isSubmitting ?? signal<bool>(false));
   when(
+    () => presenter.isGoogleSubmitting,
+  ).thenReturn(isGoogleSubmitting ?? signal<bool>(false));
+  when(
     () => presenter.isPasswordVisible,
   ).thenReturn(isPasswordVisible ?? signal<bool>(false));
   when(() => presenter.canSubmit).thenReturn(canSubmit ?? signal<bool>(true));
+  when(
+    () => presenter.canTriggerGoogleAuth,
+  ).thenReturn(canTriggerGoogleAuth ?? signal<bool>(true));
   when(() => presenter.emailValidationMessages).thenReturn(
     <String, String Function(Object)>{
       ValidationMessage.required: (_) => 'Informe seu e-mail.',
@@ -124,6 +156,7 @@ _MockSignInFormPresenter _createPresenter({
     },
   );
   when(() => presenter.submit()).thenAnswer((_) async {});
+  when(() => presenter.continueWithGoogle()).thenAnswer((_) async {});
   when(() => presenter.togglePasswordVisibility()).thenReturn(null);
   when(() => presenter.goToSignUp()).thenReturn(null);
   return presenter;
