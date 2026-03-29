@@ -3,7 +3,7 @@ title: Google Auth em Sign In e Sign Up
 prd: https://joaogoliveiragarcia.atlassian.net/wiki/spaces/anm/pages/16908291/PRD+RF+01+Gerenciamento+de+sess+o+do+usu+rio
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-41
 status: closed
-last_updated_at: 2026-03-28
+last_updated_at: 2026-03-29
 ---
 
 # 1. Objetivo
@@ -83,7 +83,7 @@ Esta spec define a implementacao do login com Google no `animus`, conectando os 
 
 - **`SharedPreferencesCacheDriver`** (`lib/drivers/caches/shared_preferences/shared_preferences_cache_driver.dart`) - implementacao concreta de `CacheDriver` usada para salvar tokens.
 - **`GoRouterNavigationDriver`** (`lib/drivers/navigation/go_router/go_router_navigation_driver.dart`) - implementacao concreta de `NavigationDriver` ja usada pelos presenters atuais.
-- **Lacuna relevante:** nao existe nenhum driver de Google auth em `lib/drivers/`; tambem nao ha dependencia `google_sign_in` no `pubspec.yaml`.
+- **Estado atual:** o driver de Google auth ja existe em `lib/drivers/google-auth-driver/` e a dependencia `google_sign_in` ja esta declarada no `pubspec.yaml`.
 
 ## Camada UI
 
@@ -99,10 +99,10 @@ Esta spec define a implementacao do login com Google no `animus`, conectando os 
 
 - **`Routes`** (`lib/constants/routes.dart`) - ja expoe `Routes.home`, `Routes.signIn`, `Routes.signUp` e `Routes.getEmailConfirmation(...)`; nao requer nova rota para esta feature.
 - **`appRouter`** (`lib/router.dart`) - fluxo atual de auth ja entra por `Routes.signIn`.
-- **`Env`** (`lib/constants/env.dart`) e **`.env.example`** (`.env.example`) - hoje expoem apenas `ANIMUS_SERVER_APP_URL`; nao existe configuracao de client IDs Google.
-- **`pubspec.yaml`** (`pubspec.yaml`) - ainda nao declara `google_sign_in`.
-- **`ios/Runner/Info.plist`** (`ios/Runner/Info.plist`) - nao contem `CFBundleURLTypes`, `GIDClientID` nem `GIDServerClientID`.
-- **`android/app/build.gradle.kts`** (`android/app/build.gradle.kts`) - ainda usa `applicationId = "com.example.example"`, indicando que a identidade final do app nao esta configurada para registro OAuth.
+- **`Env`** (`lib/constants/env.dart`) e **`.env.example`** (`.env.example`) - ja expoem `ANIMUS_SERVER_APP_URL`, `ANIMUS_GOOGLE_IOS_CLIENT_ID` e `ANIMUS_GOOGLE_SERVER_CLIENT_ID`, todos carregados via `flutter_dotenv`.
+- **`pubspec.yaml`** (`pubspec.yaml`) - ja declara `google_sign_in`.
+- **`ios/Runner/Info.plist`** (`ios/Runner/Info.plist`) - ja contem `CFBundleURLTypes`; o URL scheme do callback deve permanecer alinhado ao `reversed client id` configurado via build setting.
+- **`android/app/build.gradle.kts`** (`android/app/build.gradle.kts`) - esta implementacao usa `applicationId = "br.com.animus.app"`, alinhando a identidade do app ao registro OAuth.
 
 ---
 
@@ -412,11 +412,11 @@ SignUpScreenView
 - Sem esses valores o driver pode ser implementado, mas o fluxo nao sera validavel em `iOS` e, dependendo da estrategia Android adotada, tambem nao autenticara em device real.
 - **Acao sugerida:** validar com produto/infra/mobile qual projeto OAuth sera usado e provisionar os IDs antes da homologacao.
 
-- **Descricao da pendencia**
-- O projeto ainda usa identificadores placeholder (`com.example.example`, `Example`, `example`) em artefatos nativos.
+- **Descricao**
+- Os identifiers nativos relevantes para o fluxo Google ja foram atualizados para valores finais no app (`bundleId`/`applicationId` em `br.com.animus.app`); o ponto de atencao remanescente e manter o cadastro do OAuth client sincronizado com esses mesmos identifiers em futuros renomes.
 - **Impacto na implementacao**
-- O registro OAuth do Google depende de bundle/package name final; manter placeholders compromete a configuracao correta do provider.
-- **Acao sugerida:** alinhar os identifiers finais do app com a equipe antes de registrar o OAuth client e antes de validar a feature em device.
+- Nao ha bloqueio conhecido por placeholder nos artefatos mobile; a validacao depende apenas de o console do Google reutilizar exatamente os identifiers configurados no projeto.
+- **Acao sugerida:** garantir que o registro do OAuth client use os identifiers atualmente configurados no iOS e Android e revisar esse alinhamento sempre que houver renome do app.
 
 - **Descricao da pendencia**
 - O ticket ANI-41 explicita Google em `Sign In` e `Sign Up`, mas a tela atual de `sign_up` ainda nao possui nenhum CTA visual equivalente nem referencia de layout externa (`screen_id` / Stitch).

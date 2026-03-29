@@ -40,7 +40,7 @@ e-mail/senha e para a integracao de login social com Google. A base atual contem
 - Persistencia local para tokens e configuracoes de sessao.
 - Servicos de notificacao push.
 
-A URL do backend deve ser configurada via `--dart-define` (`ANIMUS_SERVER_APP_URL`) para evitar acoplamento a ambiente local. O fluxo Google tambem depende do provisionamento de `ANIMUS_GOOGLE_IOS_CLIENT_ID` e `ANIMUS_GOOGLE_SERVER_CLIENT_ID` quando a configuracao OAuth nao for inferida automaticamente pela plataforma.
+A URL do backend e as chaves de integracao em Dart sao carregadas a partir do arquivo `.env` via `flutter_dotenv` (ver `dotenv.load(fileName: '.env')` em `lib/main.dart`). Em particular, o backend deve ser configurado em `ANIMUS_SERVER_APP_URL`. O fluxo Google tambem depende do provisionamento de `ANIMUS_GOOGLE_IOS_CLIENT_ID` e `ANIMUS_GOOGLE_SERVER_CLIENT_ID` quando a configuracao OAuth nao for inferida automaticamente pela plataforma. No iOS, o callback do Google Sign-In tambem precisa manter `CFBundleURLSchemes` alinhado ao `reversed client id` configurado nativamente.
 
 No fluxo atual de autenticacao, a camada REST consome os endpoints `POST /auth/sign-in`,
 `POST /auth/sign-up`, `POST /auth/sign-up/google`, `POST /auth/verify-email` e
