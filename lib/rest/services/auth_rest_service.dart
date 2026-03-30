@@ -84,8 +84,19 @@ class AuthRestService implements AuthService {
       );
     }
 
-    final dynamic accountId = response.body['account_id'];
-    if (accountId is! String || accountId.isEmpty) {
+    String? accountId;
+
+    try {
+      final dynamic body = response.body;
+      final dynamic rawAccountId = body['account_id'];
+      if (rawAccountId is String && rawAccountId.isNotEmpty) {
+        accountId = rawAccountId;
+      }
+    } catch (_) {
+      accountId = null;
+    }
+
+    if (accountId == null) {
       return RestResponse<String>(
         statusCode: response.statusCode,
         errorMessage: 'Invalid verify reset token response.',
