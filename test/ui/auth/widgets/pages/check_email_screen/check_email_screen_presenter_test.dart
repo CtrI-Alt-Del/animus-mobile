@@ -16,7 +16,7 @@ void main() {
     authService = _MockAuthService();
   });
 
-  test('inicia countdown em 60 segundos e atualiza label', () {
+  test('inicia countdown em 60 segundos e formata label em mm:ss', () {
     fakeAsync((FakeAsync async) {
       final CheckEmailScreenPresenter presenter = CheckEmailScreenPresenter(
         authService: authService,
@@ -24,7 +24,7 @@ void main() {
       );
 
       expect(presenter.resendCountdown.value, 60);
-      expect(presenter.resendCountdownLabel, '00:60');
+      expect(presenter.resendCountdownLabel, '01:00');
 
       async.elapse(const Duration(seconds: 1));
 

@@ -49,8 +49,13 @@ class CheckEmailScreenPresenter {
     isResending.value = false;
   }
 
-  String get resendCountdownLabel =>
-      '00:${resendCountdown.value.toString().padLeft(2, '0')}';
+  String get resendCountdownLabel {
+    final int totalSeconds = resendCountdown.value;
+    final int minutes = totalSeconds ~/ 60;
+    final int seconds = totalSeconds % 60;
+
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
 
   void dispose() {
     _resendTimer?.cancel();
