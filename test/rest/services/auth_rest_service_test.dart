@@ -154,6 +154,66 @@ void main() {
     });
   });
 
+  group('signInWithGoogle', () {
+    test('envia payload correto e mapeia a sessao', () async {
+      when(
+        () => restClient.post(
+          '/auth/sign-up/google',
+          body: <String, dynamic>{'id_token': 'google-id-token'},
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<Map<String, dynamic>>(
+          statusCode: 200,
+          body: <String, dynamic>{
+            'access_token': <String, dynamic>{
+              'value': 'access-token',
+              'expires_at': '2026-12-31T23:59:59Z',
+            },
+            'refresh_token': <String, dynamic>{
+              'value': 'refresh-token',
+              'expires_at': '2027-12-31T23:59:59Z',
+            },
+          },
+        ),
+      );
+
+      final response = await service.signInWithGoogle(
+        idToken: 'google-id-token',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body.accessToken.value, 'access-token');
+      expect(response.body.refreshToken.value, 'refresh-token');
+      verify(
+        () => restClient.post(
+          '/auth/sign-up/google',
+          body: <String, dynamic>{'id_token': 'google-id-token'},
+        ),
+      ).called(1);
+    });
+
+    test('preserva falhas do rest client', () async {
+      final RestResponse<Map<String, dynamic>> failure =
+          RestResponse<Map<String, dynamic>>(
+            statusCode: 401,
+            errorMessage: 'Token Google invalido.',
+            errorBody: <String, dynamic>{'message': 'Token Google invalido.'},
+          );
+      when(
+        () => restClient.post('/auth/sign-up/google', body: any(named: 'body')),
+      ).thenAnswer((_) async => failure);
+
+      final response = await service.signInWithGoogle(
+        idToken: 'google-id-token',
+      );
+
+      expect(response.isFailure, isTrue);
+      expect(response.statusCode, 401);
+      expect(response.errorMessage, 'Token Google invalido.');
+      expect(response.errorBody, failure.errorBody);
+    });
+  });
+
   group('verifyEmail', () {
     test('envia payload correto e mapeia a sessao', () async {
       when(
