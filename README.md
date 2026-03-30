@@ -87,13 +87,13 @@ lib/
    flutter pub get
    ```
 
-3. **Configure a URL do backend via `dart-define`:**
+3. **Configure o ambiente local via `.env`:**
 
    ```bash
-   flutter run --dart-define=ANIMUS_SERVER_APP_URL=http://localhost:8000
+   Copy-Item .env.example .env
    ```
 
-   A aplicacao utiliza a variavel `ANIMUS_SERVER_APP_URL` para evitar acoplamento com ambientes locais ou fixos.
+   Depois, preencha `ANIMUS_SERVER_APP_URL` no arquivo `.env`. Se for validar o login com Google em iOS ou em fluxos que exijam configuracao explicita, preencha tambem `ANIMUS_GOOGLE_IOS_CLIENT_ID` e `ANIMUS_GOOGLE_SERVER_CLIENT_ID`.
 
 4. **Execute o app em desenvolvimento:**
 
@@ -104,7 +104,7 @@ lib/
    Ou, se preferir, execute diretamente com Flutter:
 
    ```bash
-   flutter run --dart-define=ANIMUS_SERVER_APP_URL=http://localhost:8000
+   flutter run
    ```
 
 ## 📖 Documentacao

@@ -52,6 +52,18 @@ class AuthRestService implements AuthService {
   }
 
   @override
+  Future<RestResponse<SessionDto>> signInWithGoogle({
+    required String idToken,
+  }) async {
+    final response = await _restClient.post(
+      '/auth/sign-up/google',
+      body: <String, dynamic>{'id_token': idToken},
+    );
+
+    return response.mapBody<SessionDto>(SessionMapper.toDto);
+  }
+
+  @override
   Future<RestResponse<AccountDto>> signUp({
     required String name,
     required String email,
