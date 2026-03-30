@@ -8,7 +8,10 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "flutter analyze",
+    "codecheck": "dart format --output=none --set-exit-if-changed . && flutter analyze",
+    "tests": "flutter test",
+    "test": "npm run tests",
     "prepare": "husky"
   },
   "repository": {

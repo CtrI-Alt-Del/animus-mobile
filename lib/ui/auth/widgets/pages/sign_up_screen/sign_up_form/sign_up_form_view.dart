@@ -4,6 +4,8 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/theme.dart';
+import 'package:animus/ui/auth/widgets/components/google_auth_button/index.dart';
+import 'package:animus/ui/auth/widgets/components/or_divider/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/password_strength_indicator/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/general_error_alert/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/input_decoration/index.dart';
@@ -131,6 +133,22 @@ class SignUpFormView extends ConsumerWidget {
               isSubmitting: isSubmitting,
               enabled: canSubmit,
               onPressed: presenter.submit,
+            );
+          }),
+          const SizedBox(height: 12),
+          const OrDivider(),
+          const SizedBox(height: 12),
+          Watch((BuildContext context) {
+            final bool isGoogleSubmitting = presenter.isGoogleSubmitting.watch(
+              context,
+            );
+            final bool canTriggerGoogleAuth = presenter.canTriggerGoogleAuth
+                .watch(context);
+
+            return GoogleAuthButton(
+              enabled: canTriggerGoogleAuth,
+              isLoading: isGoogleSubmitting,
+              onPressed: presenter.continueWithGoogle,
             );
           }),
           const SizedBox(height: 14),
