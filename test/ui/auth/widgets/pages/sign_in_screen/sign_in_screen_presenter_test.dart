@@ -4,6 +4,7 @@ import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/dtos/session_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/auth/interfaces/google_auth_driver.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
@@ -15,17 +16,21 @@ import '../../../../../fakers/auth/session_dto_faker.dart';
 
 class _MockAuthService extends Mock implements AuthService {}
 
+class _MockGoogleAuthDriver extends Mock implements GoogleAuthDriver {}
+
 class _MockCacheDriver extends Mock implements CacheDriver {}
 
 class _MockNavigationDriver extends Mock implements NavigationDriver {}
 
 void main() {
   late _MockAuthService authService;
+  late _MockGoogleAuthDriver googleAuthDriver;
   late _MockCacheDriver cacheDriver;
   late _MockNavigationDriver navigationDriver;
 
   setUp(() {
     authService = _MockAuthService();
+    googleAuthDriver = _MockGoogleAuthDriver();
     cacheDriver = _MockCacheDriver();
     navigationDriver = _MockNavigationDriver();
 
@@ -38,6 +43,7 @@ void main() {
   SignInScreenPresenter createPresenter() {
     return SignInScreenPresenter(
       authService: authService,
+      googleAuthDriver: googleAuthDriver,
       cacheDriver: cacheDriver,
       navigationDriver: navigationDriver,
     );
@@ -217,6 +223,143 @@ void main() {
 
       expect(presenter.isSubmitting.value, isFalse);
     });
+  });
+
+  group('continueWithGoogle', () {
+    test('persiste tokens e navega para home no sucesso', () async {
+      final SignInScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(
+        () => googleAuthDriver.requestIdToken(),
+      ).thenAnswer((_) async => 'google-id-token');
+      when(
+        () => authService.signInWithGoogle(idToken: 'google-id-token'),
+      ).thenAnswer(
+        (_) async => RestResponse<SessionDto>(
+          statusCode: 200,
+          body: SessionDtoFaker.make(),
+        ),
+      );
+
+      await presenter.continueWithGoogle();
+
+      verify(() => googleAuthDriver.requestIdToken()).called(1);
+      verify(
+        () => authService.signInWithGoogle(idToken: 'google-id-token'),
+      ).called(1);
+      verify(
+        () => cacheDriver.set(CacheKeys.accessToken, 'access-token'),
+      ).called(1);
+      verify(
+        () => cacheDriver.set(CacheKeys.refreshToken, 'refresh-token'),
+      ).called(1);
+      verify(() => navigationDriver.goTo(Routes.home)).called(1);
+      expect(presenter.generalError.value, isNull);
+      expect(presenter.isGoogleSubmitting.value, isFalse);
+    });
+
+    test('ignora cancelamento silencioso do usuario', () async {
+      final SignInScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(
+        () => googleAuthDriver.requestIdToken(),
+      ).thenAnswer((_) async => null);
+
+      await presenter.continueWithGoogle();
+
+      verify(() => googleAuthDriver.requestIdToken()).called(1);
+      verifyNever(
+        () => authService.signInWithGoogle(idToken: any(named: 'idToken')),
+      );
+      verifyNever(() => cacheDriver.set(any(), any()));
+      verifyNever(() => navigationDriver.goTo(any()));
+      expect(presenter.generalError.value, isNull);
+      expect(presenter.isGoogleSubmitting.value, isFalse);
+    });
+
+    test('exibe erro generico quando o sdk falha antes da api', () async {
+      final SignInScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(() => googleAuthDriver.requestIdToken()).thenThrow(Exception('sdk'));
+
+      await presenter.continueWithGoogle();
+
+      verify(() => googleAuthDriver.requestIdToken()).called(1);
+      verifyNever(
+        () => authService.signInWithGoogle(idToken: any(named: 'idToken')),
+      );
+      verifyNever(() => navigationDriver.goTo(any()));
+      expect(
+        presenter.generalError.value,
+        'Nao foi possivel continuar com Google agora. Tente novamente.',
+      );
+      expect(presenter.isGoogleSubmitting.value, isFalse);
+    });
+
+    test('exibe erro da api quando sign in com google falha', () async {
+      final SignInScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(
+        () => googleAuthDriver.requestIdToken(),
+      ).thenAnswer((_) async => 'google-id-token');
+      when(
+        () => authService.signInWithGoogle(idToken: 'google-id-token'),
+      ).thenAnswer(
+        (_) async => RestResponse<SessionDto>(
+          statusCode: 500,
+          errorMessage: 'Falha no login social.',
+          errorBody: <String, dynamic>{'message': 'Falha no login social.'},
+        ),
+      );
+
+      await presenter.continueWithGoogle();
+
+      verify(
+        () => authService.signInWithGoogle(idToken: 'google-id-token'),
+      ).called(1);
+      verifyNever(() => cacheDriver.set(any(), any()));
+      verifyNever(() => navigationDriver.goTo(any()));
+      expect(presenter.generalError.value, 'Falha no login social.');
+      expect(presenter.isGoogleSubmitting.value, isFalse);
+    });
+
+    test(
+      'ignora google auth enquanto submit de credenciais esta em voo',
+      () async {
+        final SignInScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        _fillValidForm(presenter);
+        final Completer<RestResponse<SessionDto>> completer =
+            Completer<RestResponse<SessionDto>>();
+
+        when(
+          () => authService.signIn(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) => completer.future);
+
+        final Future<void> submitFuture = presenter.submit();
+
+        expect(presenter.isSubmitting.value, isTrue);
+        expect(presenter.canSubmit.value, isFalse);
+        expect(presenter.canTriggerGoogleAuth.value, isFalse);
+
+        await presenter.continueWithGoogle();
+
+        verifyNever(() => googleAuthDriver.requestIdToken());
+        expect(presenter.isGoogleSubmitting.value, isFalse);
+
+        completer.complete(
+          RestResponse<SessionDto>(statusCode: 401, errorMessage: 'ignored'),
+        );
+        await submitFuture;
+      },
+    );
   });
 
   test('alterna visibilidade da senha', () {
