@@ -67,7 +67,7 @@ class SignInFormView extends ConsumerWidget {
             );
           }),
           const SizedBox(height: 8),
-          const ForgotPasswordHint(),
+          ForgotPasswordHint(onTap: presenter.goToForgotPassword),
           const SizedBox(height: 12),
           Watch((BuildContext context) {
             final String? error = presenter.generalError.watch(context);

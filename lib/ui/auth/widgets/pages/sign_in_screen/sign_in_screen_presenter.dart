@@ -169,6 +169,8 @@ class SignInScreenPresenter {
     _navigationDriver.goTo(Routes.signUp);
   }
 
+  void goToForgotPassword() {
+    _navigationDriver.goTo(Routes.forgotPassword);
   void _persistSession(SessionDto session) {
     _cacheDriver.set(CacheKeys.accessToken, session.accessToken.value);
     _cacheDriver.set(CacheKeys.refreshToken, session.refreshToken.value);

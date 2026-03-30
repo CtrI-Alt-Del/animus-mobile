@@ -41,7 +41,7 @@ void main() {
         ),
       );
 
-      final response = await service.signIn(
+      final RestResponse<dynamic> response = await service.signIn(
         email: 'ada@example.com',
         password: 'Password1',
       );
@@ -73,7 +73,7 @@ void main() {
         () => restClient.post('/auth/sign-in', body: any(named: 'body')),
       ).thenAnswer((_) async => failure);
 
-      final response = await service.signIn(
+      final RestResponse<dynamic> response = await service.signIn(
         email: 'ada@example.com',
         password: 'Password1',
       );
@@ -81,6 +81,210 @@ void main() {
       expect(response.isFailure, isTrue);
       expect(response.statusCode, 401);
       expect(response.errorMessage, 'E-mail ou senha incorretos.');
+      expect(response.errorBody, failure.errorBody);
+    });
+  });
+
+  group('forgotPassword', () {
+    test('envia payload correto', () async {
+      when(
+        () => restClient.post(
+          '/auth/password/forgot',
+          body: <String, dynamic>{'email': 'ada@example.com'},
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<Map<String, dynamic>>(
+          statusCode: 204,
+          body: <String, dynamic>{},
+        ),
+      );
+
+      final RestResponse<void> response = await service.forgotPassword(
+        email: 'ada@example.com',
+      );
+
+      expect(response.isSuccessful, isTrue);
+      expect(response.statusCode, 204);
+      verify(
+        () => restClient.post(
+          '/auth/password/forgot',
+          body: <String, dynamic>{'email': 'ada@example.com'},
+        ),
+      ).called(1);
+    });
+
+    test('preserva falhas do rest client', () async {
+      final RestResponse<Map<String, dynamic>> failure =
+          RestResponse<Map<String, dynamic>>(
+            statusCode: 500,
+            errorMessage: 'Falha ao enviar link',
+            errorBody: <String, dynamic>{'message': 'Falha ao enviar link'},
+          );
+      when(
+        () =>
+            restClient.post('/auth/password/forgot', body: any(named: 'body')),
+      ).thenAnswer((_) async => failure);
+
+      final RestResponse<void> response = await service.forgotPassword(
+        email: 'ada@example.com',
+      );
+
+      expect(response.isFailure, isTrue);
+      expect(response.statusCode, 500);
+      expect(response.errorMessage, 'Falha ao enviar link');
+      expect(response.errorBody, failure.errorBody);
+    });
+  });
+
+  group('verifyResetToken', () {
+    test('envia payload correto e devolve account id', () async {
+      when(
+        () => restClient.post(
+          '/auth/password/verify-reset-token',
+          body: <String, dynamic>{'token': 'token-123'},
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<Map<String, dynamic>>(
+          statusCode: 200,
+          body: <String, dynamic>{'account_id': 'account-1'},
+        ),
+      );
+
+      final RestResponse<String> response = await service.verifyResetToken(
+        token: 'token-123',
+      );
+
+      expect(response.isSuccessful, isTrue);
+      expect(response.statusCode, 200);
+      expect(response.body, 'account-1');
+      verify(
+        () => restClient.post(
+          '/auth/password/verify-reset-token',
+          body: <String, dynamic>{'token': 'token-123'},
+        ),
+      ).called(1);
+    });
+
+    test('preserva falhas do rest client', () async {
+      final RestResponse<Map<String, dynamic>> failure =
+          RestResponse<Map<String, dynamic>>(
+            statusCode: 410,
+            errorMessage: 'Link expirado',
+            errorBody: <String, dynamic>{'message': 'Link expirado'},
+          );
+      when(
+        () => restClient.post(
+          '/auth/password/verify-reset-token',
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => failure);
+
+      final RestResponse<String> response = await service.verifyResetToken(
+        token: 'token-123',
+      );
+
+      expect(response.isFailure, isTrue);
+      expect(response.statusCode, 410);
+      expect(response.errorMessage, 'Link expirado');
+      expect(response.errorBody, failure.errorBody);
+    });
+
+    test('falha quando account id nao existe na resposta', () async {
+      when(
+        () => restClient.post(
+          '/auth/password/verify-reset-token',
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<Map<String, dynamic>>(
+          statusCode: 200,
+          body: <String, dynamic>{},
+        ),
+      );
+
+      final RestResponse<String> response = await service.verifyResetToken(
+        token: 'token-123',
+      );
+
+      expect(response.isFailure, isTrue);
+      expect(response.statusCode, 200);
+      expect(response.errorMessage, 'Invalid verify reset token response.');
+    });
+
+    test('falha quando body da resposta e nulo', () async {
+      when(
+        () => restClient.post(
+          '/auth/password/verify-reset-token',
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<Map<String, dynamic>>(statusCode: 200),
+      );
+
+      final RestResponse<String> response = await service.verifyResetToken(
+        token: 'token-123',
+      );
+
+      expect(response.isFailure, isTrue);
+      expect(response.statusCode, 200);
+      expect(response.errorMessage, 'Invalid verify reset token response.');
+    });
+  });
+
+  group('resetPassword', () {
+    test('envia payload correto', () async {
+      when(
+        () => restClient.post(
+          '/auth/password/reset',
+          body: <String, dynamic>{
+            'account_id': 'account-1',
+            'new_password': 'Password1',
+          },
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<Map<String, dynamic>>(
+          statusCode: 204,
+          body: <String, dynamic>{},
+        ),
+      );
+
+      final RestResponse<void> response = await service.resetPassword(
+        accountId: 'account-1',
+        newPassword: 'Password1',
+      );
+
+      expect(response.isSuccessful, isTrue);
+      expect(response.statusCode, 204);
+      verify(
+        () => restClient.post(
+          '/auth/password/reset',
+          body: <String, dynamic>{
+            'account_id': 'account-1',
+            'new_password': 'Password1',
+          },
+        ),
+      ).called(1);
+    });
+
+    test('preserva falhas do rest client', () async {
+      final RestResponse<Map<String, dynamic>> failure =
+          RestResponse<Map<String, dynamic>>(
+            statusCode: 422,
+            errorMessage: 'Senha invalida',
+            errorBody: <String, dynamic>{'message': 'Senha invalida'},
+          );
+      when(
+        () => restClient.post('/auth/password/reset', body: any(named: 'body')),
+      ).thenAnswer((_) async => failure);
+
+      final RestResponse<void> response = await service.resetPassword(
+        accountId: 'account-1',
+        newPassword: 'Password1',
+      );
+
+      expect(response.isFailure, isTrue);
+      expect(response.statusCode, 422);
+      expect(response.errorMessage, 'Senha invalida');
       expect(response.errorBody, failure.errorBody);
     });
   });
@@ -109,7 +313,7 @@ void main() {
         ),
       );
 
-      final response = await service.signUp(
+      final RestResponse<dynamic> response = await service.signUp(
         name: 'Ada Lovelace',
         email: 'ada@example.com',
         password: 'Password1',
@@ -141,7 +345,7 @@ void main() {
         () => restClient.post('/auth/sign-up', body: any(named: 'body')),
       ).thenAnswer((_) async => failure);
 
-      final response = await service.signUp(
+      final RestResponse<dynamic> response = await service.signUp(
         name: 'Ada Lovelace',
         email: 'ada@example.com',
         password: 'Password1',
@@ -237,7 +441,7 @@ void main() {
         ),
       );
 
-      final response = await service.verifyEmail(
+      final RestResponse<dynamic> response = await service.verifyEmail(
         email: 'ada@example.com',
         otp: '123456',
       );
@@ -263,7 +467,7 @@ void main() {
         () => restClient.post('/auth/verify-email', body: any(named: 'body')),
       ).thenAnswer((_) async => failure);
 
-      final response = await service.verifyEmail(
+      final RestResponse<dynamic> response = await service.verifyEmail(
         email: 'ada@example.com',
         otp: '123456',
       );
@@ -289,7 +493,7 @@ void main() {
         ),
       );
 
-      final response = await service.resendVerificationEmail(
+      final RestResponse<void> response = await service.resendVerificationEmail(
         email: 'ada@example.com',
       );
 
@@ -317,7 +521,7 @@ void main() {
         ),
       ).thenAnswer((_) async => failure);
 
-      final response = await service.resendVerificationEmail(
+      final RestResponse<void> response = await service.resendVerificationEmail(
         email: 'ada@example.com',
       );
 
