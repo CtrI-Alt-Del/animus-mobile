@@ -72,7 +72,6 @@ void main() {
     verifyNever(() => presenter.continueWithGoogle());
   });
 
-<<<<<<< ANI-42-reset-password-screen
   testWidgets('delegates forgot password tap', (WidgetTester tester) async {
     final _MockSignInFormPresenter presenter = _createPresenter();
 
@@ -84,7 +83,6 @@ void main() {
 
     verify(() => presenter.goToForgotPassword()).called(1);
   });
-=======
   testWidgets(
     'delegates sign up tap, google CTA and password visibility toggle',
     (WidgetTester tester) async {
@@ -118,7 +116,6 @@ void main() {
       verify(() => presenter.goToSignUp()).called(1);
     },
   );
->>>>>>> main
 }
 
 Widget _createWidget(_MockSignInFormPresenter presenter) {
