@@ -8,6 +8,7 @@ import 'package:animus/ui/auth/widgets/pages/forgot_password_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/new_password_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/index.dart';
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
@@ -69,6 +70,21 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final String accountId = state.uri.queryParameters['accountId'] ?? '';
         return NewPasswordScreen(accountId: accountId);
+      },
+    ),
+    GoRoute(
+      path: Routes.analysis,
+      redirect: (context, state) {
+        final String? analysisId = state.pathParameters['analysisId'];
+        if (analysisId == null || analysisId.trim().isEmpty) {
+          return Routes.home;
+        }
+
+        return null;
+      },
+      builder: (context, state) {
+        final String analysisId = state.pathParameters['analysisId'] ?? '';
+        return AnalysisScreen(analysisId: analysisId);
       },
     ),
   ],

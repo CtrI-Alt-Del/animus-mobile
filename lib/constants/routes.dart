@@ -7,7 +7,7 @@ class Routes {
   static const String checkEmail = '/auth/check_email';
   static const String newPassword = '/auth/new_password';
   static const String profile = '/auth/profile';
-  static const String analysis = '/intake/analysis';
+  static const String analysis = '/analyses/:analysisId';
 
   static String getForgotPassword({String? errorCode}) {
     final Uri uri = Uri(
@@ -41,5 +41,9 @@ class Routes {
       queryParameters: <String, String>{'accountId': accountId},
     );
     return uri.toString();
+  }
+
+  static String getAnalysis({required String analysisId}) {
+    return '/analyses/$analysisId';
   }
 }

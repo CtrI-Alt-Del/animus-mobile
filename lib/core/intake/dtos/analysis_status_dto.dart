@@ -1,6 +1,14 @@
-class AnalysisStatusDto {
-  final String value;
-  final String? id;
+enum AnalysisStatusDto {
+  waitingPetition('WAITING_PETITION'),
+  analyzingPetition('ANALYZING_PETITION'),
+  petitionAnalyzed('PETITION_ANALYZED'),
+  searchingPrecedents('SEARCHING_PRECEDENTS'),
+  analyzingPrecedentsApplicability('ANALYZING_PRECEDENTS_APPLICABILITY'),
+  generatingSynthesis('GENERATING_SYNTHESIS'),
+  waitingPrecedentChoise('WAITING_PRECEDENT_CHOISE'),
+  precedentChosed('PRECEDENT_CHOSED'),
+  failed('FAILED');
 
-  const AnalysisStatusDto({required this.value, this.id});
+  final String value;
+  const AnalysisStatusDto(this.value);
 }
