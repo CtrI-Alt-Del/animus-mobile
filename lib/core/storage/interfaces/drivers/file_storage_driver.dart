@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 
 abstract class FileStorageDriver {
-  String getFileUrl(String filePath);
-  Future<void> uploadFile(File file, UploadUrlDto uploadUrl);
-  Future<void> uploadFiles(Map<File, UploadUrlDto> uploads);
-  Future<File> downloadFile(String filePath);
+  Future<void> uploadFile(
+    File file,
+    UploadUrlDto uploadUrl, {
+    void Function(int sentBytes, int totalBytes)? onProgress,
+  });
 }

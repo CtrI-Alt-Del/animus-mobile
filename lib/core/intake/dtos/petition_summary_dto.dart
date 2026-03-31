@@ -1,17 +1,17 @@
 class PetitionSummaryDto {
-  final String content;
-  final List<String> mainPoints;
+  final String caseSummary;
+  final String legalIssue;
+  final String centralQuestion;
+  final List<String> relevantLaws;
+  final List<String> keyFacts;
+  final List<String> searchTerms;
 
-  const PetitionSummaryDto({required this.content, required this.mainPoints});
-
-  factory PetitionSummaryDto.fromJson(Map<String, dynamic> json) {
-    return PetitionSummaryDto(
-      content: json['content'] as String,
-      mainPoints: List<String>.from(json['main_points'] ?? []),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'content': content, 'main_points': mainPoints};
-  }
+  PetitionSummaryDto({
+    required this.caseSummary,
+    required this.legalIssue,
+    required this.centralQuestion,
+    required this.relevantLaws,
+    required this.keyFacts,
+    required this.searchTerms,
+  });
 }
