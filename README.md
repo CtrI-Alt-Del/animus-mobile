@@ -7,7 +7,7 @@ Aplicativo mobile do **Animus**, uma plataforma de analise de precedentes juridi
 O Animus Mobile atende os principais fluxos do produto:
 
 - **Auth:** cadastro, login, perfil e sessao do usuario.
-- **Intake:** envio de peticao inicial para analise de precedentes com IA.
+- **Intake:** envio de petição inicial para analise de precedentes com IA.
 - **Storage:** historico, organizacao e exportacao de analises realizadas.
 - **Notification:** notificacoes assincronas sobre eventos importantes, como conclusao de analises.
 
@@ -117,7 +117,7 @@ Os principais documentos do projeto estao em `documentation/`:
 Os dominios atuais do produto sao:
 
 - `auth`: autenticacao, perfil e sessao
-- `intake`: envio de peticao e analise de precedentes
+- `intake`: envio de petição e analise de precedentes
 - `storage`: historico, organizacao e exportacao de analises
 - `notification`: notificacoes assincronas
 

@@ -7,7 +7,7 @@ O Animus Mobile e um aplicativo Flutter para apoiar a analise de precedentes jur
 Dominios de negocio do produto:
 
 - `auth`: cadastro, login, perfil e sessao do usuario.
-- `intake`: envio de peticao e analise com IA de precedentes.
+- `intake`: envio de petição e analise com IA de precedentes.
 - `storage`: historico, organizacao e exportacao de analises.
 - `notification`: notificacoes assicronas de eventos importantes.
 
