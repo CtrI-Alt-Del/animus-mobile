@@ -49,9 +49,10 @@ class IntakeRestService implements IntakeService {
     _setAuthorizationHeader();
 
     final String? normalizedFolderId = folderId?.trim();
-    final Object body = normalizedFolderId == null || normalizedFolderId.isEmpty
-        ? <String, dynamic>{}
-        : <String, dynamic>{'folder_id': normalizedFolderId};
+    final Object body =
+        normalizedFolderId == null || normalizedFolderId.isEmpty
+            ? <String, dynamic>{}
+            : <String, dynamic>{'folder_id': normalizedFolderId};
 
     final response = await _restClient.post('/intake/analyses', body: body);
     return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);

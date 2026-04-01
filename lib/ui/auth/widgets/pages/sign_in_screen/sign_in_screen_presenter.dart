@@ -205,22 +205,19 @@ class SignInScreenPresenter {
   }
 }
 
-final signInScreenPresenterProvider =
-    Provider.autoDispose<SignInScreenPresenter>((Ref ref) {
-      final AuthService authService = ref.watch(authServiceProvider);
-      final GoogleAuthDriver googleAuthDriver = ref.watch(
-        googleAuthDriverProvider,
-      );
-      final CacheDriver cacheDriver = ref.watch(cacheDriverProvider);
-      final NavigationDriver navigationDriver = ref.watch(
-        navigationDriverProvider,
-      );
-      final SignInScreenPresenter presenter = SignInScreenPresenter(
-        authService: authService,
-        googleAuthDriver: googleAuthDriver,
-        cacheDriver: cacheDriver,
-        navigationDriver: navigationDriver,
-      );
-      ref.onDispose(presenter.dispose);
-      return presenter;
-    });
+final signInScreenPresenterProvider = Provider.autoDispose<
+  SignInScreenPresenter
+>((Ref ref) {
+  final AuthService authService = ref.watch(authServiceProvider);
+  final GoogleAuthDriver googleAuthDriver = ref.watch(googleAuthDriverProvider);
+  final CacheDriver cacheDriver = ref.watch(cacheDriverProvider);
+  final NavigationDriver navigationDriver = ref.watch(navigationDriverProvider);
+  final SignInScreenPresenter presenter = SignInScreenPresenter(
+    authService: authService,
+    googleAuthDriver: googleAuthDriver,
+    cacheDriver: cacheDriver,
+    navigationDriver: navigationDriver,
+  );
+  ref.onDispose(presenter.dispose);
+  return presenter;
+});

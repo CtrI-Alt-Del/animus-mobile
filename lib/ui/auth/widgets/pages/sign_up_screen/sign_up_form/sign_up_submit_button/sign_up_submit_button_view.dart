@@ -29,9 +29,10 @@ class SignUpSubmitButtonView extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.topLeft,
-            colors: enabled
-                ? <Color>[tokens.accent, tokens.accentStrong]
-                : <Color>[tokens.borderStrong, tokens.borderSubtle],
+            colors:
+                enabled
+                    ? <Color>[tokens.accent, tokens.accentStrong]
+                    : <Color>[tokens.borderStrong, tokens.borderSubtle],
           ),
         ),
         child: ElevatedButton(
@@ -44,24 +45,25 @@ class SignUpSubmitButtonView extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: isSubmitting
-              ? SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: tokens.surfacePage,
-                  ),
-                )
-              : Text(
-                  'Criar Conta',
-                  style: GoogleFonts.fraunces(
-                    textStyle: textTheme.labelLarge?.copyWith(
+          child:
+              isSubmitting
+                  ? SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                       color: tokens.surfacePage,
-                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                  : Text(
+                    'Criar Conta',
+                    style: GoogleFonts.fraunces(
+                      textStyle: textTheme.labelLarge?.copyWith(
+                        color: tokens.surfacePage,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
         ),
       ),
     );

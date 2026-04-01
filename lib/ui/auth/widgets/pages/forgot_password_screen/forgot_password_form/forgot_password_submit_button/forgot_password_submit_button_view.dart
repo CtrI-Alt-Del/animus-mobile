@@ -28,19 +28,21 @@ class ForgotPasswordSubmitButtonView extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.topLeft,
-            colors: enabled
-                ? <Color>[tokens.accent, tokens.accentStrong]
-                : <Color>[tokens.borderStrong, tokens.borderSubtle],
+            colors:
+                enabled
+                    ? <Color>[tokens.accent, tokens.accentStrong]
+                    : <Color>[tokens.borderStrong, tokens.borderSubtle],
           ),
-          boxShadow: enabled
-              ? <BoxShadow>[
-                  BoxShadow(
-                    color: tokens.accent.withValues(alpha: 0.2),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ]
-              : const <BoxShadow>[],
+          boxShadow:
+              enabled
+                  ? <BoxShadow>[
+                    BoxShadow(
+                      color: tokens.accent.withValues(alpha: 0.2),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                  : const <BoxShadow>[],
         ),
         child: ElevatedButton(
           onPressed: enabled ? onPressed : null,
@@ -52,35 +54,36 @@ class ForgotPasswordSubmitButtonView extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: isSubmitting
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: tokens.surfacePage,
+          child:
+              isSubmitting
+                  ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: tokens.surfacePage,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Enviando...',
-                      style: textTheme.labelMedium?.copyWith(
-                        color: tokens.surfacePage,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(width: 12),
+                      Text(
+                        'Enviando...',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: tokens.surfacePage,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
+                    ],
+                  )
+                  : Text(
+                    'Enviar Link',
+                    style: textTheme.labelMedium?.copyWith(
+                      color: tokens.surfacePage,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                )
-              : Text(
-                  'Enviar Link',
-                  style: textTheme.labelMedium?.copyWith(
-                    color: tokens.surfacePage,
-                    fontWeight: FontWeight.w600,
                   ),
-                ),
         ),
       ),
     );
