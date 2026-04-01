@@ -116,19 +116,23 @@ class ForgotPasswordScreenPresenter {
   }
 }
 
-final forgotPasswordScreenPresenterProvider = Provider.autoDispose.family<
-  ForgotPasswordScreenPresenter,
-  String?
->((Ref ref, String? errorCode) {
-  final AuthService authService = ref.watch(authServiceProvider);
-  final NavigationDriver navigationDriver = ref.watch(navigationDriverProvider);
+final forgotPasswordScreenPresenterProvider = Provider.autoDispose
+    .family<ForgotPasswordScreenPresenter, String?>((
+      Ref ref,
+      String? errorCode,
+    ) {
+      final AuthService authService = ref.watch(authServiceProvider);
+      final NavigationDriver navigationDriver = ref.watch(
+        navigationDriverProvider,
+      );
 
-  final ForgotPasswordScreenPresenter presenter = ForgotPasswordScreenPresenter(
-    authService: authService,
-    navigationDriver: navigationDriver,
-    initialErrorCode: errorCode,
-  );
+      final ForgotPasswordScreenPresenter presenter =
+          ForgotPasswordScreenPresenter(
+            authService: authService,
+            navigationDriver: navigationDriver,
+            initialErrorCode: errorCode,
+          );
 
-  ref.onDispose(presenter.dispose);
-  return presenter;
-});
+      ref.onDispose(presenter.dispose);
+      return presenter;
+    });

@@ -37,17 +37,16 @@ class GoogleAuthButtonView extends StatelessWidget {
             SizedBox(
               width: 18,
               height: 18,
-              child:
-                  isLoading
-                      ? CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: tokens.accent,
-                      )
-                      : SvgPicture.asset(
-                        'assets/images/google-logo.svg',
-                        width: 18,
-                        height: 18,
-                      ),
+              child: isLoading
+                  ? CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: tokens.accent,
+                    )
+                  : SvgPicture.asset(
+                      'assets/images/google-logo.svg',
+                      width: 18,
+                      height: 18,
+                    ),
             ),
             const SizedBox(width: 10),
             Flexible(

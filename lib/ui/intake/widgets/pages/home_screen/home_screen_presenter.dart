@@ -83,8 +83,8 @@ class HomeScreenPresenter {
     isLoadingInitialData.value = true;
     generalError.value = null;
 
-    final RestResponse<AccountDto> accountResponse =
-        await _authService.fetchAccount();
+    final RestResponse<AccountDto> accountResponse = await _authService
+        .fetchAccount();
 
     if (accountResponse.isFailure) {
       generalError.value = _resolveErrorMessage(
@@ -163,8 +163,8 @@ class HomeScreenPresenter {
     isCreatingAnalysis.value = true;
     generalError.value = null;
 
-    final RestResponse<AnalysisDto> response =
-        await _intakeService.createAnalysis();
+    final RestResponse<AnalysisDto> response = await _intakeService
+        .createAnalysis();
 
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(

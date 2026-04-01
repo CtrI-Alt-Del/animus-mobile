@@ -29,10 +29,9 @@ class ResetPasswordSubmitButtonView extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.topLeft,
-            colors:
-                enabled
-                    ? <Color>[tokens.accent, tokens.accentStrong]
-                    : <Color>[tokens.borderStrong, tokens.borderSubtle],
+            colors: enabled
+                ? <Color>[tokens.accent, tokens.accentStrong]
+                : <Color>[tokens.borderStrong, tokens.borderSubtle],
           ),
         ),
         child: ElevatedButton(
@@ -45,40 +44,39 @@ class ResetPasswordSubmitButtonView extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child:
-              isSubmitting
-                  ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: tokens.surfacePage,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Redefinindo...',
-                        style: GoogleFonts.fraunces(
-                          textStyle: textTheme.labelLarge?.copyWith(
-                            color: tokens.surfacePage,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                  : Text(
-                    'Redefinir Senha',
-                    style: GoogleFonts.fraunces(
-                      textStyle: textTheme.labelLarge?.copyWith(
+          child: isSubmitting
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
                         color: tokens.surfacePage,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Redefinindo...',
+                      style: GoogleFonts.fraunces(
+                        textStyle: textTheme.labelLarge?.copyWith(
+                          color: tokens.surfacePage,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  'Redefinir Senha',
+                  style: GoogleFonts.fraunces(
+                    textStyle: textTheme.labelLarge?.copyWith(
+                      color: tokens.surfacePage,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                ),
         ),
       ),
     );

@@ -48,19 +48,18 @@ class CreateAnalysisFabView extends StatelessWidget {
               onTap: effectiveOnPressed,
               customBorder: const CircleBorder(),
               child: Center(
-                child:
-                    isLoading
-                        ? SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.2,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Colors.black,
-                            ),
+                child: isLoading
+                    ? SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.black,
                           ),
-                        )
-                        : const Icon(Icons.add, color: Colors.black, size: 28),
+                        ),
+                      )
+                    : const Icon(Icons.add, color: Colors.black, size: 28),
               ),
             ),
           ),

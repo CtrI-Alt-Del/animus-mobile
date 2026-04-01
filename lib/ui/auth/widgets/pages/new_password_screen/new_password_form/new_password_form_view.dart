@@ -63,12 +63,11 @@ class NewPasswordFormView extends ConsumerWidget {
             return Row(
               children: List<Widget>.generate(3, (int index) {
                 final bool isActive = index < score;
-                final Color color =
-                    !isActive
-                        ? tokens.borderSubtle
-                        : score == 3
-                        ? tokens.warning
-                        : tokens.success;
+                final Color color = !isActive
+                    ? tokens.borderSubtle
+                    : score == 3
+                    ? tokens.warning
+                    : tokens.success;
 
                 return Expanded(
                   child: Container(
