@@ -51,8 +51,8 @@ class AnalysisScreenView extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Envie a peticao inicial para resumirmos os pontos principais antes da busca de precedentes.',
-                          style: textTheme.bodyMedium?.copyWith(
+                          'Envie a petição inicial para resumirmos os pontos principais antes da busca de precedentes.',
+                          style: textTheme.bodySmall?.copyWith(
                             color: tokens.textSecondary,
                             height: 1.45,
                           ),
@@ -60,7 +60,7 @@ class AnalysisScreenView extends ConsumerWidget {
                         const SizedBox(height: 24),
                         const AiBubble(
                           message:
-                              'Envie a peticao inicial para comecarmos a analise. Vamos resumir o caso e destacar os pontos juridicos mais importantes.',
+                              'Envie a petição inicial para comecarmos a analise. Vamos resumir o caso e destacar os pontos juridicos mais importantes.',
                           isTyping: false,
                           footerText: 'Formatos aceitos: PDF, DOCX • Max. 20MB',
                         ),
@@ -77,8 +77,10 @@ class AnalysisScreenView extends ConsumerWidget {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: PetitionFileBubble(
-                              fileName: _fileName(file),
-                              fileSizeLabel: _formatFileSize(file.lengthSync()),
+                              fileName: presenter.fileName(file),
+                              fileSizeLabel: presenter.formatFileSize(
+                                file.lengthSync(),
+                              ),
                             ),
                           );
                         }),
@@ -93,7 +95,7 @@ class AnalysisScreenView extends ConsumerWidget {
                           return const Padding(
                             padding: EdgeInsets.only(bottom: 16),
                             child: AiBubble(
-                              message: 'Analisando a peticao enviada.',
+                              message: 'Analisando a petição enviada.',
                               isTyping: true,
                               footerText:
                                   'Aguarde enquanto processamos o documento e montamos o resumo.',
@@ -130,7 +132,21 @@ class AnalysisScreenView extends ConsumerWidget {
                             return const SizedBox.shrink();
                           }
 
-                          return PetitionSummaryCard(summary: summary);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              PetitionSummaryCard(summary: summary),
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton.icon(
+                                  onPressed: presenter.retrySummary,
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Retry resumo'),
+                                ),
+                              ),
+                            ],
+                          );
                         }),
                       ],
                     ),
@@ -185,27 +201,5 @@ class AnalysisScreenView extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  static String _fileName(File file) {
-    if (file.uri.pathSegments.isNotEmpty) {
-      return file.uri.pathSegments.last;
-    }
-
-    return file.path;
-  }
-
-  static String _formatFileSize(int sizeInBytes) {
-    if (sizeInBytes < 1024) {
-      return '$sizeInBytes B';
-    }
-
-    final double sizeInKb = sizeInBytes / 1024;
-    if (sizeInKb < 1024) {
-      return '${sizeInKb.toStringAsFixed(1)} KB';
-    }
-
-    final double sizeInMb = sizeInKb / 1024;
-    return '${sizeInMb.toStringAsFixed(1)} MB';
   }
 }
