@@ -3,6 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_empty_state/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_error_state/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_inline_error/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_loading_more/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_loading_state/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/index.dart';
 
 class RecentAnalysesSectionView extends StatelessWidget {
@@ -58,18 +63,18 @@ class RecentAnalysesSectionView extends StatelessWidget {
 
   Widget _buildBody(BuildContext context) {
     if (isLoading && analyses.isEmpty) {
-      return const _RecentAnalysesLoadingState();
+      return const RecentAnalysesLoadingState();
     }
 
     if (errorMessage != null && analyses.isEmpty) {
-      return _RecentAnalysesErrorState(
+      return RecentAnalysesErrorState(
         message: errorMessage!,
         onRetry: onRetry,
       );
     }
 
     if (showEmptyState) {
-      return _RecentAnalysesEmptyState(
+      return RecentAnalysesEmptyState(
         onCreateFirstAnalysis: onCreateFirstAnalysis,
       );
     }
@@ -78,7 +83,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         if (errorMessage != null) ...<Widget>[
-          _RecentAnalysesInlineError(message: errorMessage!),
+          RecentAnalysesInlineError(message: errorMessage!),
           const SizedBox(height: 12),
         ],
         Expanded(
@@ -99,7 +104,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                   const SizedBox(height: 12),
               itemBuilder: (BuildContext context, int index) {
                 if (index >= analyses.length) {
-                  return const _RecentAnalysesLoadingMore();
+                  return const RecentAnalysesLoadingMore();
                 }
 
                 final AnalysisDto analysis = analyses[index];
@@ -117,201 +122,6 @@ class RecentAnalysesSectionView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _RecentAnalysesLoadingState extends StatelessWidget {
-  const _RecentAnalysesLoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: 4,
-      separatorBuilder: (BuildContext context, int index) =>
-          const SizedBox(height: 12),
-      itemBuilder: (BuildContext context, int index) {
-        return const _RecentAnalysesSkeletonCard();
-      },
-    );
-  }
-}
-
-class _RecentAnalysesErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _RecentAnalysesErrorState({
-    required this.message,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final AppThemeTokens tokens =
-        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 320),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(Icons.error_outline, color: tokens.danger, size: 36),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tentar novamente'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentAnalysesEmptyState extends StatelessWidget {
-  final VoidCallback onCreateFirstAnalysis;
-
-  const _RecentAnalysesEmptyState({required this.onCreateFirstAnalysis});
-
-  @override
-  Widget build(BuildContext context) {
-    final AppThemeTokens tokens =
-        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 320),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(Icons.history_toggle_off, color: tokens.textMuted, size: 40),
-            const SizedBox(height: 12),
-            Text(
-              'Nenhuma analise ainda. Que tal comecar agora?',
-              textAlign: TextAlign.center,
-              style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onCreateFirstAnalysis,
-              icon: const Icon(Icons.add),
-              label: const Text('Iniciar primeira analise'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentAnalysesInlineError extends StatelessWidget {
-  final String message;
-
-  const _RecentAnalysesInlineError({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final AppThemeTokens tokens =
-        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: tokens.danger.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: tokens.danger.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: <Widget>[
-          Icon(Icons.info_outline, color: tokens.danger, size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: textTheme.bodySmall?.copyWith(color: tokens.textPrimary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecentAnalysesLoadingMore extends StatelessWidget {
-  const _RecentAnalysesLoadingMore();
-
-  @override
-  Widget build(BuildContext context) {
-    final AppThemeTokens tokens =
-        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Center(
-        child: SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(tokens.accent),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentAnalysesSkeletonCard extends StatelessWidget {
-  const _RecentAnalysesSkeletonCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final AppThemeTokens tokens =
-        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
-
-    return Container(
-      height: 84,
-      decoration: BoxDecoration(
-        color: tokens.surfaceCard,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: tokens.borderSubtle),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 96,
-            height: 12,
-            decoration: BoxDecoration(
-              color: tokens.surfaceElevated,
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            height: 16,
-            decoration: BoxDecoration(
-              color: tokens.surfaceElevated,
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
