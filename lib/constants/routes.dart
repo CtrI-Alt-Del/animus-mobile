@@ -12,9 +12,8 @@ class Routes {
   static String getForgotPassword({String? errorCode}) {
     final Uri uri = Uri(
       path: forgotPassword,
-      queryParameters: errorCode == null
-          ? null
-          : <String, String>{'errorCode': errorCode},
+      queryParameters:
+          errorCode == null ? null : <String, String>{'errorCode': errorCode},
     );
     return uri.toString();
   }

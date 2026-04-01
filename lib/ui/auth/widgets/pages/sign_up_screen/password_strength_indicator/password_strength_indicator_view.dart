@@ -34,19 +34,20 @@ class PasswordStrengthIndicatorView extends StatelessWidget {
         SizedBox(
           height: 3,
           child: Row(
-            children: states
-                .map(
-                  (bool state) => Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        color: state ? tokens.accent : tokens.borderSubtle,
+            children:
+                states
+                    .map(
+                      (bool state) => Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            color: state ? tokens.accent : tokens.borderSubtle,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                )
-                .toList(),
+                    )
+                    .toList(),
           ),
         ),
         const SizedBox(height: 8),

@@ -66,9 +66,8 @@ class HomeBottomNavigationView extends StatelessWidget {
                 final ({String label, IconData icon, IconData selectedIcon})
                 destination = _destinations[index];
                 final bool isSelected = currentIndex == index;
-                final Color foregroundColor = isSelected
-                    ? tokens.accent
-                    : tokens.textSecondary;
+                final Color foregroundColor =
+                    isSelected ? tokens.accent : tokens.textSecondary;
 
                 return Expanded(
                   child: InkWell(

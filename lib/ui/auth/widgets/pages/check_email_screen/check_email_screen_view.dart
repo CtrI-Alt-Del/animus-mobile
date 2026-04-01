@@ -99,9 +99,10 @@ class CheckEmailScreenView extends ConsumerWidget {
                             child: Text(
                               isResending ? 'Reenviando...' : 'Reenviar',
                               style: textTheme.labelSmall?.copyWith(
-                                color: canResend
-                                    ? tokens.accent
-                                    : tokens.textTertiary,
+                                color:
+                                    canResend
+                                        ? tokens.accent
+                                        : tokens.textTertiary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
