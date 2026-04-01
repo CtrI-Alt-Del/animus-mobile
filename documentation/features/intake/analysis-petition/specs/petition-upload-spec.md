@@ -1,9 +1,9 @@
 ---
-title: Upload e analise de peticao inicial
+title: Upload e analise de petição inicial
 prd: documentation/features/intake/analysis-petition/prd.md
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-46
 status: open
-last_updated_at: 2026-03-30
+last_updated_at: 2026-04-01
 ---
 
 # 1. Objetivo
@@ -19,7 +19,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - Tela `Nova Analise` parametrizada por `analysisId`.
 - Selecao nativa de arquivo com filtro para `pdf` e `docx`.
 - Validacao client-side de extensao e limite de `20MB` antes de qualquer chamada remota.
-- Orquestracao completa do fluxo `getPetitionUploadUrl -> uploadFile -> createPetition -> summarizePetition`.
+- Orquestracao completa do fluxo `generatePetitionUploadUrl -> uploadFile -> createPetition -> summarizePetition`.
 - Exibicao dos estados visuais derivada de `AnalysisStatusDto`, combinada com estados locais de selecao de arquivo, upload em andamento e erro recuperavel.
 - Exibicao do bubble do usuario com nome e tamanho do arquivo selecionado.
 - Exibicao de `PetitionSummaryCard` com secoes para `caseSummary`, `legalIssue`, `centralQuestion`, `relevantLaws`, `keyFacts` e `searchTerms`.
@@ -30,11 +30,11 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 ## 2.2 Out-of-scope
 
 - Criacao da `analysis` antes de abrir a tela; isso pertence ao fluxo da home/FAB descrito em `ANI-60`.
-- Navegacao final apos `Confirmar e Ver Precedentes`; o destino funcional depende de `ANI-49`.
+- Navegacao final apos `Buscar precedentes`; o destino funcional depende de `ANI-49`.
 - Suporte a formatos diferentes de `PDF` e `DOCX`.
 - Upload multiplo, drag and drop ou edicao manual do resumo.
 - OCR, leitura de imagens embutidas ou documentos sem camada textual.
-- Listagem, exclusao ou download de arquivos genericos de storage fora do caso de uso de peticao.
+- Listagem, exclusao ou download de arquivos genericos de storage fora do caso de uso de petição.
 
 ---
 
@@ -52,18 +52,19 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - Depois do upload concluido, a tela deve persistir a `Petition` via `POST /petitions`.
 - Depois da `Petition` criada, a tela deve solicitar `POST /petitions/{petition_id}/summary` e exibir o estado de processamento da IA.
 - O sucesso deste recorte deve deixar a `analysis` compativel com o status de dominio `PETITION_ANALYZED`, sem antecipar as etapas posteriores de precedentes e sintese.
-- Em sucesso, a tela deve exibir `PetitionSummaryCard`, trocar a acao secundaria para `Enviar outro documento` e trocar a acao primaria para `Confirmar e Ver Precedentes`.
-- Em falha de upload, criacao da peticao, resumo, timeout ou resposta de negocio, a tela deve exibir erro inline e permitir nova tentativa sem perder o arquivo selecionado.
+- Em sucesso, a tela deve exibir `PetitionSummaryCard`, trocar a acao secundaria para `Enviar outro documento` e trocar a acao primaria para `Buscar precedentes`.
+- Abaixo do `PetitionSummaryCard`, a tela deve exibir um botao de retry do resumo para reexecutar `summarizePetition` na mesma `petition` atual.
+- Em falha de upload, criacao da petição, resumo, timeout ou resposta de negocio, a tela deve exibir erro inline e permitir nova tentativa sem perder o arquivo selecionado.
 - Toda falha futura desta tela deve reutilizar a mesma shell visual e a mesma mensagem base de erro definida para o estado `Failed`, evitando variacoes de UX entre tipos diferentes de erro.
 
 ## 3.2 Nao funcionais
 
 - **Performance:** o request de resumo deve ser abortado no cliente apos `60s` com mensagem explicita de timeout.
 - **Performance:** o upload deve refletir progresso a partir de bytes enviados pelo `GCS PUT`, sem polling paralelo.
-- **Offline/Conectividade:** falhas de rede no upload, criacao da peticao ou resumo devem resultar em erro recuperavel com retry manual.
+- **Offline/Conectividade:** falhas de rede no upload, criacao da petição ou resumo devem resultar em erro recuperavel com retry manual.
 - **Seguranca:** o app nao deve persistir o conteudo do arquivo localmente; apenas manter referencia temporaria ao arquivo selecionado enquanto a tela estiver ativa.
 - **Compatibilidade:** o picker e o upload devem funcionar em `Android` e `iOS` usando plugins/pacotes suportados no projeto Flutter atual.
-- **Usabilidade:** botoes devem ficar desabilitados durante upload local e enquanto `AnalysisStatusDto` indicar processamento da peticao para evitar chamadas duplicadas.
+- **Usabilidade:** botoes devem ficar desabilitados durante upload local e enquanto `AnalysisStatusDto` indicar processamento da petição para evitar chamadas duplicadas.
 
 ---
 
@@ -77,7 +78,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **`PetitionSummaryDto`** (`lib/core/intake/dtos/petition_summary_dto.dart`) — DTO do resumo, contendo `caseSummary`, `legalIssue`, `centralQuestion`, `relevantLaws`, `keyFacts` e `searchTerms`.
 - **`UploadUrlDto`** (`lib/core/storage/dtos/upload_url_dto.dart`) — DTO retornado pelo endpoint de `Signed URL`, com `url`, `token` e `filePath`.
 - **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) — contrato ainda vazio, reservado para os gateways remotos de `intake`.
-- **`StorageService`** (`lib/core/storage/interfaces/storage_service.dart`) — contrato atual de storage ainda generico e nao aderente ao endpoint de upload de peticao.
+- **`StorageService`** (`lib/core/storage/interfaces/storage_service.dart`) — contrato atual de storage ainda generico e nao aderente ao endpoint de upload de petição.
 - **`FileStorageDriver`** (`lib/core/storage/interfaces/drivers/file_storage_driver.dart`) — porta de infraestrutura para arquivos; ainda nao existe implementacao concreta no app.
 - **`RestResponse`** (`lib/core/shared/responses/rest_response.dart`) — envelope padrao de sucesso/falha usado pela UI para tratar erros sem vazar detalhes de transporte.
 
@@ -120,14 +121,14 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **Interface implementada:** `IntakeService`
 - **Dependencias:** `RestClient`
 - **Metodos:**
-- `Future<RestResponse<PetitionDto>> createPetition({required PetitionDto petition})` — envia `POST /petitions` com payload mapeado para `snake_case` e retorna a peticao persistida com `id`.
-- `Future<RestResponse<PetitionSummaryDto>> summarizePetition({required String petitionId})` — envia `POST /petitions/{petition_id}/summary` e retorna o resumo da peticao.
+- `Future<RestResponse<PetitionDto>> createPetition({required PetitionDto petition})` — envia `POST /petitions` com payload mapeado para `snake_case` e retorna a petição persistida com `id`.
+- `Future<RestResponse<PetitionSummaryDto>> summarizePetition({required String petitionId})` — envia `POST /petitions/{petition_id}/summary` e retorna o resumo da petição.
 
 - **Localizacao:** `lib/rest/services/storage_rest_service.dart` (**novo arquivo**)
 - **Interface implementada:** `StorageService`
 - **Dependencias:** `RestClient`
 - **Metodos:**
-- `Future<RestResponse<UploadUrlDto>> getPetitionUploadUrl({required String analysisId, required String documentType})` — envia `POST /storage/analyses/{analysis_id}/petitions/upload?document_type=pdf|docx` e retorna a `Signed URL` para upload direto.
+- `Future<RestResponse<UploadUrlDto>> generatePetitionUploadUrl({required String analysisId, required String documentType})` — envia `POST /storage/analyses/{analysis_id}/petitions/upload?document_type=pdf|docx` e retorna a `Signed URL` para upload direto.
 
 ## Camada REST (Mappers)
 
@@ -179,20 +180,21 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - `signal<File?> selectedFile` — referencia temporaria ao arquivo escolhido.
 - `signal<bool> isUploading` — estado transitivo local usado durante o `PUT` para a `Signed URL`.
 - `signal<double?> uploadProgress` — progresso do upload em faixa `0..1`; `null` quando nao houver upload local em andamento.
-- `signal<PetitionDto?> petition` — peticao criada no backend para uso interno do fluxo.
+- `signal<PetitionDto?> petition` — petição criada no backend para uso interno do fluxo.
 - `signal<PetitionSummaryDto?> summary` — resumo retornado pelo backend.
 - `signal<String?> generalError` — mensagem inline de falha de validacao, upload ou resumo. Para erros do fluxo remoto, deve reutilizar a mensagem padrao definida para o estado `Failed`.
 - `computed<bool> canPickDocument` — habilita o picker quando a tela nao esta ocupada.
 - `computed<bool> canAnalyze` — habilita `Analisar` somente quando houver arquivo selecionado, sem `generalError` bloqueante, sem upload local em andamento e com `status` compativel com `AnalysisStatusDto.waitingPetition` ou retry apos `failed`.
 - `computed<bool> showProcessingBubble` — exibe o bubble da IA quando `status == AnalysisStatusDto.analyzingPetition`.
-- `computed<String> primaryActionLabel` — alterna entre `Analisar` e `Confirmar e Ver Precedentes`.
+- `computed<String> primaryActionLabel` — alterna entre `Analisar` e `Buscar precedentes`.
 - `computed<String> fileActionLabel` — alterna entre `Selecionar arquivo` e `Enviar outro documento`.
 - **Provider Riverpod:** `analysisScreenPresenterProvider`
 - **Metodos:**
 - `Future<void> pickDocument()` — abre o picker, valida extensao/tamanho, limpa erro anterior, substitui a selecao local e preserva `status` compativel com a etapa atual da analise.
-- `Future<void> analyze()` — orquestra `getPetitionUploadUrl`, upload ao `GCS` com progresso local, `createPetition` e `summarizePetition` com timeout de `60s`, atualizando `status` com base em `AnalysisStatusDto` e preenchendo mensagens de erro quando necessario.
+- `Future<void> analyze()` — orquestra `generatePetitionUploadUrl`, upload ao `GCS` com progresso local, `createPetition` e `summarizePetition` com timeout de `60s`, atualizando `status` com base em `AnalysisStatusDto` e preenchendo mensagens de erro quando necessario.
+- `Future<void> retrySummary()` — reexecuta `summarizePetition` para a `petition` atual quando a tela ja estiver em `AnalysisStatusDto.petitionAnalyzed`.
 - `Future<void> replaceDocument()` — reaproveita `pickDocument()` quando `status == AnalysisStatusDto.petitionAnalyzed`, limpando `petition`, `summary`, `uploadProgress` e retornando o fluxo para `AnalysisStatusDto.waitingPetition` antes da nova selecao.
-- `void confirmAndViewPrecedents()` — preserva o ponto unico de integracao com `ANI-49`; nesta task nao deve acoplar rota inexistente.
+- `void confirmAndViewPrecedents()` — preserva o ponto unico de integracao com `ANI-49`; nesta task nao deve acoplar rota inexistente, mesmo com o CTA rotulado como `Buscar precedentes`.
 - `void dispose()` — libera `signals` internos do presenter.
 
 ## Camada UI (Views)
@@ -206,7 +208,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - `Uploading` — estado transitivo local com barra/indicador de progresso durante o `PUT` para a `Signed URL`.
 - `AnalyzingPetition` — derivado de `AnalysisStatusDto.analyzingPetition`, com bubble do arquivo e bubble de processamento.
 - `Failed` — derivado de `AnalysisStatusDto.failed` ou erro local recuperavel, com a shell visual padrao de erro, manutencao do arquivo selecionado para retry e reutilizacao da mesma mensagem base para erros futuros desta tela.
-- `PetitionAnalyzed` — derivado de `AnalysisStatusDto.petitionAnalyzed`, com resumo exibido em card, action bar em modo de reenvio e CTA final atualizado.
+- `PetitionAnalyzed` — derivado de `AnalysisStatusDto.petitionAnalyzed`, com resumo exibido em card, action bar em modo de reenvio, CTA final `Buscar precedentes` e botao de retry do resumo abaixo do card.
 
 ## Camada UI (Widgets Internos)
 
@@ -224,6 +226,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **Tipo:** View only
 - **Props:** `PetitionSummaryDto summary`
 - **Responsabilidade:** renderiza o card `Resumo da Analise`, exibindo as secoes do `PetitionSummaryDto` atual com listas para `relevantLaws`, `keyFacts` e `searchTerms`.
+- **Responsabilidade adicional na tela:** a `AnalysisScreenView` deve exibir abaixo desse card um CTA secundario de retry para reexecutar apenas `summarizePetition`.
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/` (**novo arquivo**)
 - **Tipo:** View only
@@ -306,7 +309,7 @@ lib/ui/intake/widgets/pages/analysis_screen/
 - **Justificativa:** a UI nao pode chamar `RestClient` diretamente; o fluxo precisa de um gateway remoto proprio do dominio `intake`.
 
 - **Arquivo:** `lib/core/storage/interfaces/storage_service.dart`
-- **Mudanca:** substituir o contrato generico atual nao utilizado por `getPetitionUploadUrl({required String analysisId, required String documentType}) -> Future<RestResponse<UploadUrlDto>>`.
+- **Mudanca:** substituir o contrato generico atual nao utilizado por `generatePetitionUploadUrl({required String analysisId, required String documentType}) -> Future<RestResponse<UploadUrlDto>>`.
 - **Justificativa:** o endpoint de `Signed URL` depende de `analysisId` e `document_type`; o contrato atual recebe `filePath`, que so existe depois da resposta do backend.
 
 - **Arquivo:** `lib/core/storage/interfaces/drivers/file_storage_driver.dart`
@@ -365,14 +368,14 @@ lib/ui/intake/widgets/pages/analysis_screen/
 - **Motivo da escolha:** reduz divergencia entre documentacao, `core`, regras arquiteturais e contratos remotos efetivos de `ANI-44/45`.
 - **Impactos / trade-offs:** a UI e os mappers passam a depender explicitamente da estrutura atual do resumo, em troca de eliminar ambiguidade documental.
 
-- **Decisao:** manter o CTA `Confirmar e Ver Precedentes` visivel, mas isolar o handler em metodo proprio sem inventar a navegacao final nesta task.
+- **Decisao:** manter o CTA primario final como `Buscar precedentes`, mas isolar o handler em metodo proprio sem inventar a navegacao final nesta task.
 - **Alternativas consideradas:** esconder o CTA ate `ANI-49`; navegar para rota provisoria; acoplar em rota ainda nao definida.
 - **Motivo da escolha:** o design e o ticket exigem a mudanca visual do CTA, enquanto `ANI-49` ainda nao define o destino funcional.
 - **Impactos / trade-offs:** a tela fica pronta visualmente e com ponto unico de extensao, mas a navegacao final permanece pendente de especificacao.
 
 - **Decisao:** documentar explicitamente que este fluxo cobre apenas o recorte ate `AnalysisStatusDto.petitionAnalyzed`.
 - **Alternativas consideradas:** nao citar `AnalysisStatusDto` na spec; assumir implicitamente a transicao de status apenas pelo resumo retornado.
-- **Motivo da escolha:** o `core` agora materializa os estados do backend, e a spec precisa deixar claro o limite entre upload/resumo da peticao e as etapas posteriores do pipeline.
+- **Motivo da escolha:** o `core` agora materializa os estados do backend, e a spec precisa deixar claro o limite entre upload/resumo da petição e as etapas posteriores do pipeline.
 - **Impactos / trade-offs:** reduz ambiguidade com `ANI-49` e tarefas futuras, mas explicita uma dependencia maior da spec sobre o enum de dominio atual.
 
 ---
@@ -385,7 +388,7 @@ lib/ui/intake/widgets/pages/analysis_screen/
 AnalysisScreenView(analysisId)
   -> AnalysisScreenPresenter
       -> DocumentPickerDriver.pickDocument()
-      -> StorageService.getPetitionUploadUrl(analysisId, documentType)
+      -> StorageService.generatePetitionUploadUrl(analysisId, documentType)
           -> StorageRestService
               -> RestClient.post('/storage/analyses/{analysisId}/petitions/upload')
       -> FileStorageDriver.uploadFile(file, uploadUrl, onProgress)
@@ -420,7 +423,8 @@ AnalysisScreenView
               inlineError                                            [failed]
         AnalysisActionBar
           fileAction (Selecionar arquivo / Enviar outro documento)
-          primaryAction (Analisar / Confirmar e Ver Precedentes)
+          primaryAction (Analisar / Buscar precedentes)
+              retrySummaryAction (Retry resumo)                      [petitionAnalyzed]
           helperText (Substitui o documento atual)                   [petitionAnalyzed]
 ```
 
@@ -438,7 +442,7 @@ AnalysisScreenView
 
 - **`ANI-44` (endpoint de `Signed URL`):** a implementacao deve seguir com a ressalva de que o ticket de backend ainda esta em aberto. O fluxo de storage deve ser construido conforme o contrato previsto, assumindo dependencia externa ainda pendente de entrega.
 
-- **Navegacao apos `Confirmar e Ver Precedentes`:** permanece fora do escopo desta entrega. O CTA deve existir visualmente e manter um ponto unico de extensao, sem acoplamento a rota final ou contrato ainda nao definidos em `ANI-49`.
+- **Navegacao apos `Buscar precedentes`:** permanece fora do escopo desta entrega. O CTA deve existir visualmente e manter um ponto unico de extensao, sem acoplamento a rota final ou contrato ainda nao definidos em `ANI-49`.
 
 - **Estados visuais de upload local e `AnalysisStatusDto.failed`:** permanecem fora do escopo de validacao adicional com design. A implementacao pode reutilizar a shell prevista na spec com feedback inline e indicador de progresso Material alinhado ao tema atual.
 
@@ -454,7 +458,7 @@ AnalysisScreenView
 - A `View` nao deve conter logica de negocio; toda a orquestracao do fluxo de upload e resumo fica no `Presenter`.
 - Presenters nao fazem chamadas diretas a `RestClient`; devem consumir sempre `StorageService` e `IntakeService` do `core`.
 - Todos os caminhos citados nesta spec existem no projeto ou estao marcados como **novo arquivo**.
-- **Nao invente** rotas finais de precedentes, contratos de replace de peticao ou endpoints alem dos documentados em `ANI-44`, `ANI-45`, `ANI-46` e `ANI-60`.
+- **Nao invente** rotas finais de precedentes, contratos de replace de petição ou endpoints alem dos documentados em `ANI-44`, `ANI-45`, `ANI-46` e `ANI-60`.
 - Toda referencia a codigo existente inclui caminho relativo real em `lib/...`.
 - Quando uma informacao ainda nao tem evidencia suficiente, ela foi registrada em **Pendencias / Duvidas**.
 - A estrutura da tela segue `snake_case` para arquivos, `PascalCase` para classes e `index.dart` como barrel publico por widget.

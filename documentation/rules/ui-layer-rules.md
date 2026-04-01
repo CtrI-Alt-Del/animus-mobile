@@ -137,6 +137,7 @@ lib/ui/{modulo}/
 - Mensagens de validacao de formulario providas pelo Presenter (a View apenas consome os mapas/formatadores).
 - Uso consistente de tema, textos, feedbacks e empty states alinhados ao fluxo do produto.
 - Widgets privados com responsabilidade visual propria devem ser extraidos para widgets internos em pasta propria dentro da pasta do widget pai.
+- Widgets internos extraidos devem seguir o padrao de pasta com nome do proprio widget (ex.: `ai_bubble/typing_dot/`), arquivo `*_view.dart` e `index.dart` com typedef para manter a fronteira publica da pasta.
 
 ## ❌ O que NUNCA deve conter
 
@@ -145,3 +146,4 @@ lib/ui/{modulo}/
 - Chamadas diretas a `Dio`, `SharedPreferences` ou `dotenv` para substituir trabalho de outras camadas.
 - Widgets gigantes sustentados por dezenas de `_build...` quando a estrutura ja pede separacao.
 - Widgets privados definidos no mesmo arquivo da View quando houver responsabilidade propria que possa ser isolada em widget interno com pasta dedicada.
+- Criar pasta generica `widgets/` dentro de widget pai para um unico componente interno ou usar `part/part of` para contornar a organizacao por pasta; o componente deve ser promovido para pasta propria nomeada pelo widget.
