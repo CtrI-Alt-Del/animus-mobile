@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:animus/theme.dart';
 
 class ForgotPasswordHintView extends StatelessWidget {
-  const ForgotPasswordHintView({super.key});
+  final VoidCallback onTap;
+
+  const ForgotPasswordHintView({required this.onTap, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,11 +14,15 @@ class ForgotPasswordHintView extends StatelessWidget {
 
     return Align(
       alignment: Alignment.centerRight,
-      child: Text(
-        'Esqueceu a senha?',
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: tokens.textMuted,
-          fontWeight: FontWeight.w500,
+      child: TextButton(
+        onPressed: onTap,
+        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+        child: Text(
+          'Esqueceu a senha?',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: tokens.textMuted,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

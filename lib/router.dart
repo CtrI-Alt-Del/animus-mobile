@@ -2,7 +2,10 @@ import 'package:go_router/go_router.dart';
 
 import 'package:animus/constants/navigation_keys.dart';
 import 'package:animus/constants/routes.dart';
+import 'package:animus/ui/auth/widgets/pages/check_email_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/index.dart';
+import 'package:animus/ui/auth/widgets/pages/forgot_password_screen/index.dart';
+import 'package:animus/ui/auth/widgets/pages/new_password_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/index.dart';
@@ -47,6 +50,41 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final String analysisId = state.pathParameters['id'] ?? '';
         return AnalysisScreen(analysisId: analysisId);
+      },
+    ),
+    GoRoute(
+      path: Routes.forgotPassword,
+      builder: (context, state) {
+        final String? errorCode = state.uri.queryParameters['errorCode'];
+        return ForgotPasswordScreen(initialErrorCode: errorCode);
+      },
+    ),
+    GoRoute(
+      path: Routes.checkEmail,
+      redirect: (context, state) {
+        final String? email = state.uri.queryParameters['email'];
+        if (email == null || email.trim().isEmpty) {
+          return Routes.forgotPassword;
+        }
+        return null;
+      },
+      builder: (context, state) {
+        final String email = state.uri.queryParameters['email'] ?? '';
+        return CheckEmailScreen(email: email);
+      },
+    ),
+    GoRoute(
+      path: Routes.newPassword,
+      redirect: (context, state) {
+        final String? accountId = state.uri.queryParameters['accountId'];
+        if (accountId == null || accountId.trim().isEmpty) {
+          return Routes.forgotPassword;
+        }
+        return null;
+      },
+      builder: (context, state) {
+        final String accountId = state.uri.queryParameters['accountId'] ?? '';
+        return NewPasswordScreen(accountId: accountId);
       },
     ),
   ],

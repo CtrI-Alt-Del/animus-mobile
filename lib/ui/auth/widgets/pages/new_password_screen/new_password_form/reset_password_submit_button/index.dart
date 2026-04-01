@@ -1,0 +1,3 @@
+import 'package:animus/ui/auth/widgets/pages/new_password_screen/new_password_form/reset_password_submit_button/reset_password_submit_button_view.dart';
+
+typedef ResetPasswordSubmitButton = ResetPasswordSubmitButtonView;

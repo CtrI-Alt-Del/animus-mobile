@@ -26,6 +26,32 @@ class AuthRestService implements AuthService {
   }
 
   @override
+  Future<RestResponse<void>> forgotPassword({required String email}) async {
+    final response = await _restClient.post(
+      '/auth/password/forgot',
+      body: <String, dynamic>{'email': email},
+    );
+
+    return _toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<void>> resetPassword({
+    required String accountId,
+    required String newPassword,
+  }) async {
+    final response = await _restClient.post(
+      '/auth/password/reset',
+      body: <String, dynamic>{
+        'account_id': accountId,
+        'new_password': newPassword,
+      },
+    );
+
+    return _toVoidResponse(response);
+  }
+
+  @override
   Future<RestResponse<SessionDto>> signIn({
     required String email,
     required String password,
@@ -33,6 +59,18 @@ class AuthRestService implements AuthService {
     final response = await _restClient.post(
       '/auth/sign-in',
       body: <String, dynamic>{'email': email, 'password': password},
+    );
+
+    return response.mapBody<SessionDto>(SessionMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<SessionDto>> signInWithGoogle({
+    required String idToken,
+  }) async {
+    final response = await _restClient.post(
+      '/auth/sign-up/google',
+      body: <String, dynamic>{'id_token': idToken},
     );
 
     return response.mapBody<SessionDto>(SessionMapper.toDto);
@@ -54,6 +92,47 @@ class AuthRestService implements AuthService {
     );
 
     return response.mapBody<AccountDto>(AccountMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<String>> verifyResetToken({required String token}) async {
+    final response = await _restClient.post(
+      '/auth/password/verify-reset-token',
+      body: <String, dynamic>{'token': token},
+    );
+
+    if (response.isFailure) {
+      return RestResponse<String>(
+        statusCode: response.statusCode,
+        errorMessage: _resolveErrorMessage(response),
+        errorBody: response.errorBody,
+      );
+    }
+
+    String? accountId;
+
+    try {
+      final dynamic body = response.body;
+      final dynamic rawAccountId = body['account_id'];
+      if (rawAccountId is String && rawAccountId.isNotEmpty) {
+        accountId = rawAccountId;
+      }
+    } catch (_) {
+      accountId = null;
+    }
+
+    if (accountId == null) {
+      return RestResponse<String>(
+        statusCode: response.statusCode,
+        errorMessage: 'Invalid verify reset token response.',
+        errorBody: response.errorBody,
+      );
+    }
+
+    return RestResponse<String>(
+      body: accountId,
+      statusCode: response.statusCode,
+    );
   }
 
   @override
@@ -100,5 +179,27 @@ class AuthRestService implements AuthService {
     final String token = _cacheDriver.get(CacheKeys.accessToken) ?? '';
     final String authorization = token.isEmpty ? '' : 'Bearer $token';
     _restClient.setHeader('Authorization', authorization);
+  }
+
+  RestResponse<void> _toVoidResponse(
+    RestResponse<Map<String, dynamic>> response,
+  ) {
+    if (response.isFailure) {
+      return RestResponse<void>(
+        statusCode: response.statusCode,
+        errorMessage: _resolveErrorMessage(response),
+        errorBody: response.errorBody,
+      );
+    }
+
+    return RestResponse<void>(statusCode: response.statusCode);
+  }
+
+  String? _resolveErrorMessage(RestResponse<Map<String, dynamic>> response) {
+    try {
+      return response.errorMessage;
+    } catch (_) {
+      return null;
+    }
   }
 }
