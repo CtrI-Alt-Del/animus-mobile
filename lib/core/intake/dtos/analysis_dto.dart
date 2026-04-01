@@ -3,6 +3,7 @@ class AnalysisDto {
   final String accountId;
   final String status;
   final String summary;
+  final String createdAt;
   final String? folderId;
   final bool isArchived;
   final String? id;
@@ -12,6 +13,7 @@ class AnalysisDto {
     required this.accountId,
     required this.status,
     required this.summary,
+    required this.createdAt,
     this.folderId,
     this.isArchived = false,
     this.id,
