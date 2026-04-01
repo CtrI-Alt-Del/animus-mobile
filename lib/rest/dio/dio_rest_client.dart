@@ -94,12 +94,11 @@ class DioRestClient implements RestClient {
     try {
       final Response<dynamic> response = await request();
       final dynamic data = response.data;
-      final Json? body =
-          data is Json
-              ? data
-              : data is List
-              ? <String, dynamic>{'items': data}
-              : null;
+      final Json? body = data is Json
+          ? data
+          : data is List
+          ? <String, dynamic>{'items': data}
+          : null;
       return RestResponse<Json>(body: body, statusCode: response.statusCode);
     } on DioException catch (error) {
       final dynamic data = error.response?.data;

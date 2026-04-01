@@ -10,8 +10,8 @@ class RecentAnalysesLoadingStateView extends StatelessWidget {
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
       itemCount: 4,
-      separatorBuilder:
-          (BuildContext context, int index) => const SizedBox(height: 12),
+      separatorBuilder: (BuildContext context, int index) =>
+          const SizedBox(height: 12),
       itemBuilder: (BuildContext context, int index) {
         return const RecentAnalysesSkeletonCard();
       },

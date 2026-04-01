@@ -213,8 +213,9 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                             return SizedBox(
                               height: 52,
                               child: ElevatedButton(
-                                onPressed:
-                                    isVerifying ? null : presenter.verifyOtp,
+                                onPressed: isVerifying
+                                    ? null
+                                    : presenter.verifyOtp,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFFBE26D),
                                   foregroundColor: const Color(0xFF0B0B0E),
@@ -259,19 +260,17 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                     ),
                                   ),
                                   InkWell(
-                                    onTap:
-                                        resendBlocked
-                                            ? null
-                                            : presenter.resendVerificationEmail,
+                                    onTap: resendBlocked
+                                        ? null
+                                        : presenter.resendVerificationEmail,
                                     child: Text(
                                       isResending
                                           ? 'Reenviando...'
                                           : 'Reenviar',
                                       style: TextStyle(
-                                        color:
-                                            resendBlocked
-                                                ? const Color(0xFF6B6B70)
-                                                : const Color(0xFFFBE26D),
+                                        color: resendBlocked
+                                            ? const Color(0xFF6B6B70)
+                                            : const Color(0xFFFBE26D),
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
                                       ),

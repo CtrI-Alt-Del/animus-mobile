@@ -54,8 +54,8 @@ class EmailConfirmationScreenPresenter {
   Map<String, ValidationMessageFunction> get otpValidationMessages =>
       <String, ValidationMessageFunction>{
         ValidationMessage.required: (_) => 'Informe o codigo OTP.',
-        ValidationMessage.number:
-            (_) => 'O codigo OTP deve conter apenas numeros.',
+        ValidationMessage.number: (_) =>
+            'O codigo OTP deve conter apenas numeros.',
         ValidationMessage.minLength: (_) => 'O codigo OTP deve ter 6 digitos.',
         ValidationMessage.maxLength: (_) => 'O codigo OTP deve ter 6 digitos.',
         'server': (Object error) => error.toString(),
