@@ -22,11 +22,11 @@ void main() {
   });
 
   group('fetchAccount', () {
-    test('envia token e busca conta autenticada em /auth/me', () async {
+    test('envia token e busca conta autenticada em /auth/account', () async {
       when(
         () => restClient.setHeader('Authorization', 'Bearer access-token'),
       ).thenReturn(null);
-      when(() => restClient.get('/auth/me')).thenAnswer(
+      when(() => restClient.get('/auth/account')).thenAnswer(
         (_) async => RestResponse<Map<String, dynamic>>(
           statusCode: 200,
           body: <String, dynamic>{
@@ -47,13 +47,13 @@ void main() {
       verify(
         () => restClient.setHeader('Authorization', 'Bearer access-token'),
       ).called(1);
-      verify(() => restClient.get('/auth/me')).called(1);
+      verify(() => restClient.get('/auth/account')).called(1);
     });
 
     test('envia header vazio quando nao ha token salvo', () async {
       when(() => cacheDriver.get(any())).thenReturn(null);
       when(() => restClient.setHeader('Authorization', '')).thenReturn(null);
-      when(() => restClient.get('/auth/me')).thenAnswer(
+      when(() => restClient.get('/auth/account')).thenAnswer(
         (_) async => RestResponse<Map<String, dynamic>>(
           statusCode: 401,
           errorMessage: 'Nao autenticado',
@@ -67,7 +67,7 @@ void main() {
       expect(response.statusCode, 401);
       expect(response.errorMessage, 'Nao autenticado');
       verify(() => restClient.setHeader('Authorization', '')).called(1);
-      verify(() => restClient.get('/auth/me')).called(1);
+      verify(() => restClient.get('/auth/account')).called(1);
     });
   });
 
