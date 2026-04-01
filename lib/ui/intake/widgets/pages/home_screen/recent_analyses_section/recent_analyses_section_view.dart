@@ -67,10 +67,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
     }
 
     if (errorMessage != null && analyses.isEmpty) {
-      return RecentAnalysesErrorState(
-        message: errorMessage!,
-        onRetry: onRetry,
-      );
+      return RecentAnalysesErrorState(message: errorMessage!, onRetry: onRetry);
     }
 
     if (showEmptyState) {
@@ -100,17 +97,19 @@ class RecentAnalysesSectionView extends StatelessWidget {
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.only(bottom: 24),
               itemCount: analyses.length + (isLoadingMore ? 1 : 0),
-              separatorBuilder: (BuildContext context, int index) =>
-                  const SizedBox(height: 12),
+              separatorBuilder:
+                  (BuildContext context, int index) =>
+                      const SizedBox(height: 12),
               itemBuilder: (BuildContext context, int index) {
                 if (index >= analyses.length) {
                   return const RecentAnalysesLoadingMore();
                 }
 
                 final AnalysisDto analysis = analyses[index];
-                final String title = analysis.name.trim().isEmpty
-                    ? 'Analise sem nome'
-                    : analysis.name;
+                final String title =
+                    analysis.name.trim().isEmpty
+                        ? 'Analise sem nome'
+                        : analysis.name;
 
                 return RecentAnalysisCard(
                   title: title,

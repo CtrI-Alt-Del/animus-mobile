@@ -5,10 +5,7 @@ import 'package:animus/theme.dart';
 class RecentAnalysesInlineErrorView extends StatelessWidget {
   final String message;
 
-  const RecentAnalysesInlineErrorView({
-    required this.message,
-    super.key,
-  });
+  const RecentAnalysesInlineErrorView({required this.message, super.key});
 
   @override
   Widget build(BuildContext context) {
