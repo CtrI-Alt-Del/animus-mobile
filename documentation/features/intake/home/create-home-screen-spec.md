@@ -8,7 +8,7 @@ last_updated_at: 2026-03-31
 
 # 1. Objetivo
 
-Esta spec define a implementação da `Home` do `animus` no recorte aprovado para `ANI-60`: carregar a saudação dinâmica do usuário a partir de `GET /auth/account`, listar análises recentes não arquivadas com paginação por cursor via `GET /analyses`, permitir a criação de uma nova análise por `POST /analyses` e navegar para uma tela placeholder em `/analyses/:id`. A entrega deve respeitar a arquitetura em camadas já adotada no projeto, reutilizando `AuthService`, introduzindo `IntakeService`, mantendo `MVP`, `Riverpod`, `signals`, `Dio` e `GoRouter`, e usando a tela `Home` do `design/animus.pen` (`96TaK`) apenas como referência visual parcial, sem a seção `Em andamento` que ficou fora deste sprint.
+Esta spec define a implementação da `Home` do `animus` no recorte aprovado para `ANI-60`: carregar a saudação dinâmica do usuário a partir de `GET /auth/me`, listar análises recentes não arquivadas com paginação por cursor via `GET /intake/analyses`, permitir a criação de uma nova análise por `POST /intake/analyses` e navegar para uma tela placeholder em `/analyses/:id`. A entrega deve respeitar a arquitetura em camadas já adotada no projeto, reutilizando `AuthService`, introduzindo `IntakeService`, mantendo `MVP`, `Riverpod`, `signals`, `Dio` e `GoRouter`, e usando a tela `Home` do `design/animus.pen` (`96TaK`) apenas como referência visual parcial, sem a seção `Em andamento` que ficou fora deste sprint.
 
 ---
 
@@ -17,12 +17,12 @@ Esta spec define a implementação da `Home` do `animus` no recorte aprovado par
 ## 2.1 In-scope
 
 - Criar a tela `home_screen` em `lib/ui/intake/widgets/pages/home_screen/` com header, lista de recentes, `FAB` e bottom navigation.
-- Buscar os dados do usuário autenticado via `GET /auth/account` para exibir saudação por período + primeiro nome.
-- Buscar análises não arquivadas via `GET /analyses` com `limit`, `cursor` e `is_archived=false`.
+- Buscar os dados do usuário autenticado via `GET /auth/me` para exibir saudação por período + primeiro nome.
+- Buscar análises não arquivadas via `GET /intake/analyses` com `limit`, `cursor` e `is_archived=false`.
 - Implementar scroll infinito para carregar novas páginas sem descartar os itens já exibidos.
 - Renderizar card de análise com data formatada, nome da análise e affordance de navegação.
 - Navegar para `Routes.analysis` ao tocar em um item válido da lista.
-- Criar uma análise via `POST /analyses` sem body obrigatório e navegar para `/analyses/:id` com o `id` retornado.
+- Criar uma análise via `POST /intake/analyses` sem body obrigatório e navegar para `/analyses/:id` com o `id` retornado.
 - Registrar a rota placeholder da tela de análise em `lib/router.dart`.
 - Renderizar bottom navigation com `HOME` ativo e `PERFIL` / `BIBLIOTECA` como destinos visuais desta sprint.
 
@@ -42,15 +42,15 @@ Esta spec define a implementação da `Home` do `animus` no recorte aprovado par
 ## 3.1 Funcionais
 
 - A Home deve exibir saudação contextual com base no horário do dispositivo: `Bom dia`, `Boa tarde` ou `Boa noite`.
-- A saudação deve incluir o primeiro nome retornado por `GET /auth/account`.
+- A saudação deve incluir o primeiro nome retornado por `GET /auth/me`.
 - O subtítulo fixo do header deve ser `Seu resumo jurídico de hoje`.
 - O header deve usar avatar default, sem integração com foto de perfil.
-- A seção `Recentes` deve carregar análises via `GET /analyses` com `is_archived=false`, ordenação vinda do backend e paginação por cursor.
+- A seção `Recentes` deve carregar análises via `GET /intake/analyses` com `is_archived=false`, ordenação vinda do backend e paginação por cursor.
 - Cada item da lista deve exibir `data formatada + nome da análise + chevron`.
 - Enquanto a primeira página estiver carregando, a tela deve exibir estado visual de loading da seção `Recentes`.
 - Quando não houver análises, a seção deve exibir estado vazio com mensagem convidando o usuário a iniciar a primeira análise.
 - Ao tocar em um item da lista com `id` válido, o app deve navegar para `Routes.getAnalysis(id: analysisId)`.
-- O `FAB` deve chamar `POST /analyses`, receber `AnalysisDto` e navegar imediatamente para a tela placeholder da análise criada.
+- O `FAB` deve chamar `POST /intake/analyses`, receber `AnalysisDto` e navegar imediatamente para a tela placeholder da análise criada.
 - A rota `/analyses/:id` deve existir e aceitar o `id` retornado pelo backend.
 
 ## 3.2 Não funcionais
@@ -58,7 +58,7 @@ Esta spec define a implementação da `Home` do `animus` no recorte aprovado par
 - **Performance:** a tela deve evitar requisições duplicadas por ação; `initialize`, `loadNextPage` e `createAnalysis` não podem disparar em paralelo para o mesmo fluxo.
 - **Acessibilidade:** `FAB`, bottom navigation, estado vazio e estado de erro devem ter texto visível e `tooltip` ou `label` descritivo quando aplicável.
 - **Offline/Conectividade:** falha ao carregar a primeira página deve manter a tela em estado de erro recuperável com `retry`; falha ao paginar não deve apagar os itens já exibidos.
-- **Segurança:** `GET /auth/account`, `GET /analyses` e `POST /analyses` devem usar `Bearer token` obtido de `CacheDriver` com `CacheKeys.accessToken`; nenhum token deve ser exposto na camada `ui`.
+- **Segurança:** `GET /auth/me`, `GET /intake/analyses` e `POST /intake/analyses` devem usar `Bearer token` obtido de `CacheDriver` com `CacheKeys.accessToken`; nenhum token deve ser exposto na camada `ui`.
 - **Compatibilidade:** a implementação deve permanecer compatível com `flutter_riverpod`, `signals`, `go_router`, `dio` e `shared_preferences` já presentes em `pubspec.yaml`, sem introduzir nova dependência apenas para formatação de data.
 
 ---
@@ -68,7 +68,7 @@ Esta spec define a implementação da `Home` do `animus` no recorte aprovado par
 ## Camada Core
 
 - **`AuthService`** (`lib/core/auth/interfaces/auth_service.dart`) - contrato atual já concentra operações autenticadas de conta e sessão, mas ainda não expõe `fetchAccount()`.
-- **`AccountDto`** (`lib/core/auth/dtos/account_dto.dart`) - DTO já compatível com `id`, `name` e `email`; os demais campos têm fallback e não bloqueiam `GET /auth/account`.
+- **`AccountDto`** (`lib/core/auth/dtos/account_dto.dart`) - DTO já compatível com `id`, `name` e `email`; os demais campos têm fallback e não bloqueiam `GET /auth/me`.
 - **`AnalysisDto`** (`lib/core/intake/dtos/analysis_dto.dart`) - DTO de análise já existe, mas ainda não contém `createdAt`, necessário para a Home.
 - **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) - contrato existe, porém está vazio e precisa passar a representar o gateway de análises.
 - **`CursorPaginationResponse`** (`lib/core/shared/responses/cursor_pagination_response.dart`) - arquivo já existe, mas está vazio e ainda não cobre paginação por cursor.
@@ -117,8 +117,8 @@ Esta spec define a implementação da `Home` do `animus` no recorte aprovado par
 - **Interface implementada:** `IntakeService`
 - **Dependências:** `RestClient`, `CacheDriver`
 - **Métodos:**
-- `Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listAnalyses({String? cursor, required int limit, bool isArchived = false})` - autentica a chamada, envia `GET /analyses` com `cursor`, `limit` e `is_archived`, e converte o payload paginado para `CursorPaginationResponse<AnalysisDto>`.
-- `Future<RestResponse<AnalysisDto>> createAnalysis({String? folderId})` - autentica a chamada, envia `POST /analyses` com `folder_id` apenas quando houver valor e devolve a análise criada.
+- `Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listAnalyses({String? cursor, required int limit, bool isArchived = false})` - autentica a chamada, envia `GET /intake/analyses` com `cursor`, `limit` e `is_archived`, e converte o payload paginado para `CursorPaginationResponse<AnalysisDto>`.
+- `Future<RestResponse<AnalysisDto>> createAnalysis({String? folderId})` - autentica a chamada, envia `POST /intake/analyses` com `folder_id` apenas quando houver valor e devolve a análise criada.
 
 ## Camada REST (Mappers)
 
@@ -270,13 +270,13 @@ lib/ui/intake/widgets/pages/
 
 - **Arquivo:** `lib/core/shared/responses/cursor_pagination_response.dart`
 - **Mudança:** implementar a classe genérica `CursorPaginationResponse<T>` com `items` e `nextCursor`.
-- **Justificativa:** `GET /analyses` retorna paginação por cursor e o arquivo atual está vazio.
+- **Justificativa:** `GET /intake/analyses` retorna paginação por cursor e o arquivo atual está vazio.
 
 ## Camada REST
 
 - **Arquivo:** `lib/rest/services/auth_rest_service.dart`
 - **Mudança:** adicionar `fetchAccount()`, injetar `CacheDriver` e configurar o header `Authorization` antes de chamadas autenticadas.
-- **Justificativa:** `GET /auth/account` depende de sessão válida e deve permanecer encapsulado na camada REST.
+- **Justificativa:** `GET /auth/me` depende de sessão válida e deve permanecer encapsulado na camada REST.
 
 - **Arquivo:** `lib/rest/services/index.dart`
 - **Mudança:** injetar `cacheDriverProvider` no `authServiceProvider` e registrar `intakeServiceProvider` para `IntakeRestService`.
@@ -347,19 +347,19 @@ HomeScreenView
         -> AuthRestService
           -> CacheDriver.get(token)
           -> RestClient.setHeader('Authorization', 'Bearer ...')
-          -> RestClient.get('/auth/account')
+          -> RestClient.get('/auth/me')
       -> IntakeService.listAnalyses(limit: pageSize, isArchived: false)
         -> IntakeRestService
           -> CacheDriver.get(token)
           -> RestClient.setHeader('Authorization', 'Bearer ...')
-          -> RestClient.get('/analyses')
+          -> RestClient.get('/intake/analyses')
       -> signals (greeting, recentAnalyses, nextCursor, generalError)
 
 FAB tap
   -> HomeScreenPresenter.createAnalysis()
     -> IntakeService.createAnalysis()
       -> IntakeRestService
-        -> RestClient.post('/analyses')
+        -> RestClient.post('/intake/analyses')
     -> NavigationDriver.goTo(Routes.getAnalysis(id: ...))
 ```
 
