@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_inline_error/recent_analyses_inline_error_view.dart';
+
+typedef RecentAnalysesInlineError = RecentAnalysesInlineErrorView;
