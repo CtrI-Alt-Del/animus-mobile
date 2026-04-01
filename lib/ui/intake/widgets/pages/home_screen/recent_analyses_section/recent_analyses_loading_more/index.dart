@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_loading_more/recent_analyses_loading_more_view.dart';
+
+typedef RecentAnalysesLoadingMore = RecentAnalysesLoadingMoreView;
