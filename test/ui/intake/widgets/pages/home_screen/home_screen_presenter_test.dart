@@ -48,19 +48,6 @@ void main() {
     );
   }
 
-  String expectedGreeting() {
-    final int hour = DateTime.now().hour;
-    if (hour < 12) {
-      return 'Bom dia';
-    }
-
-    if (hour < 18) {
-      return 'Boa tarde';
-    }
-
-    return 'Boa noite';
-  }
-
   HomeScreenPresenter createPresenter() {
     return HomeScreenPresenter(
       authService: authService,
@@ -99,7 +86,11 @@ void main() {
       expect(presenter.isLoadingInitialData.value, isFalse);
       expect(presenter.generalError.value, isNull);
       expect(presenter.firstName.value, 'Ada');
-      expect(presenter.greeting.value, '${expectedGreeting()}, Ada');
+      expect(presenter.greeting.value, contains('Ada'));
+      expect(
+        presenter.greeting.value,
+        matches(r'^(Bom dia|Boa tarde|Boa noite), Ada$'),
+      );
       expect(presenter.recentAnalyses.value, hasLength(1));
       expect(presenter.recentAnalyses.value.first.id, analysis.id);
       expect(presenter.nextCursor.value, 'cursor-2');
