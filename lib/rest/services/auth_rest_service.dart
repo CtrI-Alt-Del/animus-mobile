@@ -1,6 +1,8 @@
+import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/dtos/session_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/rest/mappers/auth/account_mapper.dart';
@@ -8,9 +10,20 @@ import 'package:animus/rest/mappers/auth/session_mapper.dart';
 
 class AuthRestService implements AuthService {
   final RestClient _restClient;
+  final CacheDriver _cacheDriver;
 
-  const AuthRestService({required RestClient restClient})
-    : _restClient = restClient;
+  const AuthRestService({
+    required RestClient restClient,
+    required CacheDriver cacheDriver,
+  }) : _restClient = restClient,
+       _cacheDriver = cacheDriver;
+
+  @override
+  Future<RestResponse<AccountDto>> fetchAccount() async {
+    _setAuthorizationHeader();
+    final response = await _restClient.get('/auth/me');
+    return response.mapBody<AccountDto>(AccountMapper.toDto);
+  }
 
   @override
   Future<RestResponse<SessionDto>> signIn({
@@ -81,5 +94,11 @@ class AuthRestService implements AuthService {
     );
 
     return response.mapBody<SessionDto>(SessionMapper.toDto);
+  }
+
+  void _setAuthorizationHeader() {
+    final String token = _cacheDriver.get(CacheKeys.accessToken) ?? '';
+    final String authorization = token.isEmpty ? '' : 'Bearer $token';
+    _restClient.setHeader('Authorization', authorization);
   }
 }

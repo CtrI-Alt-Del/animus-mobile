@@ -1,18 +1,74 @@
+import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/rest/services/auth_rest_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+class _MockCacheDriver extends Mock implements CacheDriver {}
+
 class _MockRestClient extends Mock implements RestClient {}
 
 void main() {
+  late _MockCacheDriver cacheDriver;
   late _MockRestClient restClient;
   late AuthRestService service;
 
   setUp(() {
+    cacheDriver = _MockCacheDriver();
     restClient = _MockRestClient();
-    service = AuthRestService(restClient: restClient);
+    when(() => cacheDriver.get(any())).thenReturn('access-token');
+    service = AuthRestService(restClient: restClient, cacheDriver: cacheDriver);
+  });
+
+  group('fetchAccount', () {
+    test('envia token e busca conta autenticada em /auth/me', () async {
+      when(
+        () => restClient.setHeader('Authorization', 'Bearer access-token'),
+      ).thenReturn(null);
+      when(() => restClient.get('/auth/me')).thenAnswer(
+        (_) async => RestResponse<Map<String, dynamic>>(
+          statusCode: 200,
+          body: <String, dynamic>{
+            'id': 'account-1',
+            'name': 'Ada Lovelace',
+            'email': 'ada@example.com',
+            'is_verified': true,
+            'social_accounts': <Map<String, dynamic>>[],
+          },
+        ),
+      );
+
+      final response = await service.fetchAccount();
+
+      expect(response.statusCode, 200);
+      expect(response.body.id, 'account-1');
+      expect(response.body.email, 'ada@example.com');
+      verify(
+        () => restClient.setHeader('Authorization', 'Bearer access-token'),
+      ).called(1);
+      verify(() => restClient.get('/auth/me')).called(1);
+    });
+
+    test('envia header vazio quando nao ha token salvo', () async {
+      when(() => cacheDriver.get(any())).thenReturn(null);
+      when(() => restClient.setHeader('Authorization', '')).thenReturn(null);
+      when(() => restClient.get('/auth/me')).thenAnswer(
+        (_) async => RestResponse<Map<String, dynamic>>(
+          statusCode: 401,
+          errorMessage: 'Nao autenticado',
+          errorBody: <String, dynamic>{'message': 'Nao autenticado'},
+        ),
+      );
+
+      final response = await service.fetchAccount();
+
+      expect(response.isFailure, isTrue);
+      expect(response.statusCode, 401);
+      expect(response.errorMessage, 'Nao autenticado');
+      verify(() => restClient.setHeader('Authorization', '')).called(1);
+      verify(() => restClient.get('/auth/me')).called(1);
+    });
   });
 
   group('signIn', () {
