@@ -1,0 +1,3 @@
+import 'package:animus/ui/auth/widgets/pages/forgot_password_screen/forgot_password_form/forgot_password_submit_button/forgot_password_submit_button_view.dart';
+
+typedef ForgotPasswordSubmitButton = ForgotPasswordSubmitButtonView;

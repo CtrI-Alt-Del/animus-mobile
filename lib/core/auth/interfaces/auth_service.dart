@@ -5,10 +5,21 @@ import 'package:animus/core/shared/responses/rest_response.dart';
 abstract class AuthService {
   Future<RestResponse<AccountDto>> fetchAccount();
 
+  Future<RestResponse<void>> forgotPassword({required String email});
+
+  Future<RestResponse<String>> verifyResetToken({required String token});
+
+  Future<RestResponse<void>> resetPassword({
+    required String accountId,
+    required String newPassword,
+  });
+
   Future<RestResponse<SessionDto>> signIn({
     required String email,
     required String password,
   });
+
+  Future<RestResponse<SessionDto>> signInWithGoogle({required String idToken});
 
   Future<RestResponse<AccountDto>> signUp({
     required String name,
