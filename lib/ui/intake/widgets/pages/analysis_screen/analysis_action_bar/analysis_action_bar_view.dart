@@ -62,7 +62,7 @@ class AnalysisActionBarView extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: onFileAction,
-                  child: Text(fileActionLabel),
+                  child: Text(fileActionLabel, style: textTheme.bodySmall),
                 ),
               ),
               const SizedBox(width: 12),

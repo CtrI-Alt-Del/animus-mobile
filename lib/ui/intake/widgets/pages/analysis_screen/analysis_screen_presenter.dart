@@ -62,14 +62,14 @@ class AnalysisScreenPresenter {
 
   late final ReadonlySignal<String> primaryActionLabel = computed(() {
     return status.value == AnalysisStatusDto.petitionAnalyzed
-        ? 'Confirmar e Ver Precedentes'
+        ? 'Buscar precedentes'
         : 'Analisar';
   });
 
   late final ReadonlySignal<String> fileActionLabel = computed(() {
     return status.value == AnalysisStatusDto.petitionAnalyzed
         ? 'Enviar outro documento'
-        : 'Selecionar arquivo';
+        : 'Selecionar petição';
   });
 
   AnalysisScreenPresenter({
@@ -134,13 +134,13 @@ class AnalysisScreenPresenter {
     final String documentType = _getExtension(file.path);
 
     final RestResponse<dynamic> uploadUrlResponse = await _storageService
-        .getPetitionUploadUrl(
+        .generatePetitionUploadUrl(
           analysisId: analysisId,
           documentType: documentType,
         );
 
     if (uploadUrlResponse.isFailure) {
-      _applyRemoteFailure();
+      _applyRemoteFailure(uploadUrlResponse.errorMessage);
       return;
     }
 
@@ -184,32 +184,32 @@ class AnalysisScreenPresenter {
         .createPetition(petition: createdPetitionPayload);
 
     if (petitionResponse.isFailure) {
+      print("petitionResponse.errorMessage: ${petitionResponse.errorMessage}");
       _applyRemoteFailure();
       return;
     }
 
     petition.value = petitionResponse.body;
 
-    final RestResponse<PetitionSummaryDto>
-    summaryResponse = await _intakeService
-        .summarizePetition(petitionId: petitionResponse.body.id ?? '')
-        .timeout(
-          const Duration(seconds: 60),
-          onTimeout: () => RestResponse<PetitionSummaryDto>(
-            statusCode: HttpStatus.requestTimeout,
-            errorMessage:
-                '$failedMessage O resumo excedeu o tempo limite de 60 segundos.',
-          ),
-        );
+    final bool summarized = await _summarizePetition(petitionResponse.body.id);
+    if (!summarized) {
+      return;
+    }
+  }
 
-    if (summaryResponse.isFailure) {
-      _applyRemoteFailure(summaryResponse.errorMessage);
+  Future<void> retrySummary() async {
+    if (status.value != AnalysisStatusDto.petitionAnalyzed) {
       return;
     }
 
-    summary.value = summaryResponse.body;
-    status.value = AnalysisStatusDto.petitionAnalyzed;
+    final String? petitionId = petition.value?.id;
+    if (petitionId == null || petitionId.isEmpty) {
+      _applyRemoteFailure();
+      return;
+    }
+
     generalError.value = null;
+    await _summarizePetition(petitionId);
   }
 
   Future<void> replaceDocument() async {
@@ -247,6 +247,59 @@ class AnalysisScreenPresenter {
     generalError.value = errorMessage == null || errorMessage.isEmpty
         ? failedMessage
         : errorMessage;
+  }
+
+  Future<bool> _summarizePetition(String? petitionId) async {
+    if (petitionId == null || petitionId.isEmpty) {
+      _applyRemoteFailure();
+      return false;
+    }
+
+    status.value = AnalysisStatusDto.analyzingPetition;
+
+    final RestResponse<PetitionSummaryDto>
+    summaryResponse = await _intakeService
+        .summarizePetition(petitionId: petitionId)
+        .timeout(
+          const Duration(seconds: 60),
+          onTimeout: () => RestResponse<PetitionSummaryDto>(
+            statusCode: HttpStatus.requestTimeout,
+            errorMessage:
+                '$failedMessage O resumo excedeu o tempo limite de 60 segundos.',
+          ),
+        );
+
+    if (summaryResponse.isFailure) {
+      _applyRemoteFailure(summaryResponse.errorMessage);
+      return false;
+    }
+
+    summary.value = summaryResponse.body;
+    status.value = AnalysisStatusDto.petitionAnalyzed;
+    generalError.value = null;
+    return true;
+  }
+
+  String fileName(File file) {
+    if (file.uri.pathSegments.isNotEmpty) {
+      return file.uri.pathSegments.last;
+    }
+
+    return file.path;
+  }
+
+  String formatFileSize(int sizeInBytes) {
+    if (sizeInBytes < 1024) {
+      return '$sizeInBytes B';
+    }
+
+    final double sizeInKb = sizeInBytes / 1024;
+    if (sizeInKb < 1024) {
+      return '${sizeInKb.toStringAsFixed(1)} KB';
+    }
+
+    final double sizeInMb = sizeInKb / 1024;
+    return '${sizeInMb.toStringAsFixed(1)} MB';
   }
 
   String _getExtension(String path) {

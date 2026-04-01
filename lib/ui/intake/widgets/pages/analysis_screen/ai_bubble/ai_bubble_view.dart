@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/ai_bubble/typing_dot/index.dart';
 
 class AiBubbleView extends StatelessWidget {
   final String? message;
@@ -48,7 +49,7 @@ class AiBubbleView extends StatelessWidget {
                 if (message != null && message!.isNotEmpty)
                   Text(
                     message!,
-                    style: textTheme.bodyMedium?.copyWith(
+                    style: textTheme.bodySmall?.copyWith(
                       color: tokens.textPrimary,
                       height: 1.45,
                     ),
@@ -58,11 +59,11 @@ class AiBubbleView extends StatelessWidget {
                     const SizedBox(height: 12),
                   Row(
                     children: <Widget>[
-                      _TypingDot(color: tokens.accent),
+                      TypingDot(color: tokens.accent),
                       const SizedBox(width: 6),
-                      _TypingDot(color: tokens.accent.withValues(alpha: 0.7)),
+                      TypingDot(color: tokens.accent.withValues(alpha: 0.7)),
                       const SizedBox(width: 6),
-                      _TypingDot(color: tokens.accent.withValues(alpha: 0.45)),
+                      TypingDot(color: tokens.accent.withValues(alpha: 0.45)),
                     ],
                   ),
                 ],
@@ -80,21 +81,6 @@ class AiBubbleView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _TypingDot extends StatelessWidget {
-  final Color color;
-
-  const _TypingDot({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
