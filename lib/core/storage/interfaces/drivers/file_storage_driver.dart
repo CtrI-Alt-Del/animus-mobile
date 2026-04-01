@@ -8,4 +8,6 @@ abstract class FileStorageDriver {
     UploadUrlDto uploadUrl, {
     void Function(int sentBytes, int totalBytes)? onProgress,
   });
+
+  Uri getFileUrl(String url);
 }

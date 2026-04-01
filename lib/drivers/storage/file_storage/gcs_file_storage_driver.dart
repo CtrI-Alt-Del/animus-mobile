@@ -1,14 +1,15 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
-
+import 'package:animus/constants/env.dart';
+import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
 
 class GcsFileStorageDriver implements FileStorageDriver {
-  final Dio _dio;
+  final RestClient _restClient;
 
-  GcsFileStorageDriver({Dio? dio}) : _dio = dio ?? Dio();
+  const GcsFileStorageDriver({required RestClient restClient})
+    : _restClient = restClient;
 
   @override
   Future<void> uploadFile(
@@ -16,17 +17,26 @@ class GcsFileStorageDriver implements FileStorageDriver {
     UploadUrlDto uploadUrl, {
     void Function(int sentBytes, int totalBytes)? onProgress,
   }) async {
-    await _dio.put<void>(
-      uploadUrl.url,
-      data: file.openRead(),
-      options: Options(
-        headers: <String, dynamic>{
-          HttpHeaders.contentLengthHeader: await file.length(),
-          HttpHeaders.contentTypeHeader: _resolveContentType(file.path),
-        },
-      ),
-      onSendProgress: onProgress,
+    final int totalBytes = await file.length();
+    onProgress?.call(0, totalBytes);
+
+    final String uploadUrlValue = _resolveUploadUrl(uploadUrl.url);
+
+    await _restClient.put(
+      uploadUrlValue,
+      body: file.openRead(),
+      headers: <String, dynamic>{
+        HttpHeaders.contentTypeHeader: _resolveContentType(file.path),
+        HttpHeaders.contentLengthHeader: totalBytes.toString(),
+      },
     );
+
+    onProgress?.call(totalBytes, totalBytes);
+  }
+
+  @override
+  Uri getFileUrl(String filePath) {
+    return Uri.parse('${Env.gcsUrl}/$filePath');
   }
 
   String _resolveContentType(String path) {
@@ -40,5 +50,14 @@ class GcsFileStorageDriver implements FileStorageDriver {
     }
 
     return 'application/octet-stream';
+  }
+
+  String _resolveUploadUrl(String url) {
+    final Uri uri = Uri.parse(url);
+    if (uri.host != 'localhost') {
+      return url;
+    }
+
+    return uri.replace(host: '10.0.2.2').toString();
   }
 }

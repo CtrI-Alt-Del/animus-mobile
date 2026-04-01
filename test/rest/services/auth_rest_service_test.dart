@@ -1,3 +1,4 @@
+import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/rest/services/auth_rest_service.dart';
@@ -6,13 +7,17 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockRestClient extends Mock implements RestClient {}
 
+class _MockCacheDriver extends Mock implements CacheDriver {}
+
 void main() {
   late _MockRestClient restClient;
+  late _MockCacheDriver cacheDriver;
   late AuthRestService service;
 
   setUp(() {
     restClient = _MockRestClient();
-    service = AuthRestService(restClient: restClient);
+    cacheDriver = _MockCacheDriver();
+    service = AuthRestService(restClient: restClient, cacheDriver: cacheDriver);
   });
 
   group('signIn', () {
