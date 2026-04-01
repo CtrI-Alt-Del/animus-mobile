@@ -11,9 +11,9 @@ Orientar a criação de testes unitários e de widget padronizados e eficientes,
 ## Diretrizes de Execução
 
 ### 1. Adesão às Normas do Projeto
-*   **Obrigatório:** Siga rigorosamente as diretrizes em `documentation\rules\unit-tests-rules.md`.
+*   **Obrigatório:** Siga rigorosamente as diretrizes em `documentation\rules\widgets-testing-rules.md`.
 *   **Contexto de UI:** Ao testar Widgets, aplique as boas práticas descritas em `documentation/rules/ui-layer-rules.md`.
-*   **Subagentes:** Caso mais de um widget ou presenter seja fornecido, delegue a criação dos testes para o subagente passando a comanda e o caminho das rules de `documentation\rules\unit-tests-rules.md`.
+*   **Subagentes:** Caso mais de um widget ou presenter seja fornecido, delegue a criação dos testes para o subagente passando a comanda e o caminho das rules de `documentation\rules\widgets-testing-rules.md`.
 
 ### 2. Estrutura e Nomenclatura
 *   **Organização:** Crie os testes no diretório `test/` espelhando a estrutura original em `lib/`.
