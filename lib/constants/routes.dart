@@ -35,8 +35,8 @@ class Routes {
     return uri.toString();
   }
 
-  static String getAnalysis({required String id}) {
-    final Uri uri = Uri(path: '/analyses/${Uri.encodeComponent(id)}');
+  static String getAnalysis({required String analysisId}) {
+    final Uri uri = Uri(path: '/analyses/${Uri.encodeComponent(analysisId)}');
     return uri.toString();
   }
 
@@ -46,9 +46,5 @@ class Routes {
       queryParameters: <String, String>{'accountId': accountId},
     );
     return uri.toString();
-  }
-
-  static String getAnalysis({required String analysisId}) {
-    return '/analyses/$analysisId';
   }
 }

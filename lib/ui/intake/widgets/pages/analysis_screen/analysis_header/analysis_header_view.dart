@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_header/analysis_header_actions/index.dart';
 
 class AnalysisHeaderView extends StatelessWidget {
   final VoidCallback? onBack;
+  final String title;
+  final VoidCallback? onRename;
+  final VoidCallback? onArchive;
+  final bool isMenuEnabled;
 
-  const AnalysisHeaderView({required this.onBack, super.key});
+  const AnalysisHeaderView({
+    required this.onBack,
+    required this.title,
+    required this.onRename,
+    required this.onArchive,
+    this.isMenuEnabled = true,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,22 +30,28 @@ class AnalysisHeaderView extends StatelessWidget {
       child: SizedBox(
         height: 52,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             IconButton(
               onPressed: onBack,
               icon: Icon(Icons.arrow_back, color: tokens.textPrimary, size: 22),
             ),
-            Text(
-              'Nova Análise',
-              style: textTheme.titleMedium?.copyWith(
-                color: tokens.textPrimary,
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: Center(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleMedium?.copyWith(
+                    color: tokens.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
-            IconButton(
-              onPressed: null,
-              icon: Icon(Icons.tune, color: tokens.textSecondary, size: 20),
+            AnalysisHeaderActions(
+              isEnabled: isMenuEnabled,
+              onRename: onRename,
+              onArchive: onArchive,
             ),
           ],
         ),

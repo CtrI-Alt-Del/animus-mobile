@@ -84,7 +84,7 @@ class HomeScreenPresenter {
     generalError.value = null;
 
     final RestResponse<AccountDto> accountResponse = await _authService
-        .fetchAccount();
+        .getAccount();
 
     if (accountResponse.isFailure) {
       generalError.value = _resolveErrorMessage(
@@ -183,16 +183,29 @@ class HomeScreenPresenter {
     }
 
     isCreatingAnalysis.value = false;
-    _navigationDriver.goTo(Routes.getAnalysis(id: analysisId));
+    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+    await refresh();
   }
 
-  void openAnalysis(AnalysisDto analysis) {
+  Future<void> refresh() async {
+    if (isLoadingInitialData.value || isLoadingMore.value) {
+      return;
+    }
+
+    _didCompleteInitialLoad = false;
+    recentAnalyses.value = const <AnalysisDto>[];
+    nextCursor.value = null;
+    await initialize();
+  }
+
+  Future<void> openAnalysis(AnalysisDto analysis) async {
     final String analysisId = (analysis.id ?? '').trim();
     if (analysisId.isEmpty) {
       return;
     }
 
-    _navigationDriver.goTo(Routes.getAnalysis(id: analysisId));
+    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+    await refresh();
   }
 
   void onDestinationSelected(int index) {

@@ -18,8 +18,6 @@ import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class SignInScreenPresenter {
-  static const String _postSignInAnalysisId = '01KMQTN9YCHWG20ZZEPNBRYW87';
-
   final AuthService _authService;
   final GoogleAuthDriver _googleAuthDriver;
   final CacheDriver _cacheDriver;
@@ -116,9 +114,7 @@ class SignInScreenPresenter {
 
     if (response.isSuccessful) {
       _persistSession(response.body);
-      _navigationDriver.goTo(
-        Routes.getAnalysis(analysisId: _postSignInAnalysisId),
-      );
+      _navigationDriver.goTo(Routes.home);
       isSubmitting.value = false;
       return;
     }
@@ -155,9 +151,7 @@ class SignInScreenPresenter {
 
       if (response.isSuccessful) {
         _persistSession(response.body);
-        _navigationDriver.goTo(
-          Routes.getAnalysis(analysisId: _postSignInAnalysisId),
-        );
+        _navigationDriver.goTo(Routes.home);
         isGoogleSubmitting.value = false;
         return;
       }

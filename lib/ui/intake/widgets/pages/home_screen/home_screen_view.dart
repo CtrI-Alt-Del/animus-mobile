@@ -86,6 +86,7 @@ class HomeScreenView extends ConsumerWidget {
                         showEmptyState: showEmptyState,
                         errorMessage: errorMessage,
                         formatCreatedAt: presenter.formatCreatedAt,
+                        onRefresh: presenter.refresh,
                         onTapAnalysis: presenter.openAnalysis,
                         onRetry: () {
                           presenter.initialize();
