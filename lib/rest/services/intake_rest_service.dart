@@ -1,9 +1,11 @@
+import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_summary_mapper.dart';
 import 'package:animus/rest/services/service.dart';
@@ -26,6 +28,45 @@ class IntakeRestService extends Service implements IntakeService {
     );
 
     return response.mapBody<PetitionDto>(PetitionMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<AnalysisDto>> getAnalysis({
+    required String analysisId,
+  }) async {
+    await setAuthHeader();
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId',
+    );
+
+    return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<PetitionDto>> getAnalysisPetition({
+    required String analysisId,
+  }) async {
+    await setAuthHeader();
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId/petition',
+    );
+
+    return response.mapBody<PetitionDto>(PetitionMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<PetitionSummaryDto>> getPetitionSummary({
+    required String petitionId,
+  }) async {
+    await setAuthHeader();
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/petitions/$petitionId/summary',
+    );
+
+    return response.mapBody<PetitionSummaryDto>(PetitionSummaryMapper.toDto);
   }
 
   @override

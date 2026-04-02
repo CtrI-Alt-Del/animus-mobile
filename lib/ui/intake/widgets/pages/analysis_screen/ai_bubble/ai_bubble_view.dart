@@ -25,22 +25,22 @@ class AiBubbleView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Container(
-          width: 36,
-          height: 36,
+          width: 34,
+          height: 34,
           decoration: BoxDecoration(
             color: tokens.surfaceElevated,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(17),
             border: Border.all(color: tokens.borderSubtle),
           ),
-          child: Icon(Icons.auto_awesome, color: tokens.accent, size: 18),
+          child: Icon(Icons.auto_awesome, color: tokens.accent, size: 16),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: tokens.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: tokens.borderSubtle),
             ),
             child: Column(
@@ -49,7 +49,7 @@ class AiBubbleView extends StatelessWidget {
                 if (message != null && message!.isNotEmpty)
                   Text(
                     message!,
-                    style: textTheme.bodySmall?.copyWith(
+                    style: textTheme.bodyMedium?.copyWith(
                       color: tokens.textPrimary,
                       height: 1.45,
                     ),
@@ -59,11 +59,17 @@ class AiBubbleView extends StatelessWidget {
                     const SizedBox(height: 12),
                   Row(
                     children: <Widget>[
-                      TypingDot(color: tokens.accent),
+                      TypingDot(color: tokens.accent, delay: Duration.zero),
                       const SizedBox(width: 6),
-                      TypingDot(color: tokens.accent.withValues(alpha: 0.7)),
+                      TypingDot(
+                        color: tokens.accent.withValues(alpha: 0.7),
+                        delay: const Duration(milliseconds: 140),
+                      ),
                       const SizedBox(width: 6),
-                      TypingDot(color: tokens.accent.withValues(alpha: 0.45)),
+                      TypingDot(
+                        color: tokens.accent.withValues(alpha: 0.45),
+                        delay: const Duration(milliseconds: 280),
+                      ),
                     ],
                   ),
                 ],
@@ -71,8 +77,8 @@ class AiBubbleView extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     footerText!,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: tokens.textSecondary,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: tokens.textMuted,
                     ),
                   ),
                 ],
