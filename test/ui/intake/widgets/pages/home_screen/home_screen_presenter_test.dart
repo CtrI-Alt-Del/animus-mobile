@@ -269,6 +269,35 @@ void main() {
     });
   });
 
+  group('navigation', () {
+    test('navega para perfil quando destination index e 2', () {
+      final HomeScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.onDestinationSelected(2);
+
+      verify(() => navigationDriver.goTo(Routes.profile)).called(1);
+    });
+
+    test('ignora destination index 1', () {
+      final HomeScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.onDestinationSelected(1);
+
+      verifyNever(() => navigationDriver.goTo(any()));
+    });
+
+    test('openProfile navega para perfil', () {
+      final HomeScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.openProfile();
+
+      verify(() => navigationDriver.goTo(Routes.profile)).called(1);
+    });
+  });
+
   group('formatCreatedAt', () {
     test('formata datas validas em dd/MM/yyyy', () {
       final HomeScreenPresenter presenter = createPresenter();
