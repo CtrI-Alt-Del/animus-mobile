@@ -6,6 +6,7 @@ import 'package:animus/ui/auth/widgets/pages/check_email_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/forgot_password_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/new_password_screen/index.dart';
+import 'package:animus/ui/auth/widgets/pages/profile_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/index.dart';
@@ -16,6 +17,10 @@ final GoRouter appRouter = GoRouter(
   initialLocation: Routes.signIn,
   routes: <RouteBase>[
     GoRoute(path: Routes.home, builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: Routes.profile,
+      builder: (context, state) => const ProfileScreen(),
+    ),
     GoRoute(
       path: Routes.signIn,
       builder: (context, state) => const SignInScreen(),
