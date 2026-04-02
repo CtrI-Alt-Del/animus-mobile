@@ -6,10 +6,12 @@ import 'package:animus/theme.dart';
 class HomeHeaderView extends StatelessWidget {
   final String greeting;
   final String subtitle;
+  final VoidCallback onProfilePressed;
 
   const HomeHeaderView({
     required this.greeting,
     required this.subtitle,
+    required this.onProfilePressed,
     super.key,
   });
 
@@ -45,22 +47,33 @@ class HomeHeaderView extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 16),
-        Container(
-          width: 52,
-          height: 52,
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: <Color>[
-                tokens.accent.withValues(alpha: 0.9),
-                tokens.accentStrong.withValues(alpha: 0.7),
-              ],
+        Semantics(
+          button: true,
+          label: 'Abrir perfil',
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onProfilePressed,
+              customBorder: const CircleBorder(),
+              child: Container(
+                width: 52,
+                height: 52,
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: <Color>[
+                      tokens.accent.withValues(alpha: 0.9),
+                      tokens.accentStrong.withValues(alpha: 0.7),
+                    ],
+                  ),
+                ),
+                child: CircleAvatar(
+                  backgroundColor: tokens.surfaceElevated,
+                  child: Icon(Icons.person_outline, color: tokens.textPrimary),
+                ),
+              ),
             ),
-          ),
-          child: CircleAvatar(
-            backgroundColor: tokens.surfaceElevated,
-            child: Icon(Icons.person_outline, color: tokens.textPrimary),
           ),
         ),
       ],

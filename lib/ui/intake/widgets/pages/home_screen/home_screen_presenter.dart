@@ -199,6 +199,14 @@ class HomeScreenPresenter {
     if (index == 0) {
       return;
     }
+
+    if (index == 2) {
+      _navigationDriver.goTo(Routes.profile);
+    }
+  }
+
+  void openProfile() {
+    _navigationDriver.goTo(Routes.profile);
   }
 
   String formatCreatedAt(String value) {
