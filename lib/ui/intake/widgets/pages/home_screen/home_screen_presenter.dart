@@ -195,16 +195,6 @@ class HomeScreenPresenter {
     _navigationDriver.goTo(Routes.getAnalysis(id: analysisId));
   }
 
-  void onDestinationSelected(int index) {
-    if (index == 0) {
-      return;
-    }
-
-    if (index == 2) {
-      _navigationDriver.goTo(Routes.profile);
-    }
-  }
-
   void openProfile() {
     _navigationDriver.goTo(Routes.profile);
   }
