@@ -17,9 +17,6 @@ class GcsFileStorageDriver implements FileStorageDriver {
     UploadUrlDto uploadUrl, {
     void Function(int sentBytes, int totalBytes)? onProgress,
   }) async {
-    final int totalBytes = await file.length();
-    onProgress?.call(0, totalBytes);
-
     final String uploadUrlValue = _resolveUploadUrl(uploadUrl.url);
 
     await _restClient.put(
@@ -27,11 +24,10 @@ class GcsFileStorageDriver implements FileStorageDriver {
       body: file.openRead(),
       headers: <String, dynamic>{
         HttpHeaders.contentTypeHeader: _resolveContentType(file.path),
-        HttpHeaders.contentLengthHeader: totalBytes.toString(),
+        HttpHeaders.contentLengthHeader: (await file.length()).toString(),
       },
+      onSendProgress: onProgress,
     );
-
-    onProgress?.call(totalBytes, totalBytes);
   }
 
   @override

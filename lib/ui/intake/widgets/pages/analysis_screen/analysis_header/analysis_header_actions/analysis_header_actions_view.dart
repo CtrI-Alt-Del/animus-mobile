@@ -80,9 +80,9 @@ class AnalysisHeaderActionsView extends StatelessWidget {
           ),
         ),
       ],
-      child: IconButton(
-        onPressed: null,
-        icon: Icon(Icons.tune, color: tokens.textSecondary, size: 20),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Icon(Icons.tune, color: tokens.textSecondary, size: 20),
       ),
     );
   }

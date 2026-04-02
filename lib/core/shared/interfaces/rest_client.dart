@@ -18,6 +18,7 @@ abstract class RestClient {
     Object? body,
     Json? queryParams,
     Json? headers,
+    void Function(int sentBytes, int totalBytes)? onSendProgress,
   });
   Future<RestResponse<Json>> patch(
     String path, {

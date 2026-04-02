@@ -6,8 +6,8 @@ enum AnalysisStatusDto {
   searchingPrecedents('SEARCHING_PRECEDENTS'),
   analyzingPrecedentsApplicability('ANALYZING_PRECEDENTS_APPLICABILITY'),
   generatingSynthesis('GENERATING_SYNTHESIS'),
-  waitingPrecedentChoise('WAITING_PRECEDENT_CHOISE'),
-  precedentChosed('PRECEDENT_CHOSED'),
+  waitingPrecedentChoice('WAITING_PRECEDENT_CHOISE'),
+  precedentChosen('PRECEDENT_CHOSED'),
   failed('FAILED');
 
   final String value;
