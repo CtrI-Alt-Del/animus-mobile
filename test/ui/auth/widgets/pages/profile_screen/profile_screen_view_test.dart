@@ -2,7 +2,6 @@ import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_screen_presenter.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_screen_view.dart';
-import 'package:animus/ui/shared/widgets/components/app_bottom_navigation/app_bottom_navigation_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,7 +17,6 @@ void main() {
   setUp(() {
     presenter = _MockProfileScreenPresenter();
     when(() => presenter.initialize()).thenAnswer((_) async {});
-    when(() => presenter.onDestinationSelected(any())).thenReturn(null);
     when(() => presenter.dispose()).thenReturn(null);
     when(() => presenter.isLoadingInitialData).thenReturn(signal<bool>(false));
     when(() => presenter.generalError).thenReturn(signal<String?>(null));
@@ -78,14 +76,9 @@ void main() {
     expect(find.text('Sobre o App'), findsOneWidget);
     expect(find.text('Deletar Conta'), findsOneWidget);
     expect(find.text('Sair da Conta'), findsOneWidget);
-    expect(find.text('HOME'), findsOneWidget);
-    expect(find.text('BIBLIOTECA'), findsOneWidget);
-    expect(find.text('PERFIL'), findsOneWidget);
-
-    final AppBottomNavigationView bottomNavigation = tester.widget(
-      find.byType(AppBottomNavigationView),
-    );
-    expect(bottomNavigation.currentIndex, 2);
+    expect(find.text('HOME'), findsNothing);
+    expect(find.text('BIBLIOTECA'), findsNothing);
+    expect(find.text('PERFIL'), findsNothing);
   });
 }
 

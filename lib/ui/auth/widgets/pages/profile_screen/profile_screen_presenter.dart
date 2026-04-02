@@ -96,13 +96,6 @@ class ProfileScreenPresenter {
     isLoadingInitialData.value = false;
   }
 
-  void onDestinationSelected(int index) {
-    if (index == 0) {
-      _navigationDriver.goTo(Routes.home);
-      return;
-    }
-  }
-
   void dispose() {
     isLoadingInitialData.dispose();
     generalError.dispose();

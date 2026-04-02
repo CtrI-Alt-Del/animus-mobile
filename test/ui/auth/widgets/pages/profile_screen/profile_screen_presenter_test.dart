@@ -147,24 +147,4 @@ void main() {
     });
   });
 
-  group('navigation', () {
-    test('navega para home quando destination index e 0', () {
-      final ProfileScreenPresenter presenter = createPresenter();
-      addTearDown(presenter.dispose);
-
-      presenter.onDestinationSelected(0);
-
-      verify(() => navigationDriver.goTo(Routes.home)).called(1);
-    });
-
-    test('ignora destination indices 1 e 2', () {
-      final ProfileScreenPresenter presenter = createPresenter();
-      addTearDown(presenter.dispose);
-
-      presenter.onDestinationSelected(1);
-      presenter.onDestinationSelected(2);
-
-      verifyNever(() => navigationDriver.goTo(any()));
-    });
-  });
 }

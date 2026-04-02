@@ -8,7 +8,6 @@ import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/message_b
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_account_card/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_logout_button/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_settings_group/index.dart';
-import 'package:animus/ui/shared/widgets/components/app_bottom_navigation/index.dart';
 
 import 'profile_screen_presenter.dart';
 
@@ -32,10 +31,6 @@ class ProfileScreenView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: tokens.surfacePage,
-      bottomNavigationBar: AppBottomNavigation(
-        currentIndex: 2,
-        onDestinationSelected: presenter.onDestinationSelected,
-      ),
       body: SafeArea(
         bottom: false,
         child: Center(
