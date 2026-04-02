@@ -53,7 +53,6 @@ class ProfileAccountCardView extends StatelessWidget {
                   style: textTheme.titleLarge?.copyWith(
                     color: tokens.textPrimary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 22,
                   ),
                 ),
               ),
@@ -67,10 +66,9 @@ class ProfileAccountCardView extends StatelessWidget {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.titleMedium?.copyWith(
+                    style: textTheme.titleSmall?.copyWith(
                       color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
-                      fontSize: 18,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -78,9 +76,8 @@ class ProfileAccountCardView extends StatelessWidget {
                     email,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(
+                    style: textTheme.bodySmall?.copyWith(
                       color: tokens.textSecondary,
-                      fontSize: 14,
                     ),
                   ),
                 ],

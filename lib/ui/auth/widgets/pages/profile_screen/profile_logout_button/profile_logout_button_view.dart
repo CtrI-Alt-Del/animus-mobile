@@ -36,9 +36,8 @@ class ProfileLogoutButtonView extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Sair da Conta',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: tokens.danger,
-                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
