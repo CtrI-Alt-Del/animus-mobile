@@ -19,7 +19,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - Tela `Nova Analise` parametrizada por `analysisId`.
 - Selecao nativa de arquivo com filtro para `pdf` e `docx`.
 - Validacao client-side de extensao e limite de `20MB` antes de qualquer chamada remota.
-- Orquestracao completa do fluxo `generatePetitionUploadUrl -> uploadFile -> createPetition -> summarizePetition`.
+- Orquestracao do fluxo em duas etapas: ao selecionar documento (`generatePetitionUploadUrl -> uploadFile -> createPetition`) e ao analisar (`summarizePetition`).
 - Exibicao dos estados visuais derivada de `AnalysisStatusDto`, combinada com estados locais de selecao de arquivo, upload em andamento e erro recuperavel.
 - Exibicao do bubble do usuario com nome e tamanho do arquivo selecionado.
 - Exibicao de `PetitionSummaryCard` com secoes para `caseSummary`, `legalIssue`, `centralQuestion`, `relevantLaws`, `keyFacts` e `searchTerms`.
@@ -43,17 +43,21 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 ## 3.1 Funcionais
 
 - Ao abrir a tela, exibir bubble inicial da IA com a mensagem de boas-vindas e a legenda `Formatos aceitos: PDF, DOCX • Max. 20MB`.
+- Ao abrir a tela, consultar o status atual da analise e aplicar carregamento condicional: para `AnalysisStatusDto.petitionUploaded` e `AnalysisStatusDto.analyzingPetition`, buscar apenas `getAnalysisPetition(analysisId)`; para `AnalysisStatusDto.petitionAnalyzed`, buscar `getAnalysisPetition(analysisId)` e `getPetitionSummary(petitionId)`.
+- A tela deve usar fundo visual em dot grid, alinhado aos frames de design (`jhO0x`, `vp2P7`, `pw1KC`), sem interferir em interacoes.
 - O botao de CTA principal deve permanecer desabilitado enquanto nenhum arquivo valido estiver selecionado.
 - Ao tocar em `Selecionar arquivo`, abrir o picker nativo do dispositivo filtrado para `pdf` e `docx`.
 - A tela deve manter somente um arquivo selecionado por vez.
 - Se o arquivo for invalido por extensao ou tamanho, a tela deve impedir o envio e exibir erro inline.
-- Ao tocar em `Analisar`, a tela deve solicitar a `Signed URL` de upload para a `analysisId` atual e para o `document_type` derivado da extensao do arquivo.
+- Ao selecionar um documento valido, a tela deve solicitar imediatamente a `Signed URL` de upload para a `analysisId` atual e para o `document_type` derivado da extensao do arquivo.
 - Durante o upload para o `GCS`, a tela deve refletir progresso e bloquear novas interacoes de pick/analyze.
-- Depois do upload concluido, a tela deve persistir a `Petition` via `POST /petitions`.
-- Depois da `Petition` criada, a tela deve solicitar `POST /petitions/{petition_id}/summary` e exibir o estado de processamento da IA.
+- Enquanto `isUploading == true`, os dois botoes da `AnalysisActionBar` (acao de arquivo e acao primaria) devem permanecer desabilitados.
+- Depois do upload concluido, a tela deve persistir a `Petition` via `POST /petitions` e transicionar para `AnalysisStatusDto.petitionUploaded`.
+- Ao tocar em `Analisar` com `petitionUploaded`, a tela deve solicitar `POST /petitions/{petition_id}/summary` e exibir o estado de processamento da IA.
 - O sucesso deste recorte deve deixar a `analysis` compativel com o status de dominio `PETITION_ANALYZED`, sem antecipar as etapas posteriores de precedentes e sintese.
 - Em sucesso, a tela deve exibir `PetitionSummaryCard`, trocar a acao secundaria para `Enviar outro documento` e trocar a acao primaria para `Buscar precedentes`.
 - Abaixo do `PetitionSummaryCard`, a tela deve exibir um botao de retry do resumo para reexecutar `summarizePetition` na mesma `petition` atual.
+- O `PetitionSummaryCard` deve iniciar colapsado por padrao e permitir expandir/recolher com CTA visual `Mostrar mais` e `Mostrar menos`.
 - Em falha de upload, criacao da petição, resumo, timeout ou resposta de negocio, a tela deve exibir erro inline e permitir nova tentativa sem perder o arquivo selecionado.
 - Toda falha futura desta tela deve reutilizar a mesma shell visual e a mesma mensagem base de erro definida para o estado `Failed`, evitando variacoes de UX entre tipos diferentes de erro.
 
@@ -65,6 +69,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **Seguranca:** o app nao deve persistir o conteudo do arquivo localmente; apenas manter referencia temporaria ao arquivo selecionado enquanto a tela estiver ativa.
 - **Compatibilidade:** o picker e o upload devem funcionar em `Android` e `iOS` usando plugins/pacotes suportados no projeto Flutter atual.
 - **Usabilidade:** botoes devem ficar desabilitados durante upload local e enquanto `AnalysisStatusDto` indicar processamento da petição para evitar chamadas duplicadas.
+- **Usabilidade:** o bloqueio durante upload deve abranger explicitamente toda a `AnalysisActionBar`, sem excecao por estado intermediario.
 
 ---
 
@@ -73,11 +78,12 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 ## Core
 
 - **`PetitionDto`** (`lib/core/intake/dtos/petition_dto.dart`) — DTO base do `POST /petitions`, ja contendo `analysisId`, `uploadedAt` e `document`.
-- **`AnalysisStatusDto`** (`lib/core/intake/dtos/analysis_status_dto.dart`) — enum de status da analise no dominio `intake`, incluindo `WAITING_PETITION`, `ANALYZING_PETITION`, `PETITION_ANALYZED` e estados posteriores do fluxo completo. Este enum deve dirigir o estado funcional da tela.
+- **`AnalysisPetitionDto`** (`lib/core/intake/dtos/analysis_petition_dto.dart`) — DTO de agregacao para listagem de peticoes da analise, contendo `petition` e `summary` opcional.
+- **`AnalysisStatusDto`** (`lib/core/intake/dtos/analysis_status_dto.dart`) — enum de status da analise no dominio `intake`, incluindo `WAITING_PETITION`, `PETITION_UPLOADED`, `ANALYZING_PETITION`, `PETITION_ANALYZED` e estados posteriores do fluxo completo. Este enum deve dirigir o estado funcional da tela.
 - **`PetitionDocumentDto`** (`lib/core/intake/dtos/petition_document_dto.dart`) — DTO do documento anexado, contendo `filePath` e `name` alinhados ao contrato atual.
 - **`PetitionSummaryDto`** (`lib/core/intake/dtos/petition_summary_dto.dart`) — DTO do resumo, contendo `caseSummary`, `legalIssue`, `centralQuestion`, `relevantLaws`, `keyFacts` e `searchTerms`.
 - **`UploadUrlDto`** (`lib/core/storage/dtos/upload_url_dto.dart`) — DTO retornado pelo endpoint de `Signed URL`, com `url`, `token` e `filePath`.
-- **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) — contrato ainda vazio, reservado para os gateways remotos de `intake`.
+- **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) — contrato dos gateways remotos de `intake`, com `createPetition`, `getAnalysisPetition`, `getPetitionSummary` e `summarizePetition`.
 - **`StorageService`** (`lib/core/storage/interfaces/storage_service.dart`) — contrato atual de storage ainda generico e nao aderente ao endpoint de upload de petição.
 - **`FileStorageDriver`** (`lib/core/storage/interfaces/drivers/file_storage_driver.dart`) — porta de infraestrutura para arquivos; ainda nao existe implementacao concreta no app.
 - **`RestResponse`** (`lib/core/shared/responses/rest_response.dart`) — envelope padrao de sucesso/falha usado pela UI para tratar erros sem vazar detalhes de transporte.
@@ -122,6 +128,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **Dependencias:** `RestClient`
 - **Metodos:**
 - `Future<RestResponse<PetitionDto>> createPetition({required PetitionDto petition})` — envia `POST /petitions` com payload mapeado para `snake_case` e retorna a petição persistida com `id`.
+- `Future<RestResponse<List<AnalysisPetitionDto>>> listAnalysisPetitions({required String analysisId})` — envia `GET /analyses/{analysis_id}/petitions` e retorna lista tipada de peticoes da analise com resumo associado quando existir.
 - `Future<RestResponse<PetitionSummaryDto>> summarizePetition({required String petitionId})` — envia `POST /petitions/{petition_id}/summary` e retorna o resumo da petição.
 
 - **Localizacao:** `lib/rest/services/storage_rest_service.dart` (**novo arquivo**)
@@ -140,6 +147,10 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **Localizacao:** `lib/rest/mappers/intake/petition_summary_mapper.dart` (**novo arquivo**)
 - **Metodos:**
 - `PetitionSummaryDto toDto(Map<String, dynamic> json)` — mapeia `case_summary`, `legal_issue`, `central_question`, `relevant_laws`, `key_facts` e `search_terms` para `PetitionSummaryDto`.
+
+- **Localizacao:** `lib/rest/mappers/intake/analysis_petition_mapper.dart` (**novo arquivo**)
+- **Metodos:**
+- `AnalysisPetitionDto toDto(Map<String, dynamic> json)` — mapeia item da listagem de peticoes de analise para `AnalysisPetitionDto`, com suporte a payload achatado ou com `petition` aninhado e resumo em `summary`/`petition_summary`.
 
 - **Localizacao:** `lib/rest/mappers/storage/upload_url_mapper.dart` (**novo arquivo**)
 - **Metodos:**
@@ -184,14 +195,15 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - `signal<PetitionSummaryDto?> summary` — resumo retornado pelo backend.
 - `signal<String?> generalError` — mensagem inline de falha de validacao, upload ou resumo. Para erros do fluxo remoto, deve reutilizar a mensagem padrao definida para o estado `Failed`.
 - `computed<bool> canPickDocument` — habilita o picker quando a tela nao esta ocupada.
-- `computed<bool> canAnalyze` — habilita `Analisar` somente quando houver arquivo selecionado, sem `generalError` bloqueante, sem upload local em andamento e com `status` compativel com `AnalysisStatusDto.waitingPetition` ou retry apos `failed`.
+- `computed<bool> canAnalyze` — habilita `Analisar` somente quando houver `petition.id` disponivel e `status` em `AnalysisStatusDto.petitionUploaded` ou retry de resumo apos `failed`.
 - `computed<bool> showProcessingBubble` — exibe o bubble da IA quando `status == AnalysisStatusDto.analyzingPetition`.
 - `computed<String> primaryActionLabel` — alterna entre `Analisar` e `Buscar precedentes`.
 - `computed<String> fileActionLabel` — alterna entre `Selecionar arquivo` e `Enviar outro documento`.
 - **Provider Riverpod:** `analysisScreenPresenterProvider`
 - **Metodos:**
-- `Future<void> pickDocument()` — abre o picker, valida extensao/tamanho, limpa erro anterior, substitui a selecao local e preserva `status` compativel com a etapa atual da analise.
-- `Future<void> analyze()` — orquestra `generatePetitionUploadUrl`, upload ao `GCS` com progresso local, `createPetition` e `summarizePetition` com timeout de `60s`, atualizando `status` com base em `AnalysisStatusDto` e preenchendo mensagens de erro quando necessario.
+- `Future<void> pickDocument()` — abre o picker, valida extensao/tamanho e, em caso valido, ja orquestra `generatePetitionUploadUrl`, upload ao `GCS` e `createPetition`, deixando a tela em `AnalysisStatusDto.petitionUploaded`.
+- `Future<void> load()` — carrega estado inicial por status da analise: em `petitionUploaded/analyzingPetition` busca somente `getAnalysisPetition`; em `petitionAnalyzed` busca `getAnalysisPetition` e `getPetitionSummary`; em demais estados do recorte mantem shell de `waitingPetition`.
+- `Future<void> analyze()` — executa `summarizePetition` para a peticao atual com timeout de `60s`, atualizando `status` com base em `AnalysisStatusDto` e preenchendo mensagens de erro quando necessario.
 - `Future<void> retrySummary()` — reexecuta `summarizePetition` para a `petition` atual quando a tela ja estiver em `AnalysisStatusDto.petitionAnalyzed`.
 - `Future<void> replaceDocument()` — reaproveita `pickDocument()` quando `status == AnalysisStatusDto.petitionAnalyzed`, limpando `petition`, `summary`, `uploadProgress` e retornando o fluxo para `AnalysisStatusDto.waitingPetition` antes da nova selecao.
 - `void confirmAndViewPrecedents()` — preserva o ponto unico de integracao com `ANI-49`; nesta task nao deve acoplar rota inexistente, mesmo com o CTA rotulado como `Buscar precedentes`.
@@ -204,8 +216,9 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **Props:** `String analysisId`
 - **Bibliotecas de UI:** `flutter/material.dart`, `flutter_riverpod`, `signals_flutter`
 - **Estados visuais:**
-- `WaitingPetition` — derivado de `AnalysisStatusDto.waitingPetition`, com header, bubble da IA, hint de formatos e action bar com CTA principal desabilitado ate haver arquivo valido.
-- `Uploading` — estado transitivo local com barra/indicador de progresso durante o `PUT` para a `Signed URL`.
+- `WaitingPetition` — derivado de `AnalysisStatusDto.waitingPetition`, com header, bubble da IA, hint de formatos e action bar com botao de arquivo habilitado e CTA principal desabilitado ate haver `petition.id`.
+- `PetitionUploaded` — derivado de `AnalysisStatusDto.petitionUploaded`, com peticao existente sem resumo e CTA principal habilitado para tentar gerar/resgatar o resumo.
+- `Uploading` — estado transitivo local durante o `PUT` para a `Signed URL`, com botoes da action bar desabilitados e spinner no botao principal.
 - `AnalyzingPetition` — derivado de `AnalysisStatusDto.analyzingPetition`, com bubble do arquivo e bubble de processamento.
 - `Failed` — derivado de `AnalysisStatusDto.failed` ou erro local recuperavel, com a shell visual padrao de erro, manutencao do arquivo selecionado para retry e reutilizacao da mesma mensagem base para erros futuros desta tela.
 - `PetitionAnalyzed` — derivado de `AnalysisStatusDto.petitionAnalyzed`, com resumo exibido em card, action bar em modo de reenvio, CTA final `Buscar precedentes` e botao de retry do resumo abaixo do card.
@@ -225,13 +238,18 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/petition_summary_card/` (**novo arquivo**)
 - **Tipo:** View only
 - **Props:** `PetitionSummaryDto summary`
-- **Responsabilidade:** renderiza o card `Resumo da Analise`, exibindo as secoes do `PetitionSummaryDto` atual com listas para `relevantLaws`, `keyFacts` e `searchTerms`.
+- **Responsabilidade:** renderiza o card `Resumo da Analise` com preview colapsado por padrao e controle `Mostrar mais`/`Mostrar menos`, exibindo em modo expandido as secoes do `PetitionSummaryDto` atual com listas para `relevantLaws`, `keyFacts` e `searchTerms`.
 - **Responsabilidade adicional na tela:** a `AnalysisScreenView` deve exibir abaixo desse card um CTA secundario de retry para reexecutar apenas `summarizePetition`.
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/` (**novo arquivo**)
 - **Tipo:** View only
-- **Props:** `String fileActionLabel`, `VoidCallback? onFileAction`, `String primaryActionLabel`, `VoidCallback? onPrimaryAction`, `bool isPrimaryBusy`, `double? uploadProgress`, `String? helperText`
+- **Props:** `bool showFileAction`, `String fileActionLabel`, `VoidCallback? onFileAction`, `String primaryActionLabel`, `VoidCallback? onPrimaryAction`, `bool isPrimaryBusy`, `String? helperText`
 - **Responsabilidade:** renderiza a area fixa inferior com acao de picker/reupload, CTA principal e helper text contextual.
+
+- **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/dot_grid_background/` (**novo arquivo**)
+- **Tipo:** View only
+- **Props:** Nao aplicavel.
+- **Responsabilidade:** renderiza o fundo dot grid da tela de analise via `CustomPainter`, preservando alinhamento visual com os frames validados no design.
 
 ## Camada UI (Barrel Files / `index.dart`)
 
@@ -387,6 +405,9 @@ lib/ui/intake/widgets/pages/analysis_screen/
 ```text
 AnalysisScreenView(analysisId)
   -> AnalysisScreenPresenter
+      -> IntakeService.listAnalysisPetitions(analysisId)
+          -> IntakeRestService
+              -> RestClient.get('/analyses/{analysisId}/petitions')
       -> DocumentPickerDriver.pickDocument()
       -> StorageService.generatePetitionUploadUrl(analysisId, documentType)
           -> StorageRestService
@@ -397,10 +418,13 @@ AnalysisScreenView(analysisId)
       -> IntakeService.createPetition(petition)
           -> IntakeRestService
               -> RestClient.post('/petitions')
+      -> IntakeService.getAnalysisPetition(analysisId) [load inicial]
+          -> IntakeRestService
+              -> RestClient.get('/analyses/{analysisId}/petition')
       -> IntakeService.summarizePetition(petitionId)
           -> IntakeRestService
               -> RestClient.post('/petitions/{petition_id}/summary')
-      -> signals(status, isUploading, uploadProgress, summary, generalError)
+      -> signals(status, isUploading, petition, summary, generalError)
   -> renderizacao da tela
 ```
 
@@ -422,7 +446,7 @@ AnalysisScreenView
               PetitionSummaryCard(summary)                           [petitionAnalyzed]
               inlineError                                            [failed]
         AnalysisActionBar
-          fileAction (Selecionar arquivo / Enviar outro documento)
+          fileAction (Selecionar arquivo / Enviar outro documento)     [waitingPetition/petitionUploaded]
           primaryAction (Analisar / Buscar precedentes)
               retrySummaryAction (Retry resumo)                      [petitionAnalyzed]
           helperText (Substitui o documento atual)                   [petitionAnalyzed]
