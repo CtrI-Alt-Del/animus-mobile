@@ -1,5 +1,6 @@
 enum AnalysisStatusDto {
   waitingPetition('WAITING_PETITION'),
+  petitionUploaded('PETITION_UPLOADED'),
   analyzingPetition('ANALYZING_PETITION'),
   petitionAnalyzed('PETITION_ANALYZED'),
   searchingPrecedents('SEARCHING_PRECEDENTS'),

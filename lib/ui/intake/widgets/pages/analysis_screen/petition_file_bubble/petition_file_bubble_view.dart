@@ -24,16 +24,29 @@ class PetitionFileBubbleView extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 280),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: tokens.surfaceElevated,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: tokens.borderStrong),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: tokens.borderSubtle),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Icon(Icons.description_outlined, color: tokens.accent),
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: tokens.surfaceCard,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: tokens.borderSubtle),
+                  ),
+                  child: Icon(
+                    Icons.description_outlined,
+                    color: tokens.accent,
+                    size: 16,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Flexible(
                   child: Column(
@@ -43,16 +56,16 @@ class PetitionFileBubbleView extends StatelessWidget {
                         fileName,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodyMedium?.copyWith(
+                        style: textTheme.bodySmall?.copyWith(
                           color: tokens.textPrimary,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         fileSizeLabel,
                         style: textTheme.bodySmall?.copyWith(
-                          color: tokens.textSecondary,
+                          color: tokens.textMuted,
                         ),
                       ),
                     ],

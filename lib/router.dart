@@ -12,7 +12,7 @@ import 'package:animus/ui/intake/widgets/pages/analysis_screen/index.dart';
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: Routes.signIn,
+  initialLocation: Routes.getAnalysis(analysisId: '01KMQTN9YCHWG20ZZEPNBRYW87'),
   routes: <RouteBase>[
     GoRoute(path: Routes.home, redirect: (context, state) => Routes.signIn),
     GoRoute(

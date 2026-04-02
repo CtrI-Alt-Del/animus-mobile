@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/petition_document_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
@@ -45,15 +46,15 @@ class AnalysisScreenPresenter {
   });
 
   late final ReadonlySignal<bool> canAnalyze = computed(() {
+    final String? petitionId = petition.value?.id;
+    final bool hasPetition = petitionId != null && petitionId.isNotEmpty;
     final AnalysisStatusDto currentStatus = status.value;
-    final bool canRetry =
-        currentStatus == AnalysisStatusDto.waitingPetition ||
-        currentStatus == AnalysisStatusDto.failed;
 
-    return canRetry &&
-        selectedFile.value != null &&
+    return hasPetition &&
         !isUploading.value &&
-        generalError.value == null;
+        generalError.value == null &&
+        (currentStatus == AnalysisStatusDto.petitionUploaded ||
+            currentStatus == AnalysisStatusDto.failed);
   });
 
   late final ReadonlySignal<bool> showProcessingBubble = computed(
@@ -82,6 +83,64 @@ class AnalysisScreenPresenter {
        _storageService = storageService,
        _fileStorageDriver = fileStorageDriver,
        _documentPickerDriver = documentPickerDriver;
+
+  Future<void> load() async {
+    final RestResponse<AnalysisDto> analysisResponse = await _intakeService
+        .getAnalysis(analysisId: analysisId);
+
+    if (analysisResponse.isFailure) {
+      status.value = AnalysisStatusDto.waitingPetition;
+      petition.value = null;
+      summary.value = null;
+      return;
+    }
+
+    final AnalysisStatusDto analysisStatus = analysisResponse.body.status;
+    status.value = analysisStatus;
+
+    if (analysisStatus != AnalysisStatusDto.petitionUploaded &&
+        analysisStatus != AnalysisStatusDto.analyzingPetition &&
+        analysisStatus != AnalysisStatusDto.petitionAnalyzed) {
+      petition.value = null;
+      summary.value = null;
+      return;
+    }
+
+    final RestResponse<PetitionDto> petitionResponse = await _intakeService
+        .getAnalysisPetition(analysisId: analysisId);
+
+    if (petitionResponse.isFailure) {
+      petition.value = null;
+      summary.value = null;
+      status.value = AnalysisStatusDto.waitingPetition;
+      return;
+    }
+
+    petition.value = petitionResponse.body;
+    summary.value = null;
+
+    if (analysisStatus != AnalysisStatusDto.petitionAnalyzed) {
+      status.value = analysisStatus;
+      return;
+    }
+
+    final String? petitionId = petitionResponse.body.id;
+    if (petitionId == null || petitionId.isEmpty) {
+      status.value = AnalysisStatusDto.petitionUploaded;
+      return;
+    }
+
+    final RestResponse<PetitionSummaryDto> petitionSummaryResponse =
+        await _intakeService.getPetitionSummary(petitionId: petitionId);
+
+    if (petitionSummaryResponse.isFailure) {
+      status.value = AnalysisStatusDto.petitionUploaded;
+      return;
+    }
+
+    summary.value = petitionSummaryResponse.body;
+    status.value = AnalysisStatusDto.petitionAnalyzed;
+  }
 
   Future<void> pickDocument() async {
     if (!canPickDocument.value) {
@@ -113,9 +172,7 @@ class AnalysisScreenPresenter {
     selectedFile.value = file;
     uploadProgress.value = null;
 
-    if (status.value == AnalysisStatusDto.failed) {
-      status.value = AnalysisStatusDto.waitingPetition;
-    }
+    await _preparePetition(file);
   }
 
   Future<void> analyze() async {
@@ -123,11 +180,19 @@ class AnalysisScreenPresenter {
       return;
     }
 
-    final File? file = selectedFile.value;
-    if (file == null) {
+    final String? petitionId = petition.value?.id;
+    if (petitionId == null || petitionId.isEmpty) {
       return;
     }
 
+    generalError.value = null;
+    final bool summarized = await _summarizePetition(petitionId);
+    if (!summarized) {
+      return;
+    }
+  }
+
+  Future<void> _preparePetition(File file) async {
     generalError.value = null;
     uploadProgress.value = 0;
 
@@ -167,7 +232,6 @@ class AnalysisScreenPresenter {
 
     isUploading.value = false;
     uploadProgress.value = 1;
-    status.value = AnalysisStatusDto.analyzingPetition;
 
     final PetitionDto createdPetitionPayload = PetitionDto(
       analysisId: analysisId,
@@ -184,17 +248,13 @@ class AnalysisScreenPresenter {
         .createPetition(petition: createdPetitionPayload);
 
     if (petitionResponse.isFailure) {
-      print("petitionResponse.errorMessage: ${petitionResponse.errorMessage}");
       _applyRemoteFailure();
       return;
     }
 
     petition.value = petitionResponse.body;
-
-    final bool summarized = await _summarizePetition(petitionResponse.body.id);
-    if (!summarized) {
-      return;
-    }
+    summary.value = null;
+    status.value = AnalysisStatusDto.petitionUploaded;
   }
 
   Future<void> retrySummary() async {
@@ -330,6 +390,8 @@ final analysisScreenPresenterProvider = Provider.autoDispose
         documentPickerDriver: documentPickerDriver,
         analysisId: analysisId,
       );
+
+      unawaited(presenter.load());
 
       ref.onDispose(presenter.dispose);
       return presenter;
