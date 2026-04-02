@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -16,6 +14,7 @@ import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/rest/services/index.dart';
+import 'package:animus/ui/shared/rest_response_error_message.dart';
 
 class HomeScreenPresenter {
   static const int _pageSize = 10;
@@ -249,26 +248,7 @@ class HomeScreenPresenter {
     RestResponse<dynamic> response, {
     required String fallback,
   }) {
-    final String? bodyMessage = response.errorBody?['message'] as String?;
-    if (bodyMessage != null && bodyMessage.trim().isNotEmpty) {
-      return bodyMessage;
-    }
-
-    try {
-      final String message = response.errorMessage;
-      if (message.trim().isNotEmpty && !_isTechnicalTransportMessage(message)) {
-        return message;
-      }
-    } catch (_) {}
-
-    return fallback;
-  }
-
-  bool _isTechnicalTransportMessage(String message) {
-    return message.contains('RequestOptions.validateStatus') ||
-        message.contains('This exception was thrown because the response') ||
-        message.contains('developer.mozilla.org/en-US/docs/Web/HTTP/Status') ||
-        message.contains('status code of ${HttpStatus.notFound}');
+    return resolveRestResponseErrorMessage(response, fallback: fallback);
   }
 }
 

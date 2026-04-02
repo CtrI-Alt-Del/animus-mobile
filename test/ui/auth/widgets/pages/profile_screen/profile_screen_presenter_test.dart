@@ -146,5 +146,4 @@ void main() {
       expect(presenter.displayEmail.value, 'ada@example.com');
     });
   });
-
 }
