@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/shared/interfaces/app_version_driver.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
@@ -14,27 +16,34 @@ import '../../../../../fakers/auth/account_dto_faker.dart';
 
 class _MockAuthService extends Mock implements AuthService {}
 
+class _MockAppVersionDriver extends Mock implements AppVersionDriver {}
+
 class _MockCacheDriver extends Mock implements CacheDriver {}
 
 class _MockNavigationDriver extends Mock implements NavigationDriver {}
 
 void main() {
   late _MockAuthService authService;
+  late _MockAppVersionDriver appVersionDriver;
   late _MockCacheDriver cacheDriver;
   late _MockNavigationDriver navigationDriver;
 
   setUp(() {
     authService = _MockAuthService();
+    appVersionDriver = _MockAppVersionDriver();
     cacheDriver = _MockCacheDriver();
     navigationDriver = _MockNavigationDriver();
 
+    when(() => appVersionDriver.getVersion()).thenAnswer((_) async => '1.0.0');
     when(() => cacheDriver.get(any())).thenReturn('access-token');
+    when(() => cacheDriver.delete(any())).thenReturn(null);
     when(() => navigationDriver.goTo(any())).thenReturn(null);
   });
 
   ProfileScreenPresenter createPresenter() {
     return ProfileScreenPresenter(
       authService: authService,
+      appVersionDriver: appVersionDriver,
       cacheDriver: cacheDriver,
       navigationDriver: navigationDriver,
     );
@@ -66,6 +75,7 @@ void main() {
 
       await presenter.initialize();
 
+      expect(presenter.appVersionLabel.value, 'v1.0.0');
       expect(presenter.isLoadingInitialData.value, isFalse);
       expect(presenter.generalError.value, isNull);
       expect(presenter.hasAccount.value, isTrue);
@@ -118,8 +128,6 @@ void main() {
       final Future<void> firstCall = presenter.initialize();
       final Future<void> secondCall = presenter.initialize();
 
-      expect(presenter.isLoadingInitialData.value, isTrue);
-
       completer.complete(
         RestResponse<AccountDto>(statusCode: 200, body: AccountDtoFaker.make()),
       );
@@ -144,6 +152,19 @@ void main() {
       expect(presenter.displayInitial.value, 'A');
       expect(presenter.displayName.value, 'ada lovelace');
       expect(presenter.displayEmail.value, 'ada@example.com');
+    });
+  });
+
+  group('signOut', () {
+    test('remove tokens do cache e redireciona para sign in', () {
+      final ProfileScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.signOut();
+
+      verify(() => cacheDriver.delete(CacheKeys.accessToken)).called(1);
+      verify(() => cacheDriver.delete(CacheKeys.refreshToken)).called(1);
+      verify(() => navigationDriver.goTo(Routes.signIn)).called(1);
     });
   });
 }

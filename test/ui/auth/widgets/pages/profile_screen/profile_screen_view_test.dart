@@ -17,7 +17,9 @@ void main() {
   setUp(() {
     presenter = _MockProfileScreenPresenter();
     when(() => presenter.initialize()).thenAnswer((_) async {});
+    when(() => presenter.signOut()).thenReturn(null);
     when(() => presenter.dispose()).thenReturn(null);
+    when(() => presenter.appVersionLabel).thenReturn(signal<String>('v1.0.0'));
     when(() => presenter.isLoadingInitialData).thenReturn(signal<bool>(false));
     when(() => presenter.generalError).thenReturn(signal<String?>(null));
     when(() => presenter.account).thenReturn(signal<AccountDto?>(null));
@@ -74,11 +76,26 @@ void main() {
     expect(find.text('Alterar Senha'), findsOneWidget);
     expect(find.text('Tema'), findsOneWidget);
     expect(find.text('Sobre o App'), findsOneWidget);
+    expect(find.text('v1.0.0'), findsOneWidget);
     expect(find.text('Deletar Conta'), findsOneWidget);
     expect(find.text('Sair da Conta'), findsOneWidget);
     expect(find.text('HOME'), findsNothing);
     expect(find.text('BIBLIOTECA'), findsNothing);
     expect(find.text('PERFIL'), findsNothing);
+  });
+
+  testWidgets('dispara signOut ao tocar no botao de sair', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_createWidget(presenter));
+    await tester.pump();
+    clearInteractions(presenter);
+
+    await tester.ensureVisible(find.text('Sair da Conta'));
+    await tester.tap(find.text('Sair da Conta'));
+    await tester.pump();
+
+    verify(() => presenter.signOut()).called(1);
   });
 }
 
