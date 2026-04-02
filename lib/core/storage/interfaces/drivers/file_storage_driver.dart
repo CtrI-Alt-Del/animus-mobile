@@ -9,5 +9,7 @@ abstract class FileStorageDriver {
     void Function(int sentBytes, int totalBytes)? onProgress,
   });
 
+  Future<File?> getFile(String filePath);
+
   Uri getFileUrl(String url);
 }

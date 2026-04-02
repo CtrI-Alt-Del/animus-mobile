@@ -39,6 +39,8 @@ class AnalysisScreenPresenter {
   final Signal<PetitionDto?> petition = signal<PetitionDto?>(null);
   final Signal<PetitionSummaryDto?> summary = signal<PetitionSummaryDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
+  final Signal<String> analysisName = signal<String>('Nova Análise');
+  final Signal<bool> isManagingAnalysis = signal<bool>(false);
 
   late final ReadonlySignal<bool> canPickDocument = computed(() {
     return !isUploading.value &&
@@ -96,35 +98,44 @@ class AnalysisScreenPresenter {
     }
 
     final AnalysisStatusDto analysisStatus = analysisResponse.body.status;
+    analysisName.value = analysisResponse.body.name;
     status.value = analysisStatus;
 
-    if (analysisStatus != AnalysisStatusDto.petitionUploaded &&
-        analysisStatus != AnalysisStatusDto.analyzingPetition &&
-        analysisStatus != AnalysisStatusDto.petitionAnalyzed) {
+    if (analysisStatus == AnalysisStatusDto.waitingPetition ||
+        analysisStatus == AnalysisStatusDto.failed) {
       petition.value = null;
       summary.value = null;
       return;
     }
 
-    final RestResponse<PetitionDto> petitionResponse = await _intakeService
-        .getAnalysisPetition(analysisId: analysisId);
+    if (analysisStatus == AnalysisStatusDto.petitionUploaded ||
+        analysisStatus == AnalysisStatusDto.analyzingPetition ||
+        analysisStatus == AnalysisStatusDto.petitionAnalyzed) {
+      final RestResponse<PetitionDto> petitionResponse = await _intakeService
+          .getAnalysisPetition(analysisId: analysisId);
 
-    if (petitionResponse.isFailure) {
-      petition.value = null;
+      if (petitionResponse.isFailure) {
+        petition.value = null;
+        summary.value = null;
+        status.value = AnalysisStatusDto.waitingPetition;
+        return;
+      }
+
+      petition.value = petitionResponse.body;
       summary.value = null;
-      status.value = AnalysisStatusDto.waitingPetition;
-      return;
-    }
 
-    petition.value = petitionResponse.body;
-    summary.value = null;
+      final File? petitionFile = await _fileStorageDriver.getFile(
+        petitionResponse.body.document.filePath,
+      );
+      selectedFile.value = petitionFile;
+    }
 
     if (analysisStatus != AnalysisStatusDto.petitionAnalyzed) {
       status.value = analysisStatus;
       return;
     }
 
-    final String? petitionId = petitionResponse.body.id;
+    final String? petitionId = petition.value?.id;
     if (petitionId == null || petitionId.isEmpty) {
       status.value = AnalysisStatusDto.petitionUploaded;
       return;
@@ -283,6 +294,51 @@ class AnalysisScreenPresenter {
     await pickDocument();
   }
 
+  Future<bool> renameAnalysis(String name) async {
+    if (isManagingAnalysis.value) {
+      return false;
+    }
+
+    final String normalizedName = name.trim();
+    if (normalizedName.isEmpty) {
+      generalError.value = 'Informe um nome válido para a análise.';
+      return false;
+    }
+
+    isManagingAnalysis.value = true;
+    final RestResponse<AnalysisDto> response = await _intakeService
+        .renameAnalysis(analysisId: analysisId, name: normalizedName);
+    isManagingAnalysis.value = false;
+
+    if (response.isFailure) {
+      generalError.value = response.errorMessage;
+      return false;
+    }
+
+    analysisName.value = response.body.name;
+    generalError.value = null;
+    return true;
+  }
+
+  Future<bool> archiveAnalysis() async {
+    if (isManagingAnalysis.value) {
+      return false;
+    }
+
+    isManagingAnalysis.value = true;
+    final RestResponse<AnalysisDto> response = await _intakeService
+        .archiveAnalysis(analysisId: analysisId);
+    isManagingAnalysis.value = false;
+
+    if (response.isFailure) {
+      generalError.value = response.errorMessage;
+      return false;
+    }
+
+    generalError.value = null;
+    return true;
+  }
+
   void confirmAndViewPrecedents() {}
 
   void dispose() {
@@ -293,6 +349,8 @@ class AnalysisScreenPresenter {
     petition.dispose();
     summary.dispose();
     generalError.dispose();
+    analysisName.dispose();
+    isManagingAnalysis.dispose();
     canPickDocument.dispose();
     canAnalyze.dispose();
     showProcessingBubble.dispose();

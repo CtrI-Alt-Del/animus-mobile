@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/home_pull_to_refresh/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_empty_state/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_error_state/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_inline_error/index.dart';
@@ -17,7 +18,8 @@ class RecentAnalysesSectionView extends StatelessWidget {
   final bool showEmptyState;
   final String? errorMessage;
   final String Function(String value) formatCreatedAt;
-  final ValueChanged<AnalysisDto> onTapAnalysis;
+  final Future<void> Function() onRefresh;
+  final Future<void> Function(AnalysisDto analysis) onTapAnalysis;
   final VoidCallback onRetry;
   final VoidCallback onLoadMore;
   final VoidCallback onCreateFirstAnalysis;
@@ -29,6 +31,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
     required this.showEmptyState,
     required this.errorMessage,
     required this.formatCreatedAt,
+    required this.onRefresh,
     required this.onTapAnalysis,
     required this.onRetry,
     required this.onLoadMore,
@@ -67,12 +70,36 @@ class RecentAnalysesSectionView extends StatelessWidget {
     }
 
     if (errorMessage != null && analyses.isEmpty) {
-      return RecentAnalysesErrorState(message: errorMessage!, onRetry: onRetry);
+      return HomePullToRefresh.box(
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          padding: const EdgeInsets.only(bottom: 24),
+          children: <Widget>[
+            const SizedBox(height: 8),
+            RecentAnalysesErrorState(message: errorMessage!, onRetry: onRetry),
+          ],
+        ),
+      );
     }
 
     if (showEmptyState) {
-      return RecentAnalysesEmptyState(
-        onCreateFirstAnalysis: onCreateFirstAnalysis,
+      return HomePullToRefresh.box(
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          padding: const EdgeInsets.only(bottom: 24),
+          children: <Widget>[
+            const SizedBox(height: 8),
+            RecentAnalysesEmptyState(
+              onCreateFirstAnalysis: onCreateFirstAnalysis,
+            ),
+          ],
+        ),
       );
     }
 
@@ -84,37 +111,42 @@ class RecentAnalysesSectionView extends StatelessWidget {
           const SizedBox(height: 12),
         ],
         Expanded(
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (ScrollNotification notification) {
-              final double maxExtent = notification.metrics.maxScrollExtent;
-              final double pixels = notification.metrics.pixels;
-              if (maxExtent > 0 && pixels >= maxExtent - 120) {
-                onLoadMore();
-              }
-              return false;
-            },
-            child: ListView.separated(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 24),
-              itemCount: analyses.length + (isLoadingMore ? 1 : 0),
-              separatorBuilder: (BuildContext context, int index) =>
-                  const SizedBox(height: 12),
-              itemBuilder: (BuildContext context, int index) {
-                if (index >= analyses.length) {
-                  return const RecentAnalysesLoadingMore();
+          child: HomePullToRefresh.scrollable(
+            onRefresh: onRefresh,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification notification) {
+                final double maxExtent = notification.metrics.maxScrollExtent;
+                final double pixels = notification.metrics.pixels;
+                if (maxExtent > 0 && pixels >= maxExtent - 120) {
+                  onLoadMore();
                 }
-
-                final AnalysisDto analysis = analyses[index];
-                final String title = analysis.name.trim().isEmpty
-                    ? 'Analise sem nome'
-                    : analysis.name;
-
-                return RecentAnalysisCard(
-                  title: title,
-                  dateLabel: formatCreatedAt(analysis.createdAt),
-                  onTap: () => onTapAnalysis(analysis),
-                );
+                return false;
               },
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.only(bottom: 24),
+                itemCount: analyses.length + (isLoadingMore ? 1 : 0),
+                separatorBuilder: (BuildContext context, int index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (BuildContext context, int index) {
+                  if (index >= analyses.length) {
+                    return const RecentAnalysesLoadingMore();
+                  }
+
+                  final AnalysisDto analysis = analyses[index];
+                  final String title = analysis.name.trim().isEmpty
+                      ? 'Analise sem nome'
+                      : analysis.name;
+
+                  return RecentAnalysisCard(
+                    title: title,
+                    dateLabel: formatCreatedAt(analysis.createdAt),
+                    onTap: () => onTapAnalysis(analysis),
+                  );
+                },
+              ),
             ),
           ),
         ),

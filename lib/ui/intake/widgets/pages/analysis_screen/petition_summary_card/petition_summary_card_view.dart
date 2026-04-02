@@ -43,51 +43,70 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
               ),
             ),
             const SizedBox(height: 12),
-            if (_isExpanded) ...<Widget>[
-              SummarySection(
-                title: 'Resumo do caso',
-                content: widget.summary.caseSummary,
+            AnimatedSize(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder:
+                    (Widget child, Animation<double> animation) =>
+                        FadeTransition(opacity: animation, child: child),
+                child: _isExpanded
+                    ? Column(
+                        key: const ValueKey<String>('expanded-summary'),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          SummarySection(
+                            title: 'Resumo do caso',
+                            content: widget.summary.caseSummary,
+                          ),
+                          SummarySection(
+                            title: 'Questao juridica',
+                            content: widget.summary.legalIssue,
+                          ),
+                          SummarySection(
+                            title: 'Pergunta central',
+                            content: widget.summary.centralQuestion,
+                          ),
+                          SummaryListSection(
+                            title: 'Leis relevantes',
+                            items: widget.summary.relevantLaws,
+                          ),
+                          SummaryListSection(
+                            title: 'Fatos-chave',
+                            items: widget.summary.keyFacts,
+                          ),
+                          SummaryListSection(
+                            title: 'Termos de busca',
+                            items: widget.summary.searchTerms,
+                            isLast: true,
+                          ),
+                        ],
+                      )
+                    : Container(
+                        key: const ValueKey<String>('collapsed-summary'),
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: tokens.surfaceElevated,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: tokens.borderSubtle),
+                        ),
+                        child: Text(
+                          widget.summary.caseSummary,
+                          maxLines: 8,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: tokens.textSecondary,
+                            height: 1.45,
+                          ),
+                        ),
+                      ),
               ),
-              SummarySection(
-                title: 'Questao juridica',
-                content: widget.summary.legalIssue,
-              ),
-              SummarySection(
-                title: 'Pergunta central',
-                content: widget.summary.centralQuestion,
-              ),
-              SummaryListSection(
-                title: 'Leis relevantes',
-                items: widget.summary.relevantLaws,
-              ),
-              SummaryListSection(
-                title: 'Fatos-chave',
-                items: widget.summary.keyFacts,
-              ),
-              SummaryListSection(
-                title: 'Termos de busca',
-                items: widget.summary.searchTerms,
-                isLast: true,
-              ),
-            ] else
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: tokens.surfaceElevated,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: tokens.borderSubtle),
-                ),
-                child: Text(
-                  widget.summary.caseSummary,
-                  maxLines: 8,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: tokens.textSecondary,
-                    height: 1.45,
-                  ),
-                ),
-              ),
+            ),
             const SizedBox(height: 2),
             TextButton(
               style: TextButton.styleFrom(

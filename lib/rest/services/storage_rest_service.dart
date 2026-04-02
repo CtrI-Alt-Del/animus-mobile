@@ -17,7 +17,7 @@ class StorageRestService extends Service implements StorageService {
     required String analysisId,
     required String documentType,
   }) async {
-    await setAuthHeader();
+    setAuthHeader();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
       '/storage/analyses/$analysisId/petitions/upload',

@@ -36,7 +36,40 @@ class GcsFileStorageDriver implements FileStorageDriver {
 
   @override
   Uri getFileUrl(String filePath) {
-    return Uri.parse('${Env.gcsUrl}/$filePath');
+    return Uri.parse('${Env.gcsDownloadUrl}/$filePath');
+  }
+
+  @override
+  Future<File?> getFile(String filePath) async {
+    final Uri fileUri = getFileUrl(filePath);
+    final HttpClient httpClient = HttpClient();
+
+    try {
+      final HttpClientRequest request = await httpClient.getUrl(fileUri);
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode >= HttpStatus.badRequest) {
+        return null;
+      }
+
+      final List<int> bytes = await response.fold<List<int>>(<int>[], (
+        List<int> previous,
+        List<int> element,
+      ) {
+        previous.addAll(element);
+        return previous;
+      });
+
+      final String fileName = filePath.split('/').last;
+      final String tempPath = '${Directory.systemTemp.path}/$fileName';
+      final File file = File(tempPath);
+      await file.writeAsBytes(bytes, flush: true);
+      return file;
+    } catch (_) {
+      return null;
+    } finally {
+      httpClient.close(force: true);
+    }
   }
 
   String _resolveContentType(String path) {

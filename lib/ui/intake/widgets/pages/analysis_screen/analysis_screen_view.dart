@@ -1,15 +1,19 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/message_box/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/ai_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_header/index.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_header/archive_analysis_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_header/rename_analysis_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/dot_grid_background/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/petition_file_bubble/index.dart';
@@ -41,9 +45,83 @@ class AnalysisScreenView extends ConsumerWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    AnalysisHeader(
-                      onBack: () => Navigator.of(context).maybePop(),
-                    ),
+                    Watch((BuildContext context) {
+                      final String analysisName = presenter.analysisName.watch(
+                        context,
+                      );
+                      final bool isManagingAnalysis = presenter
+                          .isManagingAnalysis
+                          .watch(context);
+
+                      return AnalysisHeader(
+                        onBack: () => Navigator.of(context).maybePop(),
+                        title: analysisName,
+                        onRename: isManagingAnalysis
+                            ? null
+                            : () async {
+                                if (!context.mounted) {
+                                  return;
+                                }
+
+                                final BuildContext dialogHostContext =
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).context;
+
+                                final String? newName =
+                                    await showDialog<String>(
+                                      context: dialogHostContext,
+                                      barrierColor: const Color(0x99000000),
+                                      builder: (_) => RenameAnalysisDialog(
+                                        initialName:
+                                            presenter.analysisName.value,
+                                      ),
+                                    );
+
+                                if (newName == null) {
+                                  return;
+                                }
+
+                                await presenter.renameAnalysis(newName);
+                              },
+                        onArchive: isManagingAnalysis
+                            ? null
+                            : () async {
+                                if (!context.mounted) {
+                                  return;
+                                }
+
+                                final BuildContext dialogHostContext =
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).context;
+
+                                final bool shouldArchive =
+                                    await showDialog<bool>(
+                                      context: dialogHostContext,
+                                      barrierColor: const Color(0x99000000),
+                                      builder: (_) =>
+                                          const ArchiveAnalysisDialog(),
+                                    ) ??
+                                    false;
+
+                                if (!shouldArchive) {
+                                  return;
+                                }
+
+                                final bool archived = await presenter
+                                    .archiveAnalysis();
+                                if (!context.mounted || !archived) {
+                                  return;
+                                }
+
+                                Navigator.of(context).maybePop();
+                              },
+                        isMenuEnabled: !isManagingAnalysis,
+                      );
+                    }),
                     Expanded(
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
@@ -52,7 +130,7 @@ class AnalysisScreenView extends ConsumerWidget {
                           children: <Widget>[
                             const AiBubble(
                               message:
-                                  'Envie a petição inicial para comecarmos a analise. Vamos resumir o caso e destacar os pontos juridicos mais importantes.',
+                                  'Envie a petição inicial para começarmos a análise. Vamos resumir o caso e destacar os pontos jurídicos mais importantes.',
                               isTyping: false,
                               footerText: null,
                             ),
@@ -82,20 +160,35 @@ class AnalysisScreenView extends ConsumerWidget {
                               final File? file = presenter.selectedFile.watch(
                                 context,
                               );
+                              final PetitionDto? petition = presenter.petition
+                                  .watch(context);
 
-                              if (file == null) {
+                              if (file == null && petition == null) {
                                 return const SizedBox.shrink();
                               }
 
+                              final String fileName = petition != null
+                                  ? petition.document.name
+                                  : presenter.fileName(file!);
+                              final String fileSizeLabel = file != null
+                                  ? presenter.formatFileSize(file.lengthSync())
+                                  : 'Documento enviado';
+
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: PetitionFileBubble(
-                                  fileName: presenter.fileName(file),
-                                  fileSizeLabel: presenter.formatFileSize(
-                                    file.lengthSync(),
-                                  ),
-                                ),
-                              );
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: PetitionFileBubble(
+                                      fileName: fileName,
+                                      fileSizeLabel: fileSizeLabel,
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 280.ms)
+                                  .slideY(
+                                    begin: 0.08,
+                                    end: 0,
+                                    duration: 280.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
                             }),
                             Watch((BuildContext context) {
                               final bool show = presenter.showProcessingBubble
@@ -106,14 +199,22 @@ class AnalysisScreenView extends ConsumerWidget {
                               }
 
                               return const Padding(
-                                padding: EdgeInsets.only(bottom: 16),
-                                child: AiBubble(
-                                  message: 'Analisando a petição enviada.',
-                                  isTyping: true,
-                                  footerText:
-                                      'Aguarde enquanto processamos o documento e montamos o resumo.',
-                                ),
-                              );
+                                    padding: EdgeInsets.only(bottom: 16),
+                                    child: AiBubble(
+                                      message: 'Analisando a petição enviada.',
+                                      isTyping: true,
+                                      footerText:
+                                          'Aguarde enquanto processamos o documento e montamos o resumo.',
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 260.ms)
+                                  .slideY(
+                                    begin: 0.08,
+                                    end: 0,
+                                    duration: 260.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
                             }),
                             Watch((BuildContext context) {
                               final String? error = presenter.generalError
@@ -131,9 +232,20 @@ class AnalysisScreenView extends ConsumerWidget {
                                   : tokens.warning;
 
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: MessageBox(message: error, color: color),
-                              );
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: MessageBox(
+                                      message: error,
+                                      color: color,
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 220.ms)
+                                  .slideY(
+                                    begin: 0.06,
+                                    end: 0,
+                                    duration: 220.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
                             }),
                             Watch((BuildContext context) {
                               final summary = presenter.summary.watch(context);
@@ -147,22 +259,34 @@ class AnalysisScreenView extends ConsumerWidget {
                               }
 
                               return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: <Widget>[
-                                  PetitionSummaryCard(summary: summary),
-                                  const SizedBox(height: 10),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TextButton.icon(
-                                      onPressed: presenter.retrySummary,
-                                      icon: const Icon(Icons.refresh, size: 16),
-                                      label: const Text(
-                                        'Tentar resumo novamente',
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: <Widget>[
+                                      PetitionSummaryCard(summary: summary),
+                                      const SizedBox(height: 10),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton.icon(
+                                          onPressed: presenter.retrySummary,
+                                          icon: const Icon(
+                                            Icons.refresh,
+                                            size: 16,
+                                          ),
+                                          label: const Text(
+                                            'Tentar resumo novamente',
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ],
-                              );
+                                    ],
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 320.ms)
+                                  .slideY(
+                                    begin: 0.1,
+                                    end: 0,
+                                    duration: 320.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
                             }),
                           ],
                         ),
@@ -188,7 +312,8 @@ class AnalysisScreenView extends ConsumerWidget {
 
                       final bool showFileAction =
                           status == AnalysisStatusDto.waitingPetition ||
-                          status == AnalysisStatusDto.petitionUploaded;
+                          status == AnalysisStatusDto.petitionUploaded ||
+                          status == AnalysisStatusDto.petitionAnalyzed;
 
                       return AnalysisActionBar(
                         showFileAction: showFileAction,

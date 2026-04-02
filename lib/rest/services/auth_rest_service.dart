@@ -1,4 +1,3 @@
-import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/dtos/session_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
@@ -16,8 +15,8 @@ class AuthRestService extends Service implements AuthService {
   }) : super(restClient, cacheDriver);
 
   @override
-  Future<RestResponse<AccountDto>> fetchAccount() async {
-    _setAuthorizationHeader();
+  Future<RestResponse<AccountDto>> getAccount() async {
+    setAuthHeader();
     final response = await restClient.get('/auth/account');
     return response.mapBody<AccountDto>(AccountMapper.toDto);
   }
@@ -29,7 +28,7 @@ class AuthRestService extends Service implements AuthService {
       body: <String, dynamic>{'email': email},
     );
 
-    return _toVoidResponse(response);
+    return toVoidResponse(response);
   }
 
   @override
@@ -45,7 +44,7 @@ class AuthRestService extends Service implements AuthService {
       },
     );
 
-    return _toVoidResponse(response);
+    return toVoidResponse(response);
   }
 
   @override
@@ -101,7 +100,7 @@ class AuthRestService extends Service implements AuthService {
     if (response.isFailure) {
       return RestResponse<String>(
         statusCode: response.statusCode,
-        errorMessage: _resolveErrorMessage(response),
+        errorMessage: resolveErrorMessage(response),
         errorBody: response.errorBody,
       );
     }
@@ -170,33 +169,5 @@ class AuthRestService extends Service implements AuthService {
     );
 
     return response.mapBody<SessionDto>(SessionMapper.toDto);
-  }
-
-  void _setAuthorizationHeader() {
-    final String token = _cacheDriver.get(CacheKeys.accessToken) ?? '';
-    final String authorization = token.isEmpty ? '' : 'Bearer $token';
-    _restClient.setHeader('Authorization', authorization);
-  }
-
-  RestResponse<void> _toVoidResponse(
-    RestResponse<Map<String, dynamic>> response,
-  ) {
-    if (response.isFailure) {
-      return RestResponse<void>(
-        statusCode: response.statusCode,
-        errorMessage: _resolveErrorMessage(response),
-        errorBody: response.errorBody,
-      );
-    }
-
-    return RestResponse<void>(statusCode: response.statusCode);
-  }
-
-  String? _resolveErrorMessage(RestResponse<Map<String, dynamic>> response) {
-    try {
-      return response.errorMessage;
-    } catch (_) {
-      return null;
-    }
   }
 }
