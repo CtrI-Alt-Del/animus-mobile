@@ -34,12 +34,12 @@ class FileActionButtonView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Icon(Icons.upload_file, color: tokens.textPrimary, size: 20),
-              const SizedBox(width: 10),
+              const SizedBox(width: 4),
               Flexible(
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: textTheme.labelLarge?.copyWith(
+                  style: textTheme.labelMedium?.copyWith(
                     color: tokens.textPrimary,
                   ),
                 ),
