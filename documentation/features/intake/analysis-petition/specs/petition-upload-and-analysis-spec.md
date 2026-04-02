@@ -1,14 +1,14 @@
 ---
 title: Upload e analise de petição inicial
-prd: documentation/features/intake/analysis-petition/prd.md
+prd: https://joaogoliveiragarcia.atlassian.net/wiki/x/AwACAQ
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-46
-status: open
-last_updated_at: 2026-04-01
+status: closed
+last_updated_at: 2026-04-02
 ---
 
 # 1. Objetivo
 
-Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` ja criado, permitindo selecionar um unico arquivo `PDF` ou `DOCX`, validar tamanho maximo de `20MB`, solicitar `Signed URL`, fazer upload direto ao `GCS`, persistir a `Petition` no backend, solicitar o resumo sincrono com timeout de `60s` e refletir o estado da tela a partir de `AnalysisStatusDto`, combinado com estados locais transitivos de selecao de arquivo, upload e erro, em uma UI estilo chat consistente com o design validado no `design/animus.pen`.
+Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` ja criado, permitindo selecionar um unico arquivo `PDF` ou `DOCX`, validar tamanho maximo de `20MB`, solicitar `Signed URL`, fazer upload direto ao `GCS`, persistir a `Petition` no backend, solicitar o resumo sincrono com timeout de `60s`, permitir gerenciamento rapido da analise no header (renomear e arquivar) e refletir o estado da tela a partir de `AnalysisStatusDto`, combinado com estados locais transitivos de selecao de arquivo, upload e erro, em uma UI estilo chat consistente com o design validado no `design/animus.pen`.
 
 ---
 
@@ -56,6 +56,9 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - Ao tocar em `Analisar` com `petitionUploaded`, a tela deve solicitar `POST /petitions/{petition_id}/summary` e exibir o estado de processamento da IA.
 - O sucesso deste recorte deve deixar a `analysis` compativel com o status de dominio `PETITION_ANALYZED`, sem antecipar as etapas posteriores de precedentes e sintese.
 - Em sucesso, a tela deve exibir `PetitionSummaryCard`, trocar a acao secundaria para `Enviar outro documento` e trocar a acao primaria para `Buscar precedentes`.
+- O `IconButton(Icons.tune)` do header deve abrir um popover com as acoes `Renomear` e `Arquivar`.
+- Ao selecionar `Renomear`, a tela deve abrir um dialog para editar o nome da analise e persistir via `IntakeService.renameAnalysis(analysisId, name)`.
+- Ao selecionar `Arquivar`, a tela deve confirmar a acao e persistir via `IntakeService.archiveAnalysis(analysisId)`.
 - Abaixo do `PetitionSummaryCard`, a tela deve exibir um botao de retry do resumo para reexecutar `summarizePetition` na mesma `petition` atual.
 - O `PetitionSummaryCard` deve iniciar colapsado por padrao e permitir expandir/recolher com CTA visual `Mostrar mais` e `Mostrar menos`.
 - Em falha de upload, criacao da petição, resumo, timeout ou resposta de negocio, a tela deve exibir erro inline e permitir nova tentativa sem perder o arquivo selecionado.
@@ -84,6 +87,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **`PetitionSummaryDto`** (`lib/core/intake/dtos/petition_summary_dto.dart`) — DTO do resumo, contendo `caseSummary`, `legalIssue`, `centralQuestion`, `relevantLaws`, `keyFacts` e `searchTerms`.
 - **`UploadUrlDto`** (`lib/core/storage/dtos/upload_url_dto.dart`) — DTO retornado pelo endpoint de `Signed URL`, com `url`, `token` e `filePath`.
 - **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) — contrato dos gateways remotos de `intake`, com `createPetition`, `getAnalysisPetition`, `getPetitionSummary` e `summarizePetition`.
+- **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) — contrato dos gateways remotos de `intake`, com `createPetition`, `getAnalysisPetition`, `getPetitionSummary`, `summarizePetition`, `renameAnalysis` e `archiveAnalysis`.
 - **`StorageService`** (`lib/core/storage/interfaces/storage_service.dart`) — contrato atual de storage ainda generico e nao aderente ao endpoint de upload de petição.
 - **`FileStorageDriver`** (`lib/core/storage/interfaces/drivers/file_storage_driver.dart`) — porta de infraestrutura para arquivos; ainda nao existe implementacao concreta no app.
 - **`RestResponse`** (`lib/core/shared/responses/rest_response.dart`) — envelope padrao de sucesso/falha usado pela UI para tratar erros sem vazar detalhes de transporte.
@@ -246,10 +250,35 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **Props:** `bool showFileAction`, `String fileActionLabel`, `VoidCallback? onFileAction`, `String primaryActionLabel`, `VoidCallback? onPrimaryAction`, `bool isPrimaryBusy`, `String? helperText`
 - **Responsabilidade:** renderiza a area fixa inferior com acao de picker/reupload, CTA principal e helper text contextual.
 
+- **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/file_action_button/` (**novo arquivo**)
+- **Tipo:** View only
+- **Props:** `String label`, `VoidCallback? onPressed`
+- **Responsabilidade:** renderiza o botao secundario de selecao/reenvio de documento, seguindo o estilo outline da action bar.
+
+- **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/primary_action_button/` (**novo arquivo**)
+- **Tipo:** View only
+- **Props:** `String label`, `VoidCallback? onPressed`, `bool isBusy`
+- **Responsabilidade:** renderiza o CTA primario com gradiente e exibe spinner central quando `isBusy` for `true`.
+
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/dot_grid_background/` (**novo arquivo**)
 - **Tipo:** View only
 - **Props:** Nao aplicavel.
 - **Responsabilidade:** renderiza o fundo dot grid da tela de analise via `CustomPainter`, preservando alinhamento visual com os frames validados no design.
+
+- **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_header/analysis_header_actions/` (**novo arquivo**)
+- **Tipo:** View only
+- **Props:** `VoidCallback? onRename`, `VoidCallback? onArchive`, `bool isEnabled`
+- **Responsabilidade:** renderiza o popover de acoes do header aberto pelo icone `tune`, contendo `Renomear` e `Arquivar`.
+
+- **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_header/rename_analysis_dialog/` (**novo arquivo**)
+- **Tipo:** View only
+- **Props:** `String initialName`
+- **Responsabilidade:** renderiza o modal de renomeacao e devolve o nome digitado para a tela executar `IntakeService.renameAnalysis(...)` via presenter.
+
+- **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_header/archive_analysis_dialog/` (**novo arquivo**)
+- **Tipo:** View only
+- **Props:** Nao aplicavel.
+- **Responsabilidade:** renderiza o modal de confirmacao de arquivamento e devolve confirmacao booleana para a tela executar `IntakeService.archiveAnalysis(...)` via presenter.
 
 ## Camada UI (Barrel Files / `index.dart`)
 
@@ -294,6 +323,18 @@ lib/ui/intake/widgets/pages/analysis_screen/
   index.dart
   analysis_screen_view.dart
   analysis_screen_presenter.dart
+  analysis_header/
+    index.dart
+    analysis_header_view.dart
+    analysis_header_actions/
+      index.dart
+      analysis_header_actions_view.dart
+    rename_analysis_dialog/
+      index.dart
+      rename_analysis_dialog_view.dart
+    archive_analysis_dialog/
+      index.dart
+      archive_analysis_dialog_view.dart
   ai_bubble/
     index.dart
     ai_bubble_view.dart
@@ -306,6 +347,12 @@ lib/ui/intake/widgets/pages/analysis_screen/
   analysis_action_bar/
     index.dart
     analysis_action_bar_view.dart
+    file_action_button/
+      index.dart
+      file_action_button_view.dart
+    primary_action_button/
+      index.dart
+      primary_action_button_view.dart
 ```
 
 ---
@@ -435,7 +482,10 @@ AnalysisScreenView
   Scaffold
     SafeArea
       Column
-        _HeaderRow
+        AnalysisHeader
+          AnalysisHeaderActions (popover)
+          RenameAnalysisDialog (modal)
+          ArchiveAnalysisDialog (modal)
         Expanded
           SingleChildScrollView
             Column
@@ -446,9 +496,9 @@ AnalysisScreenView
               PetitionSummaryCard(summary)                           [petitionAnalyzed]
               inlineError                                            [failed]
         AnalysisActionBar
-          fileAction (Selecionar arquivo / Enviar outro documento)     [waitingPetition/petitionUploaded]
-          primaryAction (Analisar / Buscar precedentes)
-              retrySummaryAction (Retry resumo)                      [petitionAnalyzed]
+          FileActionButton (Selecionar arquivo / Enviar outro documento) [waitingPetition/petitionUploaded]
+          PrimaryActionButton (Analisar / Buscar precedentes, spinner em isBusy)
+               retrySummaryAction (Retry resumo)                      [petitionAnalyzed]
           helperText (Substitui o documento atual)                   [petitionAnalyzed]
 ```
 

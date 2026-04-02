@@ -4,6 +4,14 @@ import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 
 abstract class IntakeService {
+  Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listAnalyses({
+    String? cursor,
+    required int limit,
+    bool isArchived = false,
+  });
+
+  Future<RestResponse<AnalysisDto>> createAnalysis({String? folderId});
+
   Future<RestResponse<PetitionDto>> createPetition({
     required PetitionDto petition,
   });

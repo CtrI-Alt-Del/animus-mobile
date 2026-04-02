@@ -35,6 +35,11 @@ class Routes {
     return uri.toString();
   }
 
+  static String getAnalysis({required String id}) {
+    final Uri uri = Uri(path: '/analyses/${Uri.encodeComponent(id)}');
+    return uri.toString();
+  }
+
   static String getNewPassword({required String accountId}) {
     final Uri uri = Uri(
       path: newPassword,

@@ -83,6 +83,7 @@ void main() {
 
     verify(() => presenter.goToForgotPassword()).called(1);
   });
+
   testWidgets(
     'delegates sign up tap, google CTA and password visibility toggle',
     (WidgetTester tester) async {

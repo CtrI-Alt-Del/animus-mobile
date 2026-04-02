@@ -1,7 +1,7 @@
 # Prompt: Criar Testes
 
 **Objetivo:**
-Orientar a criação de testes unitários e de widget padronizados e eficientes, garantindo a integridade da lógica nos Presenters e a fidelidade visual e funcional dos Widgets.
+Orientar a criação de testes de widget padronizados e eficientes para a camada `lib/ui`, garantindo fidelidade visual e funcional dos Widgets no contexto do app.
 
 **Entrada:**
 *   **Código Fonte:** Arquivo do `Widget` (View) e seu respectivo `Presenter`.
@@ -11,9 +11,10 @@ Orientar a criação de testes unitários e de widget padronizados e eficientes,
 ## Diretrizes de Execução
 
 ### 1. Adesão às Normas do Projeto
-*   **Obrigatório:** Siga rigorosamente as diretrizes em `documentation\rules\unit-tests-rules.md`.
+*   **Obrigatório:** Siga rigorosamente as diretrizes em `documentation\rules\widgets-testing-rules.md`.
 *   **Contexto de UI:** Ao testar Widgets, aplique as boas práticas descritas em `documentation/rules/ui-layer-rules.md`.
-*   **Subagentes:** Caso mais de um widget ou presenter seja fornecido, delegue a criação dos testes para o subagente passando a comanda e o caminho das rules de `documentation\rules\unit-tests-rules.md`.
+*   **Subagentes:** Caso mais de um widget ou presenter seja fornecido, delegue a criação dos testes para o subagente passando a comanda e o caminho das rules de `documentation\rules\widgets-testing-rules.md`.
+*   **Escopo atual do projeto:** crie testes novos apenas para arquivos em `lib/ui`. Para `lib/core`, `lib/rest` e `lib/drivers`, apenas registre lacunas de cobertura; nao crie testes.
 
 ### 2. Estrutura e Nomenclatura
 *   **Organização:** Crie os testes no diretório `test/` espelhando a estrutura original em `lib/`.
@@ -32,7 +33,8 @@ Orientar a criação de testes unitários e de widget padronizados e eficientes,
 *   **Isolamento:** Garanta que os componentes menores estejam validados antes de testar a integração no componente pai.
 
 ### 5. Escopo e Cobertura
-*   **Dualidade Widget/Presenter:** Se um componente visual for fornecido, é obrigatório criar testes tanto para a **View** (interações e renderização) quanto para o **Presenter** (lógica de estado).
+*   **Escopo restrito a UI:** Apenas Views, telas, componentes visuais e presenters localizados em `lib/ui` podem receber testes novos.
+*   **Dualidade Widget/Presenter de UI:** Se um componente visual de `lib/ui` for fornecido, é obrigatório criar testes tanto para a **View** (interações e renderização) quanto para o **Presenter** de UI quando ele tambem estiver em `lib/ui`.
 *   **Componentes Complexos:** Sub-componentes complexos devem possuir seus próprios arquivos de teste dedicados.
 
 ### 6. Qualidade e Clean Code

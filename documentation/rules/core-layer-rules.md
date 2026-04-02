@@ -106,6 +106,7 @@ lib/core/
 - O Core nao deve depender de `ui`, `rest`, `drivers` ou `websocket`.
 - Tipos de bibliotecas externas, objetos de framework, payloads crus e modelos de transporte nao devem vazar para DTOs, eventos ou interfaces do Core.
 - Quando um dado remoto exigir adaptacao, a adaptacao pertence a camada implementadora.
+- A camada `lib/core` nao deve receber testes novos no projeto atual. Qualquer lacuna de cobertura deve ser registrada como diagnostico tecnico, sem abrir suites novas nessa camada.
 
 # Checklist Rapido para Novas Features na Camada
 
