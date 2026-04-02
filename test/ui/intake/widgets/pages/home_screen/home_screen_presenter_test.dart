@@ -36,6 +36,7 @@ void main() {
 
     when(() => cacheDriver.get(any())).thenReturn('access-token');
     when(() => navigationDriver.goTo(any())).thenReturn(null);
+    when(() => navigationDriver.pushTo(any())).thenAnswer((_) async {});
   });
 
   CursorPaginationResponse<AnalysisDto> createPagination({
@@ -60,13 +61,13 @@ void main() {
   group('initialize', () {
     test('carrega conta e primeira pagina com sucesso', () async {
       final HomeScreenPresenter presenter = createPresenter();
-      final AnalysisDto analysis = AnalysisDtoFaker.make();
+      final AnalysisDto analysis = AnalysisDtoFaker.fake();
       addTearDown(presenter.dispose);
 
-      when(() => authService.fetchAccount()).thenAnswer(
+      when(() => authService.getAccount()).thenAnswer(
         (_) async => RestResponse<AccountDto>(
           statusCode: 200,
-          body: AccountDtoFaker.make(name: 'Ada Lovelace'),
+          body: AccountDtoFaker.fake(name: 'Ada Lovelace'),
         ),
       );
       when(
@@ -107,7 +108,7 @@ void main() {
       await presenter.initialize();
 
       verify(() => navigationDriver.goTo(Routes.signIn)).called(1);
-      verifyNever(() => authService.fetchAccount());
+      verifyNever(() => authService.getAccount());
       verifyNever(
         () => intakeService.listAnalyses(
           limit: any(named: 'limit'),
@@ -120,16 +121,16 @@ void main() {
   group('loadNextPage', () {
     test('acumula itens quando a proxima pagina carrega com sucesso', () async {
       final HomeScreenPresenter presenter = createPresenter();
-      final AnalysisDto firstAnalysis = AnalysisDtoFaker.make(id: 'analysis-1');
-      final AnalysisDto secondAnalysis = AnalysisDtoFaker.make(
+      final AnalysisDto firstAnalysis = AnalysisDtoFaker.fake(id: 'analysis-1');
+      final AnalysisDto secondAnalysis = AnalysisDtoFaker.fake(
         id: 'analysis-2',
       );
       addTearDown(presenter.dispose);
 
-      when(() => authService.fetchAccount()).thenAnswer(
+      when(() => authService.getAccount()).thenAnswer(
         (_) async => RestResponse<AccountDto>(
           statusCode: 200,
-          body: AccountDtoFaker.make(),
+          body: AccountDtoFaker.fake(),
         ),
       );
       when(
@@ -171,13 +172,13 @@ void main() {
 
     test('preserva itens quando a paginacao falha', () async {
       final HomeScreenPresenter presenter = createPresenter();
-      final AnalysisDto analysis = AnalysisDtoFaker.make(id: 'analysis-1');
+      final AnalysisDto analysis = AnalysisDtoFaker.fake(id: 'analysis-1');
       addTearDown(presenter.dispose);
 
-      when(() => authService.fetchAccount()).thenAnswer(
+      when(() => authService.getAccount()).thenAnswer(
         (_) async => RestResponse<AccountDto>(
           statusCode: 200,
-          body: AccountDtoFaker.make(),
+          body: AccountDtoFaker.fake(),
         ),
       );
       when(
@@ -223,7 +224,24 @@ void main() {
       when(() => intakeService.createAnalysis()).thenAnswer(
         (_) async => RestResponse<AnalysisDto>(
           statusCode: 201,
-          body: AnalysisDtoFaker.make(id: 'analysis-123'),
+          body: AnalysisDtoFaker.fake(id: 'analysis-123'),
+        ),
+      );
+      when(() => authService.getAccount()).thenAnswer(
+        (_) async => RestResponse<AccountDto>(
+          statusCode: 200,
+          body: AccountDtoFaker.fake(name: 'Ada Lovelace'),
+        ),
+      );
+      when(
+        () => intakeService.listAnalyses(limit: 10, isArchived: false),
+      ).thenAnswer(
+        (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+          statusCode: 200,
+          body: createPagination(
+            items: <AnalysisDto>[AnalysisDtoFaker.fake(id: 'analysis-123')],
+            nextCursor: null,
+          ),
         ),
       );
 
@@ -232,7 +250,9 @@ void main() {
       expect(presenter.isCreatingAnalysis.value, isFalse);
       expect(presenter.generalError.value, isNull);
       verify(
-        () => navigationDriver.goTo(Routes.getAnalysis(id: 'analysis-123')),
+        () => navigationDriver.pushTo(
+          Routes.getAnalysis(analysisId: 'analysis-123'),
+        ),
       ).called(1);
     });
 
@@ -243,7 +263,7 @@ void main() {
       when(() => intakeService.createAnalysis()).thenAnswer(
         (_) async => RestResponse<AnalysisDto>(
           statusCode: 201,
-          body: AnalysisDtoFaker.make(id: '   '),
+          body: AnalysisDtoFaker.fake(id: '   '),
         ),
       );
 
@@ -254,7 +274,7 @@ void main() {
         presenter.generalError.value,
         'Nao foi possivel abrir a analise criada.',
       );
-      verifyNever(() => navigationDriver.goTo(any()));
+      verifyNever(() => navigationDriver.pushTo(any()));
     });
   });
 
@@ -263,9 +283,9 @@ void main() {
       final HomeScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      presenter.openAnalysis(AnalysisDtoFaker.make(id: null));
+      presenter.openAnalysis(AnalysisDtoFaker.fake(id: null));
 
-      verifyNever(() => navigationDriver.goTo(any()));
+      verifyNever(() => navigationDriver.pushTo(any()));
     });
   });
 
@@ -291,7 +311,7 @@ void main() {
       final HomeScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      when(() => authService.fetchAccount()).thenAnswer(
+      when(() => authService.getAccount()).thenAnswer(
         (_) async => RestResponse<AccountDto>(
           statusCode: 200,
           body: const AccountDto(
@@ -325,7 +345,7 @@ void main() {
       final HomeScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      when(() => authService.fetchAccount()).thenAnswer(
+      when(() => authService.getAccount()).thenAnswer(
         (_) async => RestResponse<AccountDto>(
           statusCode: 200,
           body: const AccountDto(

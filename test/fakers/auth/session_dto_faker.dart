@@ -4,7 +4,7 @@ import 'package:animus/core/auth/dtos/token_dto.dart';
 final class SessionDtoFaker {
   const SessionDtoFaker._();
 
-  static SessionDto make({
+  static SessionDto fake({
     String accessTokenValue = 'access-token',
     String accessTokenExpiresAt = '2026-12-31T23:59:59Z',
     String refreshTokenValue = 'refresh-token',
@@ -20,5 +20,15 @@ final class SessionDtoFaker {
         expiresAt: refreshTokenExpiresAt,
       ),
     );
+  }
+
+  static List<SessionDto> fakeMany([int count = 3]) {
+    return List<SessionDto>.generate(count, (int index) {
+      final int item = index + 1;
+      return fake(
+        accessTokenValue: 'access-token-$item',
+        refreshTokenValue: 'refresh-token-$item',
+      );
+    });
   }
 }
