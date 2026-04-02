@@ -9,7 +9,7 @@ screen_ids: [CHZUu]  # Pencil/raw .pen fallback: I - Configuracoes
 
 # 1. Objetivo
 
-Esta spec define a implementacao da tela de perfil no `animus` no recorte confirmado para `ANI-43`: disponibilizar uma rota funcional de perfil, acessivel pela bottom navigation da Home e pelo avatar do header da Home, seguindo o shell visual principal do node `CHZUu` (`I - Configuracoes`) e carregando os dados da conta autenticada via `GET /auth/account`. A entrega deve respeitar a arquitetura atual do projeto, reutilizando `AuthService.fetchAccount`, mantendo `MVP`, `Riverpod`, `signals`, `NavigationDriver`, `CacheDriver` e `GoRouter`, sem introduzir contratos novos de backend para editar nome, trocar senha, desativar conta ou sair da sessao.
+Esta spec define a implementacao da tela de perfil no `animus` no recorte confirmado para `ANI-43`: disponibilizar uma rota funcional de perfil, acessivel pela bottom navigation persistente da Home e pelo avatar do header da Home, seguindo o shell visual principal do node `CHZUu` (`I - Configuracoes`) e carregando os dados da conta autenticada via `GET /auth/account`. A entrega deve respeitar a arquitetura atual do projeto, reutilizando `AuthService.fetchAccount`, mantendo `MVP`, `Riverpod`, `signals`, `NavigationDriver`, `CacheDriver` e `GoRouter`, sem introduzir contratos novos de backend para editar nome, trocar senha, desativar conta ou sair da sessao.
 
 ---
 
@@ -19,7 +19,7 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 
 - Criar a tela `profile_screen` em `lib/ui/auth/widgets/pages/profile_screen/`.
 - Registrar a rota `Routes.profile` em `lib/router.dart`.
-- Tornar a bottom navigation funcional entre `HOME` e `PERFIL`, com a ordem `HOME | BIBLIOTECA | PERFIL`.
+- Tornar a bottom navigation persistente e funcional via `StatefulShellRoute.indexedStack`, com a ordem `HOME | BIBLIOTECA | PERFIL`.
 - Carregar a conta autenticada ao entrar na tela de perfil usando `AuthService.fetchAccount()`.
 - Exibir estado de `Loading`, `Error` recuperavel e `Content` read-only para `name` e `email`.
 - Reproduzir a hierarquia visual principal validada no node `CHZUu`, ajustando o titulo exibido na tela para `Perfil`, com card de perfil, grupo de configuracoes, botao destrutivo inferior e tab bar.
@@ -34,7 +34,7 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 - Desativacao ou exclusao de conta.
 - Logout funcional com limpeza de tokens.
 - Criacao de novos endpoints, DTOs, interfaces ou mapeadores REST para perfil.
-- Implementacao funcional do destino `BIBLIOTECA`.
+- Implementacao funcional do conteudo definitivo da tela `BIBLIOTECA`.
 - Implementacao funcional das linhas `Editar Nome`, `Alterar Senha`, `Tema`, `Sobre o App`, `Deletar Conta` e `Sair da Conta`.
 - Exibicao do item `Numero de Precedentes`, pois nao existe fonte de dados correspondente na codebase mobile nem contrato backend publicado.
 - Auth guard global, refresh token automatico ou tratamento centralizado de expiracao de sessao.
@@ -60,7 +60,7 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 - Em falha na carga remota, a tela deve exibir mensagem visivel e CTA de `Tentar novamente`, sem sair da rota automaticamente.
 - A tela de perfil deve usar a mesma bottom navigation compartilhada da Home, com `PERFIL` marcado como ativo e ordem `HOME | BIBLIOTECA | PERFIL`.
 - Ao tocar em `HOME` na tela de perfil, o app deve navegar para `Routes.home`.
-- Ao tocar em `BIBLIOTECA`, o app deve manter o comportamento visual atual da sprint, sem navegacao funcional.
+- Ao tocar em `BIBLIOTECA`, o app deve navegar para `Routes.library`, preservando a bottom navigation montada no shell.
 
 ## 3.2 Nao funcionais
 
@@ -96,8 +96,9 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 ## Camada UI
 
 - **`HomeScreenPresenter`** (`lib/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart`) - referencia direta para presenter com `signals`, leitura de token local, `AuthService.fetchAccount()` e orquestracao de navegacao.
-- **`HomeScreenView`** (`lib/ui/intake/widgets/pages/home_screen/home_screen_view.dart`) - referencia de tela pos-login com `Scaffold`, `SafeArea`, `ConstrainedBox`, bottom navigation e avatar de header.
-- **`HomeBottomNavigationView`** (`lib/ui/intake/widgets/pages/home_screen/home_bottom_navigation/home_bottom_navigation_view.dart`) - implementacao atual da tab bar com `HOME`, `PERFIL` e `BIBLIOTECA`; hoje esta acoplada ao modulo da Home e sera substituida por um componente compartilhado com ordem `HOME`, `BIBLIOTECA`, `PERFIL`.
+- **`HomeScreenView`** (`lib/ui/intake/widgets/pages/home_screen/home_screen_view.dart`) - referencia de tela pos-login com `Scaffold`, `SafeArea`, `ConstrainedBox` e avatar de header; a bottom navigation agora vive no shell compartilhado.
+- **`AppBottomNavigationView`** (`lib/ui/shared/widgets/components/app_bottom_navigation/app_bottom_navigation_view.dart`) - implementacao compartilhada da tab bar com `HOME`, `BIBLIOTECA` e `PERFIL`.
+- **`AppShellView`** (`lib/ui/shared/widgets/pages/app_shell/app_shell_view.dart`) - shell persistente que mantem a bottom navigation montada e alterna os branches com `StatefulShellRoute.indexedStack`.
 - **`AuthHeaderView`** (`lib/ui/auth/widgets/components/auth_header/auth_header_view.dart`) - componente visual existente que pode servir como referencia de titulo/subtitulo tipografico para a tela de perfil.
 - **`MessageBoxView`** (`lib/ui/auth/widgets/pages/email_confirmation_screen/message_box/message_box_view.dart`) - componente textual ja existente para feedback de erro visivel e consistente com o modulo `auth`.
 
@@ -109,8 +110,8 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 
 ## App / Router
 
-- **`Routes`** (`lib/constants/routes.dart`) - a constante `Routes.profile = '/auth/profile'` ja existe, mas ainda nao ha rota registrada no `appRouter`.
-- **`appRouter`** (`lib/router.dart`) - roteador atual ja registra `signIn`, `signUp`, `emailConfirmation`, `forgotPassword`, `checkEmail`, `newPassword`, `home` e `analysis`, mas nao registra `profile`.
+- **`Routes`** (`lib/constants/routes.dart`) - as constantes `Routes.profile = '/auth/profile'` e `Routes.library = '/library'` suportam os branches do shell persistente.
+- **`appRouter`** (`lib/router.dart`) - o roteador final registra um `StatefulShellRoute.indexedStack` para `home`, `library` e `profile`, alem das rotas de auth e `analysis`.
 - **`CacheKeys`** (`lib/constants/cache_keys.dart`) - ja define `CacheKeys.accessToken` e `CacheKeys.refreshToken`.
 
 ## Lacunas encontradas
@@ -142,8 +143,8 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 - **Provider Riverpod:** `profileScreenPresenterProvider`, `profileScreenInitializationProvider`
 - **Metodos:**
 - `Future<void> initialize()` - valida a sessao local, chama `AuthService.fetchAccount()`, atualiza `account` em sucesso e `generalError` em falha.
-- `void onDestinationSelected(int index)` - navega para `Routes.home` quando `index == 0`, ignora `index == 1` nesta sprint e mantem a tela atual quando `index == 2`.
 - `void dispose()` - libera `signals` e qualquer estado derivado.
+- **Observacao de navegacao:** a bottom navigation nao e responsabilidade deste presenter; ela e controlada pelo `AppShell`, que troca os branches `Routes.home`, `Routes.library` e `Routes.profile` mantendo o shell montado.
 
 ## Camada UI (Views)
 
@@ -152,7 +153,7 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 - **Props:** nenhuma
 - **Bibliotecas de UI:** `flutter/material.dart`, `flutter_riverpod`, `signals_flutter`
 - **Estados visuais:**
-- `Loading` - estrutura da pagina ja visivel, com area de conteudo em carregamento e bottom navigation ativa.
+- `Loading` - estrutura da pagina ja visivel, com area de conteudo em carregamento dentro do shell persistente.
 - `Error` - mensagem textual com CTA de retry quando `fetchAccount()` falhar antes de haver conteudo valido.
 - `Content` - cabecalho `Perfil`, card read-only com avatar inicial + `name` + `email`, grupo de configuracoes visual e botao destrutivo inferior sem acao.
 
@@ -181,6 +182,12 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 - **Arquivos:** `index.dart`, `app_bottom_navigation_view.dart`
 - **Props:** `required int currentIndex`, `required ValueChanged<int> onDestinationSelected`
 - **Responsabilidade:** renderizar a tab bar compartilhada do app com `HOME`, `BIBLIOTECA` e `PERFIL`, permitindo reuso por Home e Perfil sem acoplamento entre modulos.
+
+- **Localizacao:** `lib/ui/shared/widgets/pages/app_shell/` (**novo arquivo** em pasta nova)
+- **Tipo:** View only
+- **Arquivos:** `index.dart`, `app_shell_view.dart`
+- **Props:** `required StatefulNavigationShell navigationShell`
+- **Responsabilidade:** manter um `Scaffold` raiz unico com a bottom navigation fixa e alternar os branches do shell sem remontar a navbar.
 
 ## Camada UI (Barrel Files / `index.dart`)
 
@@ -243,6 +250,10 @@ lib/ui/auth/widgets/pages/profile_screen/
 lib/ui/shared/widgets/components/app_bottom_navigation/
   index.dart
   app_bottom_navigation_view.dart
+
+lib/ui/shared/widgets/pages/app_shell/
+  index.dart
+  app_shell_view.dart
 ```
 
 ---
@@ -252,12 +263,12 @@ lib/ui/shared/widgets/components/app_bottom_navigation/
 ## Camada UI
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart`
-- **Mudanca:** atualizar `onDestinationSelected(int index)` para respeitar a nova ordem da bottom navigation, navegando para `Routes.profile` quando `index == 2` e mantendo `index == 1` sem implementacao funcional.
-- **Justificativa:** a Home ja expoe `PERFIL` na tab bar, mas hoje o toque nao faz nada; a navegacao precisa ser ativada para abrir a nova tela.
+- **Mudanca:** manter apenas `openProfile()` para o atalho do avatar; a navegacao da bottom navigation deixa de ser responsabilidade do presenter.
+- **Justificativa:** a troca entre abas passa a acontecer no `AppShell`, centralizando a navegacao persistente em um shell unico.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/home_screen/home_screen_view.dart`
-- **Mudanca:** substituir o consumo do widget local `HomeBottomNavigation` pelo widget compartilhado `AppBottomNavigation`, mantendo `currentIndex: 0`.
-- **Justificativa:** a bottom navigation passa a ser compartilhada entre Home e Perfil, deixando de pertencer apenas ao modulo `intake`.
+- **Mudanca:** remover a renderizacao local da bottom navigation; a tela passa a renderizar apenas o conteudo da Home dentro do shell compartilhado.
+- **Justificativa:** a bottom navigation passa a ser compartilhada entre Home, Biblioteca e Perfil via `AppShell`, deixando de pertencer ao modulo `intake`.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/home_screen/home_header/home_header_view.dart`
 - **Mudanca:** tornar o avatar do header clicavel e despachar a navegacao para `Routes.profile` via presenter da Home.
@@ -266,8 +277,8 @@ lib/ui/shared/widgets/components/app_bottom_navigation/
 ## App / Router
 
 - **Arquivo:** `lib/router.dart`
-- **Mudanca:** adicionar import de `ProfileScreen` e registrar `GoRoute(path: Routes.profile, builder: ...)`.
-- **Justificativa:** a constante `Routes.profile` ja existe, mas a rota ainda nao esta acessivel no app.
+- **Mudanca:** registrar um `StatefulShellRoute.indexedStack` com branches para `Routes.home`, `Routes.library` e `Routes.profile`, usando `AppShell` como scaffold raiz persistente.
+- **Justificativa:** a navbar precisa permanecer montada entre as trocas de aba, atualizando apenas o branch ativo.
 
 > Nao ha alteracoes necessarias em `core`, `rest` ou `drivers` para este recorte.
 
@@ -291,7 +302,7 @@ lib/ui/shared/widgets/components/app_bottom_navigation/
 
 ## 8.1 Limitar `ANI-43` a tela read-only e navegacao
 
-- **Decisao:** implementar apenas a tela de perfil read-only e a navegacao entre Home e Perfil.
+- **Decisao:** implementar a tela de perfil read-only dentro de um shell persistente com navegacao entre Home, Biblioteca e Perfil.
 - **Alternativas consideradas:** cobrir todo o escopo do PRD (`editar nome`, `trocar senha`, `desativar conta`) na mesma spec.
 - **Motivo da escolha:** o usuario confirmou explicitamente que o recorte da task e `so tela e navegacao`, e nao ha contratos backend publicados para os demais fluxos.
 - **Impactos / trade-offs:** a tela de perfil nasce funcional apenas para leitura; sera necessaria uma spec complementar quando o backend de perfil existir.
@@ -303,12 +314,12 @@ lib/ui/shared/widgets/components/app_bottom_navigation/
 - **Motivo da escolha:** a codebase atual nao possui store global de conta; refetch local mantem o recorte pequeno e reutiliza contrato ja implementado.
 - **Impactos / trade-offs:** entrar no Perfil gera uma nova chamada de rede, mas evita introduzir sincronizacao adicional entre telas nesta sprint.
 
-## 8.3 Extrair a bottom navigation para `ui/shared`
+## 8.3 Extrair a bottom navigation para `ui/shared` e hospedá-la em um shell persistente
 
-- **Decisao:** mover a tab bar de `home_bottom_navigation` para `lib/ui/shared/widgets/components/app_bottom_navigation/`.
-- **Alternativas consideradas:** duplicar o widget na tela de perfil ou importar o widget de `intake` dentro de `auth`.
-- **Motivo da escolha:** a navegacao `HOME | PERFIL | BIBLIOTECA` e um elemento de shell do app, nao de um unico modulo; extrair evita acoplamento `auth -> intake` e duplicacao.
-- **Impactos / trade-offs:** a task ganha uma pequena refatoracao de UI compartilhada, mas reduz a chance de divergencia visual entre abas.
+- **Decisao:** mover a tab bar de `home_bottom_navigation` para `lib/ui/shared/widgets/components/app_bottom_navigation/` e renderiza-la no `AppShell` com `StatefulShellRoute.indexedStack`.
+- **Alternativas consideradas:** duplicar o widget na tela de perfil, importar o widget de `intake` dentro de `auth` ou manter navegacao por `GoRoute` simples remontando o scaffold a cada toque.
+- **Motivo da escolha:** a navegacao `HOME | PERFIL | BIBLIOTECA` e um elemento de shell do app, nao de um unico modulo; extrair e centralizar no `AppShell` evita acoplamento `auth -> intake`, duplicacao e remontagem desnecessaria da navbar.
+- **Impactos / trade-offs:** a task ganha uma pequena refatoracao estrutural, mas preserva estado visual da tab bar e prepara o app para novas abas no mesmo shell.
 
 ## 8.4 Reproduzir o shell visual sem acoplar fluxos inexistentes
 
@@ -325,8 +336,12 @@ lib/ui/shared/widgets/components/app_bottom_navigation/
 
 ```text
 HomeScreenView
-  -> HomeScreenPresenter.onDestinationSelected(2)
+  -> HomeScreenPresenter.openProfile()
   -> NavigationDriver.goTo(Routes.profile)
+
+AppShellView
+  -> AppBottomNavigation.onDestinationSelected(index)
+  -> StatefulNavigationShell.goBranch(index)
 
 ProfileScreenView
   -> profileScreenInitializationProvider
@@ -341,18 +356,21 @@ ProfileScreenView
 - **Hierarquia de widgets (se aplicavel):**
 
 ```text
-ProfileScreenView
+AppShellView
   Scaffold
+    body: StatefulNavigationShell
+      ProfileScreenView
+        Scaffold
+          body: SafeArea
+            Center
+              ConstrainedBox
+                Padding
+                  Column
+                    page header (`Perfil`)
+                    Loading | Error | ProfileAccountCard
+                    ProfileSettingsGroup
+                    ProfileLogoutButton
     bottomNavigationBar: AppBottomNavigation(currentIndex: 2)
-    body: SafeArea
-      Center
-        ConstrainedBox
-          Padding
-            Column
-              page header (`Perfil`)
-              Loading | Error | ProfileAccountCard
-              ProfileSettingsGroup
-              ProfileLogoutButton
 ```
 
 - **Referencias:**
@@ -369,7 +387,9 @@ ProfileScreenView
 
 `lib/ui/intake/widgets/pages/home_screen/home_screen_view.dart`
 
-`lib/ui/intake/widgets/pages/home_screen/home_bottom_navigation/home_bottom_navigation_view.dart`
+`lib/ui/shared/widgets/components/app_bottom_navigation/app_bottom_navigation_view.dart`
+
+`lib/ui/shared/widgets/pages/app_shell/app_shell_view.dart`
 
 `lib/ui/auth/widgets/components/auth_header/auth_header_view.dart`
 
