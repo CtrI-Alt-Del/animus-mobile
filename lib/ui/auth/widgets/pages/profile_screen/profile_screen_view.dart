@@ -70,7 +70,7 @@ class ProfileScreenView extends ConsumerWidget {
                             );
 
                             if (isLoading && !hasAccount) {
-                              return _ProfileLoadingCard(tokens: tokens);
+                              return const _ProfileLoadingCard();
                             }
 
                             if (errorMessage != null && !hasAccount) {
@@ -113,9 +113,7 @@ class ProfileScreenView extends ConsumerWidget {
 }
 
 class _ProfileLoadingCard extends StatelessWidget {
-  final AppThemeTokens tokens;
-
-  const _ProfileLoadingCard({required this.tokens});
+  const _ProfileLoadingCard();
 
   @override
   Widget build(BuildContext context) {
