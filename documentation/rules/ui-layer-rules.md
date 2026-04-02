@@ -121,6 +121,13 @@ lib/ui/{modulo}/
 - Navegacao, inscricoes em canais, chamadas assincronas e validacoes de formulario devem ficar no Presenter ou em providers dedicados.
 - Quando a View precisar de um helper vindo de driver ou provider, o uso deve continuar restrito a preocupacoes visuais.
 
+## Politica de testes da camada
+
+- Apenas a camada `lib/ui` pode receber testes novos no projeto atual.
+- Os testes da UI devem ser testes de widget, espelhando a estrutura de `lib/ui` em `test/ui/`.
+- Quando houver Presenter associado a uma View, a cobertura deve priorizar o comportamento observado pela tela e suas interacoes visuais.
+- Se houver lacunas em `lib/core`, `lib/rest` ou `lib/drivers` relacionadas ao fluxo da UI, elas devem ser registradas como diagnostico, sem criar testes novos nessas camadas.
+
 # Checklist Rapido para Novas Modulos na Camada
 
 - [ ] A tela ou componente novo esta em pasta propria, com fronteira clara entre publico e interno.

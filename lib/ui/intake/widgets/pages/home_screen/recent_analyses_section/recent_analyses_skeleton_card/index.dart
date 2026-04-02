@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_skeleton_card/recent_analyses_skeleton_card_view.dart';
+
+typedef RecentAnalysesSkeletonCard = RecentAnalysesSkeletonCardView;

@@ -17,6 +17,73 @@ class IntakeRestService extends Service implements IntakeService {
   }) : super(restClient, cacheDriver);
 
   @override
+  Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listAnalyses({
+    String? cursor,
+    required int limit,
+    bool isArchived = false,
+  }) async {
+    _setAuthorizationHeader();
+
+    final Json queryParams = <String, dynamic>{
+      'limit': limit,
+      'is_archived': isArchived,
+    };
+
+    if (cursor != null && cursor.trim().isNotEmpty) {
+      queryParams['cursor'] = cursor;
+    }
+
+    final response = await _restClient.get(
+      '/intake/analyses',
+      queryParams: queryParams,
+    );
+    return response.mapBody<CursorPaginationResponse<AnalysisDto>>(
+      _toCursorPaginationResponse,
+    );
+  }
+
+  @override
+  Future<RestResponse<AnalysisDto>> createAnalysis({String? folderId}) async {
+    _setAuthorizationHeader();
+
+    final String? normalizedFolderId = folderId?.trim();
+    final Object body = normalizedFolderId == null || normalizedFolderId.isEmpty
+        ? <String, dynamic>{}
+        : <String, dynamic>{'folder_id': normalizedFolderId};
+
+    final response = await _restClient.post('/intake/analyses', body: body);
+    return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
+  }
+
+  CursorPaginationResponse<AnalysisDto> _toCursorPaginationResponse(Json json) {
+    final dynamic itemsValue = json['items'] ?? json['data'];
+    final List<AnalysisDto> items = _toAnalyses(itemsValue);
+    final String? nextCursor = _toNextCursor(json);
+
+    return CursorPaginationResponse<AnalysisDto>(
+      items: items,
+      nextCursor: nextCursor,
+    );
+  }
+
+  List<AnalysisDto> _toAnalyses(dynamic value) {
+    if (value is! List<dynamic>) {
+      return const <AnalysisDto>[];
+    }
+
+    return value.whereType<Json>().map(AnalysisMapper.toDto).toList();
+  }
+
+  String? _toNextCursor(Json json) {
+    final dynamic nextCursor = json['next_cursor'] ?? json['nextCursor'];
+    if (nextCursor is String && nextCursor.trim().isNotEmpty) {
+      return nextCursor;
+    }
+
+    return null;
+  }
+
+  @override
   Future<RestResponse<PetitionDto>> createPetition({
     required PetitionDto petition,
   }) async {

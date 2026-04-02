@@ -1,3 +1,4 @@
+import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/dtos/session_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
@@ -13,6 +14,13 @@ class AuthRestService extends Service implements AuthService {
     required RestClient restClient,
     required CacheDriver cacheDriver,
   }) : super(restClient, cacheDriver);
+
+  @override
+  Future<RestResponse<AccountDto>> fetchAccount() async {
+    _setAuthorizationHeader();
+    final response = await restClient.get('/auth/account');
+    return response.mapBody<AccountDto>(AccountMapper.toDto);
+  }
 
   @override
   Future<RestResponse<void>> forgotPassword({required String email}) async {
@@ -162,6 +170,12 @@ class AuthRestService extends Service implements AuthService {
     );
 
     return response.mapBody<SessionDto>(SessionMapper.toDto);
+  }
+
+  void _setAuthorizationHeader() {
+    final String token = _cacheDriver.get(CacheKeys.accessToken) ?? '';
+    final String authorization = token.isEmpty ? '' : 'Bearer $token';
+    _restClient.setHeader('Authorization', authorization);
   }
 
   RestResponse<void> _toVoidResponse(
