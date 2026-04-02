@@ -16,7 +16,10 @@ class AuthRestService extends Service implements AuthService {
 
   @override
   Future<RestResponse<AccountDto>> getAccount() async {
-    setAuthHeader();
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<AccountDto>();
+    }
+
     final response = await restClient.get('/auth/account');
     return response.mapBody<AccountDto>(AccountMapper.toDto);
   }

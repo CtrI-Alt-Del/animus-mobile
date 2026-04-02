@@ -2,12 +2,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:animus/constants/cache_keys.dart';
-import 'package:animus/constants/env.dart';
 import 'package:animus/constants/navigation_keys.dart';
 import 'package:animus/constants/routes.dart';
-import 'package:animus/drivers/caches/shared_preferences/shared_preferences_cache_driver.dart';
-import 'package:animus/rest/dio/dio_rest_client.dart';
-import 'package:animus/rest/services/auth_rest_service.dart';
 import 'package:animus/ui/auth/widgets/pages/check_email_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/forgot_password_screen/index.dart';
@@ -35,7 +31,7 @@ final GoRouter appRouter = GoRouter(
       return null;
     }
 
-    final bool hasValidSession = await _hasValidSession();
+    final bool hasValidSession = await _hasLocalSession();
     if (!hasValidSession) {
       return Routes.signIn;
     }
@@ -119,25 +115,12 @@ final GoRouter appRouter = GoRouter(
   ],
 );
 
-Future<bool> _hasValidSession() async {
+Future<bool> _hasLocalSession() async {
   final SharedPreferences preferences = await SharedPreferences.getInstance();
   final String accessToken =
       (preferences.getString(CacheKeys.accessToken) ?? '').trim();
   final String refreshToken =
       (preferences.getString(CacheKeys.refreshToken) ?? '').trim();
 
-  if (accessToken.isEmpty || refreshToken.isEmpty) {
-    return false;
-  }
-
-  final DioRestClient restClient = DioRestClient();
-  restClient.setBaseUrl(Env.animusServerAppUrl);
-
-  final AuthRestService authService = AuthRestService(
-    restClient: restClient,
-    cacheDriver: SharedPreferencesCacheDriver(preferences),
-  );
-
-  final response = await authService.getAccount();
-  return response.isSuccessful;
+  return accessToken.isNotEmpty && refreshToken.isNotEmpty;
 }

@@ -9,6 +9,7 @@ import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/petition_document_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
@@ -209,7 +210,7 @@ class AnalysisScreenPresenter {
 
     final String documentType = _getExtension(file.path);
 
-    final RestResponse<dynamic> uploadUrlResponse = await _storageService
+    final RestResponse<UploadUrlDto> uploadUrlResponse = await _storageService
         .generatePetitionUploadUrl(
           analysisId: analysisId,
           documentType: documentType,
@@ -259,7 +260,7 @@ class AnalysisScreenPresenter {
         .createPetition(petition: createdPetitionPayload);
 
     if (petitionResponse.isFailure) {
-      _applyRemoteFailure();
+      _applyRemoteFailure(petitionResponse.errorMessage);
       return;
     }
 

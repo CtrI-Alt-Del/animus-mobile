@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -143,7 +145,9 @@ class RecentAnalysesSectionView extends StatelessWidget {
                   return RecentAnalysisCard(
                     title: title,
                     dateLabel: formatCreatedAt(analysis.createdAt),
-                    onTap: () => onTapAnalysis(analysis),
+                    onTap: () {
+                      unawaited(onTapAnalysis(analysis));
+                    },
                   );
                 },
               ),

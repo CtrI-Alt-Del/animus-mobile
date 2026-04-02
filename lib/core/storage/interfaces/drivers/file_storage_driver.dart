@@ -11,5 +11,5 @@ abstract class FileStorageDriver {
 
   Future<File?> getFile(String filePath);
 
-  Uri getFileUrl(String url);
+  Uri getFileUrl(String filePath);
 }

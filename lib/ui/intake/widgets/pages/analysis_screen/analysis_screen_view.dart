@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -267,7 +269,9 @@ class AnalysisScreenView extends ConsumerWidget {
                                       Align(
                                         alignment: Alignment.centerRight,
                                         child: TextButton.icon(
-                                          onPressed: presenter.retrySummary,
+                                          onPressed: () {
+                                            unawaited(presenter.retrySummary());
+                                          },
                                           icon: const Icon(
                                             Icons.refresh,
                                             size: 16,
@@ -324,11 +328,11 @@ class AnalysisScreenView extends ConsumerWidget {
                             ? () {
                                 if (status ==
                                     AnalysisStatusDto.petitionAnalyzed) {
-                                  presenter.replaceDocument();
+                                  unawaited(presenter.replaceDocument());
                                   return;
                                 }
 
-                                presenter.pickDocument();
+                                unawaited(presenter.pickDocument());
                               }
                             : null,
                         primaryActionLabel: primaryActionLabel,
@@ -337,7 +341,9 @@ class AnalysisScreenView extends ConsumerWidget {
                             : status == AnalysisStatusDto.petitionAnalyzed
                             ? presenter.confirmAndViewPrecedents
                             : canAnalyze
-                            ? presenter.analyze
+                            ? () {
+                                unawaited(presenter.analyze());
+                              }
                             : null,
                         isPrimaryBusy: isUploading,
                         helperText: null,
