@@ -26,11 +26,12 @@ link e pela Home inicial do dominio `intake`. A base atual contem:
 
 - ponto de entrada da aplicacao (`lib/main.dart`) com carregamento de ambiente;
 - configuracao da app e tema Material (`lib/app.dart`, `lib/theme.dart`);
-- rotas de login, cadastro, confirmacao de e-mail por OTP, recuperacao de senha, Home e tela placeholder de analise (`lib/router.dart`, `lib/constants/routes.dart`);
+- rotas de login, cadastro, confirmacao de e-mail por OTP, recuperacao de senha, Home, Perfil e tela placeholder de analise (`lib/router.dart`, `lib/constants/routes.dart`);
 - fluxos de login e cadastro em MVP na camada UI (`lib/ui/auth/widgets/pages/sign_in_screen/`, `lib/ui/auth/widgets/pages/sign_up_screen/`), incluindo CTA compartilhado de Google Auth;
 - tela dedicada de confirmacao de e-mail (`lib/ui/auth/widgets/pages/email_confirmation_screen/`);
 - telas dedicadas de reset de senha e listener app-scoped para deep link de recuperacao (`lib/ui/auth/widgets/pages/forgot_password_screen/`, `lib/ui/auth/widgets/pages/check_email_screen/`, `lib/ui/auth/widgets/pages/new_password_screen/`, `lib/ui/auth/widgets/components/password_reset_link_listener/`);
-- fluxo Home em MVP com presenter, widgets internos e placeholder de analise (`lib/ui/intake/widgets/pages/home_screen/`, `lib/ui/intake/widgets/pages/analysis_screen/`);
+- fluxo Home em MVP com presenter, widgets internos, bottom navigation compartilhada e placeholder de analise (`lib/ui/intake/widgets/pages/home_screen/`, `lib/ui/shared/widgets/components/app_bottom_navigation/`, `lib/ui/intake/widgets/pages/analysis_screen/`);
+- tela de Perfil read-only em MVP com presenter proprio, carregamento de conta autenticada e shell visual de configuracoes (`lib/ui/auth/widgets/pages/profile_screen/`);
 - contratos de autenticacao, analises e paginação por cursor no Core (`lib/core/auth/`, `lib/core/intake/`, `lib/core/shared/responses/cursor_pagination_response.dart`);
 - implementacao REST concreta para `signIn`, `signInWithGoogle`, `signUp`, `verifyEmail`, `resendVerificationEmail`, `forgotPassword`, `verifyResetToken`, `resetPassword`, `fetchAccount`, `listAnalyses` e `createAnalysis` (`lib/rest/services/auth_rest_service.dart`, `lib/rest/services/intake_rest_service.dart`);
 - mapeadores REST para conta, sessao e analise (`lib/rest/mappers/auth/`, `lib/rest/mappers/intake/`);
@@ -67,6 +68,12 @@ listener/presenter ate a validacao e redirecionamento para a rota de redefinicao
 Na Home, o `HomeScreenPresenter` valida a sessao local, busca a conta autenticada e a
 primeira pagina de analises recentes, permite scroll infinito com paginação por cursor e
 navega para a rota placeholder `/analyses/:id` ao abrir ou criar uma analise.
+
+Na tela de Perfil, o `ProfileScreenPresenter` valida a existencia local de `CacheKeys.accessToken`,
+redireciona para `Routes.signIn` quando nao ha sessao e, com token presente, reutiliza
+`AuthService.fetchAccount()` para carregar a conta autenticada. A UI exibe estados de loading,
+erro recuperavel com retry e conteudo read-only para `name` e `email`, mantendo o grupo de
+configuracoes e o CTA de saida apenas como shell visual nesta sprint.
 
 ## Principios arquiteturais
 
