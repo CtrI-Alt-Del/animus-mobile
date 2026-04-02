@@ -126,7 +126,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async =>
-            RestResponse(body: AccountDtoFaker.make(), statusCode: 201),
+            RestResponse(body: AccountDtoFaker.fake(), statusCode: 201),
       );
 
       await presenter.submit();
@@ -316,7 +316,7 @@ void main() {
       ).thenAnswer(
         (_) async => RestResponse<SessionDto>(
           statusCode: 200,
-          body: SessionDtoFaker.make(),
+          body: SessionDtoFaker.fake(),
         ),
       );
 

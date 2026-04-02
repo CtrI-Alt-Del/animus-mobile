@@ -50,7 +50,7 @@ void main() {
   }
 
   group('submit', () {
-    test('persiste tokens e navega para analise no sucesso', () async {
+    test('persiste tokens e navega para home no sucesso', () async {
       final SignInScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       _fillValidForm(presenter);
@@ -61,7 +61,7 @@ void main() {
       ).thenAnswer(
         (_) async => RestResponse<SessionDto>(
           statusCode: 200,
-          body: SessionDtoFaker.make(),
+          body: SessionDtoFaker.fake(),
         ),
       );
 
@@ -73,11 +73,7 @@ void main() {
       verify(
         () => cacheDriver.set(CacheKeys.refreshToken, 'refresh-token'),
       ).called(1);
-      verify(
-        () => navigationDriver.goTo(
-          Routes.getAnalysis(analysisId: '01KMQTN9YCHWG20ZZEPNBRYW87'),
-        ),
-      ).called(1);
+      verify(() => navigationDriver.goTo(Routes.home)).called(1);
       expect(presenter.generalError.value, isNull);
       expect(presenter.isSubmitting.value, isFalse);
     });
@@ -230,7 +226,7 @@ void main() {
   });
 
   group('continueWithGoogle', () {
-    test('persiste tokens e navega para analise no sucesso', () async {
+    test('persiste tokens e navega para home no sucesso', () async {
       final SignInScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
@@ -242,7 +238,7 @@ void main() {
       ).thenAnswer(
         (_) async => RestResponse<SessionDto>(
           statusCode: 200,
-          body: SessionDtoFaker.make(),
+          body: SessionDtoFaker.fake(),
         ),
       );
 
@@ -258,11 +254,7 @@ void main() {
       verify(
         () => cacheDriver.set(CacheKeys.refreshToken, 'refresh-token'),
       ).called(1);
-      verify(
-        () => navigationDriver.goTo(
-          Routes.getAnalysis(analysisId: '01KMQTN9YCHWG20ZZEPNBRYW87'),
-        ),
-      ).called(1);
+      verify(() => navigationDriver.goTo(Routes.home)).called(1);
       expect(presenter.generalError.value, isNull);
       expect(presenter.isGoogleSubmitting.value, isFalse);
     });
