@@ -170,7 +170,9 @@ class SignInScreenPresenter {
   }
 
   void goToForgotPassword() {
-    _navigationDriver.goTo(Routes.forgotPassword);
+    _navigationDriver.goTo(
+      Routes.getForgotPassword(previousRoute: Routes.signIn),
+    );
   }
 
   void _persistSession(SessionDto session) {

@@ -101,6 +101,7 @@ lib/drivers/
 - Drivers podem depender de pacotes externos necessarios para cumprir o contrato.
 - A composicao publica do driver pode consumir dependencias da aplicacao quando isso permanecer restrito a fronteira da camada.
 - Drivers nao devem depender de widgets, presenters, services REST, canais WebSocket ou mappers HTTP para cumprir sua funcao.
+- A camada `lib/drivers` nao deve receber testes novos no projeto atual. Cobertura existente pode ser mantida, mas novas lacunas devem apenas ser sinalizadas em relatorios tecnicos.
 
 # Checklist Rapido para Novas Features na Camada
 

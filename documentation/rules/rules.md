@@ -12,7 +12,7 @@ Este arquivo e o indice principal das regras do projeto. Use-o para descobrir ra
 | REST | [`rest-layer-rules.md`](./rest-layer-rules.md) | services HTTP, mappers, clients remotos |
 | WebSocket | [`websocket-layer-rules.md`](./websocket-layer-rules.md) | canais realtime, envelopes e listeners |
 | Convencoes de codigo | [`code-conventions-rules.md`](./code-conventions-rules.md) | nomenclatura, imports, organizacao geral |
-| Testes unitarios | [`widgets-testing-rules.md`](./widgets-testing-rules.md) | mocks, fakers e estrutura de testes |
+| Testes de UI | [`widgets-testing-rules.md`](./widgets-testing-rules.md) | testes de widget da camada `lib/ui`, mocks, fakers e estrutura de testes |
 | Desenvolvimento | [`developement-rules.md`](./developement-rules.md) | fluxo Git, commits, branches e versionamento |
 
 ## Como usar este indice
@@ -83,15 +83,21 @@ Este arquivo e o indice principal das regras do projeto. Use-o para descobrir ra
 - revisar imports, barrel files e organizacao geral
 - alinhar estilo de codigo antes de abrir PR
 
-### Testes unitarios
+### Testes de UI
 
 **Arquivo:** [`widgets-testing-rules.md`](./widgets-testing-rules.md)
 
 **Consulte quando:**
 
-- escrever testes para presenters, services e logica de negocio
-- padronizar uso de mocks, stubs e fakers
-- revisar estrutura e nome dos cenarios de teste
+- escrever ou revisar testes da camada `lib/ui`
+- padronizar uso de mocks, stubs e fakers em testes de widget
+- revisar estrutura e nome dos cenarios de teste da UI
+
+**Politica atual do projeto:**
+
+- Apenas componentes em `lib/ui` podem receber testes novos.
+- `lib/core`, `lib/rest` e `lib/drivers` nao devem receber testes novos.
+- Lacunas de cobertura fora da UI devem ser registradas em relatorios tecnicos, sem abrir novos testes nessas camadas.
 
 ### Desenvolvimento
 

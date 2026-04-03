@@ -1,7 +1,9 @@
+import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+
 class AnalysisDto {
   final String name;
   final String accountId;
-  final String status;
+  final AnalysisStatusDto status;
   final String summary;
   final String createdAt;
   final String? folderId;

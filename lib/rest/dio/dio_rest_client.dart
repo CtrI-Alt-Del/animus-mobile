@@ -25,8 +25,15 @@ class DioRestClient implements RestClient {
   Future<RestResponse<Json>> get(
     String path, {
     QueryParams? queryParams,
+    Json? headers,
   }) async {
-    return _send(() => _dio.get(path, queryParameters: queryParams));
+    return _send(
+      () => _dio.get(
+        path,
+        queryParameters: queryParams,
+        options: Options(headers: headers),
+      ),
+    );
   }
 
   @override
@@ -34,9 +41,15 @@ class DioRestClient implements RestClient {
     String path, {
     Object? body,
     Json? queryParams,
+    Json? headers,
   }) async {
     return _send(
-      () => _dio.post(path, data: body, queryParameters: queryParams),
+      () => _dio.post(
+        path,
+        data: body,
+        queryParameters: queryParams,
+        options: Options(headers: headers),
+      ),
     );
   }
 
@@ -45,9 +58,17 @@ class DioRestClient implements RestClient {
     String path, {
     Object? body,
     Json? queryParams,
+    Json? headers,
+    void Function(int sentBytes, int totalBytes)? onSendProgress,
   }) async {
     return _send(
-      () => _dio.put(path, data: body, queryParameters: queryParams),
+      () => _dio.put(
+        path,
+        data: body,
+        queryParameters: queryParams,
+        options: Options(headers: headers),
+        onSendProgress: onSendProgress,
+      ),
     );
   }
 
@@ -56,9 +77,15 @@ class DioRestClient implements RestClient {
     String path, {
     Object? body,
     Json? queryParams,
+    Json? headers,
   }) async {
     return _send(
-      () => _dio.patch(path, data: body, queryParameters: queryParams),
+      () => _dio.patch(
+        path,
+        data: body,
+        queryParameters: queryParams,
+        options: Options(headers: headers),
+      ),
     );
   }
 
@@ -67,9 +94,15 @@ class DioRestClient implements RestClient {
     String path, {
     Object? body,
     Json? queryParams,
+    Json? headers,
   }) async {
     return _send(
-      () => _dio.delete(path, data: body, queryParameters: queryParams),
+      () => _dio.delete(
+        path,
+        data: body,
+        queryParameters: queryParams,
+        options: Options(headers: headers),
+      ),
     );
   }
 

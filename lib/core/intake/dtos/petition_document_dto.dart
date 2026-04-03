@@ -1,6 +1,6 @@
 class PetitionDocumentDto {
-  final String fileKey;
+  final String filePath;
   final String name;
 
-  const PetitionDocumentDto({required this.fileKey, required this.name});
+  const PetitionDocumentDto({required this.filePath, required this.name});
 }

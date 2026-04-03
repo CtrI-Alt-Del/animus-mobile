@@ -16,7 +16,7 @@ void main() {
   late _MockHomeScreenPresenter presenter;
 
   setUpAll(() {
-    registerFallbackValue(AnalysisDtoFaker.make());
+    registerFallbackValue(AnalysisDtoFaker.fake());
   });
 
   setUp(() {
@@ -24,7 +24,8 @@ void main() {
     when(() => presenter.initialize()).thenAnswer((_) async {});
     when(() => presenter.loadNextPage()).thenAnswer((_) async {});
     when(() => presenter.createAnalysis()).thenAnswer((_) async {});
-    when(() => presenter.openAnalysis(any())).thenReturn(null);
+    when(() => presenter.refresh()).thenAnswer((_) async {});
+    when(() => presenter.openAnalysis(any())).thenAnswer((_) async {});
     when(() => presenter.dispose()).thenReturn(null);
     when(() => presenter.formatCreatedAt(any())).thenReturn('31/03/2026');
     when(() => presenter.isLoadingInitialData).thenReturn(signal<bool>(false));
@@ -34,7 +35,7 @@ void main() {
     when(() => presenter.firstName).thenReturn(signal<String?>('Ada'));
     when(() => presenter.recentAnalyses).thenReturn(
       signal<List<AnalysisDto>>(<AnalysisDto>[
-        AnalysisDtoFaker.make(name: 'Analise 1'),
+        AnalysisDtoFaker.fake(name: 'Analise 1'),
       ]),
     );
     when(() => presenter.nextCursor).thenReturn(signal<String?>(null));
@@ -66,6 +67,20 @@ void main() {
       verify(() => presenter.createAnalysis()).called(1);
     },
   );
+
+  testWidgets('ao tocar no card, delega abertura da analise', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_createWidget(presenter));
+    await tester.pump();
+
+    clearInteractions(presenter);
+
+    await tester.tap(find.text('Analise 1'));
+    await tester.pump();
+
+    verify(() => presenter.openAnalysis(any())).called(1);
+  });
 
   testWidgets('mostra erro inicial e delega retry para initialize', (
     WidgetTester tester,

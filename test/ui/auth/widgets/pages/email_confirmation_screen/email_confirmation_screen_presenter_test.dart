@@ -63,7 +63,7 @@ void main() {
     ).thenAnswer(
       (_) async => RestResponse(
         statusCode: 200,
-        body: SessionDtoFaker.make(
+        body: SessionDtoFaker.fake(
           accessTokenValue: 'access-token',
           refreshTokenValue: 'refresh-token',
         ),

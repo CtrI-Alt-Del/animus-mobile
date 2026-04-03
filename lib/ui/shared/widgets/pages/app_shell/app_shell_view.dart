@@ -11,10 +11,30 @@ class AppShellView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int currentIndex = navigationShell.currentIndex;
+
     return Scaffold(
-      body: navigationShell,
+      body: TweenAnimationBuilder<double>(
+        key: ValueKey<int>(currentIndex),
+        tween: Tween<double>(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeOutCubic,
+        child: navigationShell,
+        builder: (BuildContext context, double value, Widget? child) {
+          final double opacity = value.clamp(0.0, 1.0);
+          final double slideOffset = (1 - value) * 8;
+
+          return Opacity(
+            opacity: opacity,
+            child: Transform.translate(
+              offset: Offset(slideOffset, 0),
+              child: child,
+            ),
+          );
+        },
+      ),
       bottomNavigationBar: AppBottomNavigation(
-        currentIndex: navigationShell.currentIndex,
+        currentIndex: currentIndex,
         onDestinationSelected: (int index) {
           navigationShell.goBranch(index);
         },

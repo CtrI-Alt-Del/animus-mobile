@@ -9,6 +9,7 @@ import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_error_card/i
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_loading_card/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_logout_button/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_settings_group/index.dart';
+import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_update_name_dialog/index.dart';
 
 import 'profile_screen_presenter.dart';
 
@@ -92,6 +93,24 @@ class ProfileScreenView extends ConsumerWidget {
                               isDarkThemeEnabled:
                                   AppTheme.defaultThemeMode == ThemeMode.dark,
                               appVersionLabel: appVersionLabel,
+                              onEditNameTap: () async {
+                                final String currentName =
+                                    presenter.displayName.value;
+                                final String? updatedName =
+                                    await showDialog<String>(
+                                      context: context,
+                                      builder: (_) => ProfileUpdateNameDialog(
+                                        initialName: currentName,
+                                      ),
+                                    );
+
+                                if (updatedName == null) {
+                                  return;
+                                }
+
+                                presenter.updateDisplayName(updatedName);
+                              },
+                              onChangePasswordTap: presenter.goToForgotPassword,
                             );
                           }),
                           const SizedBox(height: 24),

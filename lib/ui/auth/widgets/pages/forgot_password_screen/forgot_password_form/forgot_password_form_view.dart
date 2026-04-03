@@ -13,13 +13,21 @@ import 'forgot_password_form_presenter.dart';
 
 class ForgotPasswordFormView extends ConsumerWidget {
   final String? initialErrorCode;
+  final String? previousRoute;
 
-  const ForgotPasswordFormView({this.initialErrorCode, super.key});
+  const ForgotPasswordFormView({
+    this.initialErrorCode,
+    this.previousRoute,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ForgotPasswordFormPresenter presenter = ref.watch(
-      forgotPasswordFormPresenterProvider(initialErrorCode),
+      forgotPasswordFormPresenterProvider((
+        errorCode: initialErrorCode,
+        from: previousRoute,
+      )),
     );
 
     return ReactiveForm(

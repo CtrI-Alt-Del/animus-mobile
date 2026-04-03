@@ -82,8 +82,12 @@ Com base na pesquisa, tome as decisões de implementação:
   `Widget`, `DTO`, `Service` e `Driver`
 - Mapeie o fluxo de dados principal da feature:
   `View → Presenter → Provider → Interface de Serviço → Implementação REST/Driver → RestClient → API`
-- Se houver widgets internos complexos, planeje a estrutura de pastas antes de
-  detalhar cada componente
+- Mapeie proativamente os widgets internos da tela — não espere o widget pai
+  crescer. Qualquer seção da UI com responsabilidade própria (estado, handlers,
+  forma visual isolada) já nasce como widget interno com pasta dedicada.
+- Todo widget interno deve seguir o padrão `View + Presenter`, sendo o
+  `Presenter` opcional apenas quando o widget for puramente visual e sem estado.
+- Planeje a estrutura de pastas completa antes de detalhar cada componente.
 - Registre em **Pendências / Dúvidas** (seção 11) tudo que não teve evidência
   suficiente para decidir
 
@@ -251,10 +255,17 @@ detalhe e marque explicitamente como **novo arquivo**.]
 
 ## Camada UI (Widgets Internos)
 
-> Para cada subwidget que exige pasta própria, detalhe separadamente.
+> Para cada widget interno, detalhe separadamente. Widgets internos devem ser
+> planejados proativamente — não apenas quando o widget pai crescer demais.
+> Qualquer seção da tela com responsabilidade própria já nasce como widget
+> interno com pasta dedicada.
 
-- **Localização:** `lib/ui/<modulo>/widgets/<tela>/<componente>/` (**novo arquivo** se aplicável)
-- **Tipo:** View only | View + Presenter
+> **Padrão obrigatório:** todo widget interno deve ter `*_view.dart`. O
+> `*_presenter.dart` é obrigatório quando houver estado, handlers ou lógica;
+> opcional apenas em widgets puramente visuais sem comportamento.
+
+- **Localização:** `lib/ui/<modulo>/widgets/<tela>/<componente>/` (**novo arquivo**)
+- **Tipo:** `View only` | `View + Presenter` *(Presenter obrigatório se houver estado ou lógica)*
 - **Props:** parâmetros recebidos com tipos
 - **Responsabilidade:** o que renderiza ou orquestra
 
@@ -287,11 +298,14 @@ estrutura completa de pastas e arquivos.]
 lib/ui/<modulo>/widgets/screens/<tela>/
   index.dart
   <tela>_screen_view.dart
-  <tela>_screen_presenter.dart
-  <componente_interno>/
+  <tela>_screen_presenter.dart       ← orquestra apenas o fluxo de entrada da rota
+  <componente_interno>/              ← toda seção com responsabilidade própria vira widget interno
     index.dart
     <componente_interno>_view.dart
-    <componente_interno>_presenter.dart  (se houver lógica)
+    <componente_interno>_presenter.dart  ← obrigatório se houver estado, handlers ou lógica
+  <outro_componente>/                ← widgets puramente visuais podem ter apenas _view.dart
+    index.dart
+    <outro_componente>_view.dart
 ```
 
 ---
@@ -390,6 +404,13 @@ Para cada item:
 - Toda referência a código existente deve incluir caminho relativo real
   (`lib/...`).
 - Se uma seção não se aplicar, preencher explicitamente com **Não aplicável**.
+- **Todo widget novo deve seguir o padrão `View + Presenter`.** O `Presenter`
+  é opcional apenas em widgets puramente visuais sem estado, handlers ou lógica.
+- Widgets internos devem ser planejados proativamente na spec. Não é aceitável
+  descrever uma tela como um único bloco monolítico quando há seções com
+  responsabilidade distinta.
+- O `Presenter` da `Screen` deve ser enxuto e orquestrador. Lógica específica
+  de uma seção da tela pertence ao `Presenter` do widget interno correspondente.
 - Toda widget com lógica ou subwidgets complexos deve ter pasta própria com
   `index.dart`, `*_view.dart` e `*_presenter.dart` (quando houver estado).
 - Use componentes Flutter Material alinhados ao tema do projeto.
