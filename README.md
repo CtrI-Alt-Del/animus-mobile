@@ -93,7 +93,49 @@ lib/
    Copy-Item .env.example .env
    ```
 
-   Depois, preencha `ANIMUS_SERVER_APP_URL` no arquivo `.env`. Se for validar o login com Google em iOS ou em fluxos que exijam configuracao explicita, preencha tambem `ANIMUS_GOOGLE_IOS_CLIENT_ID` e `ANIMUS_GOOGLE_SERVER_CLIENT_ID`.
+   Depois, preencha as variaveis abaixo no arquivo `.env`:
+
+   - `ANIMUS_SERVER_APP_URL`
+     - **O que e:** URL base do backend Animus consumido pelo app.
+     - **Como obter (dev local Android Emulator):** use `http://10.0.2.2:8080` se o backend estiver rodando na sua maquina na porta `8080`.
+     - **Como obter (dispositivo fisico):** use o IP da maquina na rede local (ex.: `http://192.168.0.10:8080`).
+
+   - `GOOGLE_IOS_CLIENT_ID`
+     - **O que e:** OAuth Client ID do tipo **iOS** para o app nativo.
+     - **Como obter:**
+       1. Acesse o [Google Cloud Console](https://console.cloud.google.com/).
+       2. Selecione o projeto usado pelo Animus.
+       3. Va em **APIs & Services > Credentials**.
+       4. Crie (ou copie) um **OAuth client ID** do tipo **iOS**.
+       5. Use o valor de **Client ID** nesta variavel.
+     - **Importante iOS:** mantenha o `reversed client id` alinhado com `CFBundleURLSchemes` no `Info.plist`.
+
+   - `GOOGLE_SERVER_CLIENT_ID`
+     - **O que e:** OAuth Client ID do tipo **Web/Server**, usado para emissao/validacao de token no backend.
+     - **Como obter:**
+       1. No mesmo projeto do Google Cloud, abra **APIs & Services > Credentials**.
+       2. Crie (ou copie) um **OAuth client ID** do tipo **Web application**.
+       3. Use o valor de **Client ID** nesta variavel.
+
+   - `GCS_URL`
+     - **O que e:** endpoint base do servico de storage usado pelo app.
+     - **Como obter (dev local):** se estiver usando emulacao/local storage gateway, use `http://10.0.2.2:4443` no Android Emulator.
+
+   - `GCS_DOWNLOAD_URL`
+     - **O que e:** endpoint base para download de objetos no bucket.
+     - **Como obter (dev local):** normalmente segue o padrao:
+       `http://10.0.2.2:4443/download/storage/v1/b/<bucket>/o`
+       substituindo `<bucket>` pelo nome real do bucket (no projeto atual: `animus-bucket`).
+
+   Exemplo de `.env` para ambiente local:
+
+   ```env
+   ANIMUS_SERVER_APP_URL=http://10.0.2.2:8080
+   GOOGLE_IOS_CLIENT_ID=seu-client-id-ios.apps.googleusercontent.com
+   GOOGLE_SERVER_CLIENT_ID=seu-client-id-web.apps.googleusercontent.com
+   GCS_URL=http://10.0.2.2:4443
+   GCS_DOWNLOAD_URL=http://10.0.2.2:4443/download/storage/v1/b/animus-bucket/o
+   ```
 
 4. **Execute o app em desenvolvimento:**
 

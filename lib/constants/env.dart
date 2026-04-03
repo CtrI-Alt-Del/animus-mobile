@@ -3,11 +3,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class Env {
   static String get animusServerAppUrl => dotenv.env['ANIMUS_SERVER_APP_URL']!;
 
-  static String get googleIosClientId =>
-      _validateValue('ANIMUS_GOOGLE_IOS_CLIENT_ID');
+  static String get googleIosClientId => _validateValue('GOOGLE_IOS_CLIENT_ID');
 
   static String get googleServerClientId =>
-      _validateValue('ANIMUS_GOOGLE_SERVER_CLIENT_ID');
+      _validateValue('GOOGLE_SERVER_CLIENT_ID');
 
   static String get gcsUrl => _validateValue('GCS_URL');
 
