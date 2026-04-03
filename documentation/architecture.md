@@ -78,6 +78,12 @@ REST de `intake` para persistencia da peticao, consulta do resumo, renomeacao e 
 da analise. A UI permanece em MVP, com `signals` para estados transitivos de arquivo,
 progresso, erro recuperavel e gerenciamento rapido da analise no header.
 
+Na tela de Perfil, o `ProfileScreenPresenter` valida a existencia local de `CacheKeys.accessToken`,
+redireciona para `Routes.signIn` quando nao ha sessao e, com token presente, reutiliza
+`AuthService.fetchAccount()` para carregar a conta autenticada. A UI exibe estados de loading,
+erro recuperavel com retry e conteudo read-only para `name` e `email`, mantendo o grupo de
+configuracoes e o CTA de saida apenas como shell visual nesta sprint.
+
 ## Principios arquiteturais
 
 1. UI nao acessa API diretamente.

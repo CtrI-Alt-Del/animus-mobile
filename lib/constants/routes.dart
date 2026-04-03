@@ -1,5 +1,6 @@
 class Routes {
   static const String home = '/';
+  static const String library = '/library';
   static const String signIn = '/auth/sign_in';
   static const String signUp = '/auth/sign_up';
   static const String emailConfirmation = '/auth/email_confirmation';

@@ -289,6 +289,17 @@ void main() {
     });
   });
 
+  group('navigation', () {
+    test('openProfile navega para perfil', () {
+      final HomeScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.openProfile();
+
+      verify(() => navigationDriver.goTo(Routes.profile)).called(1);
+    });
+  });
+
   group('formatCreatedAt', () {
     test('formata datas validas em dd/MM/yyyy', () {
       final HomeScreenPresenter presenter = createPresenter();

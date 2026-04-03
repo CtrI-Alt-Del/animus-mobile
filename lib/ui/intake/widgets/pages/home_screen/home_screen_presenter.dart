@@ -208,10 +208,8 @@ class HomeScreenPresenter {
     await refresh();
   }
 
-  void onDestinationSelected(int index) {
-    if (index == 0) {
-      return;
-    }
+  void openProfile() {
+    _navigationDriver.goTo(Routes.profile);
   }
 
   String formatCreatedAt(String value) {
@@ -264,7 +262,10 @@ class HomeScreenPresenter {
     RestResponse<dynamic> response, {
     required String fallback,
   }) {
-    final String? bodyMessage = response.errorBody?['message'] as String?;
+    final dynamic bodyMessageDynamic = response.errorBody?['message'];
+    final String? bodyMessage = bodyMessageDynamic is String
+        ? bodyMessageDynamic
+        : null;
     if (bodyMessage != null && bodyMessage.trim().isNotEmpty) {
       return bodyMessage;
     }

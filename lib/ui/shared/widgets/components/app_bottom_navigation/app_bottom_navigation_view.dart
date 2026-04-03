@@ -2,30 +2,22 @@ import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
 
-class HomeBottomNavigationView extends StatelessWidget {
+class AppBottomNavigationView extends StatelessWidget {
   static const List<({String label, IconData icon, IconData selectedIcon})>
   _destinations = <({String label, IconData icon, IconData selectedIcon})>[
-    (
-      label: 'HOME',
-      icon: Icons.home_outlined,
-      selectedIcon: Icons.home_outlined,
-    ),
-    (
-      label: 'PERFIL',
-      icon: Icons.person_outline,
-      selectedIcon: Icons.person_outline,
-    ),
+    (label: 'HOME', icon: Icons.home_outlined, selectedIcon: Icons.home),
     (
       label: 'BIBLIOTECA',
       icon: Icons.folder_outlined,
-      selectedIcon: Icons.folder_outlined,
+      selectedIcon: Icons.folder,
     ),
+    (label: 'PERFIL', icon: Icons.person_outline, selectedIcon: Icons.person),
   ];
 
   final int currentIndex;
   final ValueChanged<int> onDestinationSelected;
 
-  const HomeBottomNavigationView({
+  const AppBottomNavigationView({
     required this.currentIndex,
     required this.onDestinationSelected,
     super.key,
@@ -95,7 +87,9 @@ class HomeBottomNavigationView extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.labelSmall?.copyWith(
                               fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                               letterSpacing: 0.6,
                               color: foregroundColor,
                             ),
