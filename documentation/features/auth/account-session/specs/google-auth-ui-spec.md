@@ -99,7 +99,7 @@ Esta spec define a implementacao do login com Google no `animus`, conectando os 
 
 - **`Routes`** (`lib/constants/routes.dart`) - ja expoe `Routes.home`, `Routes.signIn`, `Routes.signUp` e `Routes.getEmailConfirmation(...)`; nao requer nova rota para esta feature.
 - **`appRouter`** (`lib/router.dart`) - fluxo atual de auth ja entra por `Routes.signIn`.
-- **`Env`** (`lib/constants/env.dart`) e **`.env.example`** (`.env.example`) - ja expoem `ANIMUS_SERVER_APP_URL`, `ANIMUS_GOOGLE_IOS_CLIENT_ID` e `ANIMUS_GOOGLE_SERVER_CLIENT_ID`, todos carregados via `flutter_dotenv`.
+- **`Env`** (`lib/constants/env.dart`) e **`.env.example`** (`.env.example`) - ja expoem `ANIMUS_SERVER_APP_URL`, `GOOGLE_IOS_CLIENT_ID` e `GOOGLE_SERVER_CLIENT_ID`, todos carregados via `flutter_dotenv`.
 - **`pubspec.yaml`** (`pubspec.yaml`) - ja declara `google_sign_in`.
 - **`ios/Runner/Info.plist`** (`ios/Runner/Info.plist`) - ja contem `CFBundleURLTypes`; o URL scheme do callback deve permanecer alinhado ao `reversed client id` configurado via build setting.
 - **`android/app/build.gradle.kts`** (`android/app/build.gradle.kts`) - esta implementacao usa `applicationId = "br.com.animus.app"`, alinhando a identidade do app ao registro OAuth.
