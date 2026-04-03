@@ -25,7 +25,6 @@ void main() {
     when(() => presenter.loadNextPage()).thenAnswer((_) async {});
     when(() => presenter.createAnalysis()).thenAnswer((_) async {});
     when(() => presenter.openAnalysis(any())).thenReturn(null);
-    when(() => presenter.onDestinationSelected(any())).thenReturn(null);
     when(() => presenter.dispose()).thenReturn(null);
     when(() => presenter.formatCreatedAt(any())).thenReturn('31/03/2026');
     when(() => presenter.isLoadingInitialData).thenReturn(signal<bool>(false));
@@ -55,9 +54,9 @@ void main() {
       expect(find.text('Seu resumo juridico de hoje'), findsOneWidget);
       expect(find.text('Recentes'), findsOneWidget);
       expect(find.text('Analise 1'), findsOneWidget);
-      expect(find.text('HOME'), findsOneWidget);
-      expect(find.text('PERFIL'), findsOneWidget);
-      expect(find.text('BIBLIOTECA'), findsOneWidget);
+      expect(find.text('HOME'), findsNothing);
+      expect(find.text('BIBLIOTECA'), findsNothing);
+      expect(find.text('PERFIL'), findsNothing);
 
       clearInteractions(presenter);
 
