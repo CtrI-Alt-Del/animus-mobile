@@ -131,7 +131,12 @@ class NewPasswordScreenPresenter {
     isSubmitting.value = false;
   }
 
-  void goToSignIn() {
+  void goBackOrGoToSignIn() {
+    if (_navigationDriver.canGoBack()) {
+      _navigationDriver.goBack();
+      return;
+    }
+
     _navigationDriver.goTo(Routes.signIn);
   }
 

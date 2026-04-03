@@ -12,10 +12,14 @@ const Color _profileSettingsDividerColor = Color(0x1AFBE26D);
 class ProfileSettingsGroupView extends StatelessWidget {
   final bool isDarkThemeEnabled;
   final String appVersionLabel;
+  final VoidCallback onEditNameTap;
+  final VoidCallback onChangePasswordTap;
 
   const ProfileSettingsGroupView({
     required this.isDarkThemeEnabled,
     required this.appVersionLabel,
+    required this.onEditNameTap,
+    required this.onChangePasswordTap,
     super.key,
   });
 
@@ -36,14 +40,14 @@ class ProfileSettingsGroupView extends StatelessWidget {
             title: 'Editar Nome',
             icon: Icons.person_outline,
             iconColor: tokens.accent,
-            onTap: _noop,
+            onTap: onEditNameTap,
           ),
           const ProfileDivider(color: _profileSettingsDividerColor),
           ProfileSettingsTile(
             title: 'Alterar Senha',
             icon: Icons.lock_outline,
             iconColor: tokens.accent,
-            onTap: _noop,
+            onTap: onChangePasswordTap,
           ),
           const ProfileDivider(color: _profileSettingsDividerColor),
           ProfileSettingsTile(
