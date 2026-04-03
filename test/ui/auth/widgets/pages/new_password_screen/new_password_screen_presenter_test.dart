@@ -181,14 +181,19 @@ void main() {
     });
   });
 
-  test('goToSignIn navega para tela de login', () {
-    final NewPasswordScreenPresenter presenter = createPresenter();
-    addTearDown(presenter.dispose);
+  test(
+    'goBackOrGoToSignIn navega para tela de login quando nao pode voltar',
+    () {
+      final NewPasswordScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
 
-    presenter.goToSignIn();
+      when(() => navigationDriver.canGoBack()).thenReturn(false);
 
-    verify(() => navigationDriver.goTo(Routes.signIn)).called(1);
-  });
+      presenter.goBackOrGoToSignIn();
+
+      verify(() => navigationDriver.goTo(Routes.signIn)).called(1);
+    },
+  );
 }
 
 void _fillValidForm(NewPasswordScreenPresenter presenter) {

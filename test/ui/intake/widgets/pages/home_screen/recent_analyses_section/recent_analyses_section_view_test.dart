@@ -19,7 +19,8 @@ void main() {
           showEmptyState: false,
           errorMessage: null,
           formatCreatedAt: (String value) => value,
-          onTapAnalysis: (_) {},
+          onRefresh: () async {},
+          onTapAnalysis: (_) async {},
           onRetry: () {},
           onLoadMore: () {},
           onCreateFirstAnalysis: () {},
@@ -47,7 +48,8 @@ void main() {
           showEmptyState: false,
           errorMessage: 'Falha ao buscar analises',
           formatCreatedAt: (String value) => value,
-          onTapAnalysis: (_) {},
+          onRefresh: () async {},
+          onTapAnalysis: (_) async {},
           onRetry: () {
             retryCount += 1;
           },
@@ -80,7 +82,8 @@ void main() {
           showEmptyState: true,
           errorMessage: null,
           formatCreatedAt: (String value) => value,
-          onTapAnalysis: (_) {},
+          onRefresh: () async {},
+          onTapAnalysis: (_) async {},
           onRetry: () {},
           onLoadMore: () {},
           onCreateFirstAnalysis: () {
@@ -108,7 +111,7 @@ void main() {
     int loadMoreCount = 0;
     final List<AnalysisDto> analyses = List<AnalysisDto>.generate(
       20,
-      (int index) => AnalysisDtoFaker.make(
+      (int index) => AnalysisDtoFaker.fake(
         id: 'analysis-$index',
         name: 'Analise $index',
         createdAt: '2026-03-31T10:00:00Z',
@@ -124,7 +127,8 @@ void main() {
           showEmptyState: false,
           errorMessage: null,
           formatCreatedAt: (_) => '31/03/2026',
-          onTapAnalysis: (_) {},
+          onRefresh: () async {},
+          onTapAnalysis: (_) async {},
           onRetry: () {},
           onLoadMore: () {
             loadMoreCount += 1;

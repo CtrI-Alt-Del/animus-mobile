@@ -332,7 +332,7 @@ final class AppTheme {
       titleMedium: _sans(base.titleMedium, 22, FontWeight.w600, -0.2),
       titleSmall: _sans(base.titleSmall, 20, FontWeight.w600, 0.0),
       bodyLarge: _sans(base.bodyLarge, 22, FontWeight.w400, 0.0),
-      bodyMedium: _sans(base.bodyMedium, 18, FontWeight.w400, 0.0),
+      bodyMedium: _sans(base.bodyMedium, 16, FontWeight.w400, 0.0),
       bodySmall: _sans(base.bodySmall, 14, FontWeight.w400, 0.0),
       labelLarge: _sans(base.labelLarge, 18, FontWeight.w700, 0.0),
       labelMedium: _sans(base.labelMedium, 16, FontWeight.w500, 0.0),

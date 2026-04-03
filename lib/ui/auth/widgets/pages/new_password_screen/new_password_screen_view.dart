@@ -37,7 +37,7 @@ class NewPasswordScreenView extends ConsumerWidget {
                   children: <Widget>[
                     NavBackRow(
                       title: 'Nova Senha',
-                      onBack: presenter.goToSignIn,
+                      onBack: presenter.goBackOrGoToSignIn,
                     ),
                     const SizedBox(height: 24),
                     Center(

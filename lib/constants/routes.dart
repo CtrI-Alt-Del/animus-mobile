@@ -8,14 +8,20 @@ class Routes {
   static const String checkEmail = '/auth/check_email';
   static const String newPassword = '/auth/new_password';
   static const String profile = '/auth/profile';
-  static const String analysis = '/analyses/:id';
+  static const String analysis = '/analyses/:analysisId';
 
-  static String getForgotPassword({String? errorCode}) {
+  static String getForgotPassword({String? errorCode, String? previousRoute}) {
+    final Map<String, String> queryParameters = <String, String>{};
+    if (errorCode != null && errorCode.trim().isNotEmpty) {
+      queryParameters['errorCode'] = errorCode;
+    }
+    if (previousRoute != null && previousRoute.trim().isNotEmpty) {
+      queryParameters['from'] = previousRoute;
+    }
+
     final Uri uri = Uri(
       path: forgotPassword,
-      queryParameters: errorCode == null
-          ? null
-          : <String, String>{'errorCode': errorCode},
+      queryParameters: queryParameters.isEmpty ? null : queryParameters,
     );
     return uri.toString();
   }
@@ -36,8 +42,8 @@ class Routes {
     return uri.toString();
   }
 
-  static String getAnalysis({required String id}) {
-    final Uri uri = Uri(path: '/analyses/${Uri.encodeComponent(id)}');
+  static String getAnalysis({required String analysisId}) {
+    final Uri uri = Uri(path: '/analyses/${Uri.encodeComponent(analysisId)}');
     return uri.toString();
   }
 

@@ -1,5 +1,6 @@
-import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/petition_dto.dart';
+import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
@@ -7,16 +8,16 @@ import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/shared/types/json.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
+import 'package:animus/rest/mappers/intake/petition_mapper.dart';
+import 'package:animus/rest/mappers/intake/petition_summary_mapper.dart';
+import 'package:animus/rest/mappers/shared/cursor_pagination_mapper.dart';
+import 'package:animus/rest/services/service.dart';
 
-class IntakeRestService implements IntakeService {
-  final RestClient _restClient;
-  final CacheDriver _cacheDriver;
-
-  const IntakeRestService({
+class IntakeRestService extends Service implements IntakeService {
+  IntakeRestService({
     required RestClient restClient,
     required CacheDriver cacheDriver,
-  }) : _restClient = restClient,
-       _cacheDriver = cacheDriver;
+  }) : super(restClient, cacheDriver);
 
   @override
   Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listAnalyses({
@@ -24,7 +25,9 @@ class IntakeRestService implements IntakeService {
     required int limit,
     bool isArchived = false,
   }) async {
-    _setAuthorizationHeader();
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<CursorPaginationResponse<AnalysisDto>>();
+    }
 
     final Json queryParams = <String, dynamic>{
       'limit': limit,
@@ -35,59 +38,138 @@ class IntakeRestService implements IntakeService {
       queryParams['cursor'] = cursor;
     }
 
-    final response = await _restClient.get(
+    final response = await restClient.get(
       '/intake/analyses',
       queryParams: queryParams,
     );
     return response.mapBody<CursorPaginationResponse<AnalysisDto>>(
-      _toCursorPaginationResponse,
+      (Json json) =>
+          CursorPaginationMapper.toDto<AnalysisDto>(json, AnalysisMapper.toDto),
     );
   }
 
   @override
   Future<RestResponse<AnalysisDto>> createAnalysis({String? folderId}) async {
-    _setAuthorizationHeader();
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<AnalysisDto>();
+    }
 
     final String? normalizedFolderId = folderId?.trim();
     final Object body = normalizedFolderId == null || normalizedFolderId.isEmpty
         ? <String, dynamic>{}
         : <String, dynamic>{'folder_id': normalizedFolderId};
 
-    final response = await _restClient.post('/intake/analyses', body: body);
+    final response = await restClient.post('/intake/analyses', body: body);
     return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
   }
 
-  CursorPaginationResponse<AnalysisDto> _toCursorPaginationResponse(Json json) {
-    final dynamic itemsValue = json['items'] ?? json['data'];
-    final List<AnalysisDto> items = _toAnalyses(itemsValue);
-    final String? nextCursor = _toNextCursor(json);
+  @override
+  Future<RestResponse<PetitionDto>> createPetition({
+    required PetitionDto petition,
+  }) async {
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<PetitionDto>();
+    }
 
-    return CursorPaginationResponse<AnalysisDto>(
-      items: items,
-      nextCursor: nextCursor,
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/petitions',
+      body: PetitionMapper.toJson(petition),
     );
+
+    return response.mapBody<PetitionDto>(PetitionMapper.toDto);
   }
 
-  List<AnalysisDto> _toAnalyses(dynamic value) {
-    if (value is! List<dynamic>) {
-      return const <AnalysisDto>[];
+  @override
+  Future<RestResponse<AnalysisDto>> getAnalysis({
+    required String analysisId,
+  }) async {
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<AnalysisDto>();
     }
 
-    return value.whereType<Json>().map(AnalysisMapper.toDto).toList();
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId',
+    );
+
+    return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
   }
 
-  String? _toNextCursor(Json json) {
-    final dynamic nextCursor = json['next_cursor'] ?? json['nextCursor'];
-    if (nextCursor is String && nextCursor.trim().isNotEmpty) {
-      return nextCursor;
+  @override
+  Future<RestResponse<AnalysisDto>> renameAnalysis({
+    required String analysisId,
+    required String name,
+  }) async {
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<AnalysisDto>();
     }
 
-    return null;
+    final String normalizedName = name.trim();
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.patch(
+      '/intake/analyses/$analysisId/name',
+      body: <String, dynamic>{'name': normalizedName},
+    );
+
+    return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
   }
 
-  void _setAuthorizationHeader() {
-    final String token = _cacheDriver.get(CacheKeys.accessToken) ?? '';
-    final String authorization = token.isEmpty ? '' : 'Bearer $token';
-    _restClient.setHeader('Authorization', authorization);
+  @override
+  Future<RestResponse<AnalysisDto>> archiveAnalysis({
+    required String analysisId,
+  }) async {
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<AnalysisDto>();
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.patch(
+      '/intake/analyses/$analysisId/archive',
+    );
+
+    return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<PetitionDto>> getAnalysisPetition({
+    required String analysisId,
+  }) async {
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<PetitionDto>();
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId/petition',
+    );
+
+    return response.mapBody<PetitionDto>(PetitionMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<PetitionSummaryDto>> getPetitionSummary({
+    required String petitionId,
+  }) async {
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<PetitionSummaryDto>();
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/petitions/$petitionId/summary',
+    );
+
+    return response.mapBody<PetitionSummaryDto>(PetitionSummaryMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<PetitionSummaryDto>> summarizePetition({
+    required String petitionId,
+  }) async {
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<PetitionSummaryDto>();
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/petitions/$petitionId/summary',
+    );
+
+    return response.mapBody<PetitionSummaryDto>(PetitionSummaryMapper.toDto);
   }
 }

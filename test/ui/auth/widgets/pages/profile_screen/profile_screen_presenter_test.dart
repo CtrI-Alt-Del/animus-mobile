@@ -59,17 +59,17 @@ void main() {
       await presenter.initialize();
 
       verify(() => navigationDriver.goTo(Routes.signIn)).called(1);
-      verifyNever(() => authService.fetchAccount());
+      verifyNever(() => authService.getAccount());
     });
 
     test('carrega conta com sucesso', () async {
       final ProfileScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      when(() => authService.fetchAccount()).thenAnswer(
+      when(() => authService.getAccount()).thenAnswer(
         (_) async => RestResponse<AccountDto>(
           statusCode: 200,
-          body: AccountDtoFaker.make(name: 'Ada Lovelace'),
+          body: AccountDtoFaker.fake(name: 'Ada Lovelace'),
         ),
       );
 
@@ -87,7 +87,7 @@ void main() {
       int fetchCount = 0;
       addTearDown(presenter.dispose);
 
-      when(() => authService.fetchAccount()).thenAnswer((_) async {
+      when(() => authService.getAccount()).thenAnswer((_) async {
         fetchCount += 1;
         if (fetchCount == 1) {
           return RestResponse<AccountDto>(
@@ -98,7 +98,7 @@ void main() {
 
         return RestResponse<AccountDto>(
           statusCode: 200,
-          body: AccountDtoFaker.make(email: 'ada@animus.dev'),
+          body: AccountDtoFaker.fake(email: 'ada@animus.dev'),
         );
       });
 
@@ -112,7 +112,7 @@ void main() {
 
       expect(presenter.generalError.value, isNull);
       expect(presenter.account.value?.email, 'ada@animus.dev');
-      verify(() => authService.fetchAccount()).called(2);
+      verify(() => authService.getAccount()).called(2);
     });
 
     test('ignora chamadas concorrentes e repetidas apos sucesso', () async {
@@ -121,21 +121,19 @@ void main() {
           Completer<RestResponse<AccountDto>>();
       addTearDown(presenter.dispose);
 
-      when(
-        () => authService.fetchAccount(),
-      ).thenAnswer((_) => completer.future);
+      when(() => authService.getAccount()).thenAnswer((_) => completer.future);
 
       final Future<void> firstCall = presenter.initialize();
       final Future<void> secondCall = presenter.initialize();
 
       completer.complete(
-        RestResponse<AccountDto>(statusCode: 200, body: AccountDtoFaker.make()),
+        RestResponse<AccountDto>(statusCode: 200, body: AccountDtoFaker.fake()),
       );
 
       await Future.wait(<Future<void>>[firstCall, secondCall]);
       await presenter.initialize();
 
-      verify(() => authService.fetchAccount()).called(1);
+      verify(() => authService.getAccount()).called(1);
     });
   });
 
@@ -144,7 +142,7 @@ void main() {
       final ProfileScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      presenter.account.value = AccountDtoFaker.make(
+      presenter.account.value = AccountDtoFaker.fake(
         name: '  ada lovelace  ',
         email: '  ada@example.com  ',
       );

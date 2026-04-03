@@ -1,5 +1,7 @@
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/navigation_keys.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/ui/auth/widgets/pages/check_email_screen/index.dart';
@@ -16,7 +18,29 @@ import 'package:animus/ui/storage/widgets/pages/library_screen/index.dart';
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: Routes.signIn,
+  initialLocation: Routes.home,
+  redirect: (context, state) async {
+    final String path = state.uri.path;
+    const Set<String> publicPaths = <String>{
+      Routes.signIn,
+      Routes.signUp,
+      Routes.emailConfirmation,
+      Routes.forgotPassword,
+      Routes.checkEmail,
+      Routes.newPassword,
+    };
+
+    if (publicPaths.contains(path)) {
+      return null;
+    }
+
+    final bool hasValidSession = await _hasLocalSession();
+    if (!hasValidSession) {
+      return Routes.signIn;
+    }
+
+    return null;
+  },
   routes: <RouteBase>[
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -72,24 +96,14 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: Routes.analysis,
-      redirect: (context, state) {
-        final String? analysisId = state.pathParameters['id'];
-        if (analysisId == null || analysisId.trim().isEmpty) {
-          return Routes.home;
-        }
-        return null;
-      },
-      builder: (context, state) {
-        final String analysisId = state.pathParameters['id'] ?? '';
-        return AnalysisScreen(analysisId: analysisId);
-      },
-    ),
-    GoRoute(
       path: Routes.forgotPassword,
       builder: (context, state) {
         final String? errorCode = state.uri.queryParameters['errorCode'];
-        return ForgotPasswordScreen(initialErrorCode: errorCode);
+        final String? previousRoute = state.uri.queryParameters['from'];
+        return ForgotPasswordScreen(
+          initialErrorCode: errorCode,
+          previousRoute: previousRoute,
+        );
       },
     ),
     GoRoute(
@@ -120,5 +134,30 @@ final GoRouter appRouter = GoRouter(
         return NewPasswordScreen(accountId: accountId);
       },
     ),
+    GoRoute(
+      path: Routes.analysis,
+      redirect: (context, state) {
+        final String? analysisId = state.pathParameters['analysisId'];
+        if (analysisId == null || analysisId.trim().isEmpty) {
+          return Routes.home;
+        }
+
+        return null;
+      },
+      builder: (context, state) {
+        final String analysisId = state.pathParameters['analysisId'] ?? '';
+        return AnalysisScreen(analysisId: analysisId);
+      },
+    ),
   ],
 );
+
+Future<bool> _hasLocalSession() async {
+  final SharedPreferences preferences = await SharedPreferences.getInstance();
+  final String accessToken =
+      (preferences.getString(CacheKeys.accessToken) ?? '').trim();
+  final String refreshToken =
+      (preferences.getString(CacheKeys.refreshToken) ?? '').trim();
+
+  return accessToken.isNotEmpty && refreshToken.isNotEmpty;
+}

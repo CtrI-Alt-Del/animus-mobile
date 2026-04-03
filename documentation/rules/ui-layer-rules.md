@@ -56,7 +56,6 @@ lib/ui/{modulo}/
 - Cada widget complexo deve viver em sua propria pasta.
 - Cada `{modulo}` deve seguir a estrutura base com `widgets/`, `components/` e `screens/` na raiz da modulo.
 - Widgets internos devem abrir subpastas dedicadas dentro do widget pai.
-- Nao criar pasta intermediaria `widgets/` dentro da pasta de um widget pai; criar diretamente as pastas dos widgets internos.
 - Nao se deve criar pastas genericas extras apenas para agrupar um unico widget interno.
 - A pasta publica do widget pode expor um `index.dart` para reduzir imports profundos.
 
@@ -85,6 +84,9 @@ lib/ui/{modulo}/
 - A View deve observar estado e renderizar.
 - O Presenter deve reagir a eventos, coordenar dependencias e centralizar side effects.
 - Widgets puramente visuais podem existir apenas como View quando nao houver estado nem logica relevante.
+- **Todo widget novo deve seguir o padrao `View + Presenter`, sendo o `Presenter` opcional apenas quando o widget for puramente visual e sem estado, handlers ou logica.**
+- **A logica nao deve ser concentrada no Presenter da tela inteira.** Sempre que um widget filho tiver responsabilidade propria (estado, validacao, handlers), ele deve ter seu proprio Presenter, aliviando o Presenter pai de responsabilidades que nao lhe pertencem.
+- O Presenter da Screen deve ser enxuto e orquestrador, restrito ao fluxo de entrada da rota. O restante deve ser delegado aos Presenters dos widgets filhos.
 
 ## Riverpod
 
@@ -100,6 +102,8 @@ lib/ui/{modulo}/
 
 - E obrigatoria quando o widget cresce, quando ha subpartes com responsabilidade propria ou quando ha reuso dentro da modulo.
 - Se o widget passou a depender de metodos `_build...` demais, isso costuma indicar que ele deve ser quebrado em componentes menores.
+- **Widgets internos devem ser criados proativamente** — nao apenas quando o widget pai crescer demais. Se uma secao da tela tem estado, handlers ou logica propria, ela ja nasce como widget interno com pasta dedicada.
+- **Cada widget interno com estado ou logica deve ter seu proprio Presenter.** Nao repasse responsabilidade para o Presenter do widget pai so porque o componente e filho na arvore visual.
 
 ## Quando evitar abstracao extra
 
@@ -128,6 +132,8 @@ lib/ui/{modulo}/
 - [ ] Estados de loading, erro, vazio e sucesso foram previstos.
 - [ ] A composicao de dependencias acontece via Riverpod.
 - [ ] A renderizacao usa apenas modelos tipados e nao conhece detalhes de persistencia ou transporte.
+- [ ] Widgets internos com responsabilidade propria foram extraidos para pastas dedicadas com `*_view.dart` e, quando houver estado ou logica, `*_presenter.dart`.
+- [ ] A logica esta distribuida nos Presenters dos widgets filhos; o Presenter da Screen orquestra apenas o fluxo de entrada da rota.
 
 ## ✅ O que DEVE conter
 
@@ -137,6 +143,10 @@ lib/ui/{modulo}/
 - Mensagens de validacao de formulario providas pelo Presenter (a View apenas consome os mapas/formatadores).
 - Uso consistente de tema, textos, feedbacks e empty states alinhados ao fluxo do produto.
 - Widgets privados com responsabilidade visual propria devem ser extraidos para widgets internos em pasta propria dentro da pasta do widget pai.
+- Widgets internos extraidos devem seguir o padrao de pasta com nome do proprio widget (ex.: `ai_bubble/typing_dot/`), arquivo `*_view.dart` e `index.dart` com typedef para manter a fronteira publica da pasta.
+- Widgets internos com estado ou logica devem ter `*_presenter.dart` proprio — sem repassar essa responsabilidade para o Presenter do widget pai.
+- Widgets internos com pasta propria devem ser planejados desde o inicio da spec, nao apenas quando o widget pai crescer.
+- Distribuicao de logica entre Presenters filhos; o Presenter da Screen deve ser enxuto e orquestrador.
 
 ## ❌ O que NUNCA deve conter
 
@@ -145,3 +155,6 @@ lib/ui/{modulo}/
 - Chamadas diretas a `Dio`, `SharedPreferences` ou `dotenv` para substituir trabalho de outras camadas.
 - Widgets gigantes sustentados por dezenas de `_build...` quando a estrutura ja pede separacao.
 - Widgets privados definidos no mesmo arquivo da View quando houver responsabilidade propria que possa ser isolada em widget interno com pasta dedicada.
+- Criar pasta generica `widgets/` dentro de widget pai para um unico componente interno ou usar `part/part of` para contornar a organizacao por pasta; o componente deve ser promovido para pasta propria nomeada pelo widget.
+- Presenter da Screen concentrando logica que pertence a widgets filhos (ex.: estado de um form interno, handlers de um card, validacoes de um modal).
+- Widgets com responsabilidade visual e logica propria definidos como metodos privados `_build...` no arquivo da View pai em vez de pasta dedicada.

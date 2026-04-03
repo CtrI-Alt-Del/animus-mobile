@@ -34,6 +34,15 @@ class GoRouterNavigationDriver implements NavigationDriver {
     router.go(route, extra: data);
   }
 
+  @override
+  Future<void> pushTo(String route, {Object? data}) async {
+    final GoRouter? router = _router;
+    if (router == null) {
+      return;
+    }
+    await router.push(route, extra: data);
+  }
+
   GoRouter? get _router {
     final BuildContext? context = rootNavigatorKey.currentContext;
     if (context == null) {

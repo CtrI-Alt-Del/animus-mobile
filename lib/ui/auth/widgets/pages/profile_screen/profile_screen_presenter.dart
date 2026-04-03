@@ -87,7 +87,7 @@ class ProfileScreenPresenter {
     isLoadingInitialData.value = true;
     generalError.value = null;
 
-    final RestResponse<AccountDto> response = await _authService.fetchAccount();
+    final RestResponse<AccountDto> response = await _authService.getAccount();
 
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
@@ -109,6 +109,32 @@ class ProfileScreenPresenter {
     _cacheDriver.delete(CacheKeys.accessToken);
     _cacheDriver.delete(CacheKeys.refreshToken);
     _navigationDriver.goTo(Routes.signIn);
+  }
+
+  void goToForgotPassword() {
+    _navigationDriver.goTo(
+      Routes.getForgotPassword(previousRoute: Routes.profile),
+    );
+  }
+
+  void updateDisplayName(String updatedName) {
+    final String normalizedName = updatedName.trim();
+    if (normalizedName.isEmpty) {
+      return;
+    }
+
+    final AccountDto? currentAccount = account.value;
+    if (currentAccount == null) {
+      return;
+    }
+
+    account.value = AccountDto(
+      id: currentAccount.id,
+      name: normalizedName,
+      email: currentAccount.email,
+      isVerified: currentAccount.isVerified,
+      socialAccounts: currentAccount.socialAccounts,
+    );
   }
 
   void dispose() {

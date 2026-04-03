@@ -1,4 +1,3 @@
-import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/dtos/session_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
@@ -7,32 +6,32 @@ import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/rest/mappers/auth/account_mapper.dart';
 import 'package:animus/rest/mappers/auth/session_mapper.dart';
+import 'package:animus/rest/services/service.dart';
 
-class AuthRestService implements AuthService {
-  final RestClient _restClient;
-  final CacheDriver _cacheDriver;
-
-  const AuthRestService({
+class AuthRestService extends Service implements AuthService {
+  AuthRestService({
     required RestClient restClient,
     required CacheDriver cacheDriver,
-  }) : _restClient = restClient,
-       _cacheDriver = cacheDriver;
+  }) : super(restClient, cacheDriver);
 
   @override
-  Future<RestResponse<AccountDto>> fetchAccount() async {
-    _setAuthorizationHeader();
-    final response = await _restClient.get('/auth/account');
+  Future<RestResponse<AccountDto>> getAccount() async {
+    if (!setAuthHeader()) {
+      return unauthorizedResponse<AccountDto>();
+    }
+
+    final response = await restClient.get('/auth/account');
     return response.mapBody<AccountDto>(AccountMapper.toDto);
   }
 
   @override
   Future<RestResponse<void>> forgotPassword({required String email}) async {
-    final response = await _restClient.post(
+    final response = await restClient.post(
       '/auth/password/forgot',
       body: <String, dynamic>{'email': email},
     );
 
-    return _toVoidResponse(response);
+    return toVoidResponse(response);
   }
 
   @override
@@ -40,7 +39,7 @@ class AuthRestService implements AuthService {
     required String accountId,
     required String newPassword,
   }) async {
-    final response = await _restClient.post(
+    final response = await restClient.post(
       '/auth/password/reset',
       body: <String, dynamic>{
         'account_id': accountId,
@@ -48,7 +47,7 @@ class AuthRestService implements AuthService {
       },
     );
 
-    return _toVoidResponse(response);
+    return toVoidResponse(response);
   }
 
   @override
@@ -56,7 +55,7 @@ class AuthRestService implements AuthService {
     required String email,
     required String password,
   }) async {
-    final response = await _restClient.post(
+    final response = await restClient.post(
       '/auth/sign-in',
       body: <String, dynamic>{'email': email, 'password': password},
     );
@@ -68,7 +67,7 @@ class AuthRestService implements AuthService {
   Future<RestResponse<SessionDto>> signInWithGoogle({
     required String idToken,
   }) async {
-    final response = await _restClient.post(
+    final response = await restClient.post(
       '/auth/sign-up/google',
       body: <String, dynamic>{'id_token': idToken},
     );
@@ -82,7 +81,7 @@ class AuthRestService implements AuthService {
     required String email,
     required String password,
   }) async {
-    final response = await _restClient.post(
+    final response = await restClient.post(
       '/auth/sign-up',
       body: <String, dynamic>{
         'name': name,
@@ -96,7 +95,7 @@ class AuthRestService implements AuthService {
 
   @override
   Future<RestResponse<String>> verifyResetToken({required String token}) async {
-    final response = await _restClient.post(
+    final response = await restClient.post(
       '/auth/password/verify-reset-token',
       body: <String, dynamic>{'token': token},
     );
@@ -104,7 +103,7 @@ class AuthRestService implements AuthService {
     if (response.isFailure) {
       return RestResponse<String>(
         statusCode: response.statusCode,
-        errorMessage: _resolveErrorMessage(response),
+        errorMessage: resolveErrorMessage(response),
         errorBody: response.errorBody,
       );
     }
@@ -139,7 +138,7 @@ class AuthRestService implements AuthService {
   Future<RestResponse<void>> resendVerificationEmail({
     required String email,
   }) async {
-    final response = await _restClient.post(
+    final response = await restClient.post(
       '/auth/resend-verification-email',
       body: <String, dynamic>{'email': email},
     );
@@ -167,39 +166,11 @@ class AuthRestService implements AuthService {
     required String email,
     required String otp,
   }) async {
-    final response = await _restClient.post(
+    final response = await restClient.post(
       '/auth/verify-email',
       body: <String, dynamic>{'email': email, 'otp': otp},
     );
 
     return response.mapBody<SessionDto>(SessionMapper.toDto);
-  }
-
-  void _setAuthorizationHeader() {
-    final String token = _cacheDriver.get(CacheKeys.accessToken) ?? '';
-    final String authorization = token.isEmpty ? '' : 'Bearer $token';
-    _restClient.setHeader('Authorization', authorization);
-  }
-
-  RestResponse<void> _toVoidResponse(
-    RestResponse<Map<String, dynamic>> response,
-  ) {
-    if (response.isFailure) {
-      return RestResponse<void>(
-        statusCode: response.statusCode,
-        errorMessage: _resolveErrorMessage(response),
-        errorBody: response.errorBody,
-      );
-    }
-
-    return RestResponse<void>(statusCode: response.statusCode);
-  }
-
-  String? _resolveErrorMessage(RestResponse<Map<String, dynamic>> response) {
-    try {
-      return response.errorMessage;
-    } catch (_) {
-      return null;
-    }
   }
 }

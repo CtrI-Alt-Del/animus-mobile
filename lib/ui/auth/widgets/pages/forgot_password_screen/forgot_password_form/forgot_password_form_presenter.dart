@@ -38,9 +38,12 @@ final Map<String, String Function(Object)> _emailValidationMessages =
     };
 
 final forgotPasswordFormPresenterProvider = Provider.autoDispose
-    .family<ForgotPasswordFormPresenter, String?>((Ref ref, String? errorCode) {
+    .family<ForgotPasswordFormPresenter, ({String? errorCode, String? from})>((
+      Ref ref,
+      ({String? errorCode, String? from}) params,
+    ) {
       final ForgotPasswordScreenPresenter screenPresenter = ref.watch(
-        forgotPasswordScreenPresenterProvider(errorCode),
+        forgotPasswordScreenPresenterProvider(params),
       );
 
       return ForgotPasswordFormPresenter(screenPresenter: screenPresenter);

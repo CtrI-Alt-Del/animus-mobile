@@ -61,7 +61,7 @@ void main() {
       ).thenAnswer(
         (_) async => RestResponse<SessionDto>(
           statusCode: 200,
-          body: SessionDtoFaker.make(),
+          body: SessionDtoFaker.fake(),
         ),
       );
 
@@ -238,7 +238,7 @@ void main() {
       ).thenAnswer(
         (_) async => RestResponse<SessionDto>(
           statusCode: 200,
-          body: SessionDtoFaker.make(),
+          body: SessionDtoFaker.fake(),
         ),
       );
 
@@ -381,7 +381,11 @@ void main() {
 
     presenter.goToForgotPassword();
 
-    verify(() => navigationDriver.goTo(Routes.forgotPassword)).called(1);
+    verify(
+      () => navigationDriver.goTo(
+        Routes.getForgotPassword(previousRoute: Routes.signIn),
+      ),
+    ).called(1);
   });
 }
 

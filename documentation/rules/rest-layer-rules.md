@@ -103,6 +103,7 @@ lib/rest/
 - Pode depender de drivers e providers de infraestrutura quando isso for necessario para composicao tecnica.
 - `Dio`, `BaseOptions`, `Response`, headers, codigos de transporte e payloads `snake_case` devem permanecer encapsulados dentro da camada.
 - Mappers puros desta camada so podem ser reutilizados em outras integracoes quando a dependencia continuar limitada a traducao de dados.
+- A camada `lib/rest` nao deve receber testes novos no projeto atual. Qualquer lacuna de cobertura deve ser reportada, nao implementada, salvo revisao explicita dessa politica.
 
 # Checklist Rapido para Novas Features na Camada
 
