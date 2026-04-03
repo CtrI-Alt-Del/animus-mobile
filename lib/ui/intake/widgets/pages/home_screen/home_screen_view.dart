@@ -5,7 +5,6 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/create_analysis_fab/index.dart';
-import 'package:animus/ui/intake/widgets/pages/home_screen/home_bottom_navigation/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_header/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/index.dart';
 
@@ -40,10 +39,6 @@ class HomeScreenView extends ConsumerWidget {
           onPressed: isLoadingInitialData ? null : presenter.createAnalysis,
         );
       }),
-      bottomNavigationBar: HomeBottomNavigation(
-        currentIndex: 0,
-        onDestinationSelected: presenter.onDestinationSelected,
-      ),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -59,6 +54,7 @@ class HomeScreenView extends ConsumerWidget {
                     return HomeHeader(
                       greeting: greeting,
                       subtitle: 'Seu resumo juridico de hoje',
+                      onProfilePressed: presenter.openProfile,
                     );
                   }),
                   const SizedBox(height: 24),
