@@ -5,6 +5,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/create_analysis_fab/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/home_background_decorations/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_header/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/index.dart';
 
@@ -44,60 +45,69 @@ class HomeScreenView extends ConsumerWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Watch((BuildContext context) {
-                    final String greeting = presenter.greeting.watch(context);
-                    return HomeHeader(
-                      greeting: greeting,
-                      subtitle: 'Seu resumo juridico de hoje',
-                      onProfilePressed: presenter.openProfile,
-                    );
-                  }),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: Watch((BuildContext context) {
-                      final List<AnalysisDto> analyses = presenter
-                          .recentAnalyses
-                          .watch(context);
-                      final bool isLoadingInitialData = presenter
-                          .isLoadingInitialData
-                          .watch(context);
-                      final bool isLoadingMore = presenter.isLoadingMore.watch(
-                        context,
-                      );
-                      final bool showEmptyState = presenter.showEmptyState
-                          .watch(context);
-                      final String? errorMessage = presenter.generalError.watch(
-                        context,
-                      );
-
-                      return RecentAnalysesSection(
-                        analyses: analyses,
-                        isLoading: isLoadingInitialData,
-                        isLoadingMore: isLoadingMore,
-                        showEmptyState: showEmptyState,
-                        errorMessage: errorMessage,
-                        formatCreatedAt: presenter.formatCreatedAt,
-                        onRefresh: presenter.refresh,
-                        onTapAnalysis: presenter.openAnalysis,
-                        onRetry: () {
-                          presenter.initialize();
-                        },
-                        onLoadMore: () {
-                          presenter.loadNextPage();
-                        },
-                        onCreateFirstAnalysis: () {
-                          presenter.createAnalysis();
-                        },
-                      );
-                    }),
+            child: Stack(
+              children: <Widget>[
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: HomeBackgroundDecorations(tokens: tokens),
                   ),
-                ],
-              ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Watch((BuildContext context) {
+                        final String greeting = presenter.greeting.watch(
+                          context,
+                        );
+                        return HomeHeader(
+                          greeting: greeting,
+                          subtitle: 'Seu resumo juridico de hoje',
+                          onProfilePressed: presenter.openProfile,
+                        );
+                      }),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        child: Watch((BuildContext context) {
+                          final List<AnalysisDto> analyses = presenter
+                              .recentAnalyses
+                              .watch(context);
+                          final bool isLoadingInitialData = presenter
+                              .isLoadingInitialData
+                              .watch(context);
+                          final bool isLoadingMore = presenter.isLoadingMore
+                              .watch(context);
+                          final bool showEmptyState = presenter.showEmptyState
+                              .watch(context);
+                          final String? errorMessage = presenter.generalError
+                              .watch(context);
+
+                          return RecentAnalysesSection(
+                            analyses: analyses,
+                            isLoading: isLoadingInitialData,
+                            isLoadingMore: isLoadingMore,
+                            showEmptyState: showEmptyState,
+                            errorMessage: errorMessage,
+                            formatCreatedAt: presenter.formatCreatedAt,
+                            onRefresh: presenter.refresh,
+                            onTapAnalysis: presenter.openAnalysis,
+                            onRetry: () {
+                              presenter.initialize();
+                            },
+                            onLoadMore: () {
+                              presenter.loadNextPage();
+                            },
+                            onCreateFirstAnalysis: () {
+                              presenter.createAnalysis();
+                            },
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
