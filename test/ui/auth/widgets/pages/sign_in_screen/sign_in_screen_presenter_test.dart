@@ -381,7 +381,11 @@ void main() {
 
     presenter.goToForgotPassword();
 
-    verify(() => navigationDriver.goTo(Routes.forgotPassword)).called(1);
+    verify(
+      () => navigationDriver.goTo(
+        Routes.getForgotPassword(previousRoute: Routes.signIn),
+      ),
+    ).called(1);
   });
 }
 
