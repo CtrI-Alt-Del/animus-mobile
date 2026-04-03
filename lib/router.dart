@@ -99,7 +99,11 @@ final GoRouter appRouter = GoRouter(
       path: Routes.forgotPassword,
       builder: (context, state) {
         final String? errorCode = state.uri.queryParameters['errorCode'];
-        return ForgotPasswordScreen(initialErrorCode: errorCode);
+        final String? previousRoute = state.uri.queryParameters['from'];
+        return ForgotPasswordScreen(
+          initialErrorCode: errorCode,
+          previousRoute: previousRoute,
+        );
       },
     ),
     GoRoute(

@@ -57,7 +57,7 @@ class NewPasswordFormPresenter {
   }
 
   void goToSignIn() {
-    _screenPresenter.goToSignIn();
+    _screenPresenter.goBackOrGoToSignIn();
   }
 }
 

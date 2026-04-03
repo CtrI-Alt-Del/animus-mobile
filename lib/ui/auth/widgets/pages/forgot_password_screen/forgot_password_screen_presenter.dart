@@ -14,6 +14,7 @@ import 'package:animus/rest/services/index.dart';
 class ForgotPasswordScreenPresenter {
   final AuthService _authService;
   final NavigationDriver _navigationDriver;
+  final String? _previousRoute;
 
   final FormGroup form = FormGroup(<String, AbstractControl<Object>>{
     'email': FormControl<String>(
@@ -37,8 +38,10 @@ class ForgotPasswordScreenPresenter {
     required AuthService authService,
     required NavigationDriver navigationDriver,
     String? initialErrorCode,
+    String? previousRoute,
   }) : _authService = authService,
        _navigationDriver = navigationDriver,
+       _previousRoute = previousRoute,
        generalError = signal<String?>(_resolveInitialError(initialErrorCode)) {
     _formStatusSubscription = form.statusChanged.listen((dynamic _) {
       _formVersion.value = _formVersion.value + 1;
@@ -80,6 +83,21 @@ class ForgotPasswordScreenPresenter {
     isSubmitting.value = false;
   }
 
+  void goBack() {
+    final String? explicitBackRoute = _resolveExplicitBackRoute(_previousRoute);
+    if (explicitBackRoute != null) {
+      _navigationDriver.goTo(explicitBackRoute);
+      return;
+    }
+
+    if (_navigationDriver.canGoBack()) {
+      _navigationDriver.goBack();
+      return;
+    }
+
+    _navigationDriver.goTo(Routes.signIn);
+  }
+
   void goToSignIn() {
     _navigationDriver.goTo(Routes.signIn);
   }
@@ -102,6 +120,18 @@ class ForgotPasswordScreenPresenter {
     return null;
   }
 
+  static String? _resolveExplicitBackRoute(String? previousRoute) {
+    if (previousRoute == Routes.profile) {
+      return Routes.profile;
+    }
+
+    if (previousRoute == Routes.signIn) {
+      return Routes.signIn;
+    }
+
+    return null;
+  }
+
   String _resolveGeneralError(RestResponse<dynamic> response) {
     final String? bodyMessage = response.errorBody?['message'] as String?;
     if (bodyMessage != null && bodyMessage.isNotEmpty) {
@@ -117,22 +147,22 @@ class ForgotPasswordScreenPresenter {
 }
 
 final forgotPasswordScreenPresenterProvider = Provider.autoDispose
-    .family<ForgotPasswordScreenPresenter, String?>((
-      Ref ref,
-      String? errorCode,
-    ) {
-      final AuthService authService = ref.watch(authServiceProvider);
-      final NavigationDriver navigationDriver = ref.watch(
-        navigationDriverProvider,
-      );
+    .family<ForgotPasswordScreenPresenter, ({String? errorCode, String? from})>(
+      (Ref ref, ({String? errorCode, String? from}) params) {
+        final AuthService authService = ref.watch(authServiceProvider);
+        final NavigationDriver navigationDriver = ref.watch(
+          navigationDriverProvider,
+        );
 
-      final ForgotPasswordScreenPresenter presenter =
-          ForgotPasswordScreenPresenter(
-            authService: authService,
-            navigationDriver: navigationDriver,
-            initialErrorCode: errorCode,
-          );
+        final ForgotPasswordScreenPresenter presenter =
+            ForgotPasswordScreenPresenter(
+              authService: authService,
+              navigationDriver: navigationDriver,
+              initialErrorCode: params.errorCode,
+              previousRoute: params.from,
+            );
 
-      ref.onDispose(presenter.dispose);
-      return presenter;
-    });
+        ref.onDispose(presenter.dispose);
+        return presenter;
+      },
+    );
