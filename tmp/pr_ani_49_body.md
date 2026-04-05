@@ -1,32 +1,24 @@
 ## Objetivo
-Este PR conclui a implementacao da spec de busca assincrona de precedentes na tela de analise, incluindo o fluxo completo de configuracao, busca, acompanhamento de status, visualizacao e escolha de precedente no app mobile.
+Este PR corrige a integracao do novo `classificationLevel` dos precedentes para que a interface da tela de analise aplique a estilização correta do badge com base na classificacao retornada pela API, mantendo fallback por percentual para compatibilidade.
+
+## Causa do bug
+O campo `classificationLevel` foi adicionado ao DTO `AnalysisPrecedentDto` como obrigatorio, mas os mapeamentos e recriacao de objetos no fluxo de precedentes nao propagavam esse valor. Com isso, havia quebra de compilacao e risco de estilização inconsistente baseada apenas no percentual.
 
 ## Changelog
-- Implementa fluxo de precedentes na `analysis_screen` com componentes dedicados (`RelevantPrecedentsBubble`, `PrecedentDialog`, `ChosenPrecedentSummary`, dialogs de filtros e quantidade).
-- Adiciona contratos e DTOs no `core` para busca/listagem/escolha de precedentes e filtros (`courts`, `precedent_kinds`, `limit`).
-- Implementa integracao REST no `IntakeRestService` para `POST /precedents/search`, `GET /precedents` e `PATCH /precedents/choose`.
-- Implementa driver de link externo para abrir precedentes no Pangea e adiciona `PANGEA_URL` no ambiente.
-- Evolui `AnalysisScreenPresenter` para persistir limite em cache, aplicar filtros e retomar fluxos em reentrada.
-- Altera o fluxo de resumo da peticao para `summarizePetition` assíncrono com polling de `analysis.status` ate `PETITION_ANALYZED`.
-- Adiciona cobertura de testes para presenters/views do fluxo de precedentes e casos de reentrada em `ANALYZING_PETITION`.
-- Atualiza documentacao de arquitetura e specs relacionadas ao fluxo implementado.
-
-## Novas dependencias
-- `url_launcher`
-  - Local: `pubspec.yaml` e `pubspec.lock`
-  - Motivo: abrir link externo do precedente no Pangea pela camada de driver.
-  - Impacto esperado: habilita abertura segura de URLs externas em runtime; sem impacto significativo de build alem da geracao padrao de plugins por plataforma.
+- Atualiza DTO e enum de classificacao de precedentes em `lib/core/intake/dtos`.
+- Atualiza `AnalysisPrecedentMapper` para mapear `classification_level` e aplicar fallback por `applicability_percentage`.
+- Atualiza `ApplicabilityBadgeView` para priorizar `classificationLevel` na definicao de label e paleta visual.
+- Propaga `classificationLevel` no fluxo de UI da `analysis_screen` (`precedent_list_item`, `content_state`, `chosen_precedent_summary`, `precedent_dialog`).
+- Ajusta `RelevantPrecedentsBubblePresenter` para preservar `classificationLevel` ao selecionar/recriar precedentes.
+- Atualiza faker de precedentes para suportar `classificationLevel` e fallback coerente em testes.
+- Adiciona teste de widget garantindo estilização condicional por classificacao em `relevant_precedents_bubble_view_test.dart`.
 
 ## Como testar
-1. Configurar `PANGEA_URL` no `.env`.
-2. Executar `flutter analyze` e validar que nao ha erros/warnings.
-3. Executar `flutter test` e validar que a suite completa passa.
-4. Abrir a `analysis_screen` com analise em `petitionAnalyzed` e acionar `Buscar precedentes`.
-5. Validar estados do bubble (loading, erro com retry, vazio, conteudo) e ordenacao por aplicabilidade.
-6. Abrir um item, validar `PrecedentDialog`, acionar `Acessar Pangea` e confirmar escolha.
-7. Sair e voltar para a tela durante `ANALYZING_PETITION` e validar que o polling retoma ate carregar `PetitionSummary`.
+1. Executar `flutter test test/ui/intake/widgets/pages/analysis_screen`.
+2. Validar que todos os testes do fluxo de `analysis_screen` passam.
+3. Em especial, conferir o cenário `usa classificationLevel para estilizar o badge` em `relevant_precedents_bubble_view_test.dart`.
+4. Opcionalmente, executar o app e abrir a `analysis_screen` para verificar que badges exibem label/cor conforme `classificationLevel`.
 
 ## Observacoes
-- A listagem final foi entregue como lista unica ordenada por aplicabilidade, conforme alinhamento da implementacao atual.
-- O PR inclui atualizacoes de artefatos gerados por plugins Flutter em `linux/`, `macos/` e `windows/` devido a nova dependencia.
-- O PR tambem inclui sincronizacao de arquivos de prompt/agente e artefatos de design presentes no branch.
+- O arquivo `tmp/pr_ani_49_body.md` foi mantido no branch como artefato auxiliar de abertura de PR.
+- Nao houve adicao de novas dependencias.
