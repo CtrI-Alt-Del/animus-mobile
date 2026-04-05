@@ -1,19 +1,28 @@
 import 'dart:io';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
+import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
 import 'package:animus/core/storage/interfaces/storage_service.dart';
+import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/document-picker-driver/index.dart';
 import 'package:animus/drivers/storage/file_storage/index.dart';
 import 'package:animus/rest/services/index.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/analysis_action_bar_view.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/chosen_precedent_summary/chosen_precedent_summary_view.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_view.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,10 +32,13 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import '../../../../../fakers/intake/petition_dto_faker.dart';
 import '../../../../../fakers/intake/petition_summary_dto_faker.dart';
+import '../../../../../fakers/intake/analysis_precedent_dto_faker.dart';
 
 class _MockIntakeService extends Mock implements IntakeService {}
 
 class _MockStorageService extends Mock implements StorageService {}
+
+class _MockCacheDriver extends Mock implements CacheDriver {}
 
 class _MockFileStorageDriver extends Mock implements FileStorageDriver {}
 
@@ -35,23 +47,31 @@ class _MockDocumentPickerDriver extends Mock implements DocumentPickerDriver {}
 class _MockAnalysisScreenPresenter extends Mock
     implements AnalysisScreenPresenter {}
 
+class _MockRelevantPrecedentsBubblePresenter extends Mock
+    implements RelevantPrecedentsBubblePresenter {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
     registerFallbackValue(File('dummy.pdf'));
+    registerFallbackValue(AnalysisStatusDto.searchingPrecedents);
   });
 
   Widget createWidget(AnalysisScreenPresenter presenter) {
-    return ProviderScope(
-      overrides: [
-        analysisScreenPresenterProvider(
-          'analysis-123',
-        ).overrideWithValue(presenter),
-      ],
-      child: MaterialApp(
-        theme: AppTheme.dark,
-        home: const AnalysisScreenView(analysisId: 'analysis-123'),
+    return SizedBox(
+      width: 430,
+      height: 900,
+      child: ProviderScope(
+        overrides: [
+          analysisScreenPresenterProvider(
+            'analysis-123',
+          ).overrideWithValue(presenter),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.dark,
+          home: const AnalysisScreenView(analysisId: 'analysis-123'),
+        ),
       ),
     );
   }
@@ -64,9 +84,14 @@ void main() {
 
     final _MockIntakeService intakeService = _MockIntakeService();
     final _MockStorageService storageService = _MockStorageService();
+    final _MockCacheDriver cacheDriver = _MockCacheDriver();
     final _MockFileStorageDriver fileStorageDriver = _MockFileStorageDriver();
     final _MockDocumentPickerDriver documentPickerDriver =
         _MockDocumentPickerDriver();
+
+    when(() => cacheDriver.get(any())).thenReturn(null);
+    when(() => cacheDriver.set(any(), any())).thenReturn(null);
+    when(() => cacheDriver.delete(any())).thenReturn(null);
 
     when(
       () => intakeService.getAnalysis(analysisId: 'analysis-123'),
@@ -89,6 +114,7 @@ void main() {
         overrides: [
           intakeServiceProvider.overrideWithValue(intakeService),
           storageServiceProvider.overrideWithValue(storageService),
+          cacheDriverProvider.overrideWithValue(cacheDriver),
           fileStorageDriverProvider.overrideWithValue(fileStorageDriver),
           documentPickerDriverProvider.overrideWithValue(documentPickerDriver),
         ],
@@ -121,9 +147,19 @@ void main() {
     late Signal<bool> showProcessingBubble;
     late Signal<String> primaryActionLabel;
     late Signal<String> fileActionLabel;
+    late Signal<int> appliedPrecedentFiltersCount;
+    late _MockRelevantPrecedentsBubblePresenter relevantPrecedentsPresenter;
+    late Signal<AnalysisPrecedentDto?> selectedPrecedent;
+    late Signal<List<AnalysisPrecedentDto>> precedents;
+    late Signal<bool> precedentsIsLoading;
+    late Signal<String?> precedentsError;
+    late ReadonlySignal<int> precedentsTotalCount;
+    late ReadonlySignal<String> precedentsLoadingMessage;
+    late ReadonlySignal<bool> precedentsShowEmptyState;
 
     setUp(() {
       presenter = _MockAnalysisScreenPresenter();
+      relevantPrecedentsPresenter = _MockRelevantPrecedentsBubblePresenter();
       status = signal<AnalysisStatusDto>(AnalysisStatusDto.waitingPetition);
       selectedFile = signal<File?>(null);
       isUploading = signal<bool>(false);
@@ -138,6 +174,19 @@ void main() {
       showProcessingBubble = signal<bool>(false);
       primaryActionLabel = signal<String>('Analisar');
       fileActionLabel = signal<String>('Selecionar petição');
+      appliedPrecedentFiltersCount = signal<int>(0);
+      selectedPrecedent = signal<AnalysisPrecedentDto?>(null);
+      precedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
+      precedentsIsLoading = signal<bool>(false);
+      precedentsError = signal<String?>(null);
+      precedentsTotalCount = computed(() => precedents.value.length);
+      precedentsLoadingMessage = computed(() => 'Buscando precedentes');
+      precedentsShowEmptyState = computed(
+        () =>
+            !precedentsIsLoading.value &&
+            precedentsError.value == null &&
+            precedents.value.isEmpty,
+      );
 
       when(() => presenter.status).thenReturn(status);
       when(() => presenter.selectedFile).thenReturn(selectedFile);
@@ -155,6 +204,16 @@ void main() {
       ).thenReturn(showProcessingBubble);
       when(() => presenter.primaryActionLabel).thenReturn(primaryActionLabel);
       when(() => presenter.fileActionLabel).thenReturn(fileActionLabel);
+      when(
+        () => presenter.appliedPrecedentFiltersCount,
+      ).thenReturn(appliedPrecedentFiltersCount);
+      when(() => presenter.precedentsLimit).thenReturn(signal<int>(5));
+      when(
+        () => presenter.precedentsCourts,
+      ).thenReturn(signal<List<CourtDto>>(<CourtDto>[]));
+      when(
+        () => presenter.precedentsKinds,
+      ).thenReturn(signal<List<PrecedentKindDto>>(<PrecedentKindDto>[]));
       when(() => presenter.pickDocument()).thenAnswer((_) async {});
       when(() => presenter.analyze()).thenAnswer((_) async {});
       when(() => presenter.retrySummary()).thenAnswer((_) async {});
@@ -164,6 +223,39 @@ void main() {
       when(() => presenter.archiveAnalysis()).thenAnswer((_) async => true);
       when(() => presenter.fileName(any())).thenReturn('petition.pdf');
       when(() => presenter.formatFileSize(any())).thenReturn('1.0 KB');
+
+      when(
+        () => relevantPrecedentsPresenter.selectedPrecedent,
+      ).thenReturn(selectedPrecedent);
+      when(() => relevantPrecedentsPresenter.precedents).thenReturn(precedents);
+      when(
+        () => relevantPrecedentsPresenter.isLoading,
+      ).thenReturn(precedentsIsLoading);
+      when(
+        () => relevantPrecedentsPresenter.generalError,
+      ).thenReturn(precedentsError);
+      when(
+        () => relevantPrecedentsPresenter.totalCount,
+      ).thenReturn(precedentsTotalCount);
+      when(
+        () => relevantPrecedentsPresenter.loadingMessage,
+      ).thenReturn(precedentsLoadingMessage);
+      when(
+        () => relevantPrecedentsPresenter.showEmptyState,
+      ).thenReturn(precedentsShowEmptyState);
+      when(
+        () => relevantPrecedentsPresenter.syncSelectedLimit(any()),
+      ).thenReturn(null);
+      when(
+        () => relevantPrecedentsPresenter.syncAnalysisStatus(any()),
+      ).thenReturn(null);
+      when(
+        () => relevantPrecedentsPresenter.syncSelectedFilters(
+          courts: any(named: 'courts'),
+          kinds: any(named: 'kinds'),
+        ),
+      ).thenReturn(null);
+      when(() => relevantPrecedentsPresenter.retry()).thenAnswer((_) async {});
     });
 
     tearDown(() {
@@ -181,7 +273,36 @@ void main() {
       showProcessingBubble.dispose();
       primaryActionLabel.dispose();
       fileActionLabel.dispose();
+      appliedPrecedentFiltersCount.dispose();
+      selectedPrecedent.dispose();
+      precedents.dispose();
+      precedentsIsLoading.dispose();
+      precedentsError.dispose();
+      precedentsTotalCount.dispose();
+      precedentsLoadingMessage.dispose();
+      precedentsShowEmptyState.dispose();
     });
+
+    Widget createWidgetWithPrecedentsPresenter() {
+      return SizedBox(
+        width: 430,
+        height: 900,
+        child: ProviderScope(
+          overrides: [
+            analysisScreenPresenterProvider(
+              'analysis-123',
+            ).overrideWithValue(presenter),
+            relevantPrecedentsBubblePresenterProvider(
+              'analysis-123',
+            ).overrideWithValue(relevantPrecedentsPresenter),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.dark,
+            home: const AnalysisScreenView(analysisId: 'analysis-123'),
+          ),
+        ),
+      );
+    }
 
     testWidgets('renderiza erro inline quando presenter informa falha', (
       WidgetTester tester,
@@ -319,5 +440,45 @@ void main() {
       verifyNever(() => presenter.pickDocument());
       verifyNever(() => presenter.analyze());
     });
+
+    testWidgets(
+      'exibe bubble de precedentes e oculta action bar durante fluxo de precedentes',
+      (WidgetTester tester) async {
+        petition.value = PetitionDtoFaker.fake();
+        summary.value = PetitionSummaryDtoFaker.fake();
+        status.value = AnalysisStatusDto.searchingPrecedents;
+
+        await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(RelevantPrecedentsBubbleView), findsOneWidget);
+        expect(find.byType(AnalysisActionBarView), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'exibe resumo de precedente escolhido somente quando existe precedente escolhido',
+      (WidgetTester tester) async {
+        petition.value = PetitionDtoFaker.fake();
+        summary.value = PetitionSummaryDtoFaker.fake();
+        status.value = AnalysisStatusDto.precedentChosen;
+
+        selectedPrecedent.value = AnalysisPrecedentDtoFaker.fake(
+          isChosen: false,
+        );
+        await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(ChosenPrecedentSummaryView), findsNothing);
+
+        selectedPrecedent.value = AnalysisPrecedentDtoFaker.fake(
+          isChosen: true,
+        );
+        await tester.pump();
+
+        expect(find.byType(ChosenPrecedentSummaryView), findsOneWidget);
+        expect(find.text('Precedente escolhido'), findsOneWidget);
+      },
+    );
   });
 }

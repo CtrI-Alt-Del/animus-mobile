@@ -2,6 +2,7 @@ import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/dtos/session_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/rest/mappers/auth/account_mapper.dart';
@@ -12,15 +13,32 @@ class AuthRestService extends Service implements AuthService {
   AuthRestService({
     required RestClient restClient,
     required CacheDriver cacheDriver,
-  }) : super(restClient, cacheDriver);
+    required NavigationDriver navigationDriver,
+  }) : super(restClient, cacheDriver, navigationDriver);
 
   @override
   Future<RestResponse<AccountDto>> getAccount() async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<AccountDto>();
+    final RestResponse<AccountDto>? authFailure = requireAuth<AccountDto>();
+    if (authFailure != null) {
+      return authFailure;
     }
 
     final response = await restClient.get('/auth/account');
+    return response.mapBody<AccountDto>(AccountMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<AccountDto>> updateAccount({required String name}) async {
+    final RestResponse<AccountDto>? authFailure = requireAuth<AccountDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final response = await restClient.patch(
+      '/auth/account',
+      body: <String, dynamic>{'name': name},
+    );
+
     return response.mapBody<AccountDto>(AccountMapper.toDto);
   }
 

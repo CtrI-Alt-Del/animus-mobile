@@ -251,7 +251,6 @@ nenhum, declare explicitamente "Nenhum ponto de atencao identificado.">
 - [ ] `flutter test` passou sem falhas (ou regressões pré-existentes devidamente sinalizadas)
 - [ ] Cobertura de testes verificada e lacunas críticas endereçadas
 - [ ] Limites arquiteturais validados
-- [ ] Spec atualizada com status `closed` e data
 - [ ] PRD atualizado com os itens concluídos (e divergências registradas, se houver)
 - [ ] `architecture.md` atualizado (se aplicável)
 - [ ] Rules atualizadas (se novos padrões foram introduzidos)
