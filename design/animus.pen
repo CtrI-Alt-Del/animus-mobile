@@ -62174,14 +62174,2127 @@
       ]
     },
     {
-      "type": "ellipse",
-      "id": "buOOI",
-      "x": 6423,
+      "type": "frame",
+      "id": "k2yVd",
+      "x": 6503,
       "y": -917,
-      "name": "Blue Circle",
-      "fill": "#3B82F6",
-      "width": 160,
-      "height": 160
+      "name": "PDF Jurídico / Relatório Recriado",
+      "gap": 40,
+      "children": [
+        {
+          "type": "frame",
+          "id": "ivnUM",
+          "name": "PDF / Página 1 — Cabeçalho",
+          "clip": true,
+          "width": 595,
+          "height": 842,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ZuUXK",
+              "name": "Page 1 / Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "UrnVU",
+                  "name": "a4",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "gmFjv",
+                      "name": "a5",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#FBE26D",
+                      "cornerRadius": 8,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "FJXs4",
+                          "name": "a6",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "scale",
+                          "iconFontFamily": "lucide",
+                          "fill": "#0B0B0E"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CfYkQ",
+                      "name": "a7",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "twGX6",
+                          "name": "a8",
+                          "fill": "#0B0B0E",
+                          "content": "Animus",
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "6Txqb",
+                          "name": "a9",
+                          "fill": "#6B6B70",
+                          "content": "Análise Jurídica com IA",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "z3TIQ",
+                  "name": "a10",
+                  "fill": "#0B0B0E",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Relatório de análise jurídica",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "DL3gP",
+                  "name": "a11",
+                  "fill": "#4A4A50",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Petição: Contestação em ação de obrigação de fazer c/c pedido liminar",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "o6YVI",
+                  "name": "a12",
+                  "width": "fill_container",
+                  "height": 2,
+                  "fill": "#EFEFED"
+                },
+                {
+                  "type": "text",
+                  "id": "eYkUE",
+                  "name": "a13",
+                  "fill": "#C4A535",
+                  "content": "DADOS DA ANÁLISE",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "cVCYt",
+                  "name": "a14",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "jAFOb",
+                      "name": "a15",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dzRww",
+                          "name": "a16",
+                          "fill": "#6B6B70",
+                          "content": "Nome da análise",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "UHpfS",
+                          "name": "a17",
+                          "fill": "#0B0B0E",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Contestação cível | Obrigação de fazer",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "3OfDj",
+                      "name": "a18",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "6q4g6",
+                          "name": "a19",
+                          "fill": "#6B6B70",
+                          "content": "Criada em",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "gZwUt",
+                          "name": "a20",
+                          "fill": "#0B0B0E",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "04/04/2026 às 09:41",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LAd0h",
+                  "name": "c1",
+                  "width": "fill_container",
+                  "height": 2,
+                  "fill": "#EFEFED"
+                },
+                {
+                  "type": "text",
+                  "id": "vkGCw",
+                  "name": "c2",
+                  "fill": "#C4A535",
+                  "content": "DADOS DA PETIÇÃO",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "H867r",
+                  "name": "c3",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "huzTW",
+                      "name": "c4",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "KEJda",
+                          "name": "c5",
+                          "fill": "#6B6B70",
+                          "content": "Arquivo",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "NlvhS",
+                          "name": "c6",
+                          "fill": "#0B0B0E",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "contestacao_obrigacao_fazer_v12.pdf",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jOtdz",
+                      "name": "c7",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "bTKg9",
+                          "name": "c8",
+                          "fill": "#6B6B70",
+                          "content": "Upload em",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "XDJGN",
+                          "name": "c9",
+                          "fill": "#0B0B0E",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "04/04/2026 às 09:12",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tzpJP",
+              "name": "Page 1 / Footer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "CRT4l",
+                  "name": "c10",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#E2E2E6"
+                },
+                {
+                  "type": "frame",
+                  "id": "y3qPK",
+                  "name": "c11",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "5YROK",
+                      "name": "c12",
+                      "fill": "#8E8E93",
+                      "content": "Gerado pelo Animus em 04/04/2026 às 09:41",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "WI9ba",
+                      "name": "c13",
+                      "fill": "#8E8E93",
+                      "content": "Página 1 de 4",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "fW9zb",
+              "layoutPosition": "absolute",
+              "x": 48,
+              "y": 24,
+              "name": "a1",
+              "width": 120,
+              "height": 6,
+              "fill": "#FBE26D",
+              "cornerRadius": 100
+            },
+            {
+              "type": "frame",
+              "id": "03NEa",
+              "layoutPosition": "absolute",
+              "x": 468,
+              "y": 20,
+              "name": "a2",
+              "fill": "#FEF9E2",
+              "cornerRadius": 100,
+              "padding": [
+                4,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "kV2RC",
+                  "name": "a3",
+                  "fill": "#C4A535",
+                  "content": "Página 1",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "uefyz",
+          "name": "PDF / Página 2 — Síntese da petição",
+          "clip": true,
+          "width": 595,
+          "height": 842,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "hBmFw",
+              "name": "Page 2 / Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "z7CQR",
+                  "name": "b6",
+                  "fill": "#0B0B0E",
+                  "content": "Síntese da petição",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "NE7eH",
+                  "name": "b7",
+                  "fill": "#C4A535",
+                  "content": "RESUMO DO CASO",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "SdtHc",
+                  "name": "b8",
+                  "width": "fill_container",
+                  "fill": "#F4F4F2",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "thickness": 0.5,
+                    "fill": "#E2E2E6"
+                  },
+                  "layout": "vertical",
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hHFd1",
+                      "name": "b9",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "A parte autora pretende compelir a operadora de saúde a autorizar procedimento cirúrgico indicado por médico assistente, com pedido de tutela de urgência em razão do risco de agravamento do quadro clínico.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "1OLGY",
+                  "name": "b10",
+                  "fill": "#C4A535",
+                  "content": "QUESTÃO CENTRAL",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "kKlX7",
+                  "name": "b11",
+                  "width": "fill_container",
+                  "fill": "$text-primary",
+                  "cornerRadius": [
+                    0,
+                    8,
+                    8,
+                    0
+                  ],
+                  "stroke": {
+                    "thickness": {
+                      "left": 3
+                    },
+                    "fill": "$amber"
+                  },
+                  "layout": "vertical",
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hn21o",
+                      "name": "b12",
+                      "fill": "$bg-card",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Verificar se a negativa contratual apresentada pela operadora é abusiva diante da urgência do tratamento e da cobertura mínima exigida pela regulação setorial.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "lOZRu",
+                  "name": "b13",
+                  "fill": "#C4A535",
+                  "content": "ENQUADRAMENTO JURÍDICO",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "Q1HJd",
+                  "name": "b14",
+                  "width": "fill_container",
+                  "fill": "#F4F4F2",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "thickness": 0.5,
+                    "fill": "#E2E2E6"
+                  },
+                  "layout": "vertical",
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "U08Xs",
+                      "name": "b15",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Relação de consumo, boa-fé objetiva, função social do contrato e dever de cobertura em hipóteses de urgência e emergência. Também incidem os parâmetros da ANS e a jurisprudência protetiva dos tribunais superiores.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "EKnti",
+                  "name": "b16",
+                  "fill": "#C4A535",
+                  "content": "FATOS RELEVANTES",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "text",
+                  "id": "mCiAS",
+                  "name": "b17",
+                  "fill": "#0B0B0E",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "1. A autora apresentou laudo médico com indicação expressa de cirurgia.\n2. A operadora negou cobertura sob alegação de exclusão contratual.\n3. Há risco concreto de agravamento do estado de saúde sem intervenção imediata.",
+                  "lineHeight": 1.8,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "NXIa7",
+                  "name": "c14",
+                  "fill": "#C4A535",
+                  "content": "LEGISLAÇÃO APLICÁVEL",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "text",
+                  "id": "gNhBB",
+                  "name": "c15",
+                  "fill": "#0B0B0E",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "• Código de Defesa do Consumidor, arts. 6º, 14 e 51.\n• Lei nº 9.656/1998, com foco em cobertura assistencial obrigatória.\n• Resoluções normativas da ANS sobre procedimentos e urgência.",
+                  "lineHeight": 1.8,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "q3kxf",
+              "name": "Page 2 / Footer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "d495f",
+                  "name": "c16",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#E2E2E6"
+                },
+                {
+                  "type": "frame",
+                  "id": "rxEdd",
+                  "name": "c17",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HE8QL",
+                      "name": "c18",
+                      "fill": "#8E8E93",
+                      "content": "Gerado pelo Animus em 04/04/2026 às 09:41",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "WezvI",
+                      "name": "c19",
+                      "fill": "#8E8E93",
+                      "content": "Página 2 de 4",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rir4e",
+              "layoutPosition": "absolute",
+              "x": 48,
+              "y": 24,
+              "name": "b1",
+              "width": 136,
+              "height": 6,
+              "fill": "#FBE26D",
+              "cornerRadius": 100
+            },
+            {
+              "type": "frame",
+              "id": "v9uqj",
+              "layoutPosition": "absolute",
+              "x": 468,
+              "y": 20,
+              "name": "b2",
+              "fill": "#FEF9E2",
+              "cornerRadius": 100,
+              "padding": [
+                4,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ZJJmc",
+                  "name": "b3",
+                  "fill": "#C4A535",
+                  "content": "Página 2",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ZeOxL",
+          "name": "PDF / Página 3 — Precedentes analisados",
+          "clip": true,
+          "width": 595,
+          "height": 842,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "sFVyi",
+              "name": "Page 3 / Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Lht9V",
+                  "name": "d5",
+                  "fill": "#0B0B0E",
+                  "content": "Precedentes analisados (3 encontrados)",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "V1FWP",
+                  "name": "d6",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "1SM1h",
+                      "name": "d7",
+                      "fill": "#32D583",
+                      "width": 7,
+                      "height": 7
+                    },
+                    {
+                      "type": "text",
+                      "id": "wCdl0",
+                      "name": "d8",
+                      "fill": "#6B6B70",
+                      "content": "Aplicável",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dViz2",
+                  "name": "d9",
+                  "width": "fill_container",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "thickness": 0.5,
+                    "fill": "#E2E2E6"
+                  },
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "fa44Z",
+                      "name": "d10",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "lVshl",
+                          "name": "d11",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "8a7Ku",
+                              "name": "d12",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "McmaR",
+                                  "name": "d13",
+                                  "fill": "#6B6B70",
+                                  "content": "STJ",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "w7jgS",
+                              "name": "d14",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "J9Fy1",
+                              "name": "d15",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "4MFSF",
+                                  "name": "d16",
+                                  "fill": "#6B6B70",
+                                  "content": "Súmula",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "8JhAX",
+                              "name": "d17",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "FpsFS",
+                              "name": "d18",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "6aWKs",
+                                  "name": "d19",
+                                  "fill": "#6B6B70",
+                                  "content": "385",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "2iARH",
+                          "name": "d20",
+                          "fill": "#E8FAF2",
+                          "cornerRadius": 100,
+                          "padding": [
+                            3,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "jsOEo",
+                              "name": "d21",
+                              "fill": "#059669",
+                              "content": "Aplicável",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VPL5A",
+                      "name": "d22",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "fyunN",
+                          "name": "d23",
+                          "fill": "#6B6B70",
+                          "content": "82%",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ytaKZ",
+                          "name": "d24",
+                          "width": "fill_container",
+                          "height": 5,
+                          "fill": "#E2E2E6",
+                          "cornerRadius": 3,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "8tkma",
+                              "name": "d25",
+                              "width": 240,
+                              "height": 5,
+                              "fill": "#32D583",
+                              "cornerRadius": 3
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "ROy8g",
+                      "name": "e1",
+                      "fill": "#8E8E93",
+                      "content": "ENUNCIADO",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "Zols8",
+                      "name": "e2",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Recusa de cobertura é abusiva quando o procedimento é essencial ao tratamento indicado.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "yNEe1",
+                      "name": "e3",
+                      "fill": "#8E8E93",
+                      "content": "TESE FIRMADA",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "Kd8iM",
+                      "name": "e4",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Cláusulas genéricas não afastam cobertura indispensável em contexto de urgência.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "6Xxot",
+                      "name": "e5",
+                      "fill": "#8E8E93",
+                      "content": "SÍNTESE EXPLICATIVA",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "be7W4",
+                      "name": "e6",
+                      "fill": "#6B6B70",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Reforça a probabilidade do direito diante de urgência clínica documentada.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "fontStyle": "italic"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "M6rU1",
+                  "name": "e7",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "9gplE",
+                      "name": "e8",
+                      "fill": "#FBE26D",
+                      "width": 7,
+                      "height": 7
+                    },
+                    {
+                      "type": "text",
+                      "id": "UPzdo",
+                      "name": "e9",
+                      "fill": "#6B6B70",
+                      "content": "Possivelmente aplicável",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dO2ew",
+                  "name": "e10",
+                  "width": "fill_container",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "thickness": 0.5,
+                    "fill": "#E2E2E6"
+                  },
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "byFLO",
+                      "name": "e11",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "mSUec",
+                          "name": "e12",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "kSIgD",
+                              "name": "e13",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "mWQXc",
+                                  "name": "e14",
+                                  "fill": "#6B6B70",
+                                  "content": "STJ",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "sqvvQ",
+                              "name": "e15",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "gb6gW",
+                              "name": "e16",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "dJse5",
+                                  "name": "e17",
+                                  "fill": "#6B6B70",
+                                  "content": "Tema repetitivo",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "35Pfo",
+                              "name": "e18",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "y7Lii",
+                              "name": "e19",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "yOQl6",
+                                  "name": "e20",
+                                  "fill": "#6B6B70",
+                                  "content": "1209",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lIQps",
+                          "name": "e21",
+                          "fill": "#FEF9E2",
+                          "cornerRadius": 100,
+                          "padding": [
+                            3,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "pnbFc",
+                              "name": "e22",
+                              "fill": "#C4A535",
+                              "content": "Possivelmente aplicável",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Fz7tC",
+                      "name": "e23",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YyGT8",
+                          "name": "e24",
+                          "fill": "#6B6B70",
+                          "content": "67%",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Y98V2",
+                          "name": "e25",
+                          "width": "fill_container",
+                          "height": 5,
+                          "fill": "#E2E2E6",
+                          "cornerRadius": 3,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "cNdU5",
+                              "name": "g1",
+                              "width": 195,
+                              "height": 5,
+                              "fill": "#FBE26D",
+                              "cornerRadius": 3
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "sZ1g2",
+                      "name": "g4",
+                      "fill": "#8E8E93",
+                      "content": "ENUNCIADO",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "Hj3ha",
+                      "name": "g5",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "A suspensão do repetitivo recomenda cautela na aplicação imediata da tese.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "6X9lh",
+                      "name": "g6",
+                      "fill": "#8E8E93",
+                      "content": "SÍNTESE EXPLICATIVA",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "hEzLu",
+                      "name": "g7",
+                      "fill": "#6B6B70",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Precedente útil como alerta processual, mas dependente do julgamento pendente.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "fontStyle": "italic"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "9s2SB",
+                  "name": "g8",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "hRVjW",
+                      "name": "g9",
+                      "fill": "#E85A4F",
+                      "width": 7,
+                      "height": 7
+                    },
+                    {
+                      "type": "text",
+                      "id": "XAxWj",
+                      "name": "g10",
+                      "fill": "#6B6B70",
+                      "content": "Não aplicável",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "eCRG3",
+                  "name": "g11",
+                  "width": "fill_container",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "thickness": 0.5,
+                    "fill": "#E2E2E6"
+                  },
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "vR5vm",
+                      "name": "g12",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "KTodO",
+                          "name": "g13",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "zRB3n",
+                              "name": "g14",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "BWscs",
+                                  "name": "g15",
+                                  "fill": "#6B6B70",
+                                  "content": "TJSP",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "hAppP",
+                              "name": "g16",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "ogy4K",
+                              "name": "g17",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "mGSc4",
+                                  "name": "g18",
+                                  "fill": "#6B6B70",
+                                  "content": "Apelação",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "eHiwC",
+                              "name": "g19",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "1Ob1W",
+                              "name": "g20",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "4NPIU",
+                                  "name": "g21",
+                                  "fill": "#6B6B70",
+                                  "content": "1008124",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CKaO7",
+                          "name": "g22",
+                          "fill": "#FDECEA",
+                          "cornerRadius": 100,
+                          "padding": [
+                            3,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "njIdY",
+                              "name": "g23",
+                              "fill": "#DC2626",
+                              "content": "Não aplicável",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "0eRpX",
+                      "name": "g24",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ZK8ef",
+                          "name": "g25",
+                          "fill": "#6B6B70",
+                          "content": "31%",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Zil3J",
+                          "name": "j1",
+                          "width": "fill_container",
+                          "height": 5,
+                          "fill": "#E2E2E6",
+                          "cornerRadius": 3,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "JiaBW",
+                              "name": "j2",
+                              "width": 96,
+                              "height": 5,
+                              "fill": "#E85A4F",
+                              "cornerRadius": 3
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "TFEwV",
+                      "name": "j3",
+                      "fill": "#8E8E93",
+                      "content": "ENUNCIADO",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "4Unfx",
+                      "name": "j4",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Caso trata de reembolso empresarial sem urgência clínica imediata.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "jIOUX",
+                      "name": "j5",
+                      "fill": "#8E8E93",
+                      "content": "SÍNTESE EXPLICATIVA",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "eOFMo",
+                      "name": "j6",
+                      "fill": "#6B6B70",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Matriz fática distinta da análise atual, com baixa aderência argumentativa.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "fontStyle": "italic"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uNqJ7",
+              "name": "Page 3 / Footer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "n8Eg9",
+                  "name": "j7",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#E2E2E6"
+                },
+                {
+                  "type": "frame",
+                  "id": "l36UR",
+                  "name": "j8",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "b74GF",
+                      "name": "j9",
+                      "fill": "#8E8E93",
+                      "content": "Gerado pelo Animus em 04/04/2026 às 09:41",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "fc2LB",
+                      "name": "j10",
+                      "fill": "#8E8E93",
+                      "content": "Página 3 de 4",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "QVAJx",
+              "layoutPosition": "absolute",
+              "x": 48,
+              "y": 24,
+              "name": "d1",
+              "width": 168,
+              "height": 6,
+              "fill": "#FBE26D",
+              "cornerRadius": 100
+            },
+            {
+              "type": "frame",
+              "id": "U3sxd",
+              "layoutPosition": "absolute",
+              "x": 468,
+              "y": 20,
+              "name": "d2",
+              "fill": "#FEF9E2",
+              "cornerRadius": 100,
+              "padding": [
+                4,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "yvOvI",
+                  "name": "d3",
+                  "fill": "#C4A535",
+                  "content": "Página 3",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "VQovD",
+              "layoutPosition": "absolute",
+              "x": 500,
+              "y": 78,
+              "name": "d4",
+              "width": 24,
+              "height": 24,
+              "fill": "#FEF9E2",
+              "cornerRadius": 8
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "nHH0B",
+          "name": "PDF / Página 4 — Precedente escolhido",
+          "clip": true,
+          "width": 595,
+          "height": 842,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "Tm1de",
+              "name": "Page 4 / Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "F5La6",
+                  "name": "f5",
+                  "fill": "#0B0B0E",
+                  "content": "Precedente escolhido",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "Z8FBi",
+                  "name": "f6",
+                  "width": "fill_container",
+                  "fill": "#FFFCF0",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "thickness": 1.5,
+                    "fill": "#FBE26D"
+                  },
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": [
+                    16,
+                    18
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RhbeL",
+                      "name": "f7",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "DjODk",
+                          "name": "f8",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "aj2LI",
+                              "name": "f9",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "1nSZD",
+                                  "name": "f10",
+                                  "fill": "#6B6B70",
+                                  "content": "STJ",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "OW3rB",
+                              "name": "f11",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "5z4Pq",
+                              "name": "f12",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "9osXn",
+                                  "name": "f13",
+                                  "fill": "#6B6B70",
+                                  "content": "Súmula",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "hnfgE",
+                              "name": "f14",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "WhFxq",
+                              "name": "f15",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "FYpnP",
+                                  "name": "f16",
+                                  "fill": "#6B6B70",
+                                  "content": "385",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "pAqMi",
+                          "name": "f17",
+                          "fill": "#E8FAF2",
+                          "cornerRadius": 100,
+                          "gap": 4,
+                          "padding": [
+                            3,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "TLXpP",
+                              "name": "f19",
+                              "fill": "#059669",
+                              "content": "Aplicável",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "MQjzb",
+                      "name": "f20",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "8RiLw",
+                          "name": "f21",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "j7nzm",
+                              "name": "f22",
+                              "fill": "#6B6B70",
+                              "content": "82%",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "C3SGj",
+                              "name": "f23",
+                              "width": "fill_container",
+                              "height": 5,
+                              "fill": "#E2E2E6",
+                              "cornerRadius": 3,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "JR7Hc",
+                                  "name": "f24",
+                                  "width": 285,
+                                  "height": 5,
+                                  "fill": "#32D583",
+                                  "cornerRadius": 3
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "A2X64",
+                      "name": "h2",
+                      "fill": "#8E8E93",
+                      "content": "ENUNCIADO",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "uPxI1",
+                      "name": "h3",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Recusa de cobertura é abusiva quando o procedimento é essencial ao tratamento indicado.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "jmKlI",
+                      "name": "h4",
+                      "fill": "#8E8E93",
+                      "content": "TESE FIRMADA",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "PN6k7",
+                      "name": "h5",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Cláusulas genéricas não afastam cobertura indispensável em contexto de urgência.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "6zgXU",
+                      "name": "h6",
+                      "fill": "#8E8E93",
+                      "content": "SÍNTESE EXPLICATIVA",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "byMTC",
+                      "name": "h7",
+                      "fill": "#6B6B70",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Foi selecionado por alinhar urgência clínica comprovada, probabilidade do direito e aderência direta à tese defensiva da análise.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "fontStyle": "italic"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "M4bKM",
+              "name": "Page 4 / Footer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PdJlb",
+                  "name": "h8",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#E2E2E6"
+                },
+                {
+                  "type": "frame",
+                  "id": "YEoT3",
+                  "name": "h9",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "sKsbV",
+                      "name": "h10",
+                      "fill": "#8E8E93",
+                      "content": "Gerado pelo Animus em 04/04/2026 às 09:41",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "h4XdB",
+                      "name": "h11",
+                      "fill": "#8E8E93",
+                      "content": "Página 4 de 4",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "5bkg2",
+              "layoutPosition": "absolute",
+              "x": 48,
+              "y": 24,
+              "name": "f1",
+              "width": 158,
+              "height": 6,
+              "fill": "#FBE26D",
+              "cornerRadius": 100
+            },
+            {
+              "type": "frame",
+              "id": "3cNtI",
+              "layoutPosition": "absolute",
+              "x": 468,
+              "y": 20,
+              "name": "f2",
+              "fill": "#FEF9E2",
+              "cornerRadius": 100,
+              "padding": [
+                4,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "wYZev",
+                  "name": "f3",
+                  "fill": "#C4A535",
+                  "content": "Página 4",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "M3Hlg",
+              "layoutPosition": "absolute",
+              "x": 32,
+              "y": 110,
+              "name": "f4",
+              "width": 4,
+              "height": 118,
+              "fill": "#FEF9E2",
+              "cornerRadius": 100
+            }
+          ]
+        }
+      ]
     }
   ],
   "variables": {
