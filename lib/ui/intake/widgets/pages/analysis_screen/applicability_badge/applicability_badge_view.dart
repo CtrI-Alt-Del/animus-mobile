@@ -62,14 +62,14 @@ class ApplicabilityBadgeView extends StatelessWidget {
     switch (level) {
       case AnalysisPrecedentClassificationLevelDto.applicable:
         return _ApplicabilityPalette(
-          label: 'Aplicavel',
+          label: 'Aplicável',
           textColor: tokens.success,
           backgroundColor: tokens.success.withValues(alpha: 0.12),
           borderColor: tokens.success.withValues(alpha: 0.28),
         );
       case AnalysisPrecedentClassificationLevelDto.possiblyApplicable:
         return _ApplicabilityPalette(
-          label: 'Possivelmente aplicavel',
+          label: 'Possivelmente aplicável',
           textColor: tokens.warning,
           backgroundColor: tokens.warning.withValues(alpha: 0.12),
           borderColor: tokens.warning.withValues(alpha: 0.28),
@@ -87,7 +87,7 @@ class ApplicabilityBadgeView extends StatelessWidget {
   _ApplicabilityPalette _resolvePaletteByPercentage(AppThemeTokens tokens) {
     if (percentage >= 85) {
       return _ApplicabilityPalette(
-        label: 'Aplicavel',
+        label: 'Aplicável',
         textColor: tokens.success,
         backgroundColor: tokens.success.withValues(alpha: 0.12),
         borderColor: tokens.success.withValues(alpha: 0.28),
@@ -96,7 +96,7 @@ class ApplicabilityBadgeView extends StatelessWidget {
 
     if (percentage >= 70) {
       return _ApplicabilityPalette(
-        label: 'Possivelmente aplicavel',
+        label: 'Possivelmente aplicável',
         textColor: tokens.warning,
         backgroundColor: tokens.warning.withValues(alpha: 0.12),
         borderColor: tokens.warning.withValues(alpha: 0.28),

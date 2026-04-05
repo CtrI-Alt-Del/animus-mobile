@@ -6,11 +6,9 @@ import 'package:animus/ui/intake/widgets/pages/analysis_screen/applicability_bad
 
 class ChosenPrecedentSummaryView extends StatelessWidget {
   final AnalysisPrecedentDto selectedPrecedent;
-  final VoidCallback onOpenPangea;
 
   const ChosenPrecedentSummaryView({
     required this.selectedPrecedent,
-    required this.onOpenPangea,
     super.key,
   });
 

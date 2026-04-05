@@ -296,6 +296,49 @@ void main() {
         ).called(1);
       },
     );
+
+    test(
+      'should keep analyzed status and expose error when summary load fails',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final File petitionFile = await createFile('uploaded.pdf', 1024);
+        final petition = PetitionDtoFaker.fake();
+
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              status: AnalysisStatusDto.petitionAnalyzed,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse(statusCode: 200, body: petition),
+        );
+        when(
+          () => fileStorageDriver.getFile(petition.document.filePath),
+        ).thenAnswer((_) async => petitionFile);
+        when(
+          () => intakeService.getPetitionSummary(petitionId: petition.id!),
+        ).thenAnswer(
+          (_) async => RestResponse<PetitionSummaryDto>(
+            statusCode: 500,
+            errorMessage: 'Falha ao carregar resumo.',
+          ),
+        );
+
+        await presenter.load();
+
+        expect(presenter.status.value, AnalysisStatusDto.petitionAnalyzed);
+        expect(presenter.summary.value, isNull);
+        expect(presenter.generalError.value, 'Falha ao carregar resumo.');
+      },
+    );
   });
 
   group('pickDocument', () {

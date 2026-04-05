@@ -18,7 +18,10 @@ class AuthRestService extends Service implements AuthService {
 
   @override
   Future<RestResponse<AccountDto>> getAccount() async {
-    setAuthHeader();
+    final RestResponse<AccountDto>? authFailure = requireAuth<AccountDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final response = await restClient.get('/auth/account');
     return response.mapBody<AccountDto>(AccountMapper.toDto);
@@ -26,7 +29,10 @@ class AuthRestService extends Service implements AuthService {
 
   @override
   Future<RestResponse<AccountDto>> updateAccount({required String name}) async {
-    setAuthHeader();
+    final RestResponse<AccountDto>? authFailure = requireAuth<AccountDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final response = await restClient.patch(
       '/auth/account',

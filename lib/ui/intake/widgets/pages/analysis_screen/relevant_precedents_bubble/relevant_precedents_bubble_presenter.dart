@@ -86,7 +86,6 @@ class RelevantPrecedentsBubblePresenter {
     required IntakeService intakeService,
     required this.analysisId,
     ExternalLinkDriver? externalLinkDriver,
-    String? pangeaUrl,
   }) : _intakeService = intakeService,
        _externalLinkDriver = externalLinkDriver;
 

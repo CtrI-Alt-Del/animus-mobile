@@ -606,14 +606,6 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
                                             : ChosenPrecedentSummary(
                                                 selectedPrecedent:
                                                     selectedPrecedent,
-                                                onOpenPangea: () {
-                                                  unawaited(
-                                                    precedentsPresenter
-                                                        .openPangea(
-                                                          selectedPrecedent,
-                                                        ),
-                                                  );
-                                                },
                                               ),
                                       ),
                                     ],

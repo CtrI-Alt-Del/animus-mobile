@@ -33,7 +33,11 @@ class IntakeRestService extends Service implements IntakeService {
     required int limit,
     bool isArchived = false,
   }) async {
-    setAuthHeader();
+    final RestResponse<CursorPaginationResponse<AnalysisDto>>? authFailure =
+        requireAuth<CursorPaginationResponse<AnalysisDto>>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final Json queryParams = <String, dynamic>{
       'limit': limit,
@@ -56,7 +60,10 @@ class IntakeRestService extends Service implements IntakeService {
 
   @override
   Future<RestResponse<AnalysisDto>> createAnalysis({String? folderId}) async {
-    setAuthHeader();
+    final RestResponse<AnalysisDto>? authFailure = requireAuth<AnalysisDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final String? normalizedFolderId = folderId?.trim();
     final Object body = normalizedFolderId == null || normalizedFolderId.isEmpty
@@ -71,7 +78,10 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<PetitionDto>> createPetition({
     required PetitionDto petition,
   }) async {
-    setAuthHeader();
+    final RestResponse<PetitionDto>? authFailure = requireAuth<PetitionDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
       '/intake/petitions',
@@ -85,7 +95,10 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<AnalysisDto>> getAnalysis({
     required String analysisId,
   }) async {
-    setAuthHeader();
+    final RestResponse<AnalysisDto>? authFailure = requireAuth<AnalysisDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
       '/intake/analyses/$analysisId',
@@ -99,7 +112,10 @@ class IntakeRestService extends Service implements IntakeService {
     required String analysisId,
     required String name,
   }) async {
-    setAuthHeader();
+    final RestResponse<AnalysisDto>? authFailure = requireAuth<AnalysisDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final String normalizedName = name.trim();
 
@@ -115,7 +131,10 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<AnalysisDto>> archiveAnalysis({
     required String analysisId,
   }) async {
-    setAuthHeader();
+    final RestResponse<AnalysisDto>? authFailure = requireAuth<AnalysisDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
       '/intake/analyses/$analysisId/archive',
@@ -128,7 +147,10 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<PetitionDto>> getAnalysisPetition({
     required String analysisId,
   }) async {
-    setAuthHeader();
+    final RestResponse<PetitionDto>? authFailure = requireAuth<PetitionDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
       '/intake/analyses/$analysisId/petition',
@@ -141,7 +163,11 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<PetitionSummaryDto>> getPetitionSummary({
     required String petitionId,
   }) async {
-    setAuthHeader();
+    final RestResponse<PetitionSummaryDto>? authFailure =
+        requireAuth<PetitionSummaryDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
       '/intake/petitions/$petitionId/summary',
@@ -154,7 +180,10 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<void>> summarizePetition({
     required String petitionId,
   }) async {
-    setAuthHeader();
+    final RestResponse<void>? authFailure = requireAuth<void>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
       '/intake/petitions/$petitionId/summary',
@@ -168,7 +197,10 @@ class IntakeRestService extends Service implements IntakeService {
     required String analysisId,
     required AnalysisPrecedentsSearchFiltersDto filters,
   }) async {
-    setAuthHeader();
+    final RestResponse<void>? authFailure = requireAuth<void>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final Json body = <String, dynamic>{
       'courts': filters.courts
@@ -191,7 +223,11 @@ class IntakeRestService extends Service implements IntakeService {
   @override
   Future<RestResponse<ListResponse<AnalysisPrecedentDto>>>
   listAnalysisPrecedents({required String analysisId}) async {
-    setAuthHeader();
+    final RestResponse<ListResponse<AnalysisPrecedentDto>>? authFailure =
+        requireAuth<ListResponse<AnalysisPrecedentDto>>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
       '/intake/analyses/$analysisId/precedents',
@@ -223,7 +259,11 @@ class IntakeRestService extends Service implements IntakeService {
     required String analysisId,
     required PrecedentIdentifierDto identifier,
   }) async {
-    setAuthHeader();
+    final RestResponse<AnalysisStatusDto>? authFailure =
+        requireAuth<AnalysisStatusDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
       '/intake/analyses/$analysisId/precedents/choose',
