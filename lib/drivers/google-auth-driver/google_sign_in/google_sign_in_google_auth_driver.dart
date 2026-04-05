@@ -5,17 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:animus/constants/env.dart';
 import 'package:animus/core/auth/interfaces/google_auth_driver.dart';
 
-final Provider<GoogleAuthDriver> googleAuthDriverProvider =
-    Provider<GoogleAuthDriver>((Ref ref) {
-      return GoogleSignInGoogleAuthDriver(
-        googleSignIn: GoogleSignIn(
-          scopes: const <String>['email'],
-          clientId: Env.googleIosClientId,
-          serverClientId: Env.googleServerClientId,
-        ),
-      );
-    });
-
 class GoogleSignInGoogleAuthDriver implements GoogleAuthDriver {
   final GoogleSignIn _googleSignIn;
 
@@ -48,3 +37,13 @@ class GoogleSignInGoogleAuthDriver implements GoogleAuthDriver {
     }
   }
 }
+
+final Provider<GoogleAuthDriver> googleAuthDriverProvider =
+    Provider<GoogleAuthDriver>((Ref ref) {
+      return GoogleSignInGoogleAuthDriver(
+        googleSignIn: GoogleSignIn(
+          scopes: const ['email'],
+          serverClientId: Env.googleServerClientId,
+        ),
+      );
+    });
