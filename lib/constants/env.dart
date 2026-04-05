@@ -12,6 +12,8 @@ class Env {
 
   static String get gcsDownloadUrl => _validateValue('GCS_DOWNLOAD_URL');
 
+  static String get pangeaUrl => _validateValue('PANGEA_URL');
+
   static String _validateValue(String key) {
     final String? value;
     try {

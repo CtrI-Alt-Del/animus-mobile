@@ -6,15 +6,21 @@ import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_header/a
 class AnalysisHeaderView extends StatelessWidget {
   final VoidCallback? onBack;
   final String title;
+  final VoidCallback? onPrecedentsCount;
+  final VoidCallback? onFilters;
   final VoidCallback? onRename;
   final VoidCallback? onArchive;
+  final int appliedFiltersCount;
   final bool isMenuEnabled;
 
   const AnalysisHeaderView({
     required this.onBack,
     required this.title,
+    required this.onPrecedentsCount,
+    required this.onFilters,
     required this.onRename,
     required this.onArchive,
+    this.appliedFiltersCount = 0,
     this.isMenuEnabled = true,
     super.key,
   });
@@ -50,8 +56,11 @@ class AnalysisHeaderView extends StatelessWidget {
             ),
             AnalysisHeaderActions(
               isEnabled: isMenuEnabled,
+              onPrecedentsCount: onPrecedentsCount,
+              onFilters: onFilters,
               onRename: onRename,
               onArchive: onArchive,
+              appliedFiltersCount: appliedFiltersCount,
             ),
           ],
         ),

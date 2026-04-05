@@ -1,7 +1,12 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedents_search_filters_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
+import 'package:animus/core/shared/responses/list_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 
 abstract class IntakeService {
@@ -36,7 +41,18 @@ abstract class IntakeService {
     required String petitionId,
   });
 
-  Future<RestResponse<PetitionSummaryDto>> summarizePetition({
-    required String petitionId,
+  Future<RestResponse<void>> summarizePetition({required String petitionId});
+
+  Future<RestResponse<void>> searchAnalysisPrecedents({
+    required String analysisId,
+    required AnalysisPrecedentsSearchFiltersDto filters,
+  });
+
+  Future<RestResponse<ListResponse<AnalysisPrecedentDto>>>
+  listAnalysisPrecedents({required String analysisId});
+
+  Future<RestResponse<AnalysisStatusDto>> chooseAnalysisPrecedent({
+    required String analysisId,
+    required PrecedentIdentifierDto identifier,
   });
 }

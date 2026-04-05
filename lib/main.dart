@@ -3,6 +3,7 @@ import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/env.dart';
 import 'package:animus/drivers/caches/shared_preferences/shared_preferences_cache_driver.dart';
 import 'package:animus/drivers/cache/index.dart';
+import 'package:animus/drivers/navigation/go_router/go_router_navigation_driver.dart';
 import 'package:animus/rest/dio/dio_rest_client.dart';
 import 'package:animus/rest/services/auth_rest_service.dart';
 import 'package:animus/theme.dart';
@@ -57,6 +58,7 @@ Future<void> _validateSessionOnAppLoad(SharedPreferences preferences) async {
   final AuthRestService authService = AuthRestService(
     restClient: restClient,
     cacheDriver: SharedPreferencesCacheDriver(preferences),
+    navigationDriver: const GoRouterNavigationDriver(),
   );
 
   final response = await authService.getAccount();
