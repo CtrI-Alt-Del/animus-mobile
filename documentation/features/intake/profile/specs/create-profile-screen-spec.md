@@ -193,23 +193,23 @@ Esta spec define a implementacao da tela de perfil no `animus` no recorte confir
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/profile_screen/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef ProfileScreen = ProfileScreenView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/profile_screen/profile_account_card/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef ProfileAccountCard = ProfileAccountCardView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/profile_screen/profile_settings_group/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef ProfileSettingsGroup = ProfileSettingsGroupView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/profile_screen/profile_logout_button/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef ProfileLogoutButton = ProfileLogoutButtonView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 - **Localizacao:** `lib/ui/shared/widgets/components/app_bottom_navigation/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef AppBottomNavigation = AppBottomNavigationView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 ## Camada UI (Providers Riverpod - se isolados)
 
