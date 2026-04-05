@@ -29,6 +29,7 @@ class AnalysisScreenPresenter {
   static const int maxFileSizeInBytes = 20 * 1024 * 1024;
   static const int defaultPrecedentsLimit = 5;
   static const Duration summaryPollingInterval = Duration(seconds: 3);
+  static const Duration summaryRequestTimeout = Duration(seconds: 10);
   static const Duration summaryTimeout = Duration(seconds: 60);
   static const String failedMessage =
       'Nao foi possivel analisar o documento agora. Tente novamente.';
@@ -188,6 +189,8 @@ class AnalysisScreenPresenter {
         await _intakeService.getPetitionSummary(petitionId: petitionId);
 
     if (petitionSummaryResponse.isFailure) {
+      status.value = analysisStatus;
+      summary.value = null;
       generalError.value = petitionSummaryResponse.errorMessage;
       return;
     }
@@ -502,11 +505,10 @@ class AnalysisScreenPresenter {
     final RestResponse<void> summarizeResponse = await _intakeService
         .summarizePetition(petitionId: petitionId)
         .timeout(
-          summaryTimeout,
+          summaryRequestTimeout,
           onTimeout: () => RestResponse<void>(
             statusCode: HttpStatus.requestTimeout,
-            errorMessage:
-                '$failedMessage O resumo excedeu o tempo limite de 60 segundos.',
+            errorMessage: _buildSummaryTimeoutMessage(summaryRequestTimeout),
           ),
         );
 
@@ -533,11 +535,10 @@ class AnalysisScreenPresenter {
       final RestResponse<AnalysisDto> analysisResponse = await _intakeService
           .getAnalysis(analysisId: analysisId)
           .timeout(
-            summaryTimeout,
+            summaryRequestTimeout,
             onTimeout: () => RestResponse<AnalysisDto>(
               statusCode: HttpStatus.requestTimeout,
-              errorMessage:
-                  '$failedMessage O resumo excedeu o tempo limite de 60 segundos.',
+              errorMessage: _buildSummaryTimeoutMessage(summaryRequestTimeout),
             ),
           );
 
@@ -572,10 +573,12 @@ class AnalysisScreenPresenter {
       elapsed += summaryPollingInterval;
     }
 
-    _applyRemoteFailure(
-      '$failedMessage O resumo excedeu o tempo limite de 60 segundos.',
-    );
+    _applyRemoteFailure(_buildSummaryTimeoutMessage(summaryTimeout));
     return false;
+  }
+
+  String _buildSummaryTimeoutMessage(Duration timeout) {
+    return '$failedMessage O resumo excedeu o tempo limite de ${timeout.inSeconds} segundos.';
   }
 
   String fileName(File file) {

@@ -14,7 +14,7 @@ abstract class Service {
 
   Service(this.restClient, this._cacheDriver, this._navigationDriver);
 
-  void setAuthHeader() {
+  bool setAuthHeader() {
     try {
       final String accessToken = (_cacheDriver.get(CacheKeys.accessToken) ?? '')
           .trim();
@@ -24,14 +24,24 @@ abstract class Service {
       if (accessToken.isEmpty || refreshToken.isEmpty) {
         restClient.setHeader('Authorization', '');
         _navigationDriver.goTo(Routes.signIn);
-        return;
+        return false;
       }
 
       restClient.setHeader('Authorization', 'Bearer $accessToken');
+      return true;
     } catch (_) {
       restClient.setHeader('Authorization', '');
       _navigationDriver.goTo(Routes.signIn);
+      return false;
     }
+  }
+
+  RestResponse<T>? requireAuth<T>() {
+    if (setAuthHeader()) {
+      return null;
+    }
+
+    return unauthorizedResponse<T>();
   }
 
   RestResponse<T> unauthorizedResponse<T>() {

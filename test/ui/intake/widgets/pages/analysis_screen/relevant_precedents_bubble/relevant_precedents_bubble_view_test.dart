@@ -172,6 +172,6 @@ void main() {
     await tester.pumpWidget(createWidget());
 
     expect(find.textContaining('92.0% - Não aplicável'), findsOneWidget);
-    expect(find.textContaining('92.0% - Aplicavel'), findsNothing);
+    expect(find.textContaining('92.0% - Aplicável'), findsNothing);
   });
 }
