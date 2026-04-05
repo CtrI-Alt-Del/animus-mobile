@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/applicability_badge/index.dart';
 
 class PrecedentListItemView extends StatelessWidget {
   final String title;
   final double applicabilityPercentage;
+  final AnalysisPrecedentClassificationLevelDto classificationLevel;
   final VoidCallback? onTap;
 
   const PrecedentListItemView({
     required this.title,
     required this.applicabilityPercentage,
+    required this.classificationLevel,
     this.onTap,
     super.key,
   });
@@ -38,6 +41,7 @@ class PrecedentListItemView extends StatelessWidget {
                       percentageText: _formatPercentage(
                         applicabilityPercentage,
                       ),
+                      classificationLevel: classificationLevel,
                     ),
                     const SizedBox(height: 10),
                     Text(

@@ -1,3 +1,4 @@
+import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/shared/types/json.dart';
 import 'package:animus/rest/mappers/intake/precedent_mapper.dart';
@@ -17,7 +18,35 @@ final class AnalysisPrecedentMapper {
       isChosen: (json['is_chosen'] as bool?) ?? false,
       applicabilityPercentage: _toDouble(json['applicability_percentage']),
       synthesis: (json['synthesis'] as String?) ?? '',
+      classificationLevel: _toClassificationLevel(
+        value: json['classification_level'],
+        applicabilityPercentage: _toDouble(json['applicability_percentage']),
+      ),
     );
+  }
+
+  static AnalysisPrecedentClassificationLevelDto _toClassificationLevel({
+    required dynamic value,
+    required double applicabilityPercentage,
+  }) {
+    if (value is String) {
+      for (final AnalysisPrecedentClassificationLevelDto level
+          in AnalysisPrecedentClassificationLevelDto.values) {
+        if (level.value == value) {
+          return level;
+        }
+      }
+    }
+
+    if (applicabilityPercentage >= 85) {
+      return AnalysisPrecedentClassificationLevelDto.applicable;
+    }
+
+    if (applicabilityPercentage >= 70) {
+      return AnalysisPrecedentClassificationLevelDto.possiblyApplicable;
+    }
+
+    return AnalysisPrecedentClassificationLevelDto.notApplicable;
   }
 
   static double _toDouble(dynamic value) {

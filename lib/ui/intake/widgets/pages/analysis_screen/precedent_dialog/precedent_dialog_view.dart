@@ -121,6 +121,8 @@ class PrecedentDialogView extends ConsumerWidget {
                                           precedent.applicabilityPercentage,
                                       percentageText:
                                           '${precedent.applicabilityPercentage}',
+                                      classificationLevel:
+                                          precedent.classificationLevel,
                                       showBorder: false,
                                       overflow: TextOverflow.ellipsis,
                                     ),

@@ -256,6 +256,7 @@ class RelevantPrecedentsBubblePresenter {
       isChosen: true,
       applicabilityPercentage: precedent.applicabilityPercentage,
       synthesis: precedent.synthesis,
+      classificationLevel: precedent.classificationLevel,
     );
     precedents.value = List<AnalysisPrecedentDto>.unmodifiable(
       precedents.value.map((AnalysisPrecedentDto item) {
@@ -273,6 +274,7 @@ class RelevantPrecedentsBubblePresenter {
           isChosen: isSelected,
           applicabilityPercentage: item.applicabilityPercentage,
           synthesis: item.synthesis,
+          classificationLevel: item.classificationLevel,
         );
       }),
     );

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
 import 'package:animus/theme.dart';
 
 class ApplicabilityBadgeView extends StatelessWidget {
   final double percentage;
   final String percentageText;
+  final AnalysisPrecedentClassificationLevelDto? classificationLevel;
   final bool showBorder;
   final TextOverflow overflow;
   final int maxLines;
@@ -12,6 +14,7 @@ class ApplicabilityBadgeView extends StatelessWidget {
   const ApplicabilityBadgeView({
     required this.percentage,
     required this.percentageText,
+    this.classificationLevel,
     this.showBorder = true,
     this.overflow = TextOverflow.visible,
     this.maxLines = 1,
@@ -45,6 +48,43 @@ class ApplicabilityBadgeView extends StatelessWidget {
   }
 
   _ApplicabilityPalette _resolvePalette(AppThemeTokens tokens) {
+    if (classificationLevel != null) {
+      return _resolvePaletteByClassification(tokens, classificationLevel!);
+    }
+
+    return _resolvePaletteByPercentage(tokens);
+  }
+
+  _ApplicabilityPalette _resolvePaletteByClassification(
+    AppThemeTokens tokens,
+    AnalysisPrecedentClassificationLevelDto level,
+  ) {
+    switch (level) {
+      case AnalysisPrecedentClassificationLevelDto.applicable:
+        return _ApplicabilityPalette(
+          label: 'Aplicavel',
+          textColor: tokens.success,
+          backgroundColor: tokens.success.withValues(alpha: 0.12),
+          borderColor: tokens.success.withValues(alpha: 0.28),
+        );
+      case AnalysisPrecedentClassificationLevelDto.possiblyApplicable:
+        return _ApplicabilityPalette(
+          label: 'Possivelmente aplicavel',
+          textColor: tokens.warning,
+          backgroundColor: tokens.warning.withValues(alpha: 0.12),
+          borderColor: tokens.warning.withValues(alpha: 0.28),
+        );
+      case AnalysisPrecedentClassificationLevelDto.notApplicable:
+        return _ApplicabilityPalette(
+          label: 'Não aplicável',
+          textColor: tokens.danger,
+          backgroundColor: tokens.danger.withValues(alpha: 0.12),
+          borderColor: tokens.danger.withValues(alpha: 0.28),
+        );
+    }
+  }
+
+  _ApplicabilityPalette _resolvePaletteByPercentage(AppThemeTokens tokens) {
     if (percentage >= 85) {
       return _ApplicabilityPalette(
         label: 'Aplicavel',

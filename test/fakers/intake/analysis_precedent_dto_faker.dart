@@ -1,3 +1,4 @@
+import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_dto.dart';
@@ -49,13 +50,32 @@ final class AnalysisPrecedentDtoFaker {
     bool isChosen = false,
     double applicabilityPercentage = 80,
     String synthesis = 'Sintese explicativa do precedente.',
+    AnalysisPrecedentClassificationLevelDto? classificationLevel,
   }) {
+    final AnalysisPrecedentClassificationLevelDto resolvedClassificationLevel =
+        classificationLevel ?? _fromPercentage(applicabilityPercentage);
+
     return AnalysisPrecedentDto(
       analysisId: analysisId,
       precedent: precedent ?? PrecedentDtoFaker.fake(),
       isChosen: isChosen,
       applicabilityPercentage: applicabilityPercentage,
       synthesis: synthesis,
+      classificationLevel: resolvedClassificationLevel,
     );
+  }
+
+  static AnalysisPrecedentClassificationLevelDto _fromPercentage(
+    double applicabilityPercentage,
+  ) {
+    if (applicabilityPercentage >= 85) {
+      return AnalysisPrecedentClassificationLevelDto.applicable;
+    }
+
+    if (applicabilityPercentage >= 70) {
+      return AnalysisPrecedentClassificationLevelDto.possiblyApplicable;
+    }
+
+    return AnalysisPrecedentClassificationLevelDto.notApplicable;
   }
 }
