@@ -4,17 +4,22 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/petition_document_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
+import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
 import 'package:animus/core/storage/interfaces/storage_service.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/document-picker-driver/index.dart';
 import 'package:animus/drivers/storage/file_storage/index.dart';
 import 'package:animus/rest/services/index.dart';
@@ -22,11 +27,16 @@ import 'package:animus/rest/services/index.dart';
 class AnalysisScreenPresenter {
   static const List<String> allowedExtensions = <String>['pdf', 'docx'];
   static const int maxFileSizeInBytes = 20 * 1024 * 1024;
+  static const int defaultPrecedentsLimit = 5;
+  static const Duration summaryPollingInterval = Duration(seconds: 3);
+  static const Duration summaryRequestTimeout = Duration(seconds: 10);
+  static const Duration summaryTimeout = Duration(seconds: 60);
   static const String failedMessage =
       'Nao foi possivel analisar o documento agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
+  final CacheDriver _cacheDriver;
   final FileStorageDriver _fileStorageDriver;
   final DocumentPickerDriver _documentPickerDriver;
   final String analysisId;
@@ -42,6 +52,16 @@ class AnalysisScreenPresenter {
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
+  final Signal<int> precedentsLimit = signal<int>(defaultPrecedentsLimit);
+  final Signal<List<CourtDto>> precedentsCourts = signal<List<CourtDto>>(
+    const <CourtDto>[],
+  );
+  final Signal<List<PrecedentKindDto>> precedentsKinds =
+      signal<List<PrecedentKindDto>>(const <PrecedentKindDto>[]);
+
+  late final ReadonlySignal<int> appliedPrecedentFiltersCount = computed(() {
+    return precedentsCourts.value.length + precedentsKinds.value.length;
+  });
 
   late final ReadonlySignal<bool> canPickDocument = computed(() {
     return !isUploading.value &&
@@ -76,18 +96,33 @@ class AnalysisScreenPresenter {
         : 'Selecionar petição';
   });
 
+  late final ReadonlySignal<bool> showRelevantPrecedents = computed(() {
+    final AnalysisStatusDto currentStatus = status.value;
+
+    return currentStatus == AnalysisStatusDto.searchingPrecedents ||
+        currentStatus == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        currentStatus == AnalysisStatusDto.generatingSynthesis ||
+        currentStatus == AnalysisStatusDto.waitingPrecedentChoice ||
+        currentStatus == AnalysisStatusDto.precedentChosen;
+  });
+
   AnalysisScreenPresenter({
     required IntakeService intakeService,
     required StorageService storageService,
+    required CacheDriver cacheDriver,
     required FileStorageDriver fileStorageDriver,
     required DocumentPickerDriver documentPickerDriver,
     required this.analysisId,
   }) : _intakeService = intakeService,
        _storageService = storageService,
+       _cacheDriver = cacheDriver,
        _fileStorageDriver = fileStorageDriver,
        _documentPickerDriver = documentPickerDriver;
 
   Future<void> load() async {
+    generalError.value = null;
+    _loadCachedPrecedentsLimit();
+
     final RestResponse<AnalysisDto> analysisResponse = await _intakeService
         .getAnalysis(analysisId: analysisId);
 
@@ -95,43 +130,51 @@ class AnalysisScreenPresenter {
       status.value = AnalysisStatusDto.waitingPetition;
       petition.value = null;
       summary.value = null;
+      selectedFile.value = null;
       return;
     }
 
     final AnalysisStatusDto analysisStatus = analysisResponse.body.status;
     analysisName.value = analysisResponse.body.name;
-    status.value = analysisStatus;
 
-    if (analysisStatus == AnalysisStatusDto.waitingPetition ||
-        analysisStatus == AnalysisStatusDto.failed) {
+    final bool shouldLoadPetition = _shouldLoadPetition(analysisStatus);
+
+    if (!shouldLoadPetition) {
+      status.value = analysisStatus;
       petition.value = null;
       summary.value = null;
+      selectedFile.value = null;
       return;
     }
 
-    if (analysisStatus == AnalysisStatusDto.petitionUploaded ||
-        analysisStatus == AnalysisStatusDto.analyzingPetition ||
-        analysisStatus == AnalysisStatusDto.petitionAnalyzed) {
-      final RestResponse<PetitionDto> petitionResponse = await _intakeService
-          .getAnalysisPetition(analysisId: analysisId);
+    final RestResponse<PetitionDto> petitionResponse = await _intakeService
+        .getAnalysisPetition(analysisId: analysisId);
 
-      if (petitionResponse.isFailure) {
-        petition.value = null;
-        summary.value = null;
-        status.value = AnalysisStatusDto.waitingPetition;
-        return;
-      }
-
-      petition.value = petitionResponse.body;
+    if (petitionResponse.isFailure) {
+      petition.value = null;
       summary.value = null;
-
-      final File? petitionFile = await _fileStorageDriver.getFile(
-        petitionResponse.body.document.filePath,
-      );
-      selectedFile.value = petitionFile;
+      selectedFile.value = null;
+      status.value = AnalysisStatusDto.waitingPetition;
+      return;
     }
 
-    if (analysisStatus != AnalysisStatusDto.petitionAnalyzed) {
+    petition.value = petitionResponse.body;
+    summary.value = null;
+
+    final File? petitionFile = await _fileStorageDriver.getFile(
+      petitionResponse.body.document.filePath,
+    );
+    selectedFile.value = petitionFile;
+
+    if (analysisStatus == AnalysisStatusDto.analyzingPetition) {
+      status.value = AnalysisStatusDto.analyzingPetition;
+      await _pollPetitionSummary(petition.value);
+      return;
+    }
+
+    final bool shouldLoadSummary = _shouldLoadSummary(analysisStatus);
+
+    if (!shouldLoadSummary) {
       status.value = analysisStatus;
       return;
     }
@@ -146,12 +189,34 @@ class AnalysisScreenPresenter {
         await _intakeService.getPetitionSummary(petitionId: petitionId);
 
     if (petitionSummaryResponse.isFailure) {
-      status.value = AnalysisStatusDto.petitionUploaded;
+      status.value = analysisStatus;
+      summary.value = null;
+      generalError.value = petitionSummaryResponse.errorMessage;
       return;
     }
 
     summary.value = petitionSummaryResponse.body;
-    status.value = AnalysisStatusDto.petitionAnalyzed;
+    status.value = analysisStatus;
+  }
+
+  bool _shouldLoadPetition(AnalysisStatusDto status) {
+    return status == AnalysisStatusDto.petitionUploaded ||
+        status == AnalysisStatusDto.analyzingPetition ||
+        status == AnalysisStatusDto.petitionAnalyzed ||
+        status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        status == AnalysisStatusDto.generatingSynthesis ||
+        status == AnalysisStatusDto.waitingPrecedentChoice ||
+        status == AnalysisStatusDto.precedentChosen;
+  }
+
+  bool _shouldLoadSummary(AnalysisStatusDto status) {
+    return status == AnalysisStatusDto.petitionAnalyzed ||
+        status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        status == AnalysisStatusDto.generatingSynthesis ||
+        status == AnalysisStatusDto.waitingPrecedentChoice ||
+        status == AnalysisStatusDto.precedentChosen;
   }
 
   Future<void> pickDocument() async {
@@ -198,7 +263,8 @@ class AnalysisScreenPresenter {
     }
 
     generalError.value = null;
-    final bool summarized = await _summarizePetition(petitionId);
+    final PetitionDto? currentPetition = petition.value;
+    final bool summarized = await _summarizePetition(currentPetition);
     if (!summarized) {
       return;
     }
@@ -281,7 +347,7 @@ class AnalysisScreenPresenter {
     }
 
     generalError.value = null;
-    await _summarizePetition(petitionId);
+    await _summarizePetition(petition.value);
   }
 
   Future<void> replaceDocument() async {
@@ -340,7 +406,60 @@ class AnalysisScreenPresenter {
     return true;
   }
 
-  void confirmAndViewPrecedents() {}
+  void setPrecedentsLimit(int value) {
+    if (value <= 0) {
+      return;
+    }
+
+    if (precedentsLimit.value == value) {
+      return;
+    }
+
+    precedentsLimit.value = value;
+    _cacheDriver.set(CacheKeys.precedentsLimit, value.toString());
+  }
+
+  void setPrecedentFilters({
+    required List<CourtDto> courts,
+    required List<PrecedentKindDto> kinds,
+  }) {
+    precedentsCourts.value = List<CourtDto>.unmodifiable(courts);
+    precedentsKinds.value = List<PrecedentKindDto>.unmodifiable(kinds);
+  }
+
+  void _loadCachedPrecedentsLimit() {
+    final String? cachedValue = _cacheDriver.get(CacheKeys.precedentsLimit);
+    if (cachedValue == null || cachedValue.isEmpty) {
+      return;
+    }
+
+    final int? parsed = int.tryParse(cachedValue);
+    if (parsed == null || parsed <= 0) {
+      return;
+    }
+
+    precedentsLimit.value = parsed;
+  }
+
+  void confirmAndViewPrecedents() {
+    if (status.value != AnalysisStatusDto.petitionAnalyzed) {
+      return;
+    }
+
+    final String? petitionId = petition.value?.id;
+    if (petitionId == null || petitionId.isEmpty) {
+      generalError.value = failedMessage;
+      return;
+    }
+
+    if (summary.value == null) {
+      generalError.value = failedMessage;
+      return;
+    }
+
+    generalError.value = null;
+    status.value = AnalysisStatusDto.searchingPrecedents;
+  }
 
   void dispose() {
     status.dispose();
@@ -352,11 +471,16 @@ class AnalysisScreenPresenter {
     generalError.dispose();
     analysisName.dispose();
     isManagingAnalysis.dispose();
+    precedentsLimit.dispose();
+    precedentsCourts.dispose();
+    precedentsKinds.dispose();
+    appliedPrecedentFiltersCount.dispose();
     canPickDocument.dispose();
     canAnalyze.dispose();
     showProcessingBubble.dispose();
     primaryActionLabel.dispose();
     fileActionLabel.dispose();
+    showRelevantPrecedents.dispose();
   }
 
   void _applyRemoteFailure([String? errorMessage]) {
@@ -368,7 +492,9 @@ class AnalysisScreenPresenter {
         : errorMessage;
   }
 
-  Future<bool> _summarizePetition(String? petitionId) async {
+  Future<bool> _summarizePetition(PetitionDto? petitionData) async {
+    final String? petitionId = petitionData?.id;
+
     if (petitionId == null || petitionId.isEmpty) {
       _applyRemoteFailure();
       return false;
@@ -376,27 +502,83 @@ class AnalysisScreenPresenter {
 
     status.value = AnalysisStatusDto.analyzingPetition;
 
-    final RestResponse<PetitionSummaryDto>
-    summaryResponse = await _intakeService
+    final RestResponse<void> summarizeResponse = await _intakeService
         .summarizePetition(petitionId: petitionId)
         .timeout(
-          const Duration(seconds: 60),
-          onTimeout: () => RestResponse<PetitionSummaryDto>(
+          summaryRequestTimeout,
+          onTimeout: () => RestResponse<void>(
             statusCode: HttpStatus.requestTimeout,
-            errorMessage:
-                '$failedMessage O resumo excedeu o tempo limite de 60 segundos.',
+            errorMessage: _buildSummaryTimeoutMessage(summaryRequestTimeout),
           ),
         );
 
-    if (summaryResponse.isFailure) {
-      _applyRemoteFailure(summaryResponse.errorMessage);
+    if (summarizeResponse.isFailure) {
+      _applyRemoteFailure(summarizeResponse.errorMessage);
       return false;
     }
 
-    summary.value = summaryResponse.body;
-    status.value = AnalysisStatusDto.petitionAnalyzed;
-    generalError.value = null;
-    return true;
+    return _pollPetitionSummary(petitionData);
+  }
+
+  Future<bool> _pollPetitionSummary(PetitionDto? petitionData) async {
+    final String? petitionId = petitionData?.id;
+    final String analysisId = petitionData?.analysisId ?? this.analysisId;
+
+    if (petitionId == null || petitionId.isEmpty) {
+      _applyRemoteFailure();
+      return false;
+    }
+
+    Duration elapsed = Duration.zero;
+
+    while (elapsed < summaryTimeout) {
+      final RestResponse<AnalysisDto> analysisResponse = await _intakeService
+          .getAnalysis(analysisId: analysisId)
+          .timeout(
+            summaryRequestTimeout,
+            onTimeout: () => RestResponse<AnalysisDto>(
+              statusCode: HttpStatus.requestTimeout,
+              errorMessage: _buildSummaryTimeoutMessage(summaryRequestTimeout),
+            ),
+          );
+
+      if (analysisResponse.isFailure) {
+        _applyRemoteFailure(analysisResponse.errorMessage);
+        return false;
+      }
+
+      final AnalysisStatusDto currentStatus = analysisResponse.body.status;
+      status.value = currentStatus;
+
+      if (currentStatus == AnalysisStatusDto.petitionAnalyzed) {
+        final RestResponse<PetitionSummaryDto> summaryResponse =
+            await _intakeService.getPetitionSummary(petitionId: petitionId);
+
+        if (summaryResponse.isFailure) {
+          _applyRemoteFailure(summaryResponse.errorMessage);
+          return false;
+        }
+
+        summary.value = summaryResponse.body;
+        generalError.value = null;
+        return true;
+      }
+
+      if (currentStatus == AnalysisStatusDto.failed) {
+        _applyRemoteFailure();
+        return false;
+      }
+
+      await Future<void>.delayed(summaryPollingInterval);
+      elapsed += summaryPollingInterval;
+    }
+
+    _applyRemoteFailure(_buildSummaryTimeoutMessage(summaryTimeout));
+    return false;
+  }
+
+  String _buildSummaryTimeoutMessage(Duration timeout) {
+    return '$failedMessage O resumo excedeu o tempo limite de ${timeout.inSeconds} segundos.';
   }
 
   String fileName(File file) {
@@ -435,6 +617,7 @@ final analysisScreenPresenterProvider = Provider.autoDispose
     .family<AnalysisScreenPresenter, String>((Ref ref, String analysisId) {
       final IntakeService intakeService = ref.watch(intakeServiceProvider);
       final StorageService storageService = ref.watch(storageServiceProvider);
+      final CacheDriver cacheDriver = ref.watch(cacheDriverProvider);
       final FileStorageDriver fileStorageDriver = ref.watch(
         fileStorageDriverProvider,
       );
@@ -445,6 +628,7 @@ final analysisScreenPresenterProvider = Provider.autoDispose
       final AnalysisScreenPresenter presenter = AnalysisScreenPresenter(
         intakeService: intakeService,
         storageService: storageService,
+        cacheDriver: cacheDriver,
         fileStorageDriver: fileStorageDriver,
         documentPickerDriver: documentPickerDriver,
         analysisId: analysisId,

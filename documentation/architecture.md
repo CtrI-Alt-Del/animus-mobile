@@ -114,6 +114,17 @@ O fluxo padrao da aplicacao segue esta direcao:
 5. `drivers` resolvem capacidades locais e de plataforma.
 6. O estado reativo e atualizado e a `View` re-renderiza.
 
+## Fluxo de Precedentes na Analysis Screen
+
+O fluxo de precedentes do modulo `intake` segue a mesma separacao arquitetural e acontece sem abrir nova rota:
+
+1. `AnalysisScreenPresenter` carrega `analysis`, `petition` e `summary`, inclusive em reentrada nos estados de precedentes.
+2. `RelevantPrecedentsBubblePresenter` orquestra o fluxo assíncrono de precedentes na UI: dispara a busca, faz polling do status da analise, carrega a lista final e confirma a escolha.
+3. `IntakeService` define os contratos tipados de busca, listagem e escolha de precedentes no `core`.
+4. `IntakeRestService` encapsula `POST /precedents/search`, `GET /precedents` e `PATCH /precedents/choose`, devolvendo `RestResponse` e `ListResponse` tipados para a UI.
+5. `CacheDriver` persiste a quantidade de precedentes configurada para reutilizacao no fluxo.
+6. `ExternalLinkDriver` encapsula a abertura externa do Pangea, evitando acoplamento da UI a plugins concretos.
+
 ## Contrato da API
 
 A integracao com o Animus Server e RESTful com payloads JSON. Os atributos seguem o padrao `snake_case` no transporte. O mobile converte esses payloads em DTOs tipados antes de expor dados para a UI.

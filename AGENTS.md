@@ -5,9 +5,14 @@ MCPs:
 - Use o MCP do Serena para navegar pela codebase de forma otimizada
 - Use o MCP do Pencil para buscar contexto da telas de Design do app em `design\animus.pen`
 
+SKILLS:
+
+- Use a SKILL `frontend-design` em tarefas envolvendo Design do app
+- Use a SKILL `flutter-expert` em tarefas criação de widgets do Flutter
+- Use a SKILL `pencil-design` em tarefas envolvendo Design do app em `design\animus.pen`
+
 Leia os seguintes documentos quando não for apenas pedido criar commits, PR's ou refinar docs:  
 
-- https://joaogoliveiragarcia.atlassian.net/wiki/spaces/ANM/pages/edit-v2/20480001?draftShareId=f6aa332c-e24a-4cb3-b1f9-a1c8358db1da (use o MCP da atlassian para recuperar o conteudo) Para ter uma visão geral dos domínios do projeto
 - documentation/architecture.md Para entender a arquitetura da aplicação
 - documentation/rules/rules.md Para entender as regras e diretrizes de desenvolvimento da aplicação
 - documentation/tooling.md Para entender os principais comandos via terminal

@@ -199,7 +199,7 @@ Esta spec define a implementacao tecnica do fluxo de redefinicao de senha inicia
 - **Base class:** `ConsumerStatefulWidget`
 - **Props:** `required Widget child`
 - **Bibliotecas de UI:** `flutter_riverpod`
-- **Estados visuais:** nao aplicavel; atua apenas como wrapper estrutural da app.
+- **Estados visuais:** Não aplicável; atua apenas como wrapper estrutural da app.
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/forgot_password_screen/forgot_password_screen_view.dart` (**novo arquivo**)
 - **Base class:** `StatelessWidget`
@@ -282,11 +282,11 @@ Esta spec define a implementacao tecnica do fluxo de redefinicao de senha inicia
 
 - **Localizacao:** `lib/ui/auth/widgets/components/password_reset_link_listener/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef PasswordResetLinkListener = PasswordResetLinkListenerView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/forgot_password_screen/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef ForgotPasswordScreen = ForgotPasswordScreenView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/forgot_password_screen/forgot_password_form/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef ForgotPasswordForm = ForgotPasswordFormView`
@@ -294,11 +294,11 @@ Esta spec define a implementacao tecnica do fluxo de redefinicao de senha inicia
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/check_email_screen/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef CheckEmailScreen = CheckEmailScreenView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/new_password_screen/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef NewPasswordScreen = NewPasswordScreenView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/new_password_screen/new_password_form/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef NewPasswordForm = NewPasswordFormView`
@@ -464,7 +464,7 @@ lib/ui/auth/widgets/pages/
 
 # 7. O que deve ser removido?
 
-**Nao aplicavel**.
+**Não aplicável**.
 
 ---
 

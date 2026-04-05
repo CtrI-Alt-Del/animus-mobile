@@ -73,7 +73,7 @@ e determinado automaticamente pelo tipo de mudanca.
 **2.3 Edicao da spec**
 - Edite **somente** as secoes mapeadas no diagnostico.
 - Atualize `last_updated_at` mantendo o formato `YYYY-MM-DD`.
-- Secoes que deixarem de se aplicar: escreva **Nao aplicavel**.
+- Secoes que deixarem de se aplicar: escreva **Não aplicável**.
 - Mantenha caminhos reais relativos ao repositorio e marque arquivos novos como
   `**novo arquivo**`.
 - Ao citar fluxo principal, reflita o encadeamento real da feature, por exemplo:

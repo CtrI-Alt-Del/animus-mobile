@@ -3,13 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:animus/theme.dart';
 
 class AnalysisHeaderActionsView extends StatelessWidget {
+  final VoidCallback? onPrecedentsCount;
+  final VoidCallback? onFilters;
   final VoidCallback? onRename;
   final VoidCallback? onArchive;
+  final int appliedFiltersCount;
   final bool isEnabled;
 
   const AnalysisHeaderActionsView({
+    required this.onPrecedentsCount,
+    required this.onFilters,
     required this.onRename,
     required this.onArchive,
+    required this.appliedFiltersCount,
     required this.isEnabled,
     super.key,
   });
@@ -29,9 +35,23 @@ class AnalysisHeaderActionsView extends StatelessWidget {
         side: BorderSide(color: tokens.borderSubtle),
       ),
       onSelected: (String value) {
+        if (value == 'precedents_count') {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            onPrecedentsCount?.call();
+          });
+          return;
+        }
+
         if (value == 'rename') {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             onRename?.call();
+          });
+          return;
+        }
+
+        if (value == 'filters') {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            onFilters?.call();
           });
           return;
         }
@@ -40,6 +60,7 @@ class AnalysisHeaderActionsView extends StatelessWidget {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             onArchive?.call();
           });
+          return;
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -72,6 +93,64 @@ class AnalysisHeaderActionsView extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 'Arquivar',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: tokens.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'filters',
+          height: 48,
+          child: Row(
+            children: <Widget>[
+              Icon(
+                Icons.filter_alt_outlined,
+                color: tokens.textPrimary,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Filtros',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: tokens.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              if (appliedFiltersCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tokens.warning.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: tokens.warning.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    appliedFiltersCount.toString(),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: tokens.warning,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'precedents_count',
+          height: 48,
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.balance_outlined, color: tokens.textPrimary, size: 18),
+              const SizedBox(width: 10),
+              Text(
+                'Qtd. precedentes',
                 style: textTheme.bodyMedium?.copyWith(
                   color: tokens.textPrimary,
                 ),

@@ -108,7 +108,7 @@ class ProfileScreenView extends ConsumerWidget {
                                   return;
                                 }
 
-                                presenter.updateDisplayName(updatedName);
+                                await presenter.updateDisplayName(updatedName);
                               },
                               onChangePasswordTap: presenter.goToForgotPassword,
                             );
