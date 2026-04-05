@@ -1,4 +1,5 @@
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
@@ -10,16 +11,15 @@ class StorageRestService extends Service implements StorageService {
   StorageRestService({
     required RestClient restClient,
     required CacheDriver cacheDriver,
-  }) : super(restClient, cacheDriver);
+    required NavigationDriver navigationDriver,
+  }) : super(restClient, cacheDriver, navigationDriver);
 
   @override
   Future<RestResponse<UploadUrlDto>> generatePetitionUploadUrl({
     required String analysisId,
     required String documentType,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<UploadUrlDto>();
-    }
+    setAuthHeader();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
       '/storage/analyses/$analysisId/petitions/upload',

@@ -5,6 +5,8 @@ import 'package:animus/core/shared/responses/rest_response.dart';
 abstract class AuthService {
   Future<RestResponse<AccountDto>> getAccount();
 
+  Future<RestResponse<AccountDto>> updateAccount({required String name});
+
   Future<RestResponse<void>> forgotPassword({required String email});
 
   Future<RestResponse<String>> verifyResetToken({required String token});

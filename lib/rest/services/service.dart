@@ -1,29 +1,37 @@
 import 'dart:io';
 
 import 'package:animus/constants/cache_keys.dart';
+import 'package:animus/constants/routes.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 
 abstract class Service {
   final RestClient restClient;
   final CacheDriver _cacheDriver;
+  final NavigationDriver _navigationDriver;
 
-  Service(this.restClient, this._cacheDriver);
+  Service(this.restClient, this._cacheDriver, this._navigationDriver);
 
-  bool setAuthHeader() {
-    final String accessToken = (_cacheDriver.get(CacheKeys.accessToken) ?? '')
-        .trim();
-    final String refreshToken = (_cacheDriver.get(CacheKeys.refreshToken) ?? '')
-        .trim();
+  void setAuthHeader() {
+    try {
+      final String accessToken = (_cacheDriver.get(CacheKeys.accessToken) ?? '')
+          .trim();
+      final String refreshToken =
+          (_cacheDriver.get(CacheKeys.refreshToken) ?? '').trim();
 
-    if (accessToken.isEmpty || refreshToken.isEmpty) {
+      if (accessToken.isEmpty || refreshToken.isEmpty) {
+        restClient.setHeader('Authorization', '');
+        _navigationDriver.goTo(Routes.signIn);
+        return;
+      }
+
+      restClient.setHeader('Authorization', 'Bearer $accessToken');
+    } catch (_) {
       restClient.setHeader('Authorization', '');
-      return false;
+      _navigationDriver.goTo(Routes.signIn);
     }
-
-    restClient.setHeader('Authorization', 'Bearer $accessToken');
-    return true;
   }
 
   RestResponse<T> unauthorizedResponse<T>() {
