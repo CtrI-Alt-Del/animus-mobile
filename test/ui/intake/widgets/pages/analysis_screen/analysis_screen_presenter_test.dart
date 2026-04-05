@@ -5,6 +5,7 @@ import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
+import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
@@ -23,6 +24,8 @@ class _MockIntakeService extends Mock implements IntakeService {}
 
 class _MockStorageService extends Mock implements StorageService {}
 
+class _MockCacheDriver extends Mock implements CacheDriver {}
+
 class _MockFileStorageDriver extends Mock implements FileStorageDriver {}
 
 class _MockDocumentPickerDriver extends Mock implements DocumentPickerDriver {}
@@ -30,6 +33,7 @@ class _MockDocumentPickerDriver extends Mock implements DocumentPickerDriver {}
 void main() {
   late _MockIntakeService intakeService;
   late _MockStorageService storageService;
+  late _MockCacheDriver cacheDriver;
   late _MockFileStorageDriver fileStorageDriver;
   late _MockDocumentPickerDriver documentPickerDriver;
   late Directory tempDirectory;
@@ -41,8 +45,11 @@ void main() {
   setUp(() async {
     intakeService = _MockIntakeService();
     storageService = _MockStorageService();
+    cacheDriver = _MockCacheDriver();
     fileStorageDriver = _MockFileStorageDriver();
     documentPickerDriver = _MockDocumentPickerDriver();
+    when(() => cacheDriver.get(any())).thenReturn(null);
+    when(() => cacheDriver.set(any(), any())).thenReturn(null);
     tempDirectory = await Directory.systemTemp.createTemp(
       'analysis_screen_presenter_test_',
     );
@@ -58,6 +65,7 @@ void main() {
     return AnalysisScreenPresenter(
       intakeService: intakeService,
       storageService: storageService,
+      cacheDriver: cacheDriver,
       fileStorageDriver: fileStorageDriver,
       documentPickerDriver: documentPickerDriver,
       analysisId: 'analysis-1',
@@ -168,6 +176,73 @@ void main() {
         expect(presenter.summary.value, isNull);
         verify(
           () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+        ).called(1);
+      },
+    );
+
+    test(
+      'should resume polling and load summary when status is analyzingPetition',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final File petitionFile = await createFile('uploaded.pdf', 1024);
+        final petition = PetitionDtoFaker.fake();
+        final PetitionSummaryDto petitionSummary =
+            PetitionSummaryDtoFaker.fake();
+
+        when(
+          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse(statusCode: 200, body: petition),
+        );
+        when(
+          () => fileStorageDriver.getFile(petition.document.filePath),
+        ).thenAnswer((_) async => petitionFile);
+        when(
+          () => intakeService.getPetitionSummary(petitionId: petition.id!),
+        ).thenAnswer(
+          (_) async => RestResponse(statusCode: 200, body: petitionSummary),
+        );
+
+        var pollCount = 0;
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer((_) async {
+          pollCount++;
+
+          if (pollCount == 1) {
+            return RestResponse<AnalysisDto>(
+              statusCode: 200,
+              body: AnalysisDtoFaker.fake(
+                status: AnalysisStatusDto.analyzingPetition,
+                name: 'Analise processando resumo',
+              ),
+            );
+          }
+
+          return RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              status: AnalysisStatusDto.petitionAnalyzed,
+            ),
+          );
+        });
+
+        await presenter.load();
+
+        expect(presenter.analysisName.value, 'Analise processando resumo');
+        expect(presenter.status.value, AnalysisStatusDto.petitionAnalyzed);
+        expect(presenter.petition.value?.id, petition.id);
+        expect(presenter.selectedFile.value?.path, petitionFile.path);
+        expect(
+          presenter.summary.value?.caseSummary,
+          petitionSummary.caseSummary,
+        );
+        verify(
+          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+        ).called(1);
+        verify(
+          () => intakeService.getPetitionSummary(petitionId: petition.id!),
         ).called(1);
       },
     );
@@ -386,8 +461,24 @@ void main() {
 
       when(
         () => intakeService.summarizePetition(petitionId: petition.id!),
+      ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+      when(
+        () => intakeService.getAnalysis(analysisId: petition.analysisId),
       ).thenAnswer(
-        (_) async => RestResponse(statusCode: 200, body: petitionSummary),
+        (_) async => RestResponse<AnalysisDto>(
+          statusCode: 200,
+          body: AnalysisDtoFaker.fake(
+            status: AnalysisStatusDto.petitionAnalyzed,
+          ),
+        ),
+      );
+      when(
+        () => intakeService.getPetitionSummary(petitionId: petition.id!),
+      ).thenAnswer(
+        (_) async => RestResponse<PetitionSummaryDto>(
+          statusCode: 200,
+          body: petitionSummary,
+        ),
       );
 
       await presenter.analyze();
@@ -410,7 +501,7 @@ void main() {
         when(
           () => intakeService.summarizePetition(petitionId: petition.id!),
         ).thenAnswer(
-          (_) async => RestResponse<PetitionSummaryDto>(
+          (_) async => RestResponse<void>(
             statusCode: 500,
             errorMessage: 'Falha ao gerar resumo.',
           ),
@@ -424,24 +515,35 @@ void main() {
       },
     );
 
-    test('should timeout summarize request after 60 seconds', () {
+    test('should timeout summarize polling after 60 seconds', () {
       final AnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       final petition = PetitionDtoFaker.fake();
-      final completer = Completer<RestResponse<PetitionSummaryDto>>();
 
       presenter.petition.value = petition;
       presenter.status.value = AnalysisStatusDto.petitionUploaded;
 
       when(
         () => intakeService.summarizePetition(petitionId: petition.id!),
-      ).thenAnswer((_) => completer.future);
+      ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+      when(
+        () => intakeService.getAnalysis(analysisId: petition.analysisId),
+      ).thenAnswer(
+        (_) async => RestResponse<AnalysisDto>(
+          statusCode: 200,
+          body: AnalysisDtoFaker.fake(
+            status: AnalysisStatusDto.analyzingPetition,
+          ),
+        ),
+      );
 
       fakeAsync((FakeAsync async) {
         unawaited(presenter.analyze());
 
         async.flushMicrotasks();
-        async.elapse(const Duration(seconds: 61));
+        async.elapse(const Duration(seconds: 70));
+        async.flushMicrotasks();
+        async.elapse(Duration.zero);
         async.flushMicrotasks();
 
         expect(presenter.status.value, AnalysisStatusDto.failed);
@@ -450,6 +552,36 @@ void main() {
           contains('O resumo excedeu o tempo limite de 60 segundos.'),
         );
       });
+    });
+
+    test('should fail when analysis polling returns failed status', () async {
+      final AnalysisScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+      final petition = PetitionDtoFaker.fake();
+
+      presenter.petition.value = petition;
+      presenter.status.value = AnalysisStatusDto.petitionUploaded;
+
+      when(
+        () => intakeService.summarizePetition(petitionId: petition.id!),
+      ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+      when(
+        () => intakeService.getAnalysis(analysisId: petition.analysisId),
+      ).thenAnswer(
+        (_) async => RestResponse<AnalysisDto>(
+          statusCode: 200,
+          body: AnalysisDtoFaker.fake(status: AnalysisStatusDto.failed),
+        ),
+      );
+
+      await presenter.analyze();
+
+      expect(presenter.status.value, AnalysisStatusDto.failed);
+      expect(
+        presenter.generalError.value,
+        AnalysisScreenPresenter.failedMessage,
+      );
+      expect(presenter.summary.value, isNull);
     });
   });
 

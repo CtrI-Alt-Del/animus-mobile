@@ -1,12 +1,19 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedents_search_filters_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
+import 'package:animus/core/shared/responses/list_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/shared/types/json.dart';
+import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_summary_mapper.dart';
@@ -17,7 +24,8 @@ class IntakeRestService extends Service implements IntakeService {
   IntakeRestService({
     required RestClient restClient,
     required CacheDriver cacheDriver,
-  }) : super(restClient, cacheDriver);
+    required NavigationDriver navigationDriver,
+  }) : super(restClient, cacheDriver, navigationDriver);
 
   @override
   Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listAnalyses({
@@ -25,9 +33,7 @@ class IntakeRestService extends Service implements IntakeService {
     required int limit,
     bool isArchived = false,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<CursorPaginationResponse<AnalysisDto>>();
-    }
+    setAuthHeader();
 
     final Json queryParams = <String, dynamic>{
       'limit': limit,
@@ -50,9 +56,7 @@ class IntakeRestService extends Service implements IntakeService {
 
   @override
   Future<RestResponse<AnalysisDto>> createAnalysis({String? folderId}) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<AnalysisDto>();
-    }
+    setAuthHeader();
 
     final String? normalizedFolderId = folderId?.trim();
     final Object body = normalizedFolderId == null || normalizedFolderId.isEmpty
@@ -67,9 +71,7 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<PetitionDto>> createPetition({
     required PetitionDto petition,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<PetitionDto>();
-    }
+    setAuthHeader();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
       '/intake/petitions',
@@ -83,9 +85,7 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<AnalysisDto>> getAnalysis({
     required String analysisId,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<AnalysisDto>();
-    }
+    setAuthHeader();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
       '/intake/analyses/$analysisId',
@@ -99,9 +99,7 @@ class IntakeRestService extends Service implements IntakeService {
     required String analysisId,
     required String name,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<AnalysisDto>();
-    }
+    setAuthHeader();
 
     final String normalizedName = name.trim();
 
@@ -117,9 +115,7 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<AnalysisDto>> archiveAnalysis({
     required String analysisId,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<AnalysisDto>();
-    }
+    setAuthHeader();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
       '/intake/analyses/$analysisId/archive',
@@ -132,9 +128,7 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<PetitionDto>> getAnalysisPetition({
     required String analysisId,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<PetitionDto>();
-    }
+    setAuthHeader();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
       '/intake/analyses/$analysisId/petition',
@@ -147,9 +141,7 @@ class IntakeRestService extends Service implements IntakeService {
   Future<RestResponse<PetitionSummaryDto>> getPetitionSummary({
     required String petitionId,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<PetitionSummaryDto>();
-    }
+    setAuthHeader();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
       '/intake/petitions/$petitionId/summary',
@@ -159,17 +151,98 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
-  Future<RestResponse<PetitionSummaryDto>> summarizePetition({
+  Future<RestResponse<void>> summarizePetition({
     required String petitionId,
   }) async {
-    if (!setAuthHeader()) {
-      return unauthorizedResponse<PetitionSummaryDto>();
-    }
+    setAuthHeader();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
       '/intake/petitions/$petitionId/summary',
     );
 
-    return response.mapBody<PetitionSummaryDto>(PetitionSummaryMapper.toDto);
+    return toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<void>> searchAnalysisPrecedents({
+    required String analysisId,
+    required AnalysisPrecedentsSearchFiltersDto filters,
+  }) async {
+    setAuthHeader();
+
+    final Json body = <String, dynamic>{
+      'courts': filters.courts
+          .map((court) => court.value)
+          .toList(growable: false),
+      'precedent_kinds': filters.precedentKinds
+          .map((kind) => kind.value)
+          .toList(growable: false),
+      'limit': filters.limit,
+    };
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/analyses/$analysisId/precedents/search',
+      body: body,
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<ListResponse<AnalysisPrecedentDto>>>
+  listAnalysisPrecedents({required String analysisId}) async {
+    setAuthHeader();
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId/precedents',
+    );
+
+    return response.mapBody<ListResponse<AnalysisPrecedentDto>>((Json json) {
+      final dynamic itemsValue =
+          json['items'] ?? json['precedents'] ?? json['data'];
+
+      return ListResponse<AnalysisPrecedentDto>(
+        items: _toAnalysisPrecedents(itemsValue),
+      );
+    });
+  }
+
+  static List<AnalysisPrecedentDto> _toAnalysisPrecedents(dynamic value) {
+    if (value is! List<dynamic>) {
+      return <AnalysisPrecedentDto>[];
+    }
+
+    return value
+        .whereType<Json>()
+        .map(AnalysisPrecedentMapper.toDto)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<RestResponse<AnalysisStatusDto>> chooseAnalysisPrecedent({
+    required String analysisId,
+    required PrecedentIdentifierDto identifier,
+  }) async {
+    setAuthHeader();
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.patch(
+      '/intake/analyses/$analysisId/precedents/choose',
+      queryParams: <String, dynamic>{
+        'court': identifier.court.value,
+        'kind': identifier.kind.value,
+        'number': identifier.number,
+      },
+    );
+
+    return response.mapBody<AnalysisStatusDto>((Json json) {
+      final String statusValue =
+          (json['status'] ?? json['analysis_status'] ?? json['value'] ?? '')
+              .toString();
+
+      return AnalysisStatusDto.values.firstWhere(
+        (AnalysisStatusDto status) => status.value == statusValue,
+        orElse: () => AnalysisStatusDto.waitingPrecedentChoice,
+      );
+    });
   }
 }
