@@ -185,7 +185,7 @@ Esta spec define a implementacao da tela de `sign in` do `animus` para autentica
 
 - **Localizacao:** `lib/ui/auth/widgets/pages/sign_in_screen/index.dart` (**novo arquivo**)
 - `**typedef` exportado:** `typedef SignInScreen = SignInScreenView`
-- **Widgets internos exportados:** nao aplicavel
+- **Widgets internos exportados:** Não aplicável
 - **Localizacao:** `lib/ui/auth/widgets/pages/sign_in_screen/sign_in_form/index.dart` (**novo arquivo**)
 - `**typedef` exportado:** `typedef SignInForm = SignInFormView`
 - **Widgets internos exportados:** `GeneralErrorAlert`, `SignInSubmitButton`, `OrDivider`, `GoogleSignInButton`, `SignUpHint`, `ForgotPasswordHint`
@@ -206,7 +206,7 @@ Esta spec define a implementacao da tela de `sign in` do `animus` para autentica
 - **Localizacao:** `lib/router.dart`
 - **Caminho da rota:** `Routes.signIn`
 - **Widget principal:** `SignInScreen`
-- **Guards / redirecionamentos:** nao aplicavel nesta rota; a decisao de auth guard para `Routes.home` fica fora do escopo desta spec.
+- **Guards / redirecionamentos:** Não aplicável nesta rota; a decisao de auth guard para `Routes.home` fica fora do escopo desta spec.
 
 ## Estrutura de Pastas
 
@@ -296,7 +296,7 @@ lib/ui/auth/widgets/pages/sign_in_screen/
 
 # 7. O que deve ser removido?
 
-**Nao aplicavel**.
+**Não aplicável**.
 
 ---
 

@@ -262,7 +262,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/dot_grid_background/` (**novo arquivo**)
 - **Tipo:** View only
-- **Props:** Nao aplicavel.
+- **Props:** Não aplicável.
 - **Responsabilidade:** renderiza o fundo dot grid da tela de analise via `CustomPainter`, preservando alinhamento visual com os frames validados no design.
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_header/analysis_header_actions/` (**novo arquivo**)
@@ -277,7 +277,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_header/archive_analysis_dialog/` (**novo arquivo**)
 - **Tipo:** View only
-- **Props:** Nao aplicavel.
+- **Props:** Não aplicável.
 - **Responsabilidade:** renderiza o modal de confirmacao de arquivamento e devolve confirmacao booleana para a tela executar `IntakeService.archiveAnalysis(...)` via presenter.
 
 ## Camada UI (Barrel Files / `index.dart`)
@@ -288,19 +288,19 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/ai_bubble/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef AiBubble = AiBubbleView`
-- **Widgets internos exportados:** Nao aplicavel.
+- **Widgets internos exportados:** Não aplicável.
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/petition_file_bubble/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef PetitionFileBubble = PetitionFileBubbleView`
-- **Widgets internos exportados:** Nao aplicavel.
+- **Widgets internos exportados:** Não aplicável.
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/petition_summary_card/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef PetitionSummaryCard = PetitionSummaryCardView`
-- **Widgets internos exportados:** Nao aplicavel.
+- **Widgets internos exportados:** Não aplicável.
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/index.dart` (**novo arquivo**)
 - **`typedef` exportado:** `typedef AnalysisActionBar = AnalysisActionBarView`
-- **Widgets internos exportados:** Nao aplicavel.
+- **Widgets internos exportados:** Não aplicável.
 
 ## Camada UI (Providers Riverpod — se isolados)
 
@@ -407,7 +407,7 @@ lib/ui/intake/widgets/pages/analysis_screen/
 
 # 7. O que deve ser removido?
 
-**Nao aplicavel**.
+**Não aplicável**.
 
 ---
 
