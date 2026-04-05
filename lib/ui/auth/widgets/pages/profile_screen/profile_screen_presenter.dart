@@ -117,7 +117,7 @@ class ProfileScreenPresenter {
     );
   }
 
-  void updateDisplayName(String updatedName) {
+  Future<void> updateDisplayName(String updatedName) async {
     final String normalizedName = updatedName.trim();
     if (normalizedName.isEmpty) {
       return;
@@ -128,13 +128,15 @@ class ProfileScreenPresenter {
       return;
     }
 
-    account.value = AccountDto(
-      id: currentAccount.id,
+    final RestResponse<AccountDto> response = await _authService.updateAccount(
       name: normalizedName,
-      email: currentAccount.email,
-      isVerified: currentAccount.isVerified,
-      socialAccounts: currentAccount.socialAccounts,
     );
+
+    if (response.isFailure) {
+      return;
+    }
+
+    account.value = response.body;
   }
 
   void dispose() {
