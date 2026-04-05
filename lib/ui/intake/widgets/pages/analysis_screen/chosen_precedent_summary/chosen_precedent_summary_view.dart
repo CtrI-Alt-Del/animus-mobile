@@ -78,6 +78,7 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
                     percentage: selectedPrecedent.applicabilityPercentage,
                     percentageText:
                         '${selectedPrecedent.applicabilityPercentage}',
+                    classificationLevel: selectedPrecedent.classificationLevel,
                   ),
                 ),
               ],
