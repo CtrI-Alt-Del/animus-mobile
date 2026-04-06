@@ -1,6 +1,7 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedents_search_filters_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
@@ -23,6 +24,10 @@ abstract class IntakeService {
   });
 
   Future<RestResponse<AnalysisDto>> getAnalysis({required String analysisId});
+
+  Future<RestResponse<AnalysisReportDto>> getAnalysisReport({
+    required String analysisId,
+  });
 
   Future<RestResponse<AnalysisDto>> renameAnalysis({
     required String analysisId,

@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
+import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
@@ -16,6 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../fakers/intake/analysis_dto_faker.dart';
+import '../../../../../fakers/intake/analysis_report_dto_faker.dart';
 import '../../../../../fakers/intake/petition_dto_faker.dart';
 import '../../../../../fakers/intake/petition_summary_dto_faker.dart';
 import '../../../../../fakers/storage/upload_url_dto_faker.dart';
@@ -26,6 +30,8 @@ class _MockStorageService extends Mock implements StorageService {}
 
 class _MockCacheDriver extends Mock implements CacheDriver {}
 
+class _MockPdfDriver extends Mock implements PdfDriver {}
+
 class _MockFileStorageDriver extends Mock implements FileStorageDriver {}
 
 class _MockDocumentPickerDriver extends Mock implements DocumentPickerDriver {}
@@ -34,6 +40,7 @@ void main() {
   late _MockIntakeService intakeService;
   late _MockStorageService storageService;
   late _MockCacheDriver cacheDriver;
+  late _MockPdfDriver pdfDriver;
   late _MockFileStorageDriver fileStorageDriver;
   late _MockDocumentPickerDriver documentPickerDriver;
   late Directory tempDirectory;
@@ -46,6 +53,7 @@ void main() {
     intakeService = _MockIntakeService();
     storageService = _MockStorageService();
     cacheDriver = _MockCacheDriver();
+    pdfDriver = _MockPdfDriver();
     fileStorageDriver = _MockFileStorageDriver();
     documentPickerDriver = _MockDocumentPickerDriver();
     when(() => cacheDriver.get(any())).thenReturn(null);
@@ -66,6 +74,7 @@ void main() {
       intakeService: intakeService,
       storageService: storageService,
       cacheDriver: cacheDriver,
+      pdfDriver: pdfDriver,
       fileStorageDriver: fileStorageDriver,
       documentPickerDriver: documentPickerDriver,
       analysisId: 'analysis-1',
@@ -794,6 +803,314 @@ void main() {
         verify(
           () => intakeService.createPetition(petition: any(named: 'petition')),
         ).called(1);
+      },
+    );
+  });
+
+  group('exportAnalysisReport', () {
+    test(
+      'should fetch report, generate pdf, share file and clear transient states on success',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
+          analysis: AnalysisDtoFaker.fake(
+            id: 'analysis-1',
+            name: 'Analise final',
+            status: AnalysisStatusDto.precedentChosen,
+          ),
+        );
+        final Uint8List bytes = Uint8List.fromList(<int>[1, 2, 3]);
+
+        presenter.status.value = AnalysisStatusDto.precedentChosen;
+        presenter.generalError.value = 'erro antigo';
+
+        when(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async =>
+              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+        );
+        when(
+          () => pdfDriver.generateAnalysisReport(report: report),
+        ).thenAnswer((_) async => bytes);
+        when(
+          () => pdfDriver.sharePdf(
+            bytes: bytes,
+            filename: 'Analise final — Relatorio.pdf',
+          ),
+        ).thenAnswer((_) async {});
+
+        final bool exported = await presenter.exportAnalysisReport();
+
+        expect(exported, isTrue);
+        expect(presenter.generalError.value, isNull);
+        expect(presenter.isExportingReport.value, isFalse);
+        expect(presenter.isManagingAnalysis.value, isFalse);
+        verifyInOrder(<dynamic Function()>[
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => pdfDriver.generateAnalysisReport(report: report),
+          () => pdfDriver.sharePdf(
+            bytes: bytes,
+            filename: 'Analise final — Relatorio.pdf',
+          ),
+        ]);
+      },
+    );
+
+    test(
+      'should expose friendly error and allow retry when remote request fails',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
+          analysis: AnalysisDtoFaker.fake(
+            id: 'analysis-1',
+            name: 'Analise para retry',
+            status: AnalysisStatusDto.precedentChosen,
+          ),
+        );
+        final Uint8List bytes = Uint8List.fromList(<int>[7, 8, 9]);
+
+        presenter.status.value = AnalysisStatusDto.precedentChosen;
+
+        when(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisReportDto>(
+            statusCode: 500,
+            errorMessage: 'Falha remota.',
+          ),
+        );
+
+        final bool firstAttempt = await presenter.exportAnalysisReport();
+
+        expect(firstAttempt, isFalse);
+        expect(
+          presenter.generalError.value,
+          AnalysisScreenPresenter.exportFailedMessage,
+        );
+        expect(presenter.isExportingReport.value, isFalse);
+
+        when(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async =>
+              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+        );
+        when(
+          () => pdfDriver.generateAnalysisReport(report: report),
+        ).thenAnswer((_) async => bytes);
+        when(
+          () => pdfDriver.sharePdf(
+            bytes: bytes,
+            filename: 'Analise para retry — Relatorio.pdf',
+          ),
+        ).thenAnswer((_) async {});
+
+        final bool secondAttempt = await presenter.exportAnalysisReport();
+
+        expect(secondAttempt, isTrue);
+        expect(presenter.generalError.value, isNull);
+        verify(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).called(2);
+      },
+    );
+
+    test(
+      'should expose friendly error and clear loading when pdf generation or share fails',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
+          analysis: AnalysisDtoFaker.fake(
+            id: 'analysis-1',
+            name: 'Analise com falha no share',
+            status: AnalysisStatusDto.precedentChosen,
+          ),
+        );
+        final Uint8List bytes = Uint8List.fromList(<int>[4, 5, 6]);
+
+        presenter.status.value = AnalysisStatusDto.precedentChosen;
+
+        when(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async =>
+              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+        );
+        when(
+          () => pdfDriver.generateAnalysisReport(report: report),
+        ).thenAnswer((_) async => bytes);
+        when(
+          () => pdfDriver.sharePdf(
+            bytes: bytes,
+            filename: 'Analise com falha no share — Relatorio.pdf',
+          ),
+        ).thenThrow(Exception('share failed'));
+
+        final bool exported = await presenter.exportAnalysisReport();
+
+        expect(exported, isFalse);
+        expect(
+          presenter.generalError.value,
+          AnalysisScreenPresenter.exportFailedMessage,
+        );
+        expect(presenter.isExportingReport.value, isFalse);
+        expect(presenter.isManagingAnalysis.value, isFalse);
+      },
+    );
+
+    test(
+      'should use deterministic fallback filename when analysis name is empty',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
+          analysis: AnalysisDtoFaker.fake(
+            id: 'analysis-1',
+            name: '   ',
+            status: AnalysisStatusDto.precedentChosen,
+          ),
+        );
+        final Uint8List bytes = Uint8List.fromList(<int>[9, 9, 9]);
+
+        presenter.status.value = AnalysisStatusDto.precedentChosen;
+
+        when(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async =>
+              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+        );
+        when(
+          () => pdfDriver.generateAnalysisReport(report: report),
+        ).thenAnswer((_) async => bytes);
+        when(
+          () => pdfDriver.sharePdf(
+            bytes: bytes,
+            filename: 'Analise-analysis-1 — Relatorio.pdf',
+          ),
+        ).thenAnswer((_) async {});
+
+        final bool exported = await presenter.exportAnalysisReport();
+
+        expect(exported, isTrue);
+        verify(
+          () => pdfDriver.sharePdf(
+            bytes: bytes,
+            filename: 'Analise-analysis-1 — Relatorio.pdf',
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'should block concurrent export attempts while export is in progress',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
+          analysis: AnalysisDtoFaker.fake(
+            id: 'analysis-1',
+            name: 'Analise concorrente',
+            status: AnalysisStatusDto.precedentChosen,
+          ),
+        );
+        final Completer<Uint8List> generateCompleter = Completer<Uint8List>();
+        final Uint8List bytes = Uint8List.fromList(<int>[1]);
+
+        presenter.status.value = AnalysisStatusDto.precedentChosen;
+
+        when(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async =>
+              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+        );
+        when(
+          () => pdfDriver.generateAnalysisReport(report: report),
+        ).thenAnswer((_) => generateCompleter.future);
+        when(
+          () => pdfDriver.sharePdf(
+            bytes: bytes,
+            filename: 'Analise concorrente — Relatorio.pdf',
+          ),
+        ).thenAnswer((_) async {});
+
+        final Future<bool> firstAttempt = presenter.exportAnalysisReport();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(presenter.isExportingReport.value, isTrue);
+
+        final bool secondAttempt = await presenter.exportAnalysisReport();
+
+        expect(secondAttempt, isFalse);
+        verify(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).called(1);
+
+        generateCompleter.complete(bytes);
+        expect(await firstAttempt, isTrue);
+      },
+    );
+
+    test(
+      'should block rename and archive while export is in progress',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
+          analysis: AnalysisDtoFaker.fake(
+            id: 'analysis-1',
+            name: 'Analise bloqueada',
+            status: AnalysisStatusDto.precedentChosen,
+          ),
+        );
+        final Completer<Uint8List> generateCompleter = Completer<Uint8List>();
+        final Uint8List bytes = Uint8List.fromList(<int>[2]);
+
+        presenter.status.value = AnalysisStatusDto.precedentChosen;
+
+        when(
+          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async =>
+              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+        );
+        when(
+          () => pdfDriver.generateAnalysisReport(report: report),
+        ).thenAnswer((_) => generateCompleter.future);
+        when(
+          () => pdfDriver.sharePdf(
+            bytes: bytes,
+            filename: 'Analise bloqueada — Relatorio.pdf',
+          ),
+        ).thenAnswer((_) async {});
+
+        final Future<bool> exportFuture = presenter.exportAnalysisReport();
+        await Future<void>.delayed(Duration.zero);
+
+        final bool renamed = await presenter.renameAnalysis('Novo nome');
+        final bool archived = await presenter.archiveAnalysis();
+
+        expect(renamed, isFalse);
+        expect(archived, isFalse);
+        verifyNever(
+          () => intakeService.renameAnalysis(
+            analysisId: any(named: 'analysisId'),
+            name: any(named: 'name'),
+          ),
+        );
+        verifyNever(
+          () => intakeService.archiveAnalysis(
+            analysisId: any(named: 'analysisId'),
+          ),
+        );
+
+        generateCompleter.complete(bytes);
+        expect(await exportFuture, isTrue);
       },
     );
   });

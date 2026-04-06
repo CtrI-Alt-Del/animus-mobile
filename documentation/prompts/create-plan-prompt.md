@@ -8,14 +8,18 @@ description: Criar um plano de implementação a partir de um documento de spec 
 
 ## Contexto do projeto
 
-- **Stack**: Flutter/Dart.
-- **Arquitetura**: camadas inspiradas em Clean Architecture com MVP na UI.
-- **Camadas**: Core (`lib/core`), Rest (`lib/rest`), Drivers (`lib/drivers`), UI (`lib/ui`).
-- **DI/Estado**: Riverpod + Signals.
+- **Stack**: Flutter / Dart.
+- **Arquitetura**: Clean Architecture + Ports and Adapters, com MVP na camada de UI.
+- **Camadas**: UI (`lib/ui/`), Core (`lib/core/`), Rest (`lib/rest/`), Drivers (`lib/drivers/`), Constants (`lib/constants/`).
+- **DI**: Riverpod para composição de dependências.
+- **Estado local reativo**: Signals em presenters da UI.
+- **Navegação**: `go_router`.
 
 ## Entrada
 
 - Caminho do arquivo do documento de spec técnica (Markdown).
+
+> ⚠️ **Regra crítica:** Não leia desnecessariamente os arquivos referenciados *dentro* da spec (ex.: arquivos de código da codebase mencionados nas seções "O que já existe?" ou "O que deve ser criado?"). A spec já foi validada — confie nos contratos e artefatos descritos nela. Leitura de código existente só é permitida quando um artefato for ambíguo ou ausente na spec.
 
 ---
 
@@ -28,17 +32,17 @@ description: Criar um plano de implementação a partir de um documento de spec 
 - Leia a spec técnica na íntegra antes de qualquer decomposição.
 - Leia o índice de regras em `documentation/rules/rules.md`.
 - Identifique quais regras por camada são relevantes e leia-as:
+  - `documentation/rules/ui-layer-rules.md`
   - `documentation/rules/core-layer-rules.md`
   - `documentation/rules/rest-layer-rules.md`
   - `documentation/rules/drivers-layer-rules.md`
-  - `documentation/rules/ui-layer-rules.md`
   - `documentation/rules/code-conventions-rules.md`
 
-**1.2 Mapeamento superficial da codebase**
+**1.2 Mapeamento superficial da codebase (quando necessário)**
 
 Use **Serena** para identificar, sem leitura profunda:
 
-- Se os principais artefatos citados na spec (interfaces, DTOs, telas) **já existem** ou precisam ser **criados do zero** — isso impacta o planejamento de dependências.
+- Se os principais artefatos citados na spec (DTOs, contratos, presenters, services, drivers, widgets, rotas) **já existem** ou precisam ser **criados do zero** — isso impacta o planejamento de dependências.
 - Se algum arquivo existente precisará ser **modificado** (não apenas consumido).
 
 > O objetivo é mapear o que existe, não ler implementações. Leitura profunda de código é responsabilidade do `implement-plan`.
@@ -50,13 +54,15 @@ Use **Serena** para identificar, sem leitura profunda:
 Antes de listar fases e tarefas, responda explicitamente:
 
 1. **Quais artefatos do `core` são pré-requisito para `rest`, `drivers` e `ui`?**
-   - DTOs, interfaces e tipos de resposta que precisam existir antes de qualquer outra camada avançar.
-2. **Quais partes da `rest` e `drivers` são independentes entre si?**
-   - Services, mappers e adaptadores que não compartilham contrato e podem ser desenvolvidos em paralelo.
-3. **Quais widgets/telas da `ui` podem ser construídos em paralelo?**
-   - Telas que consomem contratos distintos do `core` e não dependem umas das outras.
-4. **Existe alguma tarefa de `ui` que pode ser iniciada com um mock/stub do contrato, sem aguardar a implementação real da `rest`?**
-   - Se sim, marque-a como paralelizável com a fase de `rest`.
+   - DTOs, interfaces, respostas tipadas, enums, erros de domínio e contratos que precisam existir antes de outras camadas avançarem.
+2. **Quais partes de `rest` e `drivers` são independentes entre si?**
+   - Services HTTP, mappers e adaptadores de plataforma que não compartilham contrato e podem ser desenvolvidos em paralelo.
+3. **Quais presenters/widgets/screens da camada `ui` podem ser construídos em paralelo?**
+   - Fluxos de tela que consomem contratos distintos do `core` e não dependem uns dos outros.
+4. **Existe alguma tarefa de UI que pode ser iniciada com stub/fake do contrato do `core`, sem aguardar a implementação real de `rest` ou `drivers`?**
+   - Se sim, marque-a como paralelizável com as fases de infraestrutura.
+5. **Existe impacto em navegação, rotas, estado compartilhado, cache local ou integrações de plataforma?**
+   - Indique se isso bloqueia outras tarefas ou se pode ser preparado em paralelo.
 
 > Essa análise é o insumo principal para o Mapa de Paralelização. Não pule esta etapa.
 
@@ -68,6 +74,7 @@ Antes de listar fases e tarefas, responda explicitamente:
 - Cada **fase** representa uma etapa macro de entrega.
 - Cada **tarefa** é uma unidade de trabalho executável por **um único desenvolvedor**, com resultado observável e verificável.
 - **Prefira tarefas pequenas:** uma tarefa nunca deve bloquear outra desnecessariamente. Se for possível separar sem perda de coesão, separe.
+- **Não inclua tarefas de teste, validação manual ou cobertura automatizada no plano.** Se houver riscos de validação, registre-os apenas em **Pendências**.
 
 ---
 
@@ -94,12 +101,14 @@ Este é o artefato central do plano. Deve responder: **o que pode rodar ao mesmo
 
 Ao detalhar as tarefas de uma fase, siga a hierarquia de dependências arquiteturais:
 
-1. **Core (`lib/core`)**: DTOs, Entidades, Interfaces e tipos de resposta — estes são os contratos que desbloqueiam todas as outras camadas.
-2. **Rest (`lib/rest`)**: Services, Mappers e RestClient — implementam os contratos do `core`.
-3. **Drivers (`lib/drivers`)**: adaptadores de infraestrutura (env, storage, navegação) — implementam contratos do `core`, independentes da `rest`.
-4. **UI (`lib/ui`)**: Presenters (MVP), Widgets e Telas — consomem contratos do `core`; podem ser iniciados com stub se a `rest` ainda não estiver pronta.
+1. **Core (`lib/core/`)**: DTOs, contratos, respostas tipadas, enums e erros de domínio — estes são os contratos que desbloqueiam as demais camadas.
+2. **Rest (`lib/rest/`)**: Services HTTP, clients, requests, responses e mappers — implementam contratos do `core` para integração com a API.
+3. **Drivers (`lib/drivers/`)**: Adaptadores de plataforma e infraestrutura local (cache, auth social, deep links, package info, navegação, links externos etc.) — implementam contratos do `core` ou suportam a `ui` via fronteiras explícitas.
+4. **UI (`lib/ui/`)**: Presenters, screens, widgets e componentes — consomem contratos do `core` e dependências providas por `rest` e `drivers`; podem avançar com stubs/fakes quando os contratos já estiverem definidos.
+5. **Constants (`lib/constants/`)**: rotas, chaves, envs e valores semânticos compartilhados — podem ser criadas cedo quando forem pré-requisito de outras camadas.
+6. **Router/App wiring (`lib/router.dart`, `lib/app.dart`, `lib/main.dart`)**: registro de rotas, composição final e bootstrap — devem acontecer após os fluxos principais estarem estáveis.
 
-> `rest` e `drivers` são **independentes entre si** e podem sempre rodar em paralelo após o `core` estar estável.
+> `rest` e `drivers` são **independentes entre si** e podem rodar em paralelo após o `core` estar estável. A `ui` pode iniciar com stubs/fakes quando os contratos do `core` já estiverem claros.
 
 ---
 
@@ -107,14 +116,14 @@ Ao detalhar as tarefas de uma fase, siga a hierarquia de dependências arquitetu
 
 Para cada tarefa, indique claramente:
 
-- **Depende de:** qual tarefa ou artefato precisa existir antes (ex: `Interface IAuthService` da Fase 1).
+- **Depende de:** qual tarefa ou artefato precisa existir antes (ex.: `Contrato IntakeService` da Fase 1).
 - **Desbloqueia:** quais tarefas ficam liberadas após sua conclusão.
 
 Exemplo:
 ```
-- [ ] Criar interface `IAuthService` em `lib/core/auth/interfaces/`
+- [ ] Criar contrato `IntakeService` em `lib/core/intake/services/intake_service.dart`
   - Depende de: —
-  - Desbloqueia: "Implementar AuthRestService" (F2) e "Criar AuthPresenter" (F3)
+  - Desbloqueia: "Implementar IntakeRestService" (F2-T1) e "Criar AnalysisScreenPresenter" (F3-T1)
 ```
 
 ---
@@ -131,15 +140,11 @@ Após montar o mapa, identifique explicitamente os **gargalos do plano**: tarefa
 
 ---
 
-### 8. Geração do arquivo de saída (obrigatório)
+### 8. Formato da saída (obrigatório)
 
-Salve o plano como um arquivo Markdown no mesmo diretório da spec, com o nome `plan.md`:
+> ⚠️ **Regra crítica:** Não salve o plano em um arquivo `plan.md`. Responda diretamente no chat, seguindo a estrutura abaixo.
 
-```
-documentation/features/<modulo>/specs/plan.md
-```
-
-O arquivo deve seguir **exatamente** a estrutura abaixo:
+O plano deve seguir **exatamente** esta estrutura:
 
 ```markdown
 ---
@@ -159,10 +164,10 @@ status: open
 ### Partes de `rest` e `drivers` independentes entre si
 - <lista>
 
-### Telas/widgets de `ui` paralelizáveis
+### Presenters/widgets/screens paralelizáveis
 - <lista>
 
-### Tarefas de `ui` iniciáveis com stub
+### Tarefas iniciáveis com stub
 - <lista> (ou "Nenhuma")
 
 ---
@@ -188,21 +193,21 @@ status: open
 
 - [ ] **F1-T1** — <Descrição da tarefa>
   - Camada: `core`
-  - Artefato: `lib/core/<modulo>/<arquivo>.dart`
+  - Artefato: `lib/core/<contexto>/<arquivo>.dart`
   - Depende de: —
   - Desbloqueia: F2-T1, F3-T1
 
 - [ ] **F1-T2** — <Descrição da tarefa>
   - Camada: `core`
-  - Artefato: `lib/core/<modulo>/<arquivo>.dart`
+  - Artefato: `lib/core/<contexto>/<arquivo>.dart`
   - Depende de: F1-T1
   - Desbloqueia: F2-T2
 
 ### F2 — <Objetivo da fase>
 
 - [ ] **F2-T1** — <Descrição da tarefa>
-  - Camada: `rest`
-  - Artefato: `lib/rest/<modulo>/<arquivo>.dart`
+  - Camada: `rest` | `drivers` | `ui`
+  - Artefato: `lib/<camada>/<contexto>/<arquivo>.dart`
   - Depende de: F1-T1
   - Desbloqueia: F4-T1
 
@@ -213,21 +218,30 @@ status: open
 - <Descrição da pendência, impacto e ação sugerida> (ou "Nenhuma")
 ```
 
-> O arquivo `plan.md` é o documento de entrada do prompt `implement-plan`. Garanta que ele esteja completo e sem seções vazias antes de salvar.
-
 ---
 
 ## Saída esperada
 
 1. **Análise de dependências** (Seção 2) respondida explicitamente.
-2. **Mapa de Paralelização** com todas as fases preenchidas:
-
-   | Fase | Objetivo | Depende de | Pode rodar em paralelo com |
-   |------|----------|------------|----------------------------|
-   | F1   | \<definir\> | -        | -                          |
-   | F2   | \<definir\> | F1       | F3                         |
-
+2. **Mapa de Paralelização** com todas as fases preenchidas.
 3. **Lista de gargalos** identificados.
 4. **Lista de fases** com objetivo claro.
 5. **Lista de tarefas por fase** com dependências explícitas, o que cada tarefa desbloqueia e checklist de progresso.
-6. **Arquivo `plan.md`** salvo em `documentation/features/<modulo>/specs/plan.md`.
+
+---
+
+## Regras adicionais para o Animus Mobile
+
+- Prefira fases orientadas a **contratos do `core`**, depois **adaptadores (`rest`/`drivers`)**, depois **presenters/widgets/screens**.
+- Ao planejar UI, trate **Presenter** e **View** como artefatos distintos quando isso permitir paralelização real.
+- Não inclua tarefas de teste no plano, nem para `ui` nem para qualquer outra camada. Se houver risco em `core`, `rest`, `drivers` ou `ui`, registre em **Pendências** ou **Riscos**, sem criar tarefa de teste.
+- Quando houver integração com API, explicite separadamente tarefas de:
+  - contrato no `core`
+  - implementação no `rest`
+  - consumo na `ui`
+- Quando houver integração de plataforma, explicite separadamente tarefas de:
+  - contrato no `core` (se aplicável)
+  - implementação no `drivers`
+  - consumo na `ui`
+- Se a spec envolver navegação, inclua tarefas específicas para `go_router` e para o ponto de entrada afetado (`lib/router.dart`, `lib/app.dart` ou `lib/main.dart`).
+- Se a spec envolver estado compartilhado, identifique se a composição deve ocorrer com Riverpod, Signals ou ambos.

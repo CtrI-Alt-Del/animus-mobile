@@ -36,7 +36,7 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Resumo da Analise',
+              'Síntese da Análise',
               style: textTheme.bodyMedium?.copyWith(
                 color: tokens.accent,
                 fontWeight: FontWeight.w700,
