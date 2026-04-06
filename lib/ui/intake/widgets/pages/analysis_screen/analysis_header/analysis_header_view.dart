@@ -5,6 +5,7 @@ import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_header/a
 
 class AnalysisHeaderView extends StatelessWidget {
   final VoidCallback? onBack;
+  final VoidCallback? onExportReport;
   final String title;
   final VoidCallback? onPrecedentsCount;
   final VoidCallback? onFilters;
@@ -12,9 +13,12 @@ class AnalysisHeaderView extends StatelessWidget {
   final VoidCallback? onArchive;
   final int appliedFiltersCount;
   final bool isMenuEnabled;
+  final bool showExportReport;
+  final bool isExportingReport;
 
   const AnalysisHeaderView({
     required this.onBack,
+    required this.onExportReport,
     required this.title,
     required this.onPrecedentsCount,
     required this.onFilters,
@@ -22,6 +26,8 @@ class AnalysisHeaderView extends StatelessWidget {
     required this.onArchive,
     this.appliedFiltersCount = 0,
     this.isMenuEnabled = true,
+    this.showExportReport = false,
+    this.isExportingReport = false,
     super.key,
   });
 
@@ -56,11 +62,14 @@ class AnalysisHeaderView extends StatelessWidget {
             ),
             AnalysisHeaderActions(
               isEnabled: isMenuEnabled,
+              onExportReport: onExportReport,
               onPrecedentsCount: onPrecedentsCount,
               onFilters: onFilters,
               onRename: onRename,
               onArchive: onArchive,
               appliedFiltersCount: appliedFiltersCount,
+              showExportReport: showExportReport,
+              isExportingReport: isExportingReport,
             ),
           ],
         ),

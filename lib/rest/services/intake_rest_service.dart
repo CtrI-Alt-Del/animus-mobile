@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedents_search_filters_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
@@ -13,6 +16,7 @@ import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/list_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/shared/types/json.dart';
+import 'package:animus/rest/mappers/intake/analysis_report_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_mapper.dart';
@@ -105,6 +109,42 @@ class IntakeRestService extends Service implements IntakeService {
     );
 
     return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<AnalysisReportDto>> getAnalysisReport({
+    required String analysisId,
+  }) async {
+    final RestResponse<AnalysisReportDto>? authFailure =
+        requireAuth<AnalysisReportDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId/report',
+    );
+
+    if (response.isFailure) {
+      return RestResponse<AnalysisReportDto>(
+        statusCode: response.statusCode,
+        errorMessage: resolveErrorMessage(response),
+        errorBody: response.errorBody,
+      );
+    }
+
+    try {
+      return RestResponse<AnalysisReportDto>(
+        body: AnalysisReportMapper.toDto(response.body),
+        statusCode: response.statusCode,
+      );
+    } on FormatException catch (error) {
+      return RestResponse<AnalysisReportDto>(
+        statusCode: HttpStatus.badGateway,
+        errorMessage: error.message,
+        errorBody: response.errorBody,
+      );
+    }
   }
 
   @override

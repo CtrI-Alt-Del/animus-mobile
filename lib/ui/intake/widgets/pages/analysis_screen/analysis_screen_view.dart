@@ -216,6 +216,9 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
     BuildContext context,
     AnalysisPrecedentDto precedent,
   ) async {
+    final AnalysisScreenPresenter presenter = ref.read(
+      analysisScreenPresenterProvider(widget.analysisId),
+    );
     final RelevantPrecedentsBubblePresenter precedentsPresenter = ref.read(
       relevantPrecedentsBubblePresenterProvider(widget.analysisId),
     );
@@ -240,7 +243,28 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
       return;
     }
 
+    presenter.markPrecedentChosen();
     _scheduleJumpToBottom();
+  }
+
+  Future<void> _handleExportReport(
+    BuildContext context,
+    AnalysisScreenPresenter presenter,
+  ) async {
+    final bool exported = await presenter.exportAnalysisReport();
+    if (!mounted || !context.mounted || !exported) {
+      return;
+    }
+
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Relatorio exportado com sucesso.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
   }
 
   @override
@@ -274,9 +298,41 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
                       final int appliedFiltersCount = presenter
                           .appliedPrecedentFiltersCount
                           .watch(context);
+                      final AnalysisStatusDto status = presenter.status.watch(
+                        context,
+                      );
+                      final bool showExportReport =
+                          status == AnalysisStatusDto.precedentChosen;
+                      bool canExportReport = false;
+                      bool isExportingReport = false;
+
+                      if (showExportReport) {
+                        try {
+                          isExportingReport = presenter.isExportingReport.watch(
+                            context,
+                          );
+                        } catch (_) {
+                          isExportingReport = false;
+                        }
+
+                        try {
+                          canExportReport = presenter.canExportReport.watch(
+                            context,
+                          );
+                        } catch (_) {
+                          canExportReport = !isExportingReport;
+                        }
+                      }
 
                       return AnalysisHeader(
                         onBack: () => Navigator.of(context).maybePop(),
+                        onExportReport: canExportReport
+                            ? () {
+                                unawaited(
+                                  _handleExportReport(context, presenter),
+                                );
+                              }
+                            : null,
                         title: analysisName,
                         onPrecedentsCount: isManagingAnalysis
                             ? null
@@ -363,6 +419,8 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
                               },
                         appliedFiltersCount: appliedFiltersCount,
                         isMenuEnabled: !isManagingAnalysis,
+                        showExportReport: showExportReport,
+                        isExportingReport: isExportingReport,
                       );
                     }),
                     Expanded(

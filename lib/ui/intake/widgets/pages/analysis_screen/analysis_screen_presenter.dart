@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -7,12 +8,14 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/petition_document_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
+import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
@@ -21,6 +24,7 @@ import 'package:animus/core/storage/interfaces/storage_service.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/document-picker-driver/index.dart';
+import 'package:animus/drivers/pdf-driver/index.dart';
 import 'package:animus/drivers/storage/file_storage/index.dart';
 import 'package:animus/rest/services/index.dart';
 
@@ -33,10 +37,13 @@ class AnalysisScreenPresenter {
   static const Duration summaryTimeout = Duration(seconds: 60);
   static const String failedMessage =
       'Nao foi possivel analisar o documento agora. Tente novamente.';
+  static const String exportFailedMessage =
+      'Nao foi possivel exportar o relatorio agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
   final CacheDriver _cacheDriver;
+  final PdfDriver _pdfDriver;
   final FileStorageDriver _fileStorageDriver;
   final DocumentPickerDriver _documentPickerDriver;
   final String analysisId;
@@ -52,6 +59,7 @@ class AnalysisScreenPresenter {
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
+  final Signal<bool> isExportingReport = signal<bool>(false);
   final Signal<int> precedentsLimit = signal<int>(defaultPrecedentsLimit);
   final Signal<List<CourtDto>> precedentsCourts = signal<List<CourtDto>>(
     const <CourtDto>[],
@@ -106,16 +114,23 @@ class AnalysisScreenPresenter {
         currentStatus == AnalysisStatusDto.precedentChosen;
   });
 
+  late final ReadonlySignal<bool> canExportReport = computed(() {
+    return status.value == AnalysisStatusDto.precedentChosen &&
+        !isExportingReport.value;
+  });
+
   AnalysisScreenPresenter({
     required IntakeService intakeService,
     required StorageService storageService,
     required CacheDriver cacheDriver,
+    PdfDriver? pdfDriver,
     required FileStorageDriver fileStorageDriver,
     required DocumentPickerDriver documentPickerDriver,
     required this.analysisId,
   }) : _intakeService = intakeService,
        _storageService = storageService,
        _cacheDriver = cacheDriver,
+       _pdfDriver = pdfDriver ?? _PendingPdfDriver(),
        _fileStorageDriver = fileStorageDriver,
        _documentPickerDriver = documentPickerDriver;
 
@@ -197,6 +212,10 @@ class AnalysisScreenPresenter {
 
     summary.value = petitionSummaryResponse.body;
     status.value = analysisStatus;
+  }
+
+  void markPrecedentChosen() {
+    status.value = AnalysisStatusDto.precedentChosen;
   }
 
   bool _shouldLoadPetition(AnalysisStatusDto status) {
@@ -362,7 +381,7 @@ class AnalysisScreenPresenter {
   }
 
   Future<bool> renameAnalysis(String name) async {
-    if (isManagingAnalysis.value) {
+    if (isManagingAnalysis.value || isExportingReport.value) {
       return false;
     }
 
@@ -388,7 +407,7 @@ class AnalysisScreenPresenter {
   }
 
   Future<bool> archiveAnalysis() async {
-    if (isManagingAnalysis.value) {
+    if (isManagingAnalysis.value || isExportingReport.value) {
       return false;
     }
 
@@ -404,6 +423,58 @@ class AnalysisScreenPresenter {
 
     generalError.value = null;
     return true;
+  }
+
+  Future<bool> exportAnalysisReport() async {
+    if (!canExportReport.value || isManagingAnalysis.value) {
+      return false;
+    }
+
+    isExportingReport.value = true;
+    isManagingAnalysis.value = true;
+    generalError.value = null;
+
+    try {
+      final RestResponse<AnalysisReportDto> reportResponse =
+          await _intakeService.getAnalysisReport(analysisId: analysisId);
+
+      if (reportResponse.isFailure) {
+        generalError.value = exportFailedMessage;
+        return false;
+      }
+
+      final AnalysisReportDto report = reportResponse.body;
+      final Uint8List bytes = await _pdfDriver.generateAnalysisReport(
+        report: report,
+      );
+
+      final String filename = _buildReportFilename(report.analysis.name);
+      await _pdfDriver.sharePdf(bytes: bytes, filename: filename);
+      return true;
+    } catch (_) {
+      generalError.value = exportFailedMessage;
+      return false;
+    } finally {
+      isManagingAnalysis.value = false;
+      isExportingReport.value = false;
+    }
+  }
+
+  String _buildReportFilename(String rawAnalysisName) {
+    final String normalizedName = rawAnalysisName.trim();
+    final String fallbackName = 'Analise-$analysisId';
+    final String baseName = normalizedName.isEmpty
+        ? fallbackName
+        : normalizedName;
+    final String sanitizedName = baseName
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '-')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    final String safeName = sanitizedName.isEmpty
+        ? fallbackName
+        : sanitizedName;
+
+    return '$safeName — Relatorio.pdf';
   }
 
   void setPrecedentsLimit(int value) {
@@ -471,6 +542,7 @@ class AnalysisScreenPresenter {
     generalError.dispose();
     analysisName.dispose();
     isManagingAnalysis.dispose();
+    isExportingReport.dispose();
     precedentsLimit.dispose();
     precedentsCourts.dispose();
     precedentsKinds.dispose();
@@ -481,6 +553,7 @@ class AnalysisScreenPresenter {
     primaryActionLabel.dispose();
     fileActionLabel.dispose();
     showRelevantPrecedents.dispose();
+    canExportReport.dispose();
   }
 
   void _applyRemoteFailure([String? errorMessage]) {
@@ -613,11 +686,26 @@ class AnalysisScreenPresenter {
   }
 }
 
+class _PendingPdfDriver implements PdfDriver {
+  @override
+  Future<Uint8List> generateAnalysisReport({
+    required AnalysisReportDto report,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> sharePdf({required Uint8List bytes, required String filename}) {
+    throw UnimplementedError();
+  }
+}
+
 final analysisScreenPresenterProvider = Provider.autoDispose
     .family<AnalysisScreenPresenter, String>((Ref ref, String analysisId) {
       final IntakeService intakeService = ref.watch(intakeServiceProvider);
       final StorageService storageService = ref.watch(storageServiceProvider);
       final CacheDriver cacheDriver = ref.watch(cacheDriverProvider);
+      final PdfDriver pdfDriver = ref.watch(pdfDriverProvider);
       final FileStorageDriver fileStorageDriver = ref.watch(
         fileStorageDriverProvider,
       );
@@ -629,6 +717,7 @@ final analysisScreenPresenterProvider = Provider.autoDispose
         intakeService: intakeService,
         storageService: storageService,
         cacheDriver: cacheDriver,
+        pdfDriver: pdfDriver,
         fileStorageDriver: fileStorageDriver,
         documentPickerDriver: documentPickerDriver,
         analysisId: analysisId,
