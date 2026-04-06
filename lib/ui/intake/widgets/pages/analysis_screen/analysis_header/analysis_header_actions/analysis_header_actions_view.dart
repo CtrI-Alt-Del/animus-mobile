@@ -3,20 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:animus/theme.dart';
 
 class AnalysisHeaderActionsView extends StatelessWidget {
+  final VoidCallback? onExportReport;
   final VoidCallback? onPrecedentsCount;
   final VoidCallback? onFilters;
   final VoidCallback? onRename;
   final VoidCallback? onArchive;
   final int appliedFiltersCount;
   final bool isEnabled;
+  final bool showExportReport;
+  final bool isExportingReport;
 
   const AnalysisHeaderActionsView({
+    required this.onExportReport,
     required this.onPrecedentsCount,
     required this.onFilters,
     required this.onRename,
     required this.onArchive,
     required this.appliedFiltersCount,
     required this.isEnabled,
+    this.showExportReport = false,
+    this.isExportingReport = false,
     super.key,
   });
 
@@ -62,6 +68,13 @@ class AnalysisHeaderActionsView extends StatelessWidget {
           });
           return;
         }
+
+        if (value == 'export_report') {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            onExportReport?.call();
+          });
+          return;
+        }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         PopupMenuItem<String>(
@@ -100,6 +113,39 @@ class AnalysisHeaderActionsView extends StatelessWidget {
             ],
           ),
         ),
+        if (showExportReport)
+          PopupMenuItem<String>(
+            value: 'export_report',
+            enabled: !isExportingReport && onExportReport != null,
+            height: 48,
+            child: Row(
+              children: <Widget>[
+                Icon(
+                  Icons.picture_as_pdf_outlined,
+                  color: tokens.textPrimary,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  isExportingReport ? 'Exportando PDF...' : 'Exportar PDF',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: tokens.textPrimary,
+                  ),
+                ),
+                if (isExportingReport) ...<Widget>[
+                  const Spacer(),
+                  SizedBox(
+                    height: 14,
+                    width: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: tokens.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         PopupMenuItem<String>(
           value: 'filters',
           height: 48,
