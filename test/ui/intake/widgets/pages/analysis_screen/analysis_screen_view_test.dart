@@ -20,6 +20,7 @@ import 'package:animus/rest/services/index.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/analysis_action_bar_view.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_header/analysis_header_view.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/chosen_precedent_summary/chosen_precedent_summary_view.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_view.dart';
@@ -148,6 +149,8 @@ void main() {
     late Signal<String> primaryActionLabel;
     late Signal<String> fileActionLabel;
     late Signal<int> appliedPrecedentFiltersCount;
+    late Signal<bool> isExportingReport;
+    late ReadonlySignal<bool> canExportReport;
     late _MockRelevantPrecedentsBubblePresenter relevantPrecedentsPresenter;
     late Signal<AnalysisPrecedentDto?> selectedPrecedent;
     late Signal<List<AnalysisPrecedentDto>> precedents;
@@ -175,6 +178,12 @@ void main() {
       primaryActionLabel = signal<String>('Analisar');
       fileActionLabel = signal<String>('Selecionar petição');
       appliedPrecedentFiltersCount = signal<int>(0);
+      isExportingReport = signal<bool>(false);
+      canExportReport = computed(
+        () =>
+            status.value == AnalysisStatusDto.precedentChosen &&
+            !isExportingReport.value,
+      );
       selectedPrecedent = signal<AnalysisPrecedentDto?>(null);
       precedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
       precedentsIsLoading = signal<bool>(false);
@@ -207,6 +216,8 @@ void main() {
       when(
         () => presenter.appliedPrecedentFiltersCount,
       ).thenReturn(appliedPrecedentFiltersCount);
+      when(() => presenter.isExportingReport).thenReturn(isExportingReport);
+      when(() => presenter.canExportReport).thenReturn(canExportReport);
       when(() => presenter.precedentsLimit).thenReturn(signal<int>(5));
       when(
         () => presenter.precedentsCourts,
@@ -221,6 +232,9 @@ void main() {
       when(() => presenter.confirmAndViewPrecedents()).thenReturn(null);
       when(() => presenter.renameAnalysis(any())).thenAnswer((_) async => true);
       when(() => presenter.archiveAnalysis()).thenAnswer((_) async => true);
+      when(
+        () => presenter.exportAnalysisReport(),
+      ).thenAnswer((_) async => true);
       when(() => presenter.fileName(any())).thenReturn('petition.pdf');
       when(() => presenter.formatFileSize(any())).thenReturn('1.0 KB');
 
@@ -274,6 +288,8 @@ void main() {
       primaryActionLabel.dispose();
       fileActionLabel.dispose();
       appliedPrecedentFiltersCount.dispose();
+      isExportingReport.dispose();
+      canExportReport.dispose();
       selectedPrecedent.dispose();
       precedents.dispose();
       precedentsIsLoading.dispose();
@@ -330,7 +346,7 @@ void main() {
         await tester.pumpWidget(createWidget(presenter));
         await tester.pump(const Duration(milliseconds: 400));
 
-        expect(find.text('Resumo da Analise'), findsOneWidget);
+        expect(find.text('Síntese da Análise'), findsOneWidget);
         expect(find.text('Tentar resumo novamente'), findsOneWidget);
         expect(find.text('Buscar precedentes'), findsOneWidget);
         expect(find.text('Enviar outro documento'), findsOneWidget);
@@ -440,6 +456,96 @@ void main() {
       verifyNever(() => presenter.pickDocument());
       verifyNever(() => presenter.analyze());
     });
+
+    testWidgets(
+      'exibe item Exportar PDF somente quando status e precedentChosen',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
+        await tester.pump(const Duration(milliseconds: 400));
+
+        AnalysisHeaderView header = tester.widget<AnalysisHeaderView>(
+          find.byType(AnalysisHeaderView),
+        );
+
+        expect(header.showExportReport, isFalse);
+        expect(header.onExportReport, isNull);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+
+        status.value = AnalysisStatusDto.precedentChosen;
+
+        await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
+        await tester.pump(const Duration(milliseconds: 400));
+
+        header = tester.widget<AnalysisHeaderView>(
+          find.byType(AnalysisHeaderView),
+        );
+
+        expect(header.showExportReport, isTrue);
+        expect(header.onExportReport, isNotNull);
+      },
+    );
+
+    testWidgets('delega exportacao para presenter ao tocar em Exportar PDF', (
+      WidgetTester tester,
+    ) async {
+      status.value = AnalysisStatusDto.precedentChosen;
+
+      await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final AnalysisHeaderView header = tester.widget<AnalysisHeaderView>(
+        find.byType(AnalysisHeaderView),
+      );
+
+      header.onExportReport!.call();
+      await tester.pump();
+
+      verify(() => presenter.exportAnalysisReport()).called(1);
+    });
+
+    testWidgets(
+      'exibe snackbar de sucesso quando exportacao conclui com sucesso',
+      (WidgetTester tester) async {
+        status.value = AnalysisStatusDto.precedentChosen;
+        when(
+          () => presenter.exportAnalysisReport(),
+        ).thenAnswer((_) async => true);
+
+        await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
+        await tester.pump(const Duration(milliseconds: 400));
+
+        final AnalysisHeaderView header = tester.widget<AnalysisHeaderView>(
+          find.byType(AnalysisHeaderView),
+        );
+
+        header.onExportReport!.call();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        expect(find.text('Relatorio exportado com sucesso.'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'mantem item de exportacao ocupado e desabilitado durante exportacao',
+      (WidgetTester tester) async {
+        status.value = AnalysisStatusDto.precedentChosen;
+        isExportingReport.value = true;
+
+        await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
+        await tester.pump(const Duration(milliseconds: 400));
+
+        final AnalysisHeaderView header = tester.widget<AnalysisHeaderView>(
+          find.byType(AnalysisHeaderView),
+        );
+
+        expect(header.showExportReport, isTrue);
+        expect(header.isExportingReport, isTrue);
+        expect(header.onExportReport, isNull);
+      },
+    );
 
     testWidgets(
       'exibe bubble de precedentes e oculta action bar durante fluxo de precedentes',
