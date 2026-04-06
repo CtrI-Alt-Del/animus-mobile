@@ -57,6 +57,7 @@ app.*.map.json
 .serena
 opencode.jsonc
 prompt.md
+plan.md
 CLAUDE.md
 GEMINI.md
 
