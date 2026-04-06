@@ -58,6 +58,8 @@ O Animus Mobile usa arquitetura em camadas inspirada em Clean Architecture e em 
 | **Persistencia local** | shared_preferences | Cache simples no dispositivo |
 | **Deep links** | app_links | Recepcao de links de redefinicao de senha |
 | **Info de build** | package_info_plus | Versao do app |
+| **Documentos PDF** | pdf | Montagem de relatorios exportaveis em memoria |
+| **Compartilhamento de PDF** | printing | Share sheet nativo para exportacao de relatorios |
 | **Testes** | flutter_test | Suite de testes |
 | **Lint** | flutter_lints | Padroes de qualidade |
 
@@ -124,6 +126,18 @@ O fluxo de precedentes do modulo `intake` segue a mesma separacao arquitetural e
 4. `IntakeRestService` encapsula `POST /precedents/search`, `GET /precedents` e `PATCH /precedents/choose`, devolvendo `RestResponse` e `ListResponse` tipados para a UI.
 5. `CacheDriver` persiste a quantidade de precedentes configurada para reutilizacao no fluxo.
 6. `ExternalLinkDriver` encapsula a abertura externa do Pangea, evitando acoplamento da UI a plugins concretos.
+
+## Fluxo de Exportacao de Relatorio na Analysis Screen
+
+Quando a analise chega ao estado `precedentChosen`, a exportacao do relatorio segue a mesma separacao arquitetural entre UI, Core, Rest e Drivers:
+
+1. `AnalysisHeaderActionsView` exibe a acao `Exportar PDF` no menu do header.
+2. `AnalysisScreenView` apenas delega a interacao e exibe feedback visual de loading, sucesso e erro.
+3. `AnalysisScreenPresenter` orquestra o fluxo e bloqueia tentativas concorrentes durante a exportacao.
+4. `IntakeService` publica o contrato `getAnalysisReport`, consumido pela UI sem conhecimento de HTTP.
+5. `IntakeRestService` chama `GET /intake/analyses/{analysis_id}/report` e usa `AnalysisReportMapper` para traduzir o payload agregado em `AnalysisReportDto`.
+6. `PdfDriver` define a capacidade de gerar e compartilhar o PDF sem expor tipos de `pdf` ou `printing` para a UI.
+7. `PrintingPdfDriver` monta o documento em memoria com `pdf` e delega o share sheet nativo ao pacote `printing`.
 
 ## Contrato da API
 
