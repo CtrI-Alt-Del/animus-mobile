@@ -62657,17 +62657,11 @@
                   "name": "b11",
                   "width": "fill_container",
                   "fill": "$text-primary",
-                  "cornerRadius": [
-                    0,
-                    8,
-                    8,
-                    0
-                  ],
+                  "cornerRadius": 8,
                   "stroke": {
-                    "thickness": {
-                      "left": 3
-                    },
-                    "fill": "$amber"
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#e2e2e6"
                   },
                   "layout": "vertical",
                   "padding": [
