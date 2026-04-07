@@ -16,24 +16,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout do código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: Setup Node.js (necessário para rodar o semantic-release)
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
+          persist-credentials: false
 
       - name: Executar Semantic Release
-        uses: cycjimmy/semantic-release-action@v4
+        uses: cycjimmy/semantic-release-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           extra_plugins: |
             @semantic-release/changelog@6.0.3
             @semantic-release/git@10.0.1
-            semantic-release-replace-plugin@1.2.7
-            @semantic-release/commit-analyzer@12.0.0
-            @semantic-release/release-notes-generator@13.0.0
-            @semantic-release/github@10.0.6
+            conventional-changelog-conventionalcommits@8.0.0
