@@ -1,0 +1,131 @@
+name: Android CD
+
+on:
+  push:
+    branches:
+      - main
+      - production
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepare release metadata
+        id: metadata
+        shell: bash
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+
+          if [[ "${GITHUB_REF_NAME}" == "production" ]]; then
+            echo "environment_name=production" >> "$GITHUB_OUTPUT"
+            echo "apk_name=animus-production-${SHORT_SHA}.apk" >> "$GITHUB_OUTPUT"
+            echo "release_name=Production APK ${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+            echo "tag_name=production-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment_name=main" >> "$GITHUB_OUTPUT"
+            echo "apk_name=animus-main-${SHORT_SHA}.apk" >> "$GITHUB_OUTPUT"
+            echo "release_name=Main APK ${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+            echo "tag_name=main-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create .env
+        shell: bash
+        env:
+          ANIMUS_SERVER_APP_URL: ${{ secrets.ANIMUS_SERVER_APP_URL }}
+          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+          GCS_URL: ${{ secrets.GCS_URL }}
+          GCS_DOWNLOAD_URL: ${{ secrets.GCS_DOWNLOAD_URL }}
+          PANGEA_URL: ${{ secrets.PANGEA_URL }}
+        run: |
+          cat <<EOF > .env
+          ANIMUS_SERVER_APP_URL=${ANIMUS_SERVER_APP_URL}
+          GOOGLE_IOS_CLIENT_ID=${GOOGLE_IOS_CLIENT_ID}
+          GOOGLE_SERVER_CLIENT_ID=${GOOGLE_SERVER_CLIENT_ID}
+          GCS_URL=${GCS_URL}
+          GCS_DOWNLOAD_URL=${GCS_DOWNLOAD_URL}
+          PANGEA_URL=${PANGEA_URL}
+          EOF
+
+      - name: Restore Android keystore
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+
+          cat <<EOF > android/key.properties
+          storeFile=upload-keystore.jks
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          EOF
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build signed APK
+        run: flutter build apk --release
+
+      - name: Prepare APK asset
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/${{ steps.metadata.outputs.apk_name }}"
+
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.metadata.outputs.tag_name }}
+          RELEASE_NAME: ${{ steps.metadata.outputs.release_name }}
+          APK_FILE: dist/${{ steps.metadata.outputs.apk_name }}
+          ENVIRONMENT_NAME: ${{ steps.metadata.outputs.environment_name }}
+        run: |
+          NOTES=$(cat <<EOF
+          APK signed for the ${ENVIRONMENT_NAME} environment.
+
+          Commit: ${GITHUB_SHA}
+          Branch: ${GITHUB_REF_NAME}
+          Workflow: ${GITHUB_WORKFLOW}
+          EOF
+          )
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" "$APK_FILE" --clobber
+          else
+            gh release create "$TAG_NAME" "$APK_FILE" --target "$GITHUB_SHA" --title "$RELEASE_NAME" --notes "$NOTES"
+          fi
