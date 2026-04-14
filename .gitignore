@@ -60,6 +60,7 @@ prompt.md
 plan.md
 CLAUDE.md
 GEMINI.md
+jira-ticket.md
 
 # Local environment
 .env
