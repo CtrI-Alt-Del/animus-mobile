@@ -1,5 +1,5 @@
 ---
-description: Criar Tickets Jira a partir de um PRD ou contexto tecnico
+description: Criar um ticket do zero para o projeto baseado em um PRD ou contexto tecnico
 ---
 
 ## Objetivo
