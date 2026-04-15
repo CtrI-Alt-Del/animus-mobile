@@ -29,7 +29,7 @@ void main() {
     return NewPasswordScreenPresenter(
       authService: authService,
       navigationDriver: navigationDriver,
-      accountId: 'account-1',
+      resetContext: 'reset-context-1',
     );
   }
 
@@ -90,7 +90,7 @@ void main() {
 
       verifyNever(
         () => authService.resetPassword(
-          accountId: any(named: 'accountId'),
+          resetContext: any(named: 'resetContext'),
           newPassword: any(named: 'newPassword'),
         ),
       );
@@ -106,7 +106,7 @@ void main() {
 
       when(
         () => authService.resetPassword(
-          accountId: 'account-1',
+          resetContext: 'reset-context-1',
           newPassword: 'Password1',
         ),
       ).thenAnswer((_) async => RestResponse<void>(statusCode: 204));
@@ -115,7 +115,7 @@ void main() {
 
       verify(
         () => authService.resetPassword(
-          accountId: 'account-1',
+          resetContext: 'reset-context-1',
           newPassword: 'Password1',
         ),
       ).called(1);
@@ -131,7 +131,7 @@ void main() {
 
       when(
         () => authService.resetPassword(
-          accountId: 'account-1',
+          resetContext: 'reset-context-1',
           newPassword: 'Password1',
         ),
       ).thenAnswer(
@@ -158,7 +158,7 @@ void main() {
 
       when(
         () => authService.resetPassword(
-          accountId: 'account-1',
+          resetContext: 'reset-context-1',
           newPassword: 'Password1',
         ),
       ).thenAnswer((_) => completer.future);
@@ -168,7 +168,7 @@ void main() {
 
       verify(
         () => authService.resetPassword(
-          accountId: 'account-1',
+          resetContext: 'reset-context-1',
           newPassword: 'Password1',
         ),
       ).called(1);

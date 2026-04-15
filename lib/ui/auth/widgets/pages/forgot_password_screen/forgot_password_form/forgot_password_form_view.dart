@@ -12,22 +12,14 @@ import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/input_d
 import 'forgot_password_form_presenter.dart';
 
 class ForgotPasswordFormView extends ConsumerWidget {
-  final String? initialErrorCode;
   final String? previousRoute;
 
-  const ForgotPasswordFormView({
-    this.initialErrorCode,
-    this.previousRoute,
-    super.key,
-  });
+  const ForgotPasswordFormView({this.previousRoute, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ForgotPasswordFormPresenter presenter = ref.watch(
-      forgotPasswordFormPresenterProvider((
-        errorCode: initialErrorCode,
-        from: previousRoute,
-      )),
+      forgotPasswordFormPresenterProvider(previousRoute),
     );
 
     return ReactiveForm(

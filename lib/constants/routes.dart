@@ -10,11 +10,8 @@ class Routes {
   static const String profile = '/auth/profile';
   static const String analysis = '/analyses/:analysisId';
 
-  static String getForgotPassword({String? errorCode, String? previousRoute}) {
+  static String getForgotPassword({String? previousRoute}) {
     final Map<String, String> queryParameters = <String, String>{};
-    if (errorCode != null && errorCode.trim().isNotEmpty) {
-      queryParameters['errorCode'] = errorCode;
-    }
     if (previousRoute != null && previousRoute.trim().isNotEmpty) {
       queryParameters['from'] = previousRoute;
     }
@@ -47,10 +44,10 @@ class Routes {
     return uri.toString();
   }
 
-  static String getNewPassword({required String accountId}) {
+  static String getNewPassword({required String resetContext}) {
     final Uri uri = Uri(
       path: newPassword,
-      queryParameters: <String, String>{'accountId': accountId},
+      queryParameters: <String, String>{'resetContext': resetContext},
     );
     return uri.toString();
   }

@@ -75,7 +75,7 @@ class ForgotPasswordSubmitButtonView extends StatelessWidget {
                   ],
                 )
               : Text(
-                  'Enviar Link',
+                  'Enviar Codigo',
                   style: textTheme.labelMedium?.copyWith(
                     color: tokens.surfacePage,
                     fontWeight: FontWeight.w600,
