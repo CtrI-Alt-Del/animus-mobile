@@ -8,22 +8,14 @@ import 'package:animus/ui/auth/widgets/pages/forgot_password_screen/nav_back_row
 import 'package:animus/ui/auth/widgets/pages/forgot_password_screen/forgot_password_screen_presenter.dart';
 
 class ForgotPasswordScreenView extends ConsumerWidget {
-  final String? initialErrorCode;
   final String? previousRoute;
 
-  const ForgotPasswordScreenView({
-    this.initialErrorCode,
-    this.previousRoute,
-    super.key,
-  });
+  const ForgotPasswordScreenView({this.previousRoute, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ForgotPasswordScreenPresenter presenter = ref.watch(
-      forgotPasswordScreenPresenterProvider((
-        errorCode: initialErrorCode,
-        from: previousRoute,
-      )),
+      forgotPasswordScreenPresenterProvider(previousRoute),
     );
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
@@ -83,17 +75,14 @@ class ForgotPasswordScreenView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Digite seu e-mail cadastrado e enviaremos um link para redefinir sua senha.',
+                            'Digite seu e-mail cadastrado e enviaremos um codigo OTP para redefinir sua senha.',
                             style: textTheme.bodySmall?.copyWith(
                               color: tokens.textMuted,
                               height: 1.5,
                             ),
                           ),
                           const SizedBox(height: 24),
-                          ForgotPasswordForm(
-                            initialErrorCode: initialErrorCode,
-                            previousRoute: previousRoute,
-                          ),
+                          ForgotPasswordForm(previousRoute: previousRoute),
                         ],
                       ),
                     ),

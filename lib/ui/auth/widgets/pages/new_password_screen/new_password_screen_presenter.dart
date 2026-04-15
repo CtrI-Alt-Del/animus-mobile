@@ -14,7 +14,7 @@ import 'package:animus/rest/services/index.dart';
 class NewPasswordScreenPresenter {
   final AuthService _authService;
   final NavigationDriver _navigationDriver;
-  final String accountId;
+  final String resetContext;
 
   final FormGroup form = FormGroup(
     <String, AbstractControl<Object>>{
@@ -72,7 +72,7 @@ class NewPasswordScreenPresenter {
   NewPasswordScreenPresenter({
     required AuthService authService,
     required NavigationDriver navigationDriver,
-    required this.accountId,
+    required this.resetContext,
   }) : _authService = authService,
        _navigationDriver = navigationDriver {
     _formStatusSubscription = form.statusChanged.listen((dynamic _) {
@@ -117,7 +117,7 @@ class NewPasswordScreenPresenter {
     isSubmitting.value = true;
 
     final RestResponse<void> response = await _authService.resetPassword(
-      accountId: accountId,
+      resetContext: resetContext,
       newPassword: newPasswordControl.value ?? '',
     );
 
@@ -200,7 +200,7 @@ class NewPasswordScreenPresenter {
 }
 
 final newPasswordScreenPresenterProvider = Provider.autoDispose
-    .family<NewPasswordScreenPresenter, String>((Ref ref, String accountId) {
+    .family<NewPasswordScreenPresenter, String>((Ref ref, String resetContext) {
       final AuthService authService = ref.watch(authServiceProvider);
       final NavigationDriver navigationDriver = ref.watch(
         navigationDriverProvider,
@@ -209,7 +209,7 @@ final newPasswordScreenPresenterProvider = Provider.autoDispose
       final NewPasswordScreenPresenter presenter = NewPasswordScreenPresenter(
         authService: authService,
         navigationDriver: navigationDriver,
-        accountId: accountId,
+        resetContext: resetContext,
       );
 
       ref.onDispose(presenter.dispose);

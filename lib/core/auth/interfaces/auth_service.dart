@@ -9,10 +9,15 @@ abstract class AuthService {
 
   Future<RestResponse<void>> forgotPassword({required String email});
 
-  Future<RestResponse<String>> verifyResetToken({required String token});
+  Future<RestResponse<void>> resendResetPasswordOtp({required String email});
+
+  Future<RestResponse<String>> verifyResetPasswordOtp({
+    required String email,
+    required String otp,
+  });
 
   Future<RestResponse<void>> resetPassword({
-    required String accountId,
+    required String resetContext,
     required String newPassword,
   });
 
