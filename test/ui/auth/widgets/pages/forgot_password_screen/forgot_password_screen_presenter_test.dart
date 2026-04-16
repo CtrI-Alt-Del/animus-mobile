@@ -25,25 +25,13 @@ void main() {
     when(() => navigationDriver.goTo(any())).thenReturn(null);
   });
 
-  ForgotPasswordScreenPresenter createPresenter({String? initialErrorCode}) {
+  ForgotPasswordScreenPresenter createPresenter({String? previousRoute}) {
     return ForgotPasswordScreenPresenter(
       authService: authService,
       navigationDriver: navigationDriver,
-      initialErrorCode: initialErrorCode,
+      previousRoute: previousRoute,
     );
   }
-
-  test('inicializa erro quando recebe invalid_reset_link', () {
-    final ForgotPasswordScreenPresenter presenter = createPresenter(
-      initialErrorCode: 'invalid_reset_link',
-    );
-    addTearDown(presenter.dispose);
-
-    expect(
-      presenter.generalError.value,
-      'O link de redefinicao e invalido ou expirou. Solicite um novo link.',
-    );
-  });
 
   group('submit', () {
     test('nao submete quando formulario e invalido', () async {

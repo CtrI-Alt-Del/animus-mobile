@@ -53,14 +53,26 @@ class AuthRestService extends Service implements AuthService {
   }
 
   @override
+  Future<RestResponse<void>> resendResetPasswordOtp({
+    required String email,
+  }) async {
+    final response = await restClient.post(
+      '/auth/password/resend-reset-otp',
+      body: <String, dynamic>{'email': email},
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
   Future<RestResponse<void>> resetPassword({
-    required String accountId,
+    required String resetContext,
     required String newPassword,
   }) async {
     final response = await restClient.post(
       '/auth/password/reset',
       body: <String, dynamic>{
-        'account_id': accountId,
+        'reset_context': resetContext,
         'new_password': newPassword,
       },
     );
@@ -112,10 +124,13 @@ class AuthRestService extends Service implements AuthService {
   }
 
   @override
-  Future<RestResponse<String>> verifyResetToken({required String token}) async {
+  Future<RestResponse<String>> verifyResetPasswordOtp({
+    required String email,
+    required String otp,
+  }) async {
     final response = await restClient.post(
-      '/auth/password/verify-reset-token',
-      body: <String, dynamic>{'token': token},
+      '/auth/password/verify-reset-otp',
+      body: <String, dynamic>{'email': email, 'otp': otp},
     );
 
     if (response.isFailure) {
@@ -126,28 +141,28 @@ class AuthRestService extends Service implements AuthService {
       );
     }
 
-    String? accountId;
+    String? resetContext;
 
     try {
       final dynamic body = response.body;
-      final dynamic rawAccountId = body['account_id'];
-      if (rawAccountId is String && rawAccountId.isNotEmpty) {
-        accountId = rawAccountId;
+      final dynamic rawResetContext = body['reset_context'];
+      if (rawResetContext is String && rawResetContext.isNotEmpty) {
+        resetContext = rawResetContext;
       }
     } catch (_) {
-      accountId = null;
+      resetContext = null;
     }
 
-    if (accountId == null) {
+    if (resetContext == null) {
       return RestResponse<String>(
         statusCode: response.statusCode,
-        errorMessage: 'Invalid verify reset token response.',
+        errorMessage: 'Invalid verify reset otp response.',
         errorBody: response.errorBody,
       );
     }
 
     return RestResponse<String>(
-      body: accountId,
+      body: resetContext,
       statusCode: response.statusCode,
     );
   }

@@ -1,16 +1,33 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class CheckEmailScreenPresenter {
   final AuthService _authService;
+  final NavigationDriver _navigationDriver;
   final String email;
 
+  final FormGroup form = FormGroup(<String, AbstractControl<Object>>{
+    'otp': FormControl<String>(
+      validators: <Validator<dynamic>>[
+        Validators.required,
+        Validators.number(),
+        Validators.minLength(6),
+        Validators.maxLength(6),
+      ],
+    ),
+  });
+
+  final Signal<bool> isVerifying = signal<bool>(false);
   final Signal<bool> isResending = signal<bool>(false);
   final Signal<int> resendCountdown = signal<int>(60);
   final Signal<String?> generalError = signal<String?>(null);
@@ -20,12 +37,87 @@ class CheckEmailScreenPresenter {
 
   CheckEmailScreenPresenter({
     required AuthService authService,
+    required NavigationDriver navigationDriver,
     required this.email,
-  }) : _authService = authService {
+  }) : _authService = authService,
+       _navigationDriver = navigationDriver {
     _startResendCountdown();
   }
 
-  Future<void> resend() async {
+  FormControl<String> get otpControl =>
+      form.control('otp') as FormControl<String>;
+
+  String? otpErrorMessage() {
+    if (!otpControl.invalid || (!otpControl.touched && !otpControl.dirty)) {
+      return null;
+    }
+
+    if (otpControl.hasError('server')) {
+      return '${otpControl.getError('server')}';
+    }
+    if (otpControl.hasError(ValidationMessage.required)) {
+      return 'Informe o codigo OTP.';
+    }
+    if (otpControl.hasError(ValidationMessage.number)) {
+      return 'O codigo OTP deve conter apenas numeros.';
+    }
+    if (otpControl.hasError(ValidationMessage.minLength) ||
+        otpControl.hasError(ValidationMessage.maxLength)) {
+      return 'O codigo OTP deve ter 6 digitos.';
+    }
+
+    return 'Codigo OTP invalido ou expirado.';
+  }
+
+  Future<void> verifyOtp() async {
+    if (isVerifying.value) {
+      return;
+    }
+
+    generalError.value = null;
+    feedbackMessage.value = null;
+    otpControl.removeError('server');
+    form.markAllAsTouched();
+
+    if (form.invalid) {
+      return;
+    }
+
+    isVerifying.value = true;
+
+    final RestResponse<String> response = await _authService
+        .verifyResetPasswordOtp(
+          email: email,
+          otp: (otpControl.value ?? '').trim(),
+        );
+
+    if (response.isSuccessful) {
+      _navigationDriver.goTo(
+        Routes.getNewPassword(resetContext: response.body),
+      );
+      isVerifying.value = false;
+      return;
+    }
+
+    if (response.statusCode == 400 ||
+        response.statusCode == 401 ||
+        response.statusCode == 422) {
+      final String? serverMessage = response.errorBody?['message'] as String?;
+      otpControl.setErrors(<String, Object>{
+        'server': serverMessage ?? 'Codigo OTP invalido ou expirado.',
+      });
+      otpControl.markAsTouched();
+    } else {
+      generalError.value = _resolveGeneralError(
+        response,
+        fallback: 'Nao foi possivel validar o codigo agora. Tente novamente.',
+      );
+    }
+
+    isVerifying.value = false;
+  }
+
+  Future<void> resendResetOtp() async {
     if (isResending.value || resendCountdown.value > 0) {
       return;
     }
@@ -34,18 +126,20 @@ class CheckEmailScreenPresenter {
     feedbackMessage.value = null;
     isResending.value = true;
 
-    final RestResponse<void> response = await _authService.forgotPassword(
-      email: email,
-    );
+    final RestResponse<void> response = await _authService
+        .resendResetPasswordOtp(email: email);
 
     if (response.isSuccessful) {
-      feedbackMessage.value = 'Enviamos um novo link para $email.';
+      feedbackMessage.value = 'Enviamos um novo codigo OTP para $email.';
       _startResendCountdown();
       isResending.value = false;
       return;
     }
 
-    generalError.value = _resolveGeneralError(response);
+    generalError.value = _resolveGeneralError(
+      response,
+      fallback: 'Nao foi possivel reenviar o codigo agora. Tente novamente.',
+    );
     isResending.value = false;
   }
 
@@ -59,6 +153,8 @@ class CheckEmailScreenPresenter {
 
   void dispose() {
     _resendTimer?.cancel();
+    form.dispose();
+    isVerifying.dispose();
     isResending.dispose();
     resendCountdown.dispose();
     generalError.dispose();
@@ -81,7 +177,10 @@ class CheckEmailScreenPresenter {
     });
   }
 
-  String _resolveGeneralError(RestResponse<dynamic> response) {
+  String _resolveGeneralError(
+    RestResponse<dynamic> response, {
+    required String fallback,
+  }) {
     final String? bodyMessage = response.errorBody?['message'] as String?;
     if (bodyMessage != null && bodyMessage.isNotEmpty) {
       return bodyMessage;
@@ -90,7 +189,7 @@ class CheckEmailScreenPresenter {
     try {
       return response.errorMessage;
     } catch (_) {
-      return 'Nao foi possivel reenviar o link agora. Tente novamente.';
+      return fallback;
     }
   }
 }
@@ -98,9 +197,13 @@ class CheckEmailScreenPresenter {
 final checkEmailScreenPresenterProvider = Provider.autoDispose
     .family<CheckEmailScreenPresenter, String>((Ref ref, String email) {
       final AuthService authService = ref.watch(authServiceProvider);
+      final NavigationDriver navigationDriver = ref.watch(
+        navigationDriverProvider,
+      );
 
       final CheckEmailScreenPresenter presenter = CheckEmailScreenPresenter(
         authService: authService,
+        navigationDriver: navigationDriver,
         email: email,
       );
 

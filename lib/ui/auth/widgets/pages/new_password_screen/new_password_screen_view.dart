@@ -8,14 +8,14 @@ import 'package:animus/ui/auth/widgets/pages/new_password_screen/new_password_fo
 import 'package:animus/ui/auth/widgets/pages/new_password_screen/new_password_screen_presenter.dart';
 
 class NewPasswordScreenView extends ConsumerWidget {
-  final String accountId;
+  final String resetContext;
 
-  const NewPasswordScreenView({required this.accountId, super.key});
+  const NewPasswordScreenView({required this.resetContext, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final NewPasswordScreenPresenter presenter = ref.watch(
-      newPasswordScreenPresenterProvider(accountId),
+      newPasswordScreenPresenterProvider(resetContext),
     );
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
@@ -78,7 +78,7 @@ class NewPasswordScreenView extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    NewPasswordForm(accountId: accountId),
+                    NewPasswordForm(resetContext: resetContext),
                   ],
                 ),
               ),
