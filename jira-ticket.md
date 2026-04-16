@@ -6,7 +6,7 @@ Camadas impactadas: `ui` · `core` · `rest` · `constants`
 
 ## Requisitos de Produto
 
-PRD: `https://joaogoliveiragarcia.atlassian.net/wiki/spaces/ANM/pages/17989633/PRD+RF+04+Armazenamento+e+organiza+o+de+an+lises`
+PRD: `https://joaogoliveiragarcia.atlassian.net/wiki/spaces/ANM/pages/17989633`
 
 - [ ] Exibir uma tela de biblioteca aderente ao layout do node `smS6d`
 - [ ] Exibir a secao `Sem pasta` com acesso claro as analises nao organizadas
@@ -70,10 +70,10 @@ Fluxo - `consistencia com a organizacao de analises`:
 
 Contratos esperados:
 
-- `IntakeService.listFolders({String? cursor, int? limit}) -> RestResponse<CursorPaginationResponse<FolderDto>>` - consumir `GET /library/folders` para carregar as pastas da conta autenticada
-- `IntakeService.listUnfolderedAnalyses(...) -> RestResponse<CursorPaginationResponse<AnalysisDto>>` - carregar a area `Sem pasta`
-- `IntakeService.getFolder({required String folderId}) -> RestResponse<FolderDto>` - consumir `GET /library/folders/{folder_id}` para abrir a pasta selecionada
-- `IntakeService.createFolder({required String name}) -> RestResponse<FolderDto>` - consumir `POST /library/folders` para criar nova pasta a partir do modal da biblioteca
+- `LibraryService.listFolders({String? cursor, required int limit}) -> RestResponse<CursorPaginationResponse<FolderDto>>` - consumir `GET /library/folders` para carregar as pastas da conta autenticada
+- `LibraryService.listUnfolderedAnalyses({String? cursor, required int limit}) -> RestResponse<CursorPaginationResponse<AnalysisDto>>` - carregar a area `Sem pasta`
+- `LibraryService.getFolder({required String folderId}) -> RestResponse<FolderDto>` - consumir `GET /library/folders/{folder_id}` para abrir a pasta selecionada
+- `LibraryService.createFolder({required String name}) -> RestResponse<FolderDto>` - consumir `POST /library/folders` para criar nova pasta a partir do modal da biblioteca
 - `LibraryScreenPresenter.load() -> Future<void>` - orquestrar a carga inicial da biblioteca
 - `LibraryScreenPresenter.retry() -> Future<void>` - repetir a carga em caso de erro
 - `LibraryScreenPresenter.openCreateFolderModal() -> void` - abrir o modal de criacao de pasta
@@ -86,9 +86,9 @@ Contratos esperados:
 - `lib/ui/storage/widgets/pages/library_screen/index.dart` - ponto de entrada da tela no modulo de storage
 - `lib/router.dart` - configuracao atual da aba autenticada da biblioteca
 - `lib/constants/routes.dart` - tabela de rotas que precisara suportar a navegacao da biblioteca para seus detalhes
-- `lib/core/intake/dtos/folder_dto.dart` - DTO de pasta ja existente no dominio mobile
+- `lib/core/library/dtos/folder_dto.dart` - DTO de pasta utilizado pela biblioteca no dominio mobile
 - `lib/core/intake/dtos/analysis_dto.dart` - DTO de analise que ja expoe `folderId` para distinguir `Sem pasta`
-- `lib/core/intake/interfaces/intake_service.dart` - contrato atual de intake a ser evoluido para listagem de pastas e criacao de pasta na biblioteca
+- `lib/core/library/interfaces/library_service.dart` - contrato atual de biblioteca para listagem de pastas e criacao de pasta
 - `lib/rest/services/intake_rest_service.dart` - implementacao REST onde os endpoints da biblioteca precisarao ser integrados
 - `design/animus.pen` - arquivo de design com os nodes `smS6d` e `DFD2M`
 - `ANI-73` - dependencia funcional para a tela de pasta individual acessada a partir da biblioteca
