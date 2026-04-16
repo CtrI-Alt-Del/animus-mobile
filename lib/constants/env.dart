@@ -10,6 +10,13 @@ class Env {
 
   static String get gcsDownloadUrl => _validateValue('GCS_DOWNLOAD_URL');
 
+  static String get supabaseUrl => _validateValue('SUPABASE_URL');
+
+  static String get supabaseKey => _validateValue('SUPABASE_PUBLISHABLE_KEY');
+
+  static String get supabaseStorageBucket =>
+      _validateValue('SUPABASE_STORAGE_BUCKET');
+
   static String get pangeaUrl => _validateValue('PANGEA_URL');
 
   static String _validateValue(String key) {
