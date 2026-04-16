@@ -181,6 +181,43 @@ make test
 make build
 ```
 
+## 📦 Release de APK
+
+O repositório possui um workflow de CD em `.github/workflows/android-cd.yml` que roda a cada `push` nas branches `main` e `production`.
+
+- `main`: gera um APK assinado do ambiente `main` e publica uma nova GitHub Release com o asset `animus-main-<sha>.apk`
+- `production`: gera um APK assinado do ambiente `production` e publica uma nova GitHub Release com o asset `animus-production-<sha>.apk`
+
+### GitHub Environments
+
+Crie dois environments no GitHub:
+
+- `main`
+- `production`
+
+Cada environment deve conter os secrets abaixo com os valores do respectivo ambiente:
+
+- `ANIMUS_SERVER_APP_URL`
+- `GOOGLE_IOS_CLIENT_ID`
+- `GOOGLE_SERVER_CLIENT_ID`
+- `GCS_URL`
+- `GCS_DOWNLOAD_URL`
+- `PANGEA_URL`
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+
+### Keystore Android
+
+- `ANDROID_KEYSTORE_BASE64` deve conter o arquivo `.jks` oficial codificado em Base64
+- o workflow reconstrói a keystore no runner, gera `android/key.properties` dinamicamente e assina o `flutter build apk --release`
+- `android/key.properties` e arquivos `.jks` ficam ignorados no Git e não devem ser versionados
+
+### Observação
+
+Os APKs de `main` e `production` são separados para distribuição, mas usam o mesmo `applicationId`. Por isso, instalar um deles sobre o outro substituirá o app já instalado no dispositivo.
+
 ## 📝 Licenca
 
 Este projeto esta licenciado sob a licenca [MIT](LICENSE).

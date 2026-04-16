@@ -4,6 +4,7 @@ enum AnalysisStatusDto {
   analyzingPetition('ANALYZING_PETITION'),
   petitionAnalyzed('PETITION_ANALYZED'),
   searchingPrecedents('SEARCHING_PRECEDENTS'),
+  analyzingPrecedentsSimilarity('ANALYZING_PRECEDENTS_SIMILARITY'),
   analyzingPrecedentsApplicability('ANALYZING_PRECEDENTS_APPLICABILITY'),
   generatingSynthesis('GENERATING_SYNTHESIS'),
   waitingPrecedentChoice('WAITING_PRECEDENT_CHOISE'),

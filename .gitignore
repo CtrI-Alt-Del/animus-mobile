@@ -60,9 +60,13 @@ prompt.md
 plan.md
 CLAUDE.md
 GEMINI.md
+jira-ticket.md
 
 # Local environment
 .env
+android/key.properties
+android/**/*.jks
+android/**/*.keystore
 
 # Terminal Paste Image folder
 .cp-images/
