@@ -76,9 +76,9 @@ final Map<String, String Function(Object)> _confirmPasswordValidationMessages =
     };
 
 final newPasswordFormPresenterProvider = Provider.autoDispose
-    .family<NewPasswordFormPresenter, String>((Ref ref, String accountId) {
+    .family<NewPasswordFormPresenter, String>((Ref ref, String resetContext) {
       final NewPasswordScreenPresenter screenPresenter = ref.watch(
-        newPasswordScreenPresenterProvider(accountId),
+        newPasswordScreenPresenterProvider(resetContext),
       );
 
       return NewPasswordFormPresenter(screenPresenter: screenPresenter);

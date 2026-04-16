@@ -98,12 +98,8 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: Routes.forgotPassword,
       builder: (context, state) {
-        final String? errorCode = state.uri.queryParameters['errorCode'];
         final String? previousRoute = state.uri.queryParameters['from'];
-        return ForgotPasswordScreen(
-          initialErrorCode: errorCode,
-          previousRoute: previousRoute,
-        );
+        return ForgotPasswordScreen(previousRoute: previousRoute);
       },
     ),
     GoRoute(
@@ -123,15 +119,16 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: Routes.newPassword,
       redirect: (context, state) {
-        final String? accountId = state.uri.queryParameters['accountId'];
-        if (accountId == null || accountId.trim().isEmpty) {
+        final String? resetContext = state.uri.queryParameters['resetContext'];
+        if (resetContext == null || resetContext.trim().isEmpty) {
           return Routes.forgotPassword;
         }
         return null;
       },
       builder: (context, state) {
-        final String accountId = state.uri.queryParameters['accountId'] ?? '';
-        return NewPasswordScreen(accountId: accountId);
+        final String resetContext =
+            state.uri.queryParameters['resetContext'] ?? '';
+        return NewPasswordScreen(resetContext: resetContext);
       },
     ),
     GoRoute(
