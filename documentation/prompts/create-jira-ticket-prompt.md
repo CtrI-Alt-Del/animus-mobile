@@ -4,7 +4,7 @@ description: Criar um ticket do zero para o projeto baseado em um PRD ou context
 
 ## Objetivo
 
-Ler um PRD do projeto ou um contexto tecnico do projeto e propor um ticket do zero, ou apenas o corpo dela do Jira claros, acionavel e alinhado ao contexto, arquitetura e regras da codebase. 
+Ler um PRD do projeto ou um contexto tecnico do projeto e propor um ticket do zero ou apenas o corpo do ticket no Jira, de forma clara, acionavel e alinhada ao contexto, arquitetura e regras da codebase.
 
 ## Entrada
 
