@@ -61,6 +61,7 @@ plan.md
 CLAUDE.md
 GEMINI.md
 jira-ticket.md
+opencode.json
 
 # Local environment
 .env
