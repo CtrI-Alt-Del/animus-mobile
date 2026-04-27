@@ -126,8 +126,8 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
           builder: (BuildContext context, StateSetter setState) {
             return PrecedentsLimitDialog(
               currentValue: selectedLimit,
-              minValue: 1,
-              maxValue: 20,
+              minValue: AnalysisScreenPresenter.minPrecedentsLimit,
+              maxValue: AnalysisScreenPresenter.maxPrecedentsLimit,
               onChanged: (int value) {
                 setState(() {
                   selectedLimit = value;

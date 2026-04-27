@@ -1,4 +1,4 @@
-import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_dto.dart';

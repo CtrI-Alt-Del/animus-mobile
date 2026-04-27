@@ -20,6 +20,9 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
 
     final String title =
         '${selectedPrecedent.precedent.identifier.court.value} ${selectedPrecedent.precedent.identifier.kind.value} ${selectedPrecedent.precedent.identifier.number}';
+    final String status = _formatPrecedentStatus(
+      selectedPrecedent.precedent.status,
+    );
     final String synthesis = selectedPrecedent.synthesis.trim();
     final String synthesisText = synthesis.isEmpty
         ? 'A sintese explicativa ainda nao esta disponivel para este precedente.'
@@ -73,10 +76,43 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: ApplicabilityBadge(
-                    percentage: selectedPrecedent.applicabilityPercentage,
-                    percentageText:
-                        '${selectedPrecedent.applicabilityPercentage}',
-                    classificationLevel: selectedPrecedent.classificationLevel,
+                    percentage: selectedPrecedent.similarityScore,
+                    percentageText: _formatSimilarityScore(
+                      selectedPrecedent.similarityScore,
+                    ),
+                    classificationLevel: selectedPrecedent.applicabilityLevel,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tokens.surfaceCard,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: tokens.borderSubtle),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(
+                        Icons.gavel_outlined,
+                        size: 16,
+                        color: tokens.accent,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          status,
+                          style: textTheme.labelMedium?.copyWith(
+                            color: tokens.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -103,5 +139,26 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatPrecedentStatus(String value) {
+    final String normalized = value.trim();
+    if (normalized.isEmpty) {
+      return 'Transito em Julgado';
+    }
+
+    final String sanitized = normalized.replaceAll('_', ' ').toLowerCase();
+    final List<String> parts = sanitized
+        .split(RegExp(r'\s+'))
+        .where((String part) => part.isNotEmpty)
+        .toList();
+
+    return parts
+        .map((String part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
+  }
+
+  String _formatSimilarityScore(double value) {
+    return value.clamp(0, 100).toStringAsFixed(1);
   }
 }

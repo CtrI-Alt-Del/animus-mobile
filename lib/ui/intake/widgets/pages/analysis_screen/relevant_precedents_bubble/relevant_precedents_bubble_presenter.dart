@@ -22,7 +22,7 @@ class RelevantPrecedentsBubblePresenter {
   static const Duration _requestRetryDelay = Duration(milliseconds: 450);
   static const int defaultLimit = 5;
   static const int minLimit = 1;
-  static const int maxLimit = 20;
+  static const int maxLimit = 10;
 
   final IntakeService _intakeService;
   final ExternalLinkDriver? _externalLinkDriver;
@@ -253,9 +253,10 @@ class RelevantPrecedentsBubblePresenter {
       analysisId: precedent.analysisId,
       precedent: precedent.precedent,
       isChosen: true,
-      applicabilityPercentage: precedent.applicabilityPercentage,
       synthesis: precedent.synthesis,
-      classificationLevel: precedent.classificationLevel,
+      similarityScore: precedent.similarityScore,
+      finalRank: precedent.finalRank,
+      applicabilityLevel: precedent.applicabilityLevel,
     );
     precedents.value = List<AnalysisPrecedentDto>.unmodifiable(
       precedents.value.map((AnalysisPrecedentDto item) {
@@ -271,9 +272,10 @@ class RelevantPrecedentsBubblePresenter {
           analysisId: item.analysisId,
           precedent: item.precedent,
           isChosen: isSelected,
-          applicabilityPercentage: item.applicabilityPercentage,
           synthesis: item.synthesis,
-          classificationLevel: item.classificationLevel,
+          similarityScore: item.similarityScore,
+          finalRank: item.finalRank,
+          applicabilityLevel: item.applicabilityLevel,
         );
       }),
     );
@@ -462,9 +464,8 @@ class RelevantPrecedentsBubblePresenter {
 
     final List<AnalysisPrecedentDto> sortedPrecedents =
         List<AnalysisPrecedentDto>.from(response.body.items)..sort(
-          (AnalysisPrecedentDto left, AnalysisPrecedentDto right) => right
-              .applicabilityPercentage
-              .compareTo(left.applicabilityPercentage),
+          (AnalysisPrecedentDto left, AnalysisPrecedentDto right) =>
+              left.finalRank.compareTo(right.finalRank),
         );
 
     precedents.value = List<AnalysisPrecedentDto>.unmodifiable(

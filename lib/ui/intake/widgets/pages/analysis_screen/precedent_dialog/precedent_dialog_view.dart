@@ -33,6 +33,7 @@ class PrecedentDialogView extends ConsumerWidget {
         ? 'Síntese não disponibilizada para este precedente.'
         : synthesis;
     final bool isChosen = precedent.isChosen;
+    final String status = _formatPrecedentStatus(precedent.precedent.status);
     final String identifier =
         '${precedent.precedent.identifier.court.value} ${precedent.precedent.identifier.kind.value} ${precedent.precedent.identifier.number}';
     final String precedentDescription =
@@ -117,12 +118,13 @@ class PrecedentDialogView extends ConsumerWidget {
                                   Align(
                                     alignment: Alignment.centerRight,
                                     child: ApplicabilityBadge(
-                                      percentage:
-                                          precedent.applicabilityPercentage,
-                                      percentageText:
-                                          '${precedent.applicabilityPercentage}',
+                                      percentage: precedent.similarityScore,
+                                      percentageText: precedent.similarityScore
+                                          .clamp(0, 100)
+                                          .toStringAsFixed(1),
                                       classificationLevel:
-                                          precedent.classificationLevel,
+                                          precedent.applicabilityLevel,
+                                      showScore: false,
                                       showBorder: false,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -135,6 +137,40 @@ class PrecedentDialogView extends ConsumerWidget {
                                 style: textTheme.bodyLarge?.copyWith(
                                   color: const Color(0xFFFAFAF9),
                                   fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E1E24),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: const Color(0xFF2A2A2E),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.gavel_outlined,
+                                      size: 16,
+                                      color: tokens.accent,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        status,
+                                        style: textTheme.labelMedium?.copyWith(
+                                          color: const Color(0xFFFAFAF9),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -291,5 +327,22 @@ class PrecedentDialogView extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _formatPrecedentStatus(String value) {
+    final String normalized = value.trim();
+    if (normalized.isEmpty) {
+      return 'Transito em Julgado';
+    }
+
+    final String sanitized = normalized.replaceAll('_', ' ').toLowerCase();
+    final List<String> parts = sanitized
+        .split(RegExp(r'\s+'))
+        .where((String part) => part.isNotEmpty)
+        .toList();
+
+    return parts
+        .map((String part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
   }
 }
