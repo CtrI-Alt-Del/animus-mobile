@@ -15,7 +15,7 @@ import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart'
 import 'package:animus/core/storage/interfaces/storage_service.dart';
 import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/document-picker-driver/index.dart';
-import 'package:animus/drivers/storage/file_storage/index.dart';
+import 'package:animus/drivers/file_storage/index.dart';
 import 'package:animus/rest/services/index.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart';

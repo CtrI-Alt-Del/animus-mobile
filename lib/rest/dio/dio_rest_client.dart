@@ -10,12 +10,6 @@ import 'package:animus/core/shared/types/json.dart';
 
 typedef QueryParams = Map<String, dynamic>;
 
-final Provider<RestClient> restClientProvider = Provider<RestClient>((Ref ref) {
-  final DioRestClient client = DioRestClient();
-  client.setBaseUrl(Env.animusServerAppUrl);
-  return client;
-});
-
 class DioRestClient implements RestClient {
   final Dio _dio;
 
