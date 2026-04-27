@@ -4,7 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
@@ -28,7 +28,7 @@ class PrintingPdfDriver implements PdfDriver {
     final List<AnalysisPrecedentDto> sortedPrecedents =
         List<AnalysisPrecedentDto>.from(report.precedents)..sort(
           (AnalysisPrecedentDto a, AnalysisPrecedentDto b) =>
-              b.applicabilityPercentage.compareTo(a.applicabilityPercentage),
+              a.finalRank.compareTo(b.finalRank),
         );
 
     doc.addPage(_buildHeaderPage(report, generatedAt));
@@ -198,9 +198,7 @@ class PrintingPdfDriver implements PdfDriver {
         '${precedent.precedent.identifier.court.value} · '
         '${_theme.formatKindLabel(precedent.precedent.identifier.kind)} '
         '${precedent.precedent.identifier.number}';
-    final double normalizedPercentage = precedent.applicabilityPercentage
-        .clamp(0, 100)
-        .toDouble();
+    final double normalizedScore = precedent.similarityScore.toDouble();
 
     return pw.Container(
       width: double.infinity,
@@ -224,11 +222,11 @@ class PrintingPdfDriver implements PdfDriver {
                 ),
               ),
               pw.SizedBox(width: 12),
-              _buildClassificationBadge(precedent.classificationLevel),
+              _buildClassificationBadge(precedent.applicabilityLevel),
             ],
           ),
           pw.SizedBox(height: 10),
-          _buildApplicabilityLabel(normalizedPercentage),
+          _buildApplicabilityLabel(normalizedScore),
           pw.SizedBox(height: 12),
           _buildField(
             title: 'ENUNCIADO',
@@ -296,7 +294,7 @@ class PrintingPdfDriver implements PdfDriver {
   }
 
   pw.Widget _buildClassificationBadge(
-    AnalysisPrecedentClassificationLevelDto level,
+    AnalysisPrecedentApplicabilityLevelDto level,
   ) {
     final _BadgeData badge = _badgeData(level);
 
@@ -318,21 +316,21 @@ class PrintingPdfDriver implements PdfDriver {
     );
   }
 
-  _BadgeData _badgeData(AnalysisPrecedentClassificationLevelDto level) {
+  _BadgeData _badgeData(AnalysisPrecedentApplicabilityLevelDto level) {
     switch (level) {
-      case AnalysisPrecedentClassificationLevelDto.applicable:
+      case AnalysisPrecedentApplicabilityLevelDto.applicable:
         return _BadgeData(
           label: 'Aplicavel',
           background: const PdfColor(0.91, 0.98, 0.95),
           text: _theme.success,
         );
-      case AnalysisPrecedentClassificationLevelDto.possiblyApplicable:
+      case AnalysisPrecedentApplicabilityLevelDto.possiblyApplicable:
         return _BadgeData(
           label: 'Possivelmente aplicavel',
           background: _theme.pageBadgeFill,
           text: _theme.accentStrong,
         );
-      case AnalysisPrecedentClassificationLevelDto.notApplicable:
+      case AnalysisPrecedentApplicabilityLevelDto.notApplicable:
         return _BadgeData(
           label: 'Nao aplicavel',
           background: const PdfColor(0.99, 0.93, 0.92),
@@ -341,12 +339,12 @@ class PrintingPdfDriver implements PdfDriver {
     }
   }
 
-  pw.Widget _buildApplicabilityLabel(double percentage) {
+  pw.Widget _buildApplicabilityLabel(double score) {
     return pw.RichText(
       text: pw.TextSpan(
         children: <pw.InlineSpan>[
           pw.TextSpan(
-            text: '${percentage.toStringAsFixed(0)}%',
+            text: score.toStringAsFixed(0),
             style: pw.TextStyle(
               color: _theme.textPrimary,
               fontSize: 18,
@@ -354,7 +352,7 @@ class PrintingPdfDriver implements PdfDriver {
             ),
           ),
           pw.TextSpan(
-            text: ' de aplicabilidade',
+            text: ' de score de similaridade',
             style: pw.TextStyle(color: _theme.textMuted, fontSize: 11),
           ),
         ],

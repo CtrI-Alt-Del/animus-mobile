@@ -25,13 +25,15 @@ import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/document-picker-driver/index.dart';
 import 'package:animus/drivers/pdf-driver/index.dart';
-import 'package:animus/drivers/storage/file_storage/index.dart';
+import 'package:animus/drivers/file_storage/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class AnalysisScreenPresenter {
   static const List<String> allowedExtensions = <String>['pdf', 'docx'];
   static const int maxFileSizeInBytes = 20 * 1024 * 1024;
+  static const int minPrecedentsLimit = 1;
   static const int defaultPrecedentsLimit = 5;
+  static const int maxPrecedentsLimit = 10;
   static const Duration summaryPollingInterval = Duration(seconds: 3);
   static const Duration summaryRequestTimeout = Duration(seconds: 10);
   static const Duration summaryTimeout = Duration(seconds: 60);
@@ -478,16 +480,21 @@ class AnalysisScreenPresenter {
   }
 
   void setPrecedentsLimit(int value) {
-    if (value <= 0) {
+    if (value < minPrecedentsLimit) {
       return;
     }
 
-    if (precedentsLimit.value == value) {
+    final int normalizedValue = value.clamp(
+      minPrecedentsLimit,
+      maxPrecedentsLimit,
+    );
+
+    if (precedentsLimit.value == normalizedValue) {
       return;
     }
 
-    precedentsLimit.value = value;
-    _cacheDriver.set(CacheKeys.precedentsLimit, value.toString());
+    precedentsLimit.value = normalizedValue;
+    _cacheDriver.set(CacheKeys.precedentsLimit, normalizedValue.toString());
   }
 
   void setPrecedentFilters({
@@ -505,11 +512,14 @@ class AnalysisScreenPresenter {
     }
 
     final int? parsed = int.tryParse(cachedValue);
-    if (parsed == null || parsed <= 0) {
+    if (parsed == null || parsed < minPrecedentsLimit) {
       return;
     }
 
-    precedentsLimit.value = parsed;
+    precedentsLimit.value = parsed.clamp(
+      minPrecedentsLimit,
+      maxPrecedentsLimit,
+    );
   }
 
   void confirmAndViewPrecedents() {
