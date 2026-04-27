@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/petition_summary_card/petition_summary_card_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/petition_summary_card/summary_list_section/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/petition_summary_card/summary_section/index.dart';
 
@@ -16,7 +17,38 @@ class PetitionSummaryCardView extends StatefulWidget {
 }
 
 class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
+  static const String _emptyValue = '-';
+
   bool _isExpanded = false;
+  final PetitionSummaryCardPresenter _presenter = PetitionSummaryCardPresenter();
+
+  List<String> _buildListItems(List<String> items) {
+    final List<String> normalizedItems = items
+        .map((String item) => item.trim())
+        .where((String item) => item.isNotEmpty)
+        .toList();
+
+    return normalizedItems.isEmpty
+        ? const <String>[_emptyValue]
+        : normalizedItems;
+  }
+
+  String _buildText(String? value) {
+    final String normalizedValue = (value ?? '').trim();
+    return normalizedValue.isEmpty ? _emptyValue : normalizedValue;
+  }
+
+  Future<void> _copySummaryToClipboard() async {
+    await _presenter.copySummaryToClipboard(widget.summary);
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Síntese copiada para a área de transferência.')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,27 +93,65 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
                         children: <Widget>[
                           SummarySection(
                             title: 'Resumo do caso',
-                            content: widget.summary.caseSummary,
+                            content: _buildText(widget.summary.caseSummary),
                           ),
                           SummarySection(
                             title: 'Questao juridica',
-                            content: widget.summary.legalIssue,
+                            content: _buildText(widget.summary.legalIssue),
                           ),
                           SummarySection(
                             title: 'Pergunta central',
-                            content: widget.summary.centralQuestion,
+                            content: _buildText(widget.summary.centralQuestion),
+                          ),
+                          SummarySection(
+                            title: 'Tipo de acao',
+                            content: _buildText(widget.summary.typeOfAction),
+                          ),
+                          SummarySection(
+                            title: 'Questao de jurisdicao',
+                            content: _buildText(widget.summary.jurisdictionIssue),
+                          ),
+                          SummarySection(
+                            title: 'Questao de legitimidade',
+                            content: _buildText(widget.summary.standingIssue),
                           ),
                           SummaryListSection(
                             title: 'Leis relevantes',
-                            items: widget.summary.relevantLaws,
+                            items: _buildListItems(widget.summary.relevantLaws),
                           ),
                           SummaryListSection(
                             title: 'Fatos-chave',
-                            items: widget.summary.keyFacts,
+                            items: _buildListItems(widget.summary.keyFacts),
                           ),
                           SummaryListSection(
                             title: 'Termos de busca',
-                            items: widget.summary.searchTerms,
+                            items: _buildListItems(widget.summary.searchTerms),
+                          ),
+                          SummaryListSection(
+                            title: 'Teses juridicas secundarias',
+                            items: _buildListItems(
+                              widget.summary.secondaryLegalIssues,
+                            ),
+                          ),
+                          SummaryListSection(
+                            title: 'Perguntas alternativas',
+                            items: _buildListItems(
+                              widget.summary.alternativeQuestions,
+                            ),
+                          ),
+                          SummaryListSection(
+                            title: 'Pedidos',
+                            items: _buildListItems(widget.summary.requestedRelief),
+                          ),
+                          SummaryListSection(
+                            title: 'Questoes processuais',
+                            items: _buildListItems(widget.summary.proceduralIssues),
+                          ),
+                          SummaryListSection(
+                            title: 'Topicos excluidos ou acessorios',
+                            items: _buildListItems(
+                              widget.summary.excludedOrAccessoryTopics,
+                            ),
                             isLast: true,
                           ),
                         ],
@@ -96,7 +166,7 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
                           border: Border.all(color: tokens.borderSubtle),
                         ),
                         child: Text(
-                          widget.summary.caseSummary,
+                          _buildText(widget.summary.caseSummary),
                           maxLines: 8,
                           overflow: TextOverflow.ellipsis,
                           style: textTheme.bodyMedium?.copyWith(
@@ -108,22 +178,40 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
               ),
             ),
             const SizedBox(height: 2),
-            TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(0, 24),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                alignment: Alignment.centerLeft,
-              ),
-              onPressed: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-              child: Text(
-                _isExpanded ? 'Mostrar menos' : 'Mostrar mais',
-                style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
-              ),
+            Row(
+              children: <Widget>[
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 24),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    alignment: Alignment.centerLeft,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
+                  },
+                  child: Text(
+                    _isExpanded ? 'Mostrar menos' : 'Mostrar mais',
+                    style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 24),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: _copySummaryToClipboard,
+                  icon: Icon(Icons.copy_rounded, size: 16, color: tokens.textMuted),
+                  label: Text(
+                    'Copiar',
+                    style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
