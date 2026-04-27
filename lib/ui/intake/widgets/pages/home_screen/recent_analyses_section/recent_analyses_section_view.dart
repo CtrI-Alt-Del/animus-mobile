@@ -17,19 +17,21 @@ class RecentAnalysesSectionView extends StatelessWidget {
   final List<AnalysisDto> analyses;
   final bool isLoading;
   final bool isLoadingMore;
+  final bool hasMore;
   final bool showEmptyState;
   final String? errorMessage;
   final String Function(String value) formatCreatedAt;
   final Future<void> Function() onRefresh;
   final Future<void> Function(AnalysisDto analysis) onTapAnalysis;
   final VoidCallback onRetry;
-  final VoidCallback onLoadMore;
+  final Future<void> Function() onLoadMore;
   final VoidCallback onCreateFirstAnalysis;
 
   const RecentAnalysesSectionView({
     required this.analyses,
     required this.isLoading,
     required this.isLoadingMore,
+    required this.hasMore,
     required this.showEmptyState,
     required this.errorMessage,
     required this.formatCreatedAt,
@@ -117,10 +119,18 @@ class RecentAnalysesSectionView extends StatelessWidget {
             onRefresh: onRefresh,
             child: NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification notification) {
+                if (isLoading || isLoadingMore || !hasMore) {
+                  return false;
+                }
+
+                if (notification is! ScrollEndNotification) {
+                  return false;
+                }
+
                 final double maxExtent = notification.metrics.maxScrollExtent;
                 final double pixels = notification.metrics.pixels;
                 if (maxExtent > 0 && pixels >= maxExtent - 120) {
-                  onLoadMore();
+                  unawaited(onLoadMore());
                 }
                 return false;
               },
