@@ -13,6 +13,7 @@ class CreateFolderModalView extends StatefulWidget {
 class _CreateFolderModalViewState extends State<CreateFolderModalView> {
   final TextEditingController _controller = TextEditingController();
   bool _isCreating = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -26,6 +27,7 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
 
     setState(() {
       _isCreating = true;
+      _errorMessage = null;
     });
 
     try {
@@ -33,8 +35,13 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
       if (mounted) {
         Navigator.of(context).pop();
       }
-    } catch (e) {
-      // In a real app we'd show an error state/snackbar
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _errorMessage =
+              'Não foi possível criar a pasta. Tente novamente em instantes.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -83,6 +90,7 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 hintText: 'Ex: Ações Civis',
+                errorText: _errorMessage,
               ),
               autofocus: true,
               enabled: !_isCreating,

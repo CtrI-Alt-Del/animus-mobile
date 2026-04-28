@@ -32,6 +32,7 @@ class LibraryScreenView extends ConsumerWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     final presenter = ref.watch(libraryScreenPresenterProvider);
+    ref.watch(libraryScreenInitializationProvider);
 
     final isLoading = presenter.isLoading.watch(context);
     final hasError = presenter.hasError.watch(context);
@@ -185,7 +186,9 @@ class LibraryScreenView extends ConsumerWidget {
   ) {
     return Card(
       child: InkWell(
-        onTap: presenter.openUnfoldered,
+        onTap: () {
+          presenter.openUnfoldered();
+        },
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(20),
