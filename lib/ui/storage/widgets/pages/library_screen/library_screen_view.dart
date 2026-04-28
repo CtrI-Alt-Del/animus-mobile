@@ -116,8 +116,8 @@ class LibraryScreenView extends ConsumerWidget {
                       ),
                       const SizedBox(height: 32),
                       ElevatedButton.icon(
-                        onPressed:
-                            () => _showCreateFolderModal(context, presenter),
+                        onPressed: () =>
+                            _showCreateFolderModal(context, presenter),
                         icon: const Icon(Icons.add),
                         label: const Text('Criar primeira pasta'),
                       ),

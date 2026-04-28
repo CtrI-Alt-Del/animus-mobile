@@ -101,21 +101,21 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed:
-                      _isCreating ? null : () => Navigator.of(context).pop(),
+                  onPressed: _isCreating
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   child: Text('Cancelar'),
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: _isCreating ? null : _handleCreate,
-                  child:
-                      _isCreating
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                          : const Text('Criar pasta'),
+                  child: _isCreating
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Criar pasta'),
                 ),
               ],
             ),
