@@ -66,7 +66,7 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
           children: [
             Text(
               'Nova pasta',
-              style: textTheme.titleLarge?.copyWith(
+              style: textTheme.titleMedium?.copyWith(
                 color: tokens.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
@@ -74,8 +74,11 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
             const SizedBox(height: 24),
             TextField(
               controller: _controller,
+              style: textTheme.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Nome da pasta',
+                labelStyle: textTheme.bodySmall,
+                hintStyle: textTheme.bodySmall,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
