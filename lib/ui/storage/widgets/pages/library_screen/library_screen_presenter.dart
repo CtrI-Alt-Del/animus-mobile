@@ -4,6 +4,7 @@ import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/constants/routes.dart';
 import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/rest/services/index.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,41 +18,67 @@ class LibraryScreenPresenter {
     required LibraryService libraryService,
     required NavigationDriver navigationDriver,
   }) : _libraryService = libraryService,
-       _navigationDriver = navigationDriver {
-    load();
-  }
+       _navigationDriver = navigationDriver;
 
   final Signal<bool> isLoading = signal<bool>(true);
   final Signal<bool> hasError = signal<bool>(false);
   final Signal<List<FolderDto>> folders = signal<List<FolderDto>>([]);
   final Signal<int> unfolderedCount = signal<int>(0);
 
-  Future<void> load() async {
-    isLoading.value = true;
-    hasError.value = false;
+  bool _isDisposed = false;
+  bool _didInitialize = false;
 
-    final List<Future<RestResponse>> futures = [
-      _libraryService.listFolders(limit: 50),
-      _libraryService.listUnfolderedAnalyses(limit: 50),
-    ];
-
-    final List<RestResponse> responses = await Future.wait(futures);
-
-    final foldersResponse =
-        responses[0] as RestResponse<CursorPaginationResponse<FolderDto>>;
-    final analysesResponse =
-        responses[1] as RestResponse<CursorPaginationResponse<AnalysisDto>>;
-
-    if (foldersResponse.isFailure || analysesResponse.isFailure) {
-      isLoading.value = false;
-      hasError.value = true;
+  Future<void> initialize() async {
+    if (_didInitialize) {
       return;
     }
 
-    folders.value = foldersResponse.body.items;
-    unfolderedCount.value = analysesResponse.body.items.length;
+    _didInitialize = true;
+    await load();
+  }
 
-    isLoading.value = false;
+  Future<void> load() async {
+    if (_isDisposed) {
+      return;
+    }
+
+    isLoading.value = true;
+    hasError.value = false;
+
+    try {
+      final List<Future<RestResponse>> futures = [
+        _libraryService.listFolders(limit: 50),
+        _libraryService.listUnfolderedAnalyses(limit: 50),
+      ];
+
+      final List<RestResponse> responses = await Future.wait(futures);
+
+      if (_isDisposed) {
+        return;
+      }
+
+      final foldersResponse =
+          responses[0] as RestResponse<CursorPaginationResponse<FolderDto>>;
+      final analysesResponse =
+          responses[1] as RestResponse<CursorPaginationResponse<AnalysisDto>>;
+
+      if (foldersResponse.isFailure || analysesResponse.isFailure) {
+        isLoading.value = false;
+        hasError.value = true;
+        return;
+      }
+
+      folders.value = foldersResponse.body.items;
+      unfolderedCount.value = analysesResponse.body.items.length;
+      isLoading.value = false;
+    } catch (_) {
+      if (_isDisposed) {
+        return;
+      }
+
+      isLoading.value = false;
+      hasError.value = true;
+    }
   }
 
   Future<void> retry() async {
@@ -59,21 +86,39 @@ class LibraryScreenPresenter {
   }
 
   Future<void> createFolder(String name) async {
+    if (_isDisposed) {
+      return;
+    }
+
+    hasError.value = false;
     final response = await _libraryService.createFolder(name: name);
+
+    if (_isDisposed) {
+      return;
+    }
 
     if (response.isSuccessful) {
       folders.value = [response.body, ...folders.value];
-    } else {
-      // In a real scenario we could throw an exception or handle it
+      return;
     }
+
+    throw Exception('Nao foi possivel criar a pasta.');
   }
 
-  void openFolder(String folderId) {
-    _navigationDriver.goTo('/library/folder/$folderId');
+  Future<void> openFolder(String folderId) async {
+    await _navigationDriver.pushTo(Routes.getLibraryFolder(folderId: folderId));
   }
 
-  void openUnfoldered() {
-    _navigationDriver.goTo('/library/unfoldered');
+  Future<void> openUnfoldered() async {
+    await _navigationDriver.pushTo(Routes.libraryUnfoldered);
+  }
+
+  void dispose() {
+    _isDisposed = true;
+    isLoading.dispose();
+    hasError.dispose();
+    folders.dispose();
+    unfolderedCount.dispose();
   }
 }
 
@@ -89,12 +134,14 @@ final Provider<LibraryScreenPresenter> libraryScreenPresenterProvider =
         navigationDriver: navigationDriver,
       );
 
-      ref.onDispose(() {
-        presenter.isLoading.dispose();
-        presenter.hasError.dispose();
-        presenter.folders.dispose();
-        presenter.unfolderedCount.dispose();
-      });
-
+      ref.onDispose(presenter.dispose);
       return presenter;
+    });
+
+final Provider<void> libraryScreenInitializationProvider =
+    Provider.autoDispose<void>((Ref ref) {
+      final LibraryScreenPresenter presenter = ref.watch(
+        libraryScreenPresenterProvider,
+      );
+      Future<void>.microtask(presenter.initialize);
     });
