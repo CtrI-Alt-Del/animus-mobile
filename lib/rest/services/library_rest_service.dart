@@ -7,6 +7,7 @@ import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/shared/types/json.dart';
+import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/library/folder_mapper.dart';
 import 'package:animus/rest/mappers/shared/cursor_pagination_mapper.dart';
 import 'package:animus/rest/services/service.dart';
@@ -54,13 +55,19 @@ class LibraryRestService extends Service implements LibraryService {
       return authFailure;
     }
 
-    // TODO(backend): Implementar a rota de listagem de análises sem pasta na API.
-    // Retornando mock temporário de sucesso para permitir a visualização das pastas na Biblioteca.
-    return RestResponse<CursorPaginationResponse<AnalysisDto>>(
-      body: const CursorPaginationResponse<AnalysisDto>(
-        items: <AnalysisDto>[],
-        nextCursor: null,
-      ),
+    final Json queryParams = <String, dynamic>{'limit': limit};
+
+    if (cursor != null && cursor.trim().isNotEmpty) {
+      queryParams['cursor'] = cursor;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/unfoldered',
+      queryParams: queryParams,
+    );
+    return response.mapBody<CursorPaginationResponse<AnalysisDto>>(
+      (Json json) =>
+          CursorPaginationMapper.toDto<AnalysisDto>(json, AnalysisMapper.toDto),
     );
   }
 
