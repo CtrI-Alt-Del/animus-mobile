@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "atlassian-mcp": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "computedHash": "da9aa04b934c730960b49d7b8bd5d1ddd03c6389562659646da2c783bcd6ea32"
+    },
     "flutter-expert": {
       "source": "jeffallan/claude-skills",
       "sourceType": "github",
