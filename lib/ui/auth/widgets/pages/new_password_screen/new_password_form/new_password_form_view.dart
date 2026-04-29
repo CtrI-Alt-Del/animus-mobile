@@ -12,14 +12,14 @@ import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/input_d
 import 'new_password_form_presenter.dart';
 
 class NewPasswordFormView extends ConsumerWidget {
-  final String accountId;
+  final String resetContext;
 
-  const NewPasswordFormView({required this.accountId, super.key});
+  const NewPasswordFormView({required this.resetContext, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final NewPasswordFormPresenter presenter = ref.watch(
-      newPasswordFormPresenterProvider(accountId),
+      newPasswordFormPresenterProvider(resetContext),
     );
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;

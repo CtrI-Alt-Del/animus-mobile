@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/ui/auth/widgets/pages/check_email_screen/check_email_screen_presenter.dart';
 import 'package:fake_async/fake_async.dart';
@@ -9,17 +10,26 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockAuthService extends Mock implements AuthService {}
 
+class _MockNavigationDriver extends Mock implements NavigationDriver {}
+
 void main() {
   late _MockAuthService authService;
+  late _MockNavigationDriver navigationDriver;
 
   setUp(() {
     authService = _MockAuthService();
+    navigationDriver = _MockNavigationDriver();
+
+    when(() => navigationDriver.canGoBack()).thenReturn(false);
+    when(() => navigationDriver.goBack()).thenReturn(null);
+    when(() => navigationDriver.goTo(any())).thenReturn(null);
   });
 
   test('inicia countdown em 60 segundos e formata label em mm:ss', () {
     fakeAsync((FakeAsync async) {
       final CheckEmailScreenPresenter presenter = CheckEmailScreenPresenter(
         authService: authService,
+        navigationDriver: navigationDriver,
         email: 'ada@example.com',
       );
 
@@ -38,13 +48,16 @@ void main() {
   test('nao reenvia enquanto countdown ainda estiver ativo', () async {
     final CheckEmailScreenPresenter presenter = CheckEmailScreenPresenter(
       authService: authService,
+      navigationDriver: navigationDriver,
       email: 'ada@example.com',
     );
     addTearDown(presenter.dispose);
 
-    await presenter.resend();
+    await presenter.resendResetOtp();
 
-    verifyNever(() => authService.forgotPassword(email: any(named: 'email')));
+    verifyNever(
+      () => authService.resendResetPasswordOtp(email: any(named: 'email')),
+    );
   });
 
   test(
@@ -52,23 +65,24 @@ void main() {
     () async {
       final CheckEmailScreenPresenter presenter = CheckEmailScreenPresenter(
         authService: authService,
+        navigationDriver: navigationDriver,
         email: 'ada@example.com',
       );
       addTearDown(presenter.dispose);
       presenter.resendCountdown.value = 0;
 
       when(
-        () => authService.forgotPassword(email: 'ada@example.com'),
+        () => authService.resendResetPasswordOtp(email: 'ada@example.com'),
       ).thenAnswer((_) async => RestResponse<void>(statusCode: 204));
 
-      await presenter.resend();
+      await presenter.resendResetOtp();
 
       verify(
-        () => authService.forgotPassword(email: 'ada@example.com'),
+        () => authService.resendResetPasswordOtp(email: 'ada@example.com'),
       ).called(1);
       expect(
         presenter.feedbackMessage.value,
-        'Enviamos um novo link para ada@example.com.',
+        'Enviamos um novo codigo OTP para ada@example.com.',
       );
       expect(presenter.generalError.value, isNull);
       expect(presenter.resendCountdown.value, 60);
@@ -79,12 +93,15 @@ void main() {
   test('exibe erro geral quando reenvio falha', () async {
     final CheckEmailScreenPresenter presenter = CheckEmailScreenPresenter(
       authService: authService,
+      navigationDriver: navigationDriver,
       email: 'ada@example.com',
     );
     addTearDown(presenter.dispose);
     presenter.resendCountdown.value = 0;
 
-    when(() => authService.forgotPassword(email: 'ada@example.com')).thenAnswer(
+    when(
+      () => authService.resendResetPasswordOtp(email: 'ada@example.com'),
+    ).thenAnswer(
       (_) async => RestResponse<void>(
         statusCode: 500,
         errorMessage: 'Falha ao reenviar',
@@ -92,7 +109,7 @@ void main() {
       ),
     );
 
-    await presenter.resend();
+    await presenter.resendResetOtp();
 
     expect(presenter.generalError.value, 'Falha ao reenviar');
     expect(presenter.feedbackMessage.value, isNull);
@@ -104,20 +121,21 @@ void main() {
         Completer<RestResponse<void>>();
     final CheckEmailScreenPresenter presenter = CheckEmailScreenPresenter(
       authService: authService,
+      navigationDriver: navigationDriver,
       email: 'ada@example.com',
     );
     addTearDown(presenter.dispose);
     presenter.resendCountdown.value = 0;
 
     when(
-      () => authService.forgotPassword(email: 'ada@example.com'),
+      () => authService.resendResetPasswordOtp(email: 'ada@example.com'),
     ).thenAnswer((_) => completer.future);
 
-    final Future<void> firstResend = presenter.resend();
-    final Future<void> secondResend = presenter.resend();
+    final Future<void> firstResend = presenter.resendResetOtp();
+    final Future<void> secondResend = presenter.resendResetOtp();
 
     verify(
-      () => authService.forgotPassword(email: 'ada@example.com'),
+      () => authService.resendResetPasswordOtp(email: 'ada@example.com'),
     ).called(1);
     expect(presenter.isResending.value, isTrue);
 

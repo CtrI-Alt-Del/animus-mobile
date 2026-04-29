@@ -22,7 +22,7 @@ class ForgotPasswordScreenPresenter {
     ),
   });
 
-  final Signal<String?> generalError;
+  final Signal<String?> generalError = signal<String?>(null);
   final Signal<bool> isSubmitting = signal<bool>(false);
   final Signal<int> _formVersion = signal<int>(0);
 
@@ -37,12 +37,10 @@ class ForgotPasswordScreenPresenter {
   ForgotPasswordScreenPresenter({
     required AuthService authService,
     required NavigationDriver navigationDriver,
-    String? initialErrorCode,
     String? previousRoute,
   }) : _authService = authService,
        _navigationDriver = navigationDriver,
-       _previousRoute = previousRoute,
-       generalError = signal<String?>(_resolveInitialError(initialErrorCode)) {
+       _previousRoute = previousRoute {
     _formStatusSubscription = form.statusChanged.listen((dynamic _) {
       _formVersion.value = _formVersion.value + 1;
     });
@@ -112,14 +110,6 @@ class ForgotPasswordScreenPresenter {
     canSubmit.dispose();
   }
 
-  static String? _resolveInitialError(String? errorCode) {
-    if (errorCode == 'invalid_reset_link') {
-      return 'O link de redefinicao e invalido ou expirou. Solicite um novo link.';
-    }
-
-    return null;
-  }
-
   static String? _resolveExplicitBackRoute(String? previousRoute) {
     if (previousRoute == Routes.profile) {
       return Routes.profile;
@@ -147,22 +137,22 @@ class ForgotPasswordScreenPresenter {
 }
 
 final forgotPasswordScreenPresenterProvider = Provider.autoDispose
-    .family<ForgotPasswordScreenPresenter, ({String? errorCode, String? from})>(
-      (Ref ref, ({String? errorCode, String? from}) params) {
-        final AuthService authService = ref.watch(authServiceProvider);
-        final NavigationDriver navigationDriver = ref.watch(
-          navigationDriverProvider,
-        );
+    .family<ForgotPasswordScreenPresenter, String?>((
+      Ref ref,
+      String? previousRoute,
+    ) {
+      final AuthService authService = ref.watch(authServiceProvider);
+      final NavigationDriver navigationDriver = ref.watch(
+        navigationDriverProvider,
+      );
 
-        final ForgotPasswordScreenPresenter presenter =
-            ForgotPasswordScreenPresenter(
-              authService: authService,
-              navigationDriver: navigationDriver,
-              initialErrorCode: params.errorCode,
-              previousRoute: params.from,
-            );
+      final ForgotPasswordScreenPresenter presenter =
+          ForgotPasswordScreenPresenter(
+            authService: authService,
+            navigationDriver: navigationDriver,
+            previousRoute: previousRoute,
+          );
 
-        ref.onDispose(presenter.dispose);
-        return presenter;
-      },
-    );
+      ref.onDispose(presenter.dispose);
+      return presenter;
+    });
