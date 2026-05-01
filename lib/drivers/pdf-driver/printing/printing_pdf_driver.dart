@@ -198,8 +198,6 @@ class PrintingPdfDriver implements PdfDriver {
         '${precedent.precedent.identifier.court.value} · '
         '${_theme.formatKindLabel(precedent.precedent.identifier.kind)} '
         '${precedent.precedent.identifier.number}';
-    final double normalizedScore = precedent.similarityScore.toDouble();
-
     return pw.Container(
       width: double.infinity,
       padding: pw.EdgeInsets.fromLTRB(16, 16, 16, highlight ? 18 : 16),
@@ -226,7 +224,7 @@ class PrintingPdfDriver implements PdfDriver {
             ],
           ),
           pw.SizedBox(height: 10),
-          _buildApplicabilityLabel(normalizedScore),
+          _buildApplicabilityLabel(precedent.applicabilityLevel),
           pw.SizedBox(height: 12),
           _buildField(
             title: 'ENUNCIADO',
@@ -339,23 +337,17 @@ class PrintingPdfDriver implements PdfDriver {
     }
   }
 
-  pw.Widget _buildApplicabilityLabel(double score) {
-    return pw.RichText(
-      text: pw.TextSpan(
-        children: <pw.InlineSpan>[
-          pw.TextSpan(
-            text: score.toStringAsFixed(0),
-            style: pw.TextStyle(
-              color: _theme.textPrimary,
-              fontSize: 18,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-          pw.TextSpan(
-            text: ' de score de similaridade',
-            style: pw.TextStyle(color: _theme.textMuted, fontSize: 11),
-          ),
-        ],
+  pw.Widget _buildApplicabilityLabel(
+    AnalysisPrecedentApplicabilityLevelDto level,
+  ) {
+    final _BadgeData badge = _badgeData(level);
+
+    return pw.Text(
+      'Nivel de aplicabilidade: ${badge.label}',
+      style: pw.TextStyle(
+        color: _theme.textMuted,
+        fontSize: 11,
+        fontWeight: pw.FontWeight.bold,
       ),
     );
   }
