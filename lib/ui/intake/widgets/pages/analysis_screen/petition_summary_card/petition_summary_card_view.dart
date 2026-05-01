@@ -20,7 +20,8 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
   static const String _emptyValue = '-';
 
   bool _isExpanded = false;
-  final PetitionSummaryCardPresenter _presenter = PetitionSummaryCardPresenter();
+  final PetitionSummaryCardPresenter _presenter =
+      PetitionSummaryCardPresenter();
 
   List<String> _buildListItems(List<String> items) {
     final List<String> normalizedItems = items
@@ -46,7 +47,9 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Síntese copiada para a área de transferência.')),
+      const SnackBar(
+        content: Text('Síntese copiada para a área de transferência.'),
+      ),
     );
   }
 
@@ -109,7 +112,9 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
                           ),
                           SummarySection(
                             title: 'Questao de jurisdicao',
-                            content: _buildText(widget.summary.jurisdictionIssue),
+                            content: _buildText(
+                              widget.summary.jurisdictionIssue,
+                            ),
                           ),
                           SummarySection(
                             title: 'Questao de legitimidade',
@@ -141,11 +146,15 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
                           ),
                           SummaryListSection(
                             title: 'Pedidos',
-                            items: _buildListItems(widget.summary.requestedRelief),
+                            items: _buildListItems(
+                              widget.summary.requestedRelief,
+                            ),
                           ),
                           SummaryListSection(
                             title: 'Questoes processuais',
-                            items: _buildListItems(widget.summary.proceduralIssues),
+                            items: _buildListItems(
+                              widget.summary.proceduralIssues,
+                            ),
                           ),
                           SummaryListSection(
                             title: 'Topicos excluidos ou acessorios',
@@ -194,7 +203,9 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
                   },
                   child: Text(
                     _isExpanded ? 'Mostrar menos' : 'Mostrar mais',
-                    style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: tokens.textMuted,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -205,10 +216,16 @@ class _PetitionSummaryCardViewState extends State<PetitionSummaryCardView> {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   onPressed: _copySummaryToClipboard,
-                  icon: Icon(Icons.copy_rounded, size: 16, color: tokens.textMuted),
+                  icon: Icon(
+                    Icons.copy_rounded,
+                    size: 16,
+                    color: tokens.textMuted,
+                  ),
                   label: Text(
                     'Copiar',
-                    style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: tokens.textMuted,
+                    ),
                   ),
                 ),
               ],
