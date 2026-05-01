@@ -91,7 +91,7 @@ void main() {
         final RelevantPrecedentsBubblePresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
         final precedents = <AnalysisPrecedentDto>[
-          AnalysisPrecedentDtoFaker.fake(applicabilityPercentage: 72),
+          AnalysisPrecedentDtoFaker.fake(similarityScore: 72),
         ];
 
         when(
@@ -128,25 +128,28 @@ void main() {
     );
 
     test(
-      'should order precedents by applicability desc and select chosen precedent',
+      'should order precedents by final rank and select chosen precedent',
       () async {
         final RelevantPrecedentsBubblePresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
         final lower = AnalysisPrecedentDtoFaker.fake(
-          applicabilityPercentage: 65,
+          similarityScore: 65,
+          finalRank: 3,
           precedent: PrecedentDtoFaker.fake(
             identifier: PrecedentIdentifierDtoFaker.fake(number: 1),
           ),
         );
         final chosen = AnalysisPrecedentDtoFaker.fake(
           isChosen: true,
-          applicabilityPercentage: 88,
+          similarityScore: 88,
+          finalRank: 2,
           precedent: PrecedentDtoFaker.fake(
             identifier: PrecedentIdentifierDtoFaker.fake(number: 2),
           ),
         );
         final highest = AnalysisPrecedentDtoFaker.fake(
-          applicabilityPercentage: 97,
+          similarityScore: 97,
+          finalRank: 1,
           precedent: PrecedentDtoFaker.fake(
             identifier: PrecedentIdentifierDtoFaker.fake(number: 3),
           ),
@@ -169,9 +172,9 @@ void main() {
 
         expect(
           presenter.precedents.value.map(
-            (item) => item.applicabilityPercentage,
+            (item) => item.finalRank,
           ),
-          <double>[97, 88, 65],
+          <int>[1, 2, 3],
         );
         expect(
           presenter.selectedPrecedent.value?.precedent.identifier.number,
