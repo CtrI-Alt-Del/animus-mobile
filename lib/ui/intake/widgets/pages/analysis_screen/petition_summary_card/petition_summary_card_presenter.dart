@@ -21,10 +21,9 @@ class PetitionSummaryCardPresenter {
           .map((String item) => item.trim())
           .where((String item) => item.isNotEmpty)
           .toList();
-      final String content =
-          normalizedItems.isEmpty
-              ? '-'
-              : normalizedItems.map((String item) => '- $item').join('\n');
+      final String content = normalizedItems.isEmpty
+          ? '-'
+          : normalizedItems.map((String item) => '- $item').join('\n');
       return '$title\n$content';
     }
 
