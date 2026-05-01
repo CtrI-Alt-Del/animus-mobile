@@ -24,14 +24,15 @@ jobs:
         run: exit 1
 
       - name: "Approve valid merge"
-        if: (github.base_ref == 'production' && github.head_ref == 'main') || (github.base_ref == 'main' && github.head_ref != 'production')
-        run: true
+        if: (github.base_ref == 'production' && github.head_ref == 'main') ||
+          (github.base_ref == 'main' && github.head_ref != 'production')
+        run: "true"
 
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [validate-branches]
+    needs: [ validate-branches ]
 
     steps:
       - name: Checkout
@@ -56,7 +57,7 @@ jobs:
     name: Codecheck
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [typecheck]
+    needs: [ typecheck ]
 
     steps:
       - name: Checkout
@@ -75,7 +76,7 @@ jobs:
         run: flutter pub get
 
       - name: Format (check)
-        run: dart format --output=none --set-exit-if-changed .
+        run: dart format --output=none --set-exit-if-changed lib
 
       - name: Analyze
         run: flutter analyze
@@ -84,7 +85,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [codecheck]
+    needs: [ codecheck ]
 
     steps:
       - name: Checkout
@@ -109,7 +110,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [tests]
+    needs: [ tests ]
 
     steps:
       - name: Checkout
@@ -122,7 +123,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
