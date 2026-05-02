@@ -23,6 +23,7 @@ class RelevantPrecedentsBubblePresenter {
   static const int defaultLimit = 5;
   static const int minLimit = 1;
   static const int maxLimit = 10;
+  static const int _legacyFinalRankBase = 100000;
 
   final IntakeService _intakeService;
   final ExternalLinkDriver? _externalLinkDriver;
@@ -463,10 +464,8 @@ class RelevantPrecedentsBubblePresenter {
     }
 
     final List<AnalysisPrecedentDto> sortedPrecedents =
-        List<AnalysisPrecedentDto>.from(response.body.items)..sort(
-          (AnalysisPrecedentDto left, AnalysisPrecedentDto right) =>
-              left.finalRank.compareTo(right.finalRank),
-        );
+        List<AnalysisPrecedentDto>.from(response.body.items)
+          ..sort(_comparePrecedents);
 
     precedents.value = List<AnalysisPrecedentDto>.unmodifiable(
       sortedPrecedents,
@@ -511,6 +510,29 @@ class RelevantPrecedentsBubblePresenter {
   bool _isFinalPrecedentStatus(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.waitingPrecedentChoice ||
         status == AnalysisStatusDto.precedentChosen;
+  }
+
+  int _comparePrecedents(
+    AnalysisPrecedentDto left,
+    AnalysisPrecedentDto right,
+  ) {
+    final int rankComparison = _sortableFinalRank(
+      left,
+    ).compareTo(_sortableFinalRank(right));
+    if (rankComparison != 0) {
+      return rankComparison;
+    }
+
+    return right.similarityScore.compareTo(left.similarityScore);
+  }
+
+  int _sortableFinalRank(AnalysisPrecedentDto precedent) {
+    if (precedent.finalRank > 0) {
+      return precedent.finalRank;
+    }
+
+    return _legacyFinalRankBase -
+        precedent.similarityScore.clamp(0, 100).round();
   }
 
   bool _isPrecedentsOrchestrationStatus(AnalysisStatusDto status) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/applicability_badge/index.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/precedent_status_formatter.dart';
 
 class ChosenPrecedentSummaryView extends StatelessWidget {
   final AnalysisPrecedentDto selectedPrecedent;
@@ -20,7 +21,7 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
 
     final String title =
         '${selectedPrecedent.precedent.identifier.court.value} ${selectedPrecedent.precedent.identifier.kind.value} ${selectedPrecedent.precedent.identifier.number}';
-    final String status = _formatPrecedentStatus(
+    final String status = formatPrecedentStatus(
       selectedPrecedent.precedent.status,
     );
     final String synthesis = selectedPrecedent.synthesis.trim();
@@ -139,23 +140,6 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatPrecedentStatus(String value) {
-    final String normalized = value.trim();
-    if (normalized.isEmpty) {
-      return 'Transito em Julgado';
-    }
-
-    final String sanitized = normalized.replaceAll('_', ' ').toLowerCase();
-    final List<String> parts = sanitized
-        .split(RegExp(r'\s+'))
-        .where((String part) => part.isNotEmpty)
-        .toList();
-
-    return parts
-        .map((String part) => '${part[0].toUpperCase()}${part.substring(1)}')
-        .join(' ');
   }
 
   String _formatSimilarityScore(double value) {
