@@ -4,6 +4,7 @@ import 'package:animus/core/shared/types/json.dart';
 
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
+import 'package:animus/rest/mappers/intake/analysis_report_filters_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_summary_mapper.dart';
 
@@ -15,6 +16,9 @@ final class AnalysisReportMapper {
       analysis: AnalysisMapper.toDto(_toJsonField(json['analysis'])),
       petition: PetitionMapper.toDto(_toJsonField(json['petition'])),
       summary: PetitionSummaryMapper.toDto(_toJsonField(json['summary'])),
+      filters: AnalysisReportFiltersMapper.toDto(
+        _toRequiredJsonField(json['filters'], 'filters'),
+      ),
       precedents: _toPrecedents(json['precedents']),
       chosenPrecedent: _toChosenPrecedent(json),
     );
@@ -48,6 +52,16 @@ final class AnalysisReportMapper {
     }
 
     return <String, dynamic>{};
+  }
+
+  static Json _toRequiredJsonField(dynamic value, String fieldName) {
+    if (value is Json) {
+      return value;
+    }
+
+    throw FormatException(
+      'Invalid analysis report payload: $fieldName is required.',
+    );
   }
 
   static bool _hasValidChosenPrecedent(Json chosenPrecedent) {
