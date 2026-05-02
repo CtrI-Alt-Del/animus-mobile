@@ -2,11 +2,15 @@ import 'package:animus/core/library/dtos/folder_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:flutter/material.dart';
 
-class FolderListItem extends StatelessWidget {
+class FolderListItemView extends StatelessWidget {
   final FolderDto folder;
   final VoidCallback onTap;
 
-  const FolderListItem({super.key, required this.folder, required this.onTap});
+  const FolderListItemView({
+    super.key,
+    required this.folder,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

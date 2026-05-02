@@ -84,7 +84,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - **`AnalysisPetitionDto`** (`lib/core/intake/dtos/analysis_petition_dto.dart`) — DTO de agregacao para listagem de peticoes da analise, contendo `petition` e `summary` opcional.
 - **`AnalysisStatusDto`** (`lib/core/intake/dtos/analysis_status_dto.dart`) — enum de status da analise no dominio `intake`, incluindo `WAITING_PETITION`, `PETITION_UPLOADED`, `ANALYZING_PETITION`, `PETITION_ANALYZED` e estados posteriores do fluxo completo. Este enum deve dirigir o estado funcional da tela.
 - **`PetitionDocumentDto`** (`lib/core/intake/dtos/petition_document_dto.dart`) — DTO do documento anexado, contendo `filePath` e `name` alinhados ao contrato atual.
-- **`PetitionSummaryDto`** (`lib/core/intake/dtos/petition_summary_dto.dart`) — DTO do resumo, contendo `caseSummary`, `legalIssue`, `centralQuestion`, `relevantLaws`, `keyFacts` e `searchTerms`.
+- **`PetitionSummaryDto`** (`lib/core/intake/dtos/petition_summary_dto.dart`) — DTO do resumo, contendo `caseSummary`, `legalIssue`, `centralQuestion`, `relevantLaws`, `keyFacts`, `searchTerms`, `typeOfAction`, `jurisdictionIssue`, `standingIssue`, `secondaryLegalIssues`, `alternativeQuestions`, `requestedRelief`, `proceduralIssues` e `excludedOrAccessoryTopics`.
 - **`UploadUrlDto`** (`lib/core/storage/dtos/upload_url_dto.dart`) — DTO retornado pelo endpoint de `Signed URL`, com `url`, `token` e `filePath`.
 - **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) — contrato dos gateways remotos de `intake`, com `createPetition`, `getAnalysisPetition`, `getPetitionSummary` e `summarizePetition`.
 - **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) — contrato dos gateways remotos de `intake`, com `createPetition`, `getAnalysisPetition`, `getPetitionSummary`, `summarizePetition`, `renameAnalysis` e `archiveAnalysis`.
@@ -150,7 +150,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 
 - **Localizacao:** `lib/rest/mappers/intake/petition_summary_mapper.dart` (**novo arquivo**)
 - **Metodos:**
-- `PetitionSummaryDto toDto(Map<String, dynamic> json)` — mapeia `case_summary`, `legal_issue`, `central_question`, `relevant_laws`, `key_facts` e `search_terms` para `PetitionSummaryDto`.
+- `PetitionSummaryDto toDto(Map<String, dynamic> json)` — mapeia `case_summary`, `legal_issue`, `central_question`, `relevant_laws`, `key_facts`, `search_terms`, `type_of_action`, `jurisdiction_issue`, `standing_issue`, `secondary_legal_issues`, `alternative_questions`, `requested_relief`, `procedural_issues` e `excluded_or_accessory_topics` para `PetitionSummaryDto`.
 
 - **Localizacao:** `lib/rest/mappers/intake/analysis_petition_mapper.dart` (**novo arquivo**)
 - **Metodos:**

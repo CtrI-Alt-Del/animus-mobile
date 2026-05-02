@@ -32,8 +32,8 @@ class ContentStateView extends StatelessWidget {
           child: PrecedentListItem(
             title:
                 '${precedent.precedent.identifier.court.value} ${precedent.precedent.identifier.kind.value} ${precedent.precedent.identifier.number}',
-            applicabilityPercentage: precedent.applicabilityPercentage,
-            classificationLevel: precedent.classificationLevel,
+            similarityScore: precedent.similarityScore,
+            applicabilityLevel: precedent.applicabilityLevel,
             onTap: () {
               onTap(precedent);
             },

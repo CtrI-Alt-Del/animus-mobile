@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/theme.dart';
 
 class ApplicabilityBadgeView extends StatelessWidget {
   final double percentage;
   final String percentageText;
-  final AnalysisPrecedentClassificationLevelDto? classificationLevel;
+  final AnalysisPrecedentApplicabilityLevelDto? classificationLevel;
+  final bool showScore;
   final bool showBorder;
   final TextOverflow overflow;
   final int maxLines;
@@ -15,6 +16,7 @@ class ApplicabilityBadgeView extends StatelessWidget {
     required this.percentage,
     required this.percentageText,
     this.classificationLevel,
+    this.showScore = true,
     this.showBorder = true,
     this.overflow = TextOverflow.visible,
     this.maxLines = 1,
@@ -36,7 +38,7 @@ class ApplicabilityBadgeView extends StatelessWidget {
         border: showBorder ? Border.all(color: palette.borderColor) : null,
       ),
       child: Text(
-        '$percentageText% - ${palette.label}',
+        showScore ? '$percentageText - ${palette.label}' : palette.label,
         maxLines: maxLines,
         overflow: overflow,
         style: textTheme.labelSmall?.copyWith(
@@ -57,24 +59,24 @@ class ApplicabilityBadgeView extends StatelessWidget {
 
   _ApplicabilityPalette _resolvePaletteByClassification(
     AppThemeTokens tokens,
-    AnalysisPrecedentClassificationLevelDto level,
+    AnalysisPrecedentApplicabilityLevelDto level,
   ) {
     switch (level) {
-      case AnalysisPrecedentClassificationLevelDto.applicable:
+      case AnalysisPrecedentApplicabilityLevelDto.applicable:
         return _ApplicabilityPalette(
           label: 'Aplicável',
           textColor: tokens.success,
           backgroundColor: tokens.success.withValues(alpha: 0.12),
           borderColor: tokens.success.withValues(alpha: 0.28),
         );
-      case AnalysisPrecedentClassificationLevelDto.possiblyApplicable:
+      case AnalysisPrecedentApplicabilityLevelDto.possiblyApplicable:
         return _ApplicabilityPalette(
           label: 'Possivelmente aplicável',
           textColor: tokens.warning,
           backgroundColor: tokens.warning.withValues(alpha: 0.12),
           borderColor: tokens.warning.withValues(alpha: 0.28),
         );
-      case AnalysisPrecedentClassificationLevelDto.notApplicable:
+      case AnalysisPrecedentApplicabilityLevelDto.notApplicable:
         return _ApplicabilityPalette(
           label: 'Não aplicável',
           textColor: tokens.danger,
