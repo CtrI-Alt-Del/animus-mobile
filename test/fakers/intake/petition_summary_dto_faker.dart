@@ -10,6 +10,14 @@ final class PetitionSummaryDtoFaker {
     List<String> relevantLaws = const <String>['Art. 5'],
     List<String> keyFacts = const <String>['Fato relevante 1'],
     List<String> searchTerms = const <String>['termo-chave'],
+    String? typeOfAction,
+    String? jurisdictionIssue,
+    String? standingIssue,
+    List<String> secondaryLegalIssues = const <String>[],
+    List<String> alternativeQuestions = const <String>[],
+    List<String> requestedRelief = const <String>[],
+    List<String> proceduralIssues = const <String>[],
+    List<String> excludedOrAccessoryTopics = const <String>[],
   }) {
     return PetitionSummaryDto(
       caseSummary: caseSummary,
@@ -18,6 +26,14 @@ final class PetitionSummaryDtoFaker {
       relevantLaws: relevantLaws,
       keyFacts: keyFacts,
       searchTerms: searchTerms,
+      typeOfAction: typeOfAction,
+      jurisdictionIssue: jurisdictionIssue,
+      standingIssue: standingIssue,
+      secondaryLegalIssues: secondaryLegalIssues,
+      alternativeQuestions: alternativeQuestions,
+      requestedRelief: requestedRelief,
+      proceduralIssues: proceduralIssues,
+      excludedOrAccessoryTopics: excludedOrAccessoryTopics,
     );
   }
 }

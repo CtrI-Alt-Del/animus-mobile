@@ -121,7 +121,12 @@ class HomeScreenPresenter {
   }
 
   Future<void> loadNextPage() async {
-    if (isLoadingInitialData.value || isLoadingMore.value || !hasMore.value) {
+    if (isLoadingInitialData.value || isLoadingMore.value) {
+      return;
+    }
+
+    final String cursor = (nextCursor.value ?? '').trim();
+    if (cursor.isEmpty) {
       return;
     }
 
@@ -130,7 +135,7 @@ class HomeScreenPresenter {
 
     final RestResponse<CursorPaginationResponse<AnalysisDto>> response =
         await _intakeService.listAnalyses(
-          cursor: nextCursor.value,
+          cursor: cursor,
           limit: _pageSize,
           isArchived: false,
         );

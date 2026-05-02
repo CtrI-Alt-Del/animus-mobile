@@ -7,6 +7,7 @@ import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/applicability_badge/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/dot_grid_background/index.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/precedent_status_formatter.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
 
 class PrecedentDialogView extends ConsumerWidget {
@@ -33,6 +34,7 @@ class PrecedentDialogView extends ConsumerWidget {
         ? 'Síntese não disponibilizada para este precedente.'
         : synthesis;
     final bool isChosen = precedent.isChosen;
+    final String status = formatPrecedentStatus(precedent.precedent.status);
     final String identifier =
         '${precedent.precedent.identifier.court.value} ${precedent.precedent.identifier.kind.value} ${precedent.precedent.identifier.number}';
     final String precedentDescription =
@@ -117,12 +119,13 @@ class PrecedentDialogView extends ConsumerWidget {
                                   Align(
                                     alignment: Alignment.centerRight,
                                     child: ApplicabilityBadge(
-                                      percentage:
-                                          precedent.applicabilityPercentage,
-                                      percentageText:
-                                          '${precedent.applicabilityPercentage}',
+                                      percentage: precedent.similarityScore,
+                                      percentageText: precedent.similarityScore
+                                          .clamp(0, 100)
+                                          .toStringAsFixed(1),
                                       classificationLevel:
-                                          precedent.classificationLevel,
+                                          precedent.applicabilityLevel,
+                                      showScore: false,
                                       showBorder: false,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -135,6 +138,40 @@ class PrecedentDialogView extends ConsumerWidget {
                                 style: textTheme.bodyLarge?.copyWith(
                                   color: const Color(0xFFFAFAF9),
                                   fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E1E24),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: const Color(0xFF2A2A2E),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.gavel_outlined,
+                                      size: 16,
+                                      color: tokens.accent,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        status,
+                                        style: textTheme.labelMedium?.copyWith(
+                                          color: const Color(0xFFFAFAF9),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 8),

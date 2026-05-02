@@ -1,7 +1,8 @@
 import 'package:animus/theme.dart';
-import 'package:animus/ui/storage/widgets/pages/library_screen/components/folder_list_item.dart';
-import 'package:animus/ui/storage/widgets/pages/library_screen/create_folder_modal/create_folder_modal_view.dart';
+import 'package:animus/ui/storage/widgets/pages/library_screen/create_folder_modal/index.dart';
+import 'package:animus/ui/storage/widgets/pages/library_screen/folder_list_item/index.dart';
 import 'package:animus/ui/storage/widgets/pages/library_screen/library_screen_presenter.dart';
+import 'package:animus/ui/storage/widgets/pages/library_screen/unfoldered_card/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -18,7 +19,7 @@ class LibraryScreenView extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return CreateFolderModalView(
+        return CreateFolderModal(
           onCreate: (name) => presenter.createFolder(name),
         );
       },
@@ -130,13 +131,7 @@ class LibraryScreenView extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                _buildUnfolderedCard(
-                  context,
-                  tokens,
-                  textTheme,
-                  unfolderedCount,
-                  presenter,
-                ),
+                _buildUnfolderedCard(unfolderedCount, presenter),
                 const SizedBox(height: 32),
                 Text(
                   'Pastas',
@@ -178,56 +173,12 @@ class LibraryScreenView extends ConsumerWidget {
   }
 
   Widget _buildUnfolderedCard(
-    BuildContext context,
-    AppThemeTokens tokens,
-    TextTheme textTheme,
     int unfolderedCount,
     LibraryScreenPresenter presenter,
   ) {
-    return Card(
-      child: InkWell(
-        onTap: () {
-          presenter.openUnfoldered();
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: tokens.surfaceElevated,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.inbox_outlined, color: tokens.textPrimary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sem pasta',
-                      style: textTheme.titleMedium?.copyWith(
-                        color: tokens.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$unfolderedCount análises não organizadas',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: tokens.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: tokens.textMuted),
-            ],
-          ),
-        ),
-      ),
+    return UnfolderedCard(
+      unfolderedCount: unfolderedCount,
+      onTap: presenter.openUnfoldered,
     );
   }
 }

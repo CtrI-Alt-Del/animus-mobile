@@ -1,20 +1,22 @@
-import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_dto.dart';
 
 class AnalysisPrecedentDto {
   final String analysisId;
   final PrecedentDto precedent;
   final bool isChosen;
-  final double applicabilityPercentage;
   final String synthesis;
-  final AnalysisPrecedentClassificationLevelDto classificationLevel;
+  final double similarityScore;
+  final int finalRank;
+  final AnalysisPrecedentApplicabilityLevelDto applicabilityLevel;
 
   const AnalysisPrecedentDto({
     required this.analysisId,
     required this.precedent,
     required this.isChosen,
-    required this.applicabilityPercentage,
     required this.synthesis,
-    required this.classificationLevel,
+    required this.similarityScore,
+    required this.finalRank,
+    required this.applicabilityLevel,
   });
 }

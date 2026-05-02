@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/applicability_badge/index.dart';
 
 class PrecedentListItemView extends StatelessWidget {
   final String title;
-  final double applicabilityPercentage;
-  final AnalysisPrecedentClassificationLevelDto classificationLevel;
+  final double similarityScore;
+  final AnalysisPrecedentApplicabilityLevelDto applicabilityLevel;
   final VoidCallback? onTap;
 
   const PrecedentListItemView({
     required this.title,
-    required this.applicabilityPercentage,
-    required this.classificationLevel,
+    required this.similarityScore,
+    required this.applicabilityLevel,
     this.onTap,
     super.key,
   });
@@ -37,11 +37,10 @@ class PrecedentListItemView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     ApplicabilityBadge(
-                      percentage: applicabilityPercentage,
-                      percentageText: _formatPercentage(
-                        applicabilityPercentage,
-                      ),
-                      classificationLevel: classificationLevel,
+                      percentage: similarityScore,
+                      percentageText: similarityScore.toStringAsFixed(1),
+                      classificationLevel: applicabilityLevel,
+                      showScore: false,
                     ),
                     const SizedBox(height: 10),
                     Text(
@@ -62,10 +61,5 @@ class PrecedentListItemView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatPercentage(double value) {
-    final double clampedValue = value.clamp(0, 100);
-    return clampedValue.toStringAsFixed(1);
   }
 }
