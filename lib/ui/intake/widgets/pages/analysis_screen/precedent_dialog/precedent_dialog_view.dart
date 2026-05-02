@@ -7,6 +7,7 @@ import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/applicability_badge/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/dot_grid_background/index.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/precedent_status_formatter.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
 
 class PrecedentDialogView extends ConsumerWidget {
@@ -33,7 +34,7 @@ class PrecedentDialogView extends ConsumerWidget {
         ? 'Síntese não disponibilizada para este precedente.'
         : synthesis;
     final bool isChosen = precedent.isChosen;
-    final String status = _formatPrecedentStatus(precedent.precedent.status);
+    final String status = formatPrecedentStatus(precedent.precedent.status);
     final String identifier =
         '${precedent.precedent.identifier.court.value} ${precedent.precedent.identifier.kind.value} ${precedent.precedent.identifier.number}';
     final String precedentDescription =
@@ -327,22 +328,5 @@ class PrecedentDialogView extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  String _formatPrecedentStatus(String value) {
-    final String normalized = value.trim();
-    if (normalized.isEmpty) {
-      return 'Transito em Julgado';
-    }
-
-    final String sanitized = normalized.replaceAll('_', ' ').toLowerCase();
-    final List<String> parts = sanitized
-        .split(RegExp(r'\s+'))
-        .where((String part) => part.isNotEmpty)
-        .toList();
-
-    return parts
-        .map((String part) => '${part[0].toUpperCase()}${part.substring(1)}')
-        .join(' ');
   }
 }

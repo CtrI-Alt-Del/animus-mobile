@@ -6,22 +6,28 @@ import 'package:animus/rest/mappers/intake/precedent_mapper.dart';
 final class AnalysisPrecedentMapper {
   const AnalysisPrecedentMapper._();
 
+  static const int _legacyFinalRankBase = 100000;
+
   static AnalysisPrecedentDto toDto(Json json) {
     final dynamic precedentValue = json['precedent'];
     final Json precedentJson = precedentValue is Json
         ? precedentValue
         : <String, dynamic>{};
+    final double similarityScore = _toSimilarityScore(json);
 
     return AnalysisPrecedentDto(
       analysisId: (json['analysis_id'] as String?) ?? '',
       precedent: PrecedentMapper.toDto(precedentJson),
       isChosen: (json['is_chosen'] as bool?) ?? false,
       synthesis: (json['synthesis'] as String?) ?? '',
-      similarityScore: _toSimilarityScore(json),
-      finalRank: _toInt(json['final_rank']),
+      similarityScore: similarityScore,
+      finalRank: _toFinalRank(
+        json['final_rank'],
+        similarityScore: similarityScore,
+      ),
       applicabilityLevel: _toApplicabilityLevel(
         value: json['applicability_level'] ?? json['classification_level'],
-        similarityScore: _toSimilarityScore(json),
+        similarityScore: similarityScore,
       ),
     );
   }
@@ -73,6 +79,16 @@ final class AnalysisPrecedentMapper {
     return _toDouble(json['similarity_percentage']).clamp(0, 100);
   }
 
+  static int _toFinalRank(dynamic value, {required double similarityScore}) {
+    final int? parsedRank = _tryParseInt(value);
+    if (parsedRank != null && parsedRank > 0) {
+      return parsedRank;
+    }
+
+    final int normalizedScore = similarityScore.clamp(0, 100).round();
+    return _legacyFinalRankBase - normalizedScore;
+  }
+
   static AnalysisPrecedentApplicabilityLevelDto _fromInt(int value) {
     switch (value.clamp(0, 2)) {
       case 2:
@@ -98,7 +114,7 @@ final class AnalysisPrecedentMapper {
     }
   }
 
-  static int _toInt(dynamic value) {
+  static int? _tryParseInt(dynamic value) {
     if (value is int) {
       return value;
     }
@@ -108,10 +124,10 @@ final class AnalysisPrecedentMapper {
     }
 
     if (value is String) {
-      return int.tryParse(value) ?? 0;
+      return int.tryParse(value);
     }
 
-    return 0;
+    return null;
   }
 
   static double _toDouble(dynamic value) {
