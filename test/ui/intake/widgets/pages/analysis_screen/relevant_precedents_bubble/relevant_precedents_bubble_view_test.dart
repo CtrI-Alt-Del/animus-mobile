@@ -161,8 +161,7 @@ void main() {
   ) async {
     final AnalysisPrecedentDto precedent = AnalysisPrecedentDtoFaker.fake(
       similarityScore: 92,
-      applicabilityLevel:
-          AnalysisPrecedentApplicabilityLevelDto.notApplicable,
+      applicabilityLevel: AnalysisPrecedentApplicabilityLevelDto.notApplicable,
       precedent: PrecedentDtoFaker.fake(
         identifier: PrecedentIdentifierDtoFaker.fake(number: 321),
       ),

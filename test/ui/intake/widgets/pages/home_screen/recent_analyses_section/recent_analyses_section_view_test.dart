@@ -145,7 +145,9 @@ void main() {
     expect(find.text('Analise 0'), findsOneWidget);
     expect(find.text('31/03/2026'), findsWidgets);
 
-    final BuildContext listContext = tester.element(find.byType(ListView).first);
+    final BuildContext listContext = tester.element(
+      find.byType(ListView).first,
+    );
     ScrollEndNotification(
       metrics: FixedScrollMetrics(
         minScrollExtent: 0,
