@@ -31,7 +31,7 @@ void main() {
     );
 
     when(() => cacheDriver.get(any())).thenReturn('token');
-    when(() => restClient.setHeader(any(), any())).thenReturn(null);
+    when(() => restClient.setHeader(any(), any())).thenAnswer((_) {});
   });
 
   group('getAnalysisReport', () {
