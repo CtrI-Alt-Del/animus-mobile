@@ -131,10 +131,7 @@ class LibraryScreenView extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                _buildUnfolderedCard(
-                  unfolderedCount,
-                  presenter,
-                ),
+                _buildUnfolderedCard(unfolderedCount, presenter),
                 const SizedBox(height: 32),
                 Text(
                   'Pastas',
