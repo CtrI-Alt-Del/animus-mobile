@@ -106,6 +106,7 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
 
   bool _isPrecedentsFlow(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         status == AnalysisStatusDto.generatingSynthesis ||
         status == AnalysisStatusDto.waitingPrecedentChoice ||

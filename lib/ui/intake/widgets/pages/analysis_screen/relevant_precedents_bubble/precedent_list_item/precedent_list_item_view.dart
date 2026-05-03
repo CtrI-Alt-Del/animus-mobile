@@ -37,8 +37,6 @@ class PrecedentListItemView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     ApplicabilityBadge(
-                      percentage: similarityScore,
-                      percentageText: similarityScore.toStringAsFixed(1),
                       classificationLevel: applicabilityLevel,
                       showScore: false,
                     ),

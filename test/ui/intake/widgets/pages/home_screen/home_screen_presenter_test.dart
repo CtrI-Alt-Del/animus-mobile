@@ -37,6 +37,12 @@ void main() {
     when(() => cacheDriver.get(any())).thenReturn('access-token');
     when(() => navigationDriver.goTo(any())).thenReturn(null);
     when(() => navigationDriver.pushTo(any())).thenAnswer((_) async {});
+    when(() => intakeService.listProcessingAnalyses()).thenAnswer(
+      (_) async => RestResponse<List<AnalysisDto>>(
+        statusCode: 200,
+        body: const <AnalysisDto>[],
+      ),
+    );
   });
 
   CursorPaginationResponse<AnalysisDto> createPagination({

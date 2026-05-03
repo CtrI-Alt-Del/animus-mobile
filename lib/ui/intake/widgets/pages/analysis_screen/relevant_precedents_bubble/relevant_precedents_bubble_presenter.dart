@@ -503,6 +503,7 @@ class RelevantPrecedentsBubblePresenter {
 
   bool _isProcessingStatus(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         status == AnalysisStatusDto.generatingSynthesis;
   }
