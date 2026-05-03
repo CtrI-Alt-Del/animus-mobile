@@ -34,6 +34,7 @@ class DioRestClient implements RestClient {
     Object? body,
     Json? queryParams,
     Json? headers,
+    void Function(int sentBytes, int totalBytes)? onSendProgress,
   }) async {
     return _send(
       () => _dio.post(
@@ -41,6 +42,7 @@ class DioRestClient implements RestClient {
         data: body,
         queryParameters: queryParams,
         options: Options(headers: headers),
+        onSendProgress: onSendProgress,
       ),
     );
   }
