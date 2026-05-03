@@ -21,8 +21,6 @@ class GcsFileStorageDriver implements FileStorageDriver {
     final String contentType = _resolveContentType(file.path);
     final int contentLength = await file.length();
 
-    print('uploadUrlValue: $uploadUrlValue');
-
     final Map<String, dynamic> headers = <String, dynamic>{
       HttpHeaders.contentTypeHeader: contentType,
       HttpHeaders.contentLengthHeader: contentLength.toString(),
