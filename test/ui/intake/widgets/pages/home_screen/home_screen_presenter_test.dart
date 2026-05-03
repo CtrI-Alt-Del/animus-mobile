@@ -4,6 +4,7 @@ import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
+import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/constants/routes.dart';
@@ -22,21 +23,34 @@ class _MockCacheDriver extends Mock implements CacheDriver {}
 
 class _MockNavigationDriver extends Mock implements NavigationDriver {}
 
+class _MockPushNotificationDriver extends Mock
+    implements PushNotificationDriver {}
+
 void main() {
   late _MockAuthService authService;
   late _MockIntakeService intakeService;
   late _MockCacheDriver cacheDriver;
   late _MockNavigationDriver navigationDriver;
+  late _MockPushNotificationDriver pushNotificationDriver;
 
   setUp(() {
     authService = _MockAuthService();
     intakeService = _MockIntakeService();
     cacheDriver = _MockCacheDriver();
     navigationDriver = _MockNavigationDriver();
+    pushNotificationDriver = _MockPushNotificationDriver();
 
     when(() => cacheDriver.get(any())).thenReturn('access-token');
     when(() => navigationDriver.goTo(any())).thenReturn(null);
     when(() => navigationDriver.pushTo(any())).thenAnswer((_) async {});
+    when(
+      () => pushNotificationDriver.identifyUser(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => pushNotificationDriver.requestPermission(
+        fallbackToSettings: any(named: 'fallbackToSettings'),
+      ),
+    ).thenAnswer((_) async => true);
   });
 
   CursorPaginationResponse<AnalysisDto> createPagination({
@@ -55,6 +69,7 @@ void main() {
       intakeService: intakeService,
       cacheDriver: cacheDriver,
       navigationDriver: navigationDriver,
+      pushNotificationDriver: pushNotificationDriver,
     );
   }
 

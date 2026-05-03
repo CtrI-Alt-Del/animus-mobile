@@ -7,6 +7,7 @@ import 'package:animus/core/auth/interfaces/auth_service.dart';
 import 'package:animus/core/shared/interfaces/app_version_driver.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
+import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_screen_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,22 +23,28 @@ class _MockCacheDriver extends Mock implements CacheDriver {}
 
 class _MockNavigationDriver extends Mock implements NavigationDriver {}
 
+class _MockPushNotificationDriver extends Mock
+    implements PushNotificationDriver {}
+
 void main() {
   late _MockAuthService authService;
   late _MockAppVersionDriver appVersionDriver;
   late _MockCacheDriver cacheDriver;
   late _MockNavigationDriver navigationDriver;
+  late _MockPushNotificationDriver pushNotificationDriver;
 
   setUp(() {
     authService = _MockAuthService();
     appVersionDriver = _MockAppVersionDriver();
     cacheDriver = _MockCacheDriver();
     navigationDriver = _MockNavigationDriver();
+    pushNotificationDriver = _MockPushNotificationDriver();
 
     when(() => appVersionDriver.getVersion()).thenAnswer((_) async => '1.0.0');
     when(() => cacheDriver.get(any())).thenReturn('access-token');
     when(() => cacheDriver.delete(any())).thenReturn(null);
     when(() => navigationDriver.goTo(any())).thenReturn(null);
+    when(() => pushNotificationDriver.clearUser()).thenAnswer((_) async {});
   });
 
   ProfileScreenPresenter createPresenter() {
@@ -46,6 +53,7 @@ void main() {
       appVersionDriver: appVersionDriver,
       cacheDriver: cacheDriver,
       navigationDriver: navigationDriver,
+      pushNotificationDriver: pushNotificationDriver,
     );
   }
 
