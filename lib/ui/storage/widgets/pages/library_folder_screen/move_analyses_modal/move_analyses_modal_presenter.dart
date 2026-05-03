@@ -17,6 +17,7 @@ class MoveAnalysesModalPresenter {
     const <FolderDto>[],
   );
   final Signal<String?> selectedFolderId = signal<String?>(null);
+  final Signal<bool> hasSelectedDestination = signal<bool>(false);
 
   bool _didLoad = false;
   bool _isDisposed = false;
@@ -35,30 +36,39 @@ class MoveAnalysesModalPresenter {
     isLoading.value = true;
     generalError.value = null;
 
-    final RestResponse<CursorPaginationResponse<FolderDto>> response =
-        await _libraryService.listFolders(limit: 50);
+    final List<FolderDto> loadedFolders = <FolderDto>[];
+    String? cursor;
 
-    if (_isDisposed) {
-      return;
-    }
+    do {
+      final RestResponse<CursorPaginationResponse<FolderDto>> response =
+          cursor == null
+          ? await _libraryService.listFolders(limit: 50)
+          : await _libraryService.listFolders(cursor: cursor, limit: 50);
 
-    if (response.isFailure) {
-      generalError.value =
-          'Nao foi possivel carregar as pastas de destino agora.';
-      isLoading.value = false;
-      return;
-    }
+      if (_isDisposed) {
+        return;
+      }
+
+      if (response.isFailure) {
+        generalError.value =
+            'Nao foi possivel carregar as pastas de destino agora.';
+        isLoading.value = false;
+        return;
+      }
+
+      loadedFolders.addAll(response.body.items);
+      cursor = response.body.nextCursor;
+    } while (cursor != null && cursor.trim().isNotEmpty);
 
     folders.value = List<FolderDto>.unmodifiable(
-      response.body.items
-          .where((FolderDto folder) => folder.id != currentFolderId)
-          .toList(growable: false),
+      loadedFolders.where((FolderDto folder) => folder.id != currentFolderId),
     );
     isLoading.value = false;
   }
 
   void selectFolder(String? folderId) {
     selectedFolderId.value = folderId;
+    hasSelectedDestination.value = true;
   }
 
   void dispose() {
@@ -67,6 +77,7 @@ class MoveAnalysesModalPresenter {
     generalError.dispose();
     folders.dispose();
     selectedFolderId.dispose();
+    hasSelectedDestination.dispose();
   }
 }
 

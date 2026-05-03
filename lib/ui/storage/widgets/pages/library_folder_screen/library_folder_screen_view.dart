@@ -28,7 +28,7 @@ class LibraryFolderScreenView extends ConsumerWidget {
     BuildContext context,
     LibraryFolderScreenPresenter presenter,
   ) async {
-    final bool? moved = await showModalBottomSheet<bool>(
+    await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -40,12 +40,6 @@ class LibraryFolderScreenView extends ConsumerWidget {
         );
       },
     );
-
-    if (!context.mounted || moved != false) {
-      return;
-    }
-
-    _showFeedback(context, presenter.generalError.value);
   }
 
   Future<void> _showArchiveDialog(

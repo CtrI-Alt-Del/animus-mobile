@@ -357,7 +357,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel remover esta pasta agora.',
+        fallback: 'Nao foi possivel arquivar esta pasta agora.',
       );
       isOperating.value = false;
       return false;

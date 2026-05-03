@@ -67,8 +67,8 @@ class FolderSelectionActionBarView extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.delete_outline_rounded),
-              label: Text(isOperating ? 'Processando' : 'Deletar'),
+                  : const Icon(Icons.archive_outlined),
+              label: Text(isOperating ? 'Processando' : 'Arquivar'),
             ),
           ],
         ),

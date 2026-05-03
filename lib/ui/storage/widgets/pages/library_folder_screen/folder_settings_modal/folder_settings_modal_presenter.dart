@@ -62,7 +62,7 @@ class FolderSettingsModalPresenter {
     isArchivingFolder.value = false;
 
     if (!archived) {
-      generalError.value = 'Nao foi possivel remover esta pasta agora.';
+      generalError.value = 'Nao foi possivel arquivar esta pasta agora.';
       return false;
     }
 
