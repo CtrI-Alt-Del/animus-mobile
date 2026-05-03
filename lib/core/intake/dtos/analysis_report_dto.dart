@@ -1,5 +1,6 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_report_filters_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
 
@@ -7,6 +8,7 @@ class AnalysisReportDto {
   final AnalysisDto analysis;
   final PetitionDto petition;
   final PetitionSummaryDto summary;
+  final AnalysisReportFiltersDto filters;
   final List<AnalysisPrecedentDto> precedents;
   final AnalysisPrecedentDto chosenPrecedent;
 
@@ -14,6 +16,7 @@ class AnalysisReportDto {
     required this.analysis,
     required this.petition,
     required this.summary,
+    required this.filters,
     required this.precedents,
     required this.chosenPrecedent,
   });

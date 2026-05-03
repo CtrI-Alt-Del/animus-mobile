@@ -1,20 +1,12 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:animus/constants/env.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/shared/types/json.dart';
 
 typedef QueryParams = Map<String, dynamic>;
-
-final Provider<RestClient> restClientProvider = Provider<RestClient>((Ref ref) {
-  final DioRestClient client = DioRestClient();
-  client.setBaseUrl(Env.animusServerAppUrl);
-  return client;
-});
 
 class DioRestClient implements RestClient {
   final Dio _dio;
@@ -42,6 +34,7 @@ class DioRestClient implements RestClient {
     Object? body,
     Json? queryParams,
     Json? headers,
+    void Function(int sentBytes, int totalBytes)? onSendProgress,
   }) async {
     return _send(
       () => _dio.post(
@@ -49,6 +42,7 @@ class DioRestClient implements RestClient {
         data: body,
         queryParameters: queryParams,
         options: Options(headers: headers),
+        onSendProgress: onSendProgress,
       ),
     );
   }

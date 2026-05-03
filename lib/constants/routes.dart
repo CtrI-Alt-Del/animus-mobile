@@ -1,6 +1,8 @@
 class Routes {
   static const String home = '/';
   static const String library = '/library';
+  static const String libraryUnfoldered = '/library/unfoldered';
+  static const String libraryFolder = '/library/folders/:folderId';
   static const String signIn = '/auth/sign_in';
   static const String signUp = '/auth/sign_up';
   static const String emailConfirmation = '/auth/email_confirmation';
@@ -9,6 +11,13 @@ class Routes {
   static const String newPassword = '/auth/new_password';
   static const String profile = '/auth/profile';
   static const String analysis = '/analyses/:analysisId';
+
+  static String getLibraryFolder({required String folderId}) {
+    final Uri uri = Uri(
+      path: '/library/folders/${Uri.encodeComponent(folderId)}',
+    );
+    return uri.toString();
+  }
 
   static String getForgotPassword({String? previousRoute}) {
     final Map<String, String> queryParameters = <String, String>{};
