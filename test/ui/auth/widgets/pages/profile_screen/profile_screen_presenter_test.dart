@@ -170,6 +170,7 @@ void main() {
 
       verify(() => cacheDriver.delete(CacheKeys.accessToken)).called(1);
       verify(() => cacheDriver.delete(CacheKeys.refreshToken)).called(1);
+      verify(() => pushNotificationDriver.clearUser()).called(1);
       verify(() => navigationDriver.goTo(Routes.signIn)).called(1);
     });
   });
