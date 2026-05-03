@@ -119,10 +119,6 @@ class PrecedentDialogView extends ConsumerWidget {
                                   Align(
                                     alignment: Alignment.centerRight,
                                     child: ApplicabilityBadge(
-                                      percentage: precedent.similarityScore,
-                                      percentageText: precedent.similarityScore
-                                          .clamp(0, 100)
-                                          .toStringAsFixed(1),
                                       classificationLevel:
                                           precedent.applicabilityLevel,
                                       showScore: false,

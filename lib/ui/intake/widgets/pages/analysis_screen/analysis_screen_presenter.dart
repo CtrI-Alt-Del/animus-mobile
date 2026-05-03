@@ -36,7 +36,6 @@ class AnalysisScreenPresenter {
   static const int maxPrecedentsLimit = 10;
   static const Duration summaryPollingInterval = Duration(seconds: 3);
   static const Duration summaryRequestTimeout = Duration(seconds: 10);
-  static const Duration summaryTimeout = Duration(seconds: 60);
   static const String failedMessage =
       'Nao foi possivel analisar o documento agora. Tente novamente.';
   static const String exportFailedMessage =
@@ -153,6 +152,11 @@ class AnalysisScreenPresenter {
 
     final AnalysisStatusDto analysisStatus = analysisResponse.body.status;
     analysisName.value = analysisResponse.body.name;
+
+    if (analysisStatus == AnalysisStatusDto.failed) {
+      await _resetFailedAnalysis();
+      return;
+    }
 
     final bool shouldLoadPetition = _shouldLoadPetition(analysisStatus);
 
@@ -304,7 +308,7 @@ class AnalysisScreenPresenter {
         );
 
     if (uploadUrlResponse.isFailure) {
-      _applyRemoteFailure(uploadUrlResponse.errorMessage);
+      await _applyRemoteFailure(uploadUrlResponse.errorMessage);
       return;
     }
 
@@ -325,7 +329,7 @@ class AnalysisScreenPresenter {
       );
     } catch (_) {
       isUploading.value = false;
-      _applyRemoteFailure();
+      await _applyRemoteFailure();
       return;
     }
 
@@ -347,7 +351,7 @@ class AnalysisScreenPresenter {
         .createPetition(petition: createdPetitionPayload);
 
     if (petitionResponse.isFailure) {
-      _applyRemoteFailure(petitionResponse.errorMessage);
+      await _applyRemoteFailure(petitionResponse.errorMessage);
       return;
     }
 
@@ -363,7 +367,7 @@ class AnalysisScreenPresenter {
 
     final String? petitionId = petition.value?.id;
     if (petitionId == null || petitionId.isEmpty) {
-      _applyRemoteFailure();
+      await _applyRemoteFailure();
       return;
     }
 
@@ -566,20 +570,39 @@ class AnalysisScreenPresenter {
     canExportReport.dispose();
   }
 
-  void _applyRemoteFailure([String? errorMessage]) {
+  Future<void> _applyRemoteFailure([String? errorMessage]) async {
     isUploading.value = false;
     uploadProgress.value = null;
-    status.value = AnalysisStatusDto.failed;
-    generalError.value = errorMessage == null || errorMessage.isEmpty
+    await _resetFailedAnalysis(errorMessage: errorMessage);
+  }
+
+  Future<void> _resetFailedAnalysis({String? errorMessage}) async {
+    final String resolvedErrorMessage =
+        errorMessage == null || errorMessage.isEmpty
         ? failedMessage
         : errorMessage;
+
+    final RestResponse<AnalysisStatusDto> response = await _intakeService
+        .updateAnalysisStatus(
+          analysisId: analysisId,
+          status: AnalysisStatusDto.waitingPetition,
+        );
+
+    petition.value = null;
+    summary.value = null;
+    selectedFile.value = null;
+    uploadProgress.value = null;
+    status.value = response.isSuccessful
+        ? response.body
+        : AnalysisStatusDto.waitingPetition;
+    generalError.value = resolvedErrorMessage;
   }
 
   Future<bool> _summarizePetition(PetitionDto? petitionData) async {
     final String? petitionId = petitionData?.id;
 
     if (petitionId == null || petitionId.isEmpty) {
-      _applyRemoteFailure();
+      await _applyRemoteFailure();
       return false;
     }
 
@@ -596,7 +619,7 @@ class AnalysisScreenPresenter {
         );
 
     if (summarizeResponse.isFailure) {
-      _applyRemoteFailure(summarizeResponse.errorMessage);
+      await _applyRemoteFailure(summarizeResponse.errorMessage);
       return false;
     }
 
@@ -608,13 +631,11 @@ class AnalysisScreenPresenter {
     final String analysisId = petitionData?.analysisId ?? this.analysisId;
 
     if (petitionId == null || petitionId.isEmpty) {
-      _applyRemoteFailure();
+      await _applyRemoteFailure();
       return false;
     }
 
-    Duration elapsed = Duration.zero;
-
-    while (elapsed < summaryTimeout) {
+    while (true) {
       final RestResponse<AnalysisDto> analysisResponse = await _intakeService
           .getAnalysis(analysisId: analysisId)
           .timeout(
@@ -626,7 +647,7 @@ class AnalysisScreenPresenter {
           );
 
       if (analysisResponse.isFailure) {
-        _applyRemoteFailure(analysisResponse.errorMessage);
+        await _applyRemoteFailure(analysisResponse.errorMessage);
         return false;
       }
 
@@ -638,7 +659,7 @@ class AnalysisScreenPresenter {
             await _intakeService.getPetitionSummary(petitionId: petitionId);
 
         if (summaryResponse.isFailure) {
-          _applyRemoteFailure(summaryResponse.errorMessage);
+          await _applyRemoteFailure(summaryResponse.errorMessage);
           return false;
         }
 
@@ -648,16 +669,12 @@ class AnalysisScreenPresenter {
       }
 
       if (currentStatus == AnalysisStatusDto.failed) {
-        _applyRemoteFailure();
+        await _applyRemoteFailure();
         return false;
       }
 
       await Future<void>.delayed(summaryPollingInterval);
-      elapsed += summaryPollingInterval;
     }
-
-    _applyRemoteFailure(_buildSummaryTimeoutMessage(summaryTimeout));
-    return false;
   }
 
   String _buildSummaryTimeoutMessage(Duration timeout) {

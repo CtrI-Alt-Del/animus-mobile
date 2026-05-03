@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_pull_to_refresh/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_empty_state/index.dart';
@@ -11,6 +12,7 @@ import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_secti
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_inline_error/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_loading_more/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_loading_state/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/processing_analysis_card/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/index.dart';
 
 class RecentAnalysesSectionView extends StatelessWidget {
@@ -48,27 +50,63 @@ class RecentAnalysesSectionView extends StatelessWidget {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final List<AnalysisDto> processingAnalyses = analyses
+        .where((AnalysisDto analysis) => _isProcessingStatus(analysis.status))
+        .toList(growable: false);
+    final int processingCount = processingAnalyses.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text(
-          'Recentes',
-          style: GoogleFonts.fraunces(
-            textStyle: textTheme.titleMedium?.copyWith(
-              color: tokens.textPrimary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.4,
-            ),
+        if (processingCount > 0) ...<Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  'Em andamento',
+                  style: GoogleFonts.fraunces(
+                    textStyle: textTheme.titleMedium?.copyWith(
+                      color: tokens.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(
+                  color: tokens.accent,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '$processingCount',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: tokens.surfacePage,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 16),
-        Expanded(child: _buildBody(context)),
+          const SizedBox(height: 12),
+        ],
+        Expanded(child: _buildBody(context, processingAnalyses)),
       ],
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(
+    BuildContext context,
+    List<AnalysisDto> processingAnalyses,
+  ) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final List<AnalysisDto> recentAnalyses = analyses
+        .where((AnalysisDto analysis) => !_isProcessingStatus(analysis.status))
+        .toList(growable: false);
+
     if (isLoading && analyses.isEmpty) {
       return const RecentAnalysesLoadingState();
     }
@@ -139,26 +177,70 @@ class RecentAnalysesSectionView extends StatelessWidget {
                   parent: BouncingScrollPhysics(),
                 ),
                 padding: const EdgeInsets.only(bottom: 24),
-                itemCount: analyses.length + (isLoadingMore ? 1 : 0),
+                itemCount:
+                    processingAnalyses.length +
+                    recentAnalyses.length +
+                    1 +
+                    (isLoadingMore ? 1 : 0),
                 separatorBuilder: (BuildContext context, int index) =>
                     const SizedBox(height: 12),
                 itemBuilder: (BuildContext context, int index) {
-                  if (index >= analyses.length) {
+                  if (index < processingAnalyses.length) {
+                    final AnalysisDto analysis = processingAnalyses[index];
+                    final String title = analysis.name.trim().isEmpty
+                        ? 'Analise sem nome'
+                        : analysis.name;
+
+                    return ProcessingAnalysisCard(
+                      title: title,
+                      dateLabel: formatCreatedAt(analysis.createdAt),
+                      statusLabel: _resolveStatusLabel(analysis.status),
+                      onTap: () {
+                        unawaited(onTapAnalysis(analysis));
+                      },
+                    );
+                  }
+
+                  final int headingIndex = processingAnalyses.length;
+                  if (index == headingIndex) {
+                    return Text(
+                      'Recentes',
+                      style: GoogleFonts.fraunces(
+                        textStyle: textTheme.titleMedium?.copyWith(
+                          color: tokens.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final int recentStartIndex = headingIndex + 1;
+                  final int recentEndIndex =
+                      recentStartIndex + recentAnalyses.length - 1;
+
+                  if (index >= recentStartIndex && index <= recentEndIndex) {
+                    final AnalysisDto analysis =
+                        recentAnalyses[index - recentStartIndex];
+                    final String title = analysis.name.trim().isEmpty
+                        ? 'Analise sem nome'
+                        : analysis.name;
+
+                    return RecentAnalysisCard(
+                      title: title,
+                      dateLabel: formatCreatedAt(analysis.createdAt),
+                      statusLabel: _resolveStatusLabel(analysis.status),
+                      onTap: () {
+                        unawaited(onTapAnalysis(analysis));
+                      },
+                    );
+                  }
+
+                  if (isLoadingMore) {
                     return const RecentAnalysesLoadingMore();
                   }
 
-                  final AnalysisDto analysis = analyses[index];
-                  final String title = analysis.name.trim().isEmpty
-                      ? 'Analise sem nome'
-                      : analysis.name;
-
-                  return RecentAnalysisCard(
-                    title: title,
-                    dateLabel: formatCreatedAt(analysis.createdAt),
-                    onTap: () {
-                      unawaited(onTapAnalysis(analysis));
-                    },
-                  );
+                  return const SizedBox.shrink();
                 },
               ),
             ),
@@ -166,5 +248,39 @@ class RecentAnalysesSectionView extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  bool _isProcessingStatus(AnalysisStatusDto status) {
+    return status == AnalysisStatusDto.analyzingPetition ||
+        status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        status == AnalysisStatusDto.generatingSynthesis;
+  }
+
+  String _resolveStatusLabel(AnalysisStatusDto status) {
+    switch (status) {
+      case AnalysisStatusDto.waitingPetition:
+        return 'Aguardando petição';
+      case AnalysisStatusDto.petitionUploaded:
+        return 'Peticao enviada';
+      case AnalysisStatusDto.analyzingPetition:
+        return 'Peticao em análise';
+      case AnalysisStatusDto.petitionAnalyzed:
+        return 'Peticao analisada';
+      case AnalysisStatusDto.searchingPrecedents:
+        return 'Buscando precedentes';
+      case AnalysisStatusDto.analyzingPrecedentsSimilarity:
+      case AnalysisStatusDto.analyzingPrecedentsApplicability:
+        return 'Comparando precedentes';
+      case AnalysisStatusDto.generatingSynthesis:
+        return 'Gerando síntese';
+      case AnalysisStatusDto.waitingPrecedentChoice:
+        return 'Aguardando escolha de precedente';
+      case AnalysisStatusDto.precedentChosen:
+        return 'Concluída';
+      case AnalysisStatusDto.failed:
+        return 'Falhou';
+    }
   }
 }

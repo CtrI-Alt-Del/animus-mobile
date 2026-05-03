@@ -34,6 +34,7 @@ class HomeScreenPresenter {
     const <AnalysisDto>[],
   );
   final Signal<String?> nextCursor = signal<String?>(null);
+  List<AnalysisDto> _processingAnalyses = const <AnalysisDto>[];
 
   bool _didCompleteInitialLoad = false;
 
@@ -65,9 +66,9 @@ class HomeScreenPresenter {
     required CacheDriver cacheDriver,
     required NavigationDriver navigationDriver,
   }) : _authService = authService,
-       _intakeService = intakeService,
-       _cacheDriver = cacheDriver,
-       _navigationDriver = navigationDriver;
+        _intakeService = intakeService,
+        _cacheDriver = cacheDriver,
+        _navigationDriver = navigationDriver;
 
   Future<void> initialize() async {
     if (isLoadingInitialData.value || _didCompleteInitialLoad) {
@@ -98,6 +99,16 @@ class HomeScreenPresenter {
 
     firstName.value = _extractFirstName(accountResponse.body);
 
+    final RestResponse<List<AnalysisDto>> processingAnalysesResponse =
+        await _intakeService.listProcessingAnalyses();
+    if (processingAnalysesResponse.isSuccessful) {
+      _processingAnalyses = List<AnalysisDto>.unmodifiable(
+        processingAnalysesResponse.body,
+      );
+    } else {
+      _processingAnalyses = const <AnalysisDto>[];
+    }
+
     final RestResponse<CursorPaginationResponse<AnalysisDto>> analysesResponse =
         await _intakeService.listAnalyses(limit: _pageSize, isArchived: false);
 
@@ -113,7 +124,9 @@ class HomeScreenPresenter {
 
     final CursorPaginationResponse<AnalysisDto> pagination =
         analysesResponse.body;
-    recentAnalyses.value = List<AnalysisDto>.unmodifiable(pagination.items);
+    recentAnalyses.value = List<AnalysisDto>.unmodifiable(
+      _mergeProcessingAnalyses(pagination.items),
+    );
     nextCursor.value = pagination.nextCursor;
     generalError.value = null;
     _didCompleteInitialLoad = true;
@@ -151,10 +164,12 @@ class HomeScreenPresenter {
     }
 
     final CursorPaginationResponse<AnalysisDto> pagination = response.body;
-    recentAnalyses.value = List<AnalysisDto>.unmodifiable(<AnalysisDto>[
-      ...recentAnalyses.value,
-      ...pagination.items,
-    ]);
+    recentAnalyses.value = List<AnalysisDto>.unmodifiable(
+      _mergeProcessingAnalyses(<AnalysisDto>[
+        ...recentAnalyses.value,
+        ...pagination.items,
+      ]),
+    );
     nextCursor.value = pagination.nextCursor;
     generalError.value = null;
     isLoadingMore.value = false;
@@ -198,6 +213,7 @@ class HomeScreenPresenter {
     }
 
     _didCompleteInitialLoad = false;
+    _processingAnalyses = const <AnalysisDto>[];
     recentAnalyses.value = const <AnalysisDto>[];
     nextCursor.value = null;
     await initialize();
@@ -290,6 +306,39 @@ class HomeScreenPresenter {
         message.contains('This exception was thrown because the response') ||
         message.contains('developer.mozilla.org/en-US/docs/Web/HTTP/Status') ||
         message.contains('status code of ${HttpStatus.notFound}');
+  }
+
+  List<AnalysisDto> _mergeProcessingAnalyses(List<AnalysisDto> analyses) {
+    if (_processingAnalyses.isEmpty) {
+      return analyses;
+    }
+
+    final Set<String> addedIds = <String>{};
+    final List<AnalysisDto> merged = <AnalysisDto>[];
+
+    for (final AnalysisDto processing in _processingAnalyses) {
+      final String processingId = (processing.id ?? '').trim();
+      if (processingId.isEmpty || addedIds.contains(processingId)) {
+        continue;
+      }
+
+      merged.add(processing);
+      addedIds.add(processingId);
+    }
+
+    for (final AnalysisDto analysis in analyses) {
+      final String analysisId = (analysis.id ?? '').trim();
+      if (analysisId.isNotEmpty && addedIds.contains(analysisId)) {
+        continue;
+      }
+
+      merged.add(analysis);
+      if (analysisId.isNotEmpty) {
+        addedIds.add(analysisId);
+      }
+    }
+
+    return merged;
   }
 }
 
