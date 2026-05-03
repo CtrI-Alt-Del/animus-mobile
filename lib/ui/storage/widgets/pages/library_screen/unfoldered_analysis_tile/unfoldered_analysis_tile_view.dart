@@ -33,11 +33,7 @@ class UnfoldedAnalysisTileView extends StatelessWidget {
           ),
           child: Row(
             children: <Widget>[
-              Icon(
-                Icons.description_outlined,
-                color: tokens.accent,
-                size: 22,
-              ),
+              Icon(Icons.description_outlined, color: tokens.accent, size: 22),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

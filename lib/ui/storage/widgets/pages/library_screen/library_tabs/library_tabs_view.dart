@@ -43,10 +43,7 @@ class LibraryTabsView extends StatelessWidget {
                       ? LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: <Color>[
-                            tokens.accent,
-                            tokens.accentStrong,
-                          ],
+                          colors: <Color>[tokens.accent, tokens.accentStrong],
                         )
                       : null,
                   borderRadius: BorderRadius.circular(10),
