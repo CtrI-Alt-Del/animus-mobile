@@ -98,7 +98,8 @@ class LibraryScreenView extends ConsumerWidget {
 
             if (folders.isEmpty && unfolderedAnalyses.isEmpty) {
               return _EmptyState(
-                onCreateFolder: () => _showCreateFolderModal(context, presenter),
+                onCreateFolder: () =>
+                    _showCreateFolderModal(context, presenter),
               );
             }
 
@@ -110,7 +111,8 @@ class LibraryScreenView extends ConsumerWidget {
                   onSelected: presenter.selectTab,
                 ),
                 const SizedBox(height: 24),
-                if (selectedTab == 0 && unfolderedAnalyses.isNotEmpty) ...<Widget>[
+                if (selectedTab == 0 &&
+                    unfolderedAnalyses.isNotEmpty) ...<Widget>[
                   _SectionHeader(label: 'Sem pasta'),
                   const SizedBox(height: 12),
                   ...List<Widget>.generate(unfolderedAnalyses.length, (
@@ -119,9 +121,7 @@ class LibraryScreenView extends ConsumerWidget {
                     final AnalysisDto analysis = unfolderedAnalyses[index];
                     return Padding(
                       padding: EdgeInsets.only(
-                        bottom: index == unfolderedAnalyses.length - 1
-                            ? 0
-                            : 12,
+                        bottom: index == unfolderedAnalyses.length - 1 ? 0 : 12,
                       ),
                       child: UnfoldedAnalysisTile(
                         title: analysis.name,
@@ -214,17 +214,11 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(
-              Icons.folder_off_outlined,
-              size: 64,
-              color: tokens.textMuted,
-            ),
+            Icon(Icons.folder_off_outlined, size: 64, color: tokens.textMuted),
             const SizedBox(height: 16),
             Text(
               'Sua biblioteca está vazia',
-              style: textTheme.titleMedium?.copyWith(
-                color: tokens.textPrimary,
-              ),
+              style: textTheme.titleMedium?.copyWith(color: tokens.textPrimary),
             ),
             const SizedBox(height: 8),
             Text(
