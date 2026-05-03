@@ -19,6 +19,7 @@ class OneSignalPushNotificationDriver implements PushNotificationDriver {
 
     try {
       await OneSignal.initialize(appId);
+      print('OneSignal initialized');
     } catch (_) {}
   }
 
