@@ -36,6 +36,11 @@ class GoogleSignInGoogleAuthDriver implements GoogleAuthDriver {
       rethrow;
     }
   }
+
+  @override
+  Future<void> signOut() async {
+    await _googleSignIn.signOut();
+  }
 }
 
 final Provider<GoogleAuthDriver> googleAuthDriverProvider =

@@ -7,17 +7,20 @@ import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/auth/interfaces/google_auth_driver.dart';
 import 'package:animus/core/shared/interfaces/app_version_driver.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/drivers/app-version-driver/index.dart';
 import 'package:animus/drivers/cache/index.dart';
+import 'package:animus/drivers/google-auth-driver/index.dart';
 import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class ProfileScreenPresenter {
   final AuthService _authService;
+  final GoogleAuthDriver _googleAuthDriver;
   final AppVersionDriver _appVersionDriver;
   final CacheDriver _cacheDriver;
   final NavigationDriver _navigationDriver;
@@ -63,13 +66,15 @@ class ProfileScreenPresenter {
 
   ProfileScreenPresenter({
     required AuthService authService,
+    required GoogleAuthDriver googleAuthDriver,
     required AppVersionDriver appVersionDriver,
     required CacheDriver cacheDriver,
     required NavigationDriver navigationDriver,
   }) : _authService = authService,
-       _appVersionDriver = appVersionDriver,
-       _cacheDriver = cacheDriver,
-       _navigationDriver = navigationDriver;
+       _googleAuthDriver = googleAuthDriver,
+        _appVersionDriver = appVersionDriver,
+        _cacheDriver = cacheDriver,
+        _navigationDriver = navigationDriver;
 
   Future<void> initialize() async {
     await _initializeAppVersionLabel();
@@ -105,7 +110,11 @@ class ProfileScreenPresenter {
     isLoadingInitialData.value = false;
   }
 
-  void signOut() {
+  Future<void> signOut() async {
+    try {
+      await _googleAuthDriver.signOut();
+    } catch (_) {}
+
     _cacheDriver.delete(CacheKeys.accessToken);
     _cacheDriver.delete(CacheKeys.refreshToken);
     _navigationDriver.goTo(Routes.signIn);
@@ -200,6 +209,9 @@ class ProfileScreenPresenter {
 final Provider<ProfileScreenPresenter> profileScreenPresenterProvider =
     Provider.autoDispose<ProfileScreenPresenter>((Ref ref) {
       final AuthService authService = ref.watch(authServiceProvider);
+      final GoogleAuthDriver googleAuthDriver = ref.watch(
+        googleAuthDriverProvider,
+      );
       final AppVersionDriver appVersionDriver = ref.watch(
         appVersionDriverProvider,
       );
@@ -210,6 +222,7 @@ final Provider<ProfileScreenPresenter> profileScreenPresenterProvider =
 
       final ProfileScreenPresenter presenter = ProfileScreenPresenter(
         authService: authService,
+        googleAuthDriver: googleAuthDriver,
         appVersionDriver: appVersionDriver,
         cacheDriver: cacheDriver,
         navigationDriver: navigationDriver,
