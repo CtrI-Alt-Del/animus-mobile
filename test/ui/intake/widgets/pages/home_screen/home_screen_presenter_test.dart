@@ -7,6 +7,7 @@ import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
+import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,7 +41,14 @@ void main() {
     navigationDriver = _MockNavigationDriver();
     pushNotificationDriver = _MockPushNotificationDriver();
 
-    when(() => cacheDriver.get(any())).thenReturn('access-token');
+    when(
+      () => cacheDriver.get(CacheKeys.accessToken),
+    ).thenReturn('access-token');
+    when(
+      () =>
+          cacheDriver.get(CacheKeys.pushNotificationPermissionPromptAttempted),
+    ).thenReturn(null);
+    when(() => cacheDriver.set(any(), any())).thenReturn(null);
     when(() => navigationDriver.goTo(any())).thenReturn(null);
     when(() => navigationDriver.pushTo(any())).thenAnswer((_) async {});
     when(
@@ -88,7 +96,7 @@ void main() {
       when(() => authService.getAccount()).thenAnswer(
         (_) async => RestResponse<AccountDto>(
           statusCode: 200,
-          body: AccountDtoFaker.fake(name: 'Ada Lovelace'),
+          body: AccountDtoFaker.fake(id: 'account-123', name: 'Ada Lovelace'),
         ),
       );
       when(
@@ -118,13 +126,26 @@ void main() {
       expect(presenter.nextCursor.value, 'cursor-2');
       expect(presenter.hasMore.value, isTrue);
       expect(presenter.showEmptyState.value, isFalse);
+      verify(
+        () => pushNotificationDriver.identifyUser('account-123'),
+      ).called(1);
+      verify(
+        () => cacheDriver.set(
+          CacheKeys.pushNotificationPermissionPromptAttempted,
+          'true',
+        ),
+      ).called(1);
+      verify(
+        () =>
+            pushNotificationDriver.requestPermission(fallbackToSettings: false),
+      ).called(1);
     });
 
     test('redireciona para sign in quando nao existe token salvo', () async {
       final HomeScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      when(() => cacheDriver.get(any())).thenReturn('   ');
+      when(() => cacheDriver.get(CacheKeys.accessToken)).thenReturn('   ');
 
       await presenter.initialize();
 
@@ -136,6 +157,35 @@ void main() {
           isArchived: any(named: 'isArchived'),
         ),
       );
+    });
+
+    test('nao identifica usuario quando conta nao tem id', () async {
+      final HomeScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(
+        () => cacheDriver.get(
+          CacheKeys.pushNotificationPermissionPromptAttempted,
+        ),
+      ).thenReturn('true');
+      when(() => authService.getAccount()).thenAnswer(
+        (_) async => RestResponse<AccountDto>(
+          statusCode: 200,
+          body: AccountDtoFaker.fake(id: '   ', name: 'Ada Lovelace'),
+        ),
+      );
+      when(
+        () => intakeService.listAnalyses(limit: 10, isArchived: false),
+      ).thenAnswer(
+        (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+          statusCode: 200,
+          body: createPagination(items: const <AnalysisDto>[]),
+        ),
+      );
+
+      await presenter.initialize();
+
+      verifyNever(() => pushNotificationDriver.identifyUser(any()));
     });
   });
 
