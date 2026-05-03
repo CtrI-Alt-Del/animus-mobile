@@ -15,6 +15,9 @@ class ArchiveSelectedAnalysesDialogView extends StatelessWidget {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final String confirmationText = selectedCount == 1
+        ? '1 analise sera arquivada. Ela nao sera excluida permanentemente.'
+        : '$selectedCount analises serao arquivadas. Elas nao serao excluidas permanentemente.';
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -40,7 +43,7 @@ class ArchiveSelectedAnalysesDialogView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              '$selectedCount analise${selectedCount == 1 ? '' : 's'} sera${selectedCount == 1 ? '' : 'o'} arquivada${selectedCount == 1 ? '' : 's'}. Elas nao serao excluidas permanentemente.',
+              confirmationText,
               style: textTheme.bodyMedium?.copyWith(
                 color: tokens.textMuted,
                 height: 1.4,

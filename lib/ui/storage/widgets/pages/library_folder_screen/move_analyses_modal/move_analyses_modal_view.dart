@@ -28,6 +28,13 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
   String? _submitError;
 
   Future<void> _handleMove(MoveAnalysesModalPresenter presenter) async {
+    if (!presenter.hasSelectedDestination.value) {
+      setState(() {
+        _submitError = 'Escolha uma pasta de destino antes de mover.';
+      });
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
       _submitError = null;
@@ -65,6 +72,14 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
     final List<FolderDto> folders = presenter.folders.watch(context);
     final String? generalError = presenter.generalError.watch(context);
     final String? selectedFolderId = presenter.selectedFolderId.watch(context);
+    final bool hasSelectedDestination = presenter.hasSelectedDestination.watch(
+      context,
+    );
+    final bool canSubmitMove =
+        !isLoading &&
+        !_isSubmitting &&
+        generalError == null &&
+        hasSelectedDestination;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -116,6 +131,8 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
                   padding: EdgeInsets.symmetric(vertical: 24),
                   child: Center(child: CircularProgressIndicator()),
                 )
+              else if (generalError != null)
+                const SizedBox.shrink()
               else
                 Flexible(
                   child: SingleChildScrollView(
@@ -125,7 +142,9 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
                           title: 'Sem pasta',
                           subtitle: 'Remover da pasta atual',
                           value: null,
-                          groupValue: selectedFolderId,
+                          isSelected:
+                              hasSelectedDestination &&
+                              selectedFolderId == null,
                           onChanged: presenter.selectFolder,
                         ),
                         const SizedBox(height: 10),
@@ -136,7 +155,9 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
                               title: folder.name,
                               subtitle: '${folder.analysisCount} analises',
                               value: folder.id,
-                              groupValue: selectedFolderId,
+                              isSelected:
+                                  hasSelectedDestination &&
+                                  folder.id == selectedFolderId,
                               onChanged: presenter.selectFolder,
                             ),
                           ),
@@ -152,16 +173,16 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
                     child: OutlinedButton(
                       onPressed: _isSubmitting
                           ? null
-                          : () => Navigator.of(context).pop(false),
+                          : () => Navigator.of(context).pop(),
                       child: const Text('Cancelar'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
-                      onPressed: isLoading || _isSubmitting
-                          ? null
-                          : () => _handleMove(presenter),
+                      onPressed: canSubmitMove
+                          ? () => _handleMove(presenter)
+                          : null,
                       child: _isSubmitting
                           ? const SizedBox(
                               width: 20,
@@ -185,14 +206,14 @@ class _DestinationTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final String? value;
-  final String? groupValue;
+  final bool isSelected;
   final void Function(String? folderId) onChanged;
 
   const _DestinationTile({
     required this.title,
     required this.subtitle,
     required this.value,
-    required this.groupValue,
+    required this.isSelected,
     required this.onChanged,
   });
 
@@ -201,69 +222,79 @@ class _DestinationTile extends StatelessWidget {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final bool isSelected = value == groupValue;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onChanged(value),
-        borderRadius: BorderRadius.circular(18),
-        child: Ink(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: tokens.surfaceCard,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isSelected ? tokens.accent : tokens.borderSubtle,
-            ),
-          ),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      title,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: tokens.textPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: tokens.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: '$title, $subtitle',
+      value: isSelected ? 'Selecionado' : 'Nao selecionado',
+      hint: 'Toque para selecionar este destino',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => onChanged(value),
+          borderRadius: BorderRadius.circular(18),
+          child: Ink(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: tokens.surfaceCard,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isSelected ? tokens.accent : tokens.borderSubtle,
               ),
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? tokens.accent : tokens.borderStrong,
-                    width: 2,
-                  ),
-                ),
-                child: isSelected
-                    ? Center(
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: tokens.accent,
-                            shape: BoxShape.circle,
+            ),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: ExcludeSemantics(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          title,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: tokens.textPrimary,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      )
-                    : null,
-              ),
-            ],
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: tokens.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                ExcludeSemantics(
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected ? tokens.accent : tokens.borderStrong,
+                        width: 2,
+                      ),
+                    ),
+                    child: isSelected
+                        ? Center(
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: tokens.accent,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

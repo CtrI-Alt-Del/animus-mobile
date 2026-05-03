@@ -154,7 +154,7 @@ class _FolderSettingsModalViewState
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Ao deletar a pasta, as analises deixam de pertencer a ela e voltam para Sem pasta.',
+                      'Ao arquivar a pasta, as analises deixam de pertencer a ela e voltam para Sem pasta.',
                       style: textTheme.bodySmall?.copyWith(
                         color: tokens.textMuted,
                         height: 1.45,
@@ -175,7 +175,7 @@ class _FolderSettingsModalViewState
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Deletar pasta'),
+                          : const Text('Arquivar pasta'),
                     ),
                   ],
                 ),
