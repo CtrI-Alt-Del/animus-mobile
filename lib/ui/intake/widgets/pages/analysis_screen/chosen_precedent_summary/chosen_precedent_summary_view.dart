@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/applicability_badge/index.dart';
+import 'package:animus/ui/intake/widgets/pages/analysis_screen/precedent_status_formatter.dart';
 
 class ChosenPrecedentSummaryView extends StatelessWidget {
   final AnalysisPrecedentDto selectedPrecedent;
@@ -20,6 +21,9 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
 
     final String title =
         '${selectedPrecedent.precedent.identifier.court.value} ${selectedPrecedent.precedent.identifier.kind.value} ${selectedPrecedent.precedent.identifier.number}';
+    final String status = formatPrecedentStatus(
+      selectedPrecedent.precedent.status,
+    );
     final String synthesis = selectedPrecedent.synthesis.trim();
     final String synthesisText = synthesis.isEmpty
         ? 'A sintese explicativa ainda nao esta disponivel para este precedente.'
@@ -73,10 +77,39 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: ApplicabilityBadge(
-                    percentage: selectedPrecedent.applicabilityPercentage,
-                    percentageText:
-                        '${selectedPrecedent.applicabilityPercentage}',
-                    classificationLevel: selectedPrecedent.classificationLevel,
+                    classificationLevel: selectedPrecedent.applicabilityLevel,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tokens.surfaceCard,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: tokens.borderSubtle),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(
+                        Icons.gavel_outlined,
+                        size: 16,
+                        color: tokens.accent,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          status,
+                          style: textTheme.labelMedium?.copyWith(
+                            color: tokens.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -104,4 +137,5 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
       ),
     );
   }
+
 }

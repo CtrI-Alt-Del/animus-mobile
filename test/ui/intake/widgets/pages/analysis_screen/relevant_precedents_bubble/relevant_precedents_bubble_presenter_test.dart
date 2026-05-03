@@ -91,7 +91,7 @@ void main() {
         final RelevantPrecedentsBubblePresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
         final precedents = <AnalysisPrecedentDto>[
-          AnalysisPrecedentDtoFaker.fake(applicabilityPercentage: 72),
+          AnalysisPrecedentDtoFaker.fake(similarityScore: 72),
         ];
 
         when(
@@ -128,25 +128,56 @@ void main() {
     );
 
     test(
-      'should order precedents by applicability desc and select chosen precedent',
+      'should keep polling when analysis status is analyzing precedents similarity',
+      () async {
+        final RelevantPrecedentsBubblePresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              status: AnalysisStatusDto.analyzingPrecedentsSimilarity,
+            ),
+          ),
+        );
+
+        await presenter.initialize();
+
+        expect(
+          presenter.processingStatus.value,
+          AnalysisStatusDto.analyzingPrecedentsSimilarity,
+        );
+        expect(presenter.isLoading.value, isTrue);
+        expect(presenter.generalError.value, isNull);
+      },
+    );
+
+    test(
+      'should order precedents by final rank and select chosen precedent',
       () async {
         final RelevantPrecedentsBubblePresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
         final lower = AnalysisPrecedentDtoFaker.fake(
-          applicabilityPercentage: 65,
+          similarityScore: 65,
+          finalRank: 3,
           precedent: PrecedentDtoFaker.fake(
             identifier: PrecedentIdentifierDtoFaker.fake(number: 1),
           ),
         );
         final chosen = AnalysisPrecedentDtoFaker.fake(
           isChosen: true,
-          applicabilityPercentage: 88,
+          similarityScore: 88,
+          finalRank: 2,
           precedent: PrecedentDtoFaker.fake(
             identifier: PrecedentIdentifierDtoFaker.fake(number: 2),
           ),
         );
         final highest = AnalysisPrecedentDtoFaker.fake(
-          applicabilityPercentage: 97,
+          similarityScore: 97,
+          finalRank: 1,
           precedent: PrecedentDtoFaker.fake(
             identifier: PrecedentIdentifierDtoFaker.fake(number: 3),
           ),
@@ -167,12 +198,11 @@ void main() {
             AnalysisStatusDto.waitingPrecedentChoice;
         await presenter.loadPrecedents();
 
-        expect(
-          presenter.precedents.value.map(
-            (item) => item.applicabilityPercentage,
-          ),
-          <double>[97, 88, 65],
-        );
+        expect(presenter.precedents.value.map((item) => item.finalRank), <int>[
+          1,
+          2,
+          3,
+        ]);
         expect(
           presenter.selectedPrecedent.value?.precedent.identifier.number,
           2,
@@ -180,6 +210,61 @@ void main() {
         expect(
           presenter.processingStatus.value,
           AnalysisStatusDto.precedentChosen,
+        );
+      },
+    );
+
+    test(
+      'should push missing final rank to the end and tie break by similarity score',
+      () async {
+        final RelevantPrecedentsBubblePresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final ranked = AnalysisPrecedentDtoFaker.fake(
+          similarityScore: 75,
+          finalRank: 2,
+          precedent: PrecedentDtoFaker.fake(
+            identifier: PrecedentIdentifierDtoFaker.fake(number: 1),
+          ),
+        );
+        final legacyLowerScore = AnalysisPrecedentDtoFaker.fake(
+          similarityScore: 71,
+          finalRank: 0,
+          precedent: PrecedentDtoFaker.fake(
+            identifier: PrecedentIdentifierDtoFaker.fake(number: 2),
+          ),
+        );
+        final legacyHigherScore = AnalysisPrecedentDtoFaker.fake(
+          similarityScore: 94,
+          finalRank: 0,
+          precedent: PrecedentDtoFaker.fake(
+            identifier: PrecedentIdentifierDtoFaker.fake(number: 3),
+          ),
+        );
+
+        when(
+          () => intakeService.listAnalysisPrecedents(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<ListResponse<AnalysisPrecedentDto>>(
+            statusCode: 200,
+            body: ListResponse<AnalysisPrecedentDto>(
+              items: <AnalysisPrecedentDto>[
+                legacyLowerScore,
+                ranked,
+                legacyHigherScore,
+              ],
+            ),
+          ),
+        );
+
+        presenter.processingStatus.value =
+            AnalysisStatusDto.waitingPrecedentChoice;
+        await presenter.loadPrecedents();
+
+        expect(
+          presenter.precedents.value.map(
+            (AnalysisPrecedentDto item) => item.precedent.identifier.number,
+          ),
+          <int>[1, 3, 2],
         );
       },
     );

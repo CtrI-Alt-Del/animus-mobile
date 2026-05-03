@@ -4,9 +4,12 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_report_filters_dto.dart';
+import 'package:animus/core/intake/dtos/court_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/drivers/pdf-driver/printing/animus_pdf_theme.dart';
 
@@ -28,12 +31,18 @@ class PrintingPdfDriver implements PdfDriver {
     final List<AnalysisPrecedentDto> sortedPrecedents =
         List<AnalysisPrecedentDto>.from(report.precedents)..sort(
           (AnalysisPrecedentDto a, AnalysisPrecedentDto b) =>
-              b.applicabilityPercentage.compareTo(a.applicabilityPercentage),
+              a.finalRank.compareTo(b.finalRank),
         );
 
     doc.addPage(_buildHeaderPage(report, generatedAt));
     doc.addPage(_buildPetitionSummaryPage(report, generatedAt));
-    doc.addPage(_buildPrecedentsPage(sortedPrecedents, generatedAt));
+    doc.addPage(
+      _buildPrecedentsPage(
+        precedents: sortedPrecedents,
+        filters: report.filters,
+        generatedAt: generatedAt,
+      ),
+    );
     doc.addPage(_buildChosenPrecedentPage(report.chosenPrecedent, generatedAt));
 
     return doc.save();
@@ -147,10 +156,11 @@ class PrintingPdfDriver implements PdfDriver {
     );
   }
 
-  pw.Page _buildPrecedentsPage(
-    List<AnalysisPrecedentDto> precedents,
-    DateTime generatedAt,
-  ) {
+  pw.Page _buildPrecedentsPage({
+    required List<AnalysisPrecedentDto> precedents,
+    required AnalysisReportFiltersDto filters,
+    required DateTime generatedAt,
+  }) {
     return pw.MultiPage(
       pageTheme: _buildPageTheme(),
       header: (pw.Context context) =>
@@ -163,11 +173,86 @@ class PrintingPdfDriver implements PdfDriver {
             'Precedentes analisados (${precedents.length} encontrados)',
             fontSize: 22,
           ),
+          pw.SizedBox(height: 12),
+          _buildAppliedFiltersSection(filters),
           pw.SizedBox(height: 16),
           ...buildPrecedentCards(precedents: precedents),
         ];
       },
     );
+  }
+
+  pw.Widget _buildAppliedFiltersSection(AnalysisReportFiltersDto filters) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: _cardDecoration(),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: <pw.Widget>[
+          _buildEyebrow('FILTROS APLICADOS'),
+          pw.SizedBox(height: 10),
+          _buildFilterRow(
+            'Quantidade de precedentes',
+            filters.limit.toString(),
+          ),
+          _buildFilterRow(
+            'Tribunais selecionados',
+            _formatCourts(filters.courts),
+          ),
+          _buildFilterRow(
+            'Tipos selecionados',
+            _formatPrecedentKinds(filters.precedentKinds),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildFilterRow(String title, String content) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 8),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: <pw.Widget>[
+          pw.SizedBox(
+            width: 150,
+            child: pw.Text(
+              title,
+              style: pw.TextStyle(color: _theme.textMuted, fontSize: 12),
+            ),
+          ),
+          pw.Expanded(
+            child: pw.Text(
+              _nonEmpty(content),
+              style: pw.TextStyle(
+                color: _theme.textPrimary,
+                fontSize: 12,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatCourts(List<CourtDto> courts) {
+    if (courts.isEmpty) {
+      return 'Sem filtros de tribunal';
+    }
+
+    return courts.map((CourtDto court) => court.value).join(', ');
+  }
+
+  String _formatPrecedentKinds(List<PrecedentKindDto> kinds) {
+    if (kinds.isEmpty) {
+      return 'Sem filtros de tipo';
+    }
+
+    return kinds
+        .map((PrecedentKindDto kind) => _theme.formatKindLabel(kind))
+        .join(', ');
   }
 
   pw.Page _buildChosenPrecedentPage(
@@ -198,10 +283,6 @@ class PrintingPdfDriver implements PdfDriver {
         '${precedent.precedent.identifier.court.value} · '
         '${_theme.formatKindLabel(precedent.precedent.identifier.kind)} '
         '${precedent.precedent.identifier.number}';
-    final double normalizedPercentage = precedent.applicabilityPercentage
-        .clamp(0, 100)
-        .toDouble();
-
     return pw.Container(
       width: double.infinity,
       padding: pw.EdgeInsets.fromLTRB(16, 16, 16, highlight ? 18 : 16),
@@ -224,11 +305,11 @@ class PrintingPdfDriver implements PdfDriver {
                 ),
               ),
               pw.SizedBox(width: 12),
-              _buildClassificationBadge(precedent.classificationLevel),
+              _buildClassificationBadge(precedent.applicabilityLevel),
             ],
           ),
           pw.SizedBox(height: 10),
-          _buildApplicabilityLabel(normalizedPercentage),
+          _buildApplicabilityLabel(precedent.applicabilityLevel),
           pw.SizedBox(height: 12),
           _buildField(
             title: 'ENUNCIADO',
@@ -296,7 +377,7 @@ class PrintingPdfDriver implements PdfDriver {
   }
 
   pw.Widget _buildClassificationBadge(
-    AnalysisPrecedentClassificationLevelDto level,
+    AnalysisPrecedentApplicabilityLevelDto level,
   ) {
     final _BadgeData badge = _badgeData(level);
 
@@ -318,21 +399,21 @@ class PrintingPdfDriver implements PdfDriver {
     );
   }
 
-  _BadgeData _badgeData(AnalysisPrecedentClassificationLevelDto level) {
+  _BadgeData _badgeData(AnalysisPrecedentApplicabilityLevelDto level) {
     switch (level) {
-      case AnalysisPrecedentClassificationLevelDto.applicable:
+      case AnalysisPrecedentApplicabilityLevelDto.applicable:
         return _BadgeData(
           label: 'Aplicavel',
           background: const PdfColor(0.91, 0.98, 0.95),
           text: _theme.success,
         );
-      case AnalysisPrecedentClassificationLevelDto.possiblyApplicable:
+      case AnalysisPrecedentApplicabilityLevelDto.possiblyApplicable:
         return _BadgeData(
           label: 'Possivelmente aplicavel',
           background: _theme.pageBadgeFill,
           text: _theme.accentStrong,
         );
-      case AnalysisPrecedentClassificationLevelDto.notApplicable:
+      case AnalysisPrecedentApplicabilityLevelDto.notApplicable:
         return _BadgeData(
           label: 'Nao aplicavel',
           background: const PdfColor(0.99, 0.93, 0.92),
@@ -341,23 +422,17 @@ class PrintingPdfDriver implements PdfDriver {
     }
   }
 
-  pw.Widget _buildApplicabilityLabel(double percentage) {
-    return pw.RichText(
-      text: pw.TextSpan(
-        children: <pw.InlineSpan>[
-          pw.TextSpan(
-            text: '${percentage.toStringAsFixed(0)}%',
-            style: pw.TextStyle(
-              color: _theme.textPrimary,
-              fontSize: 18,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-          pw.TextSpan(
-            text: ' de aplicabilidade',
-            style: pw.TextStyle(color: _theme.textMuted, fontSize: 11),
-          ),
-        ],
+  pw.Widget _buildApplicabilityLabel(
+    AnalysisPrecedentApplicabilityLevelDto level,
+  ) {
+    final _BadgeData badge = _badgeData(level);
+
+    return pw.Text(
+      'Nivel de aplicabilidade: ${badge.label}',
+      style: pw.TextStyle(
+        color: _theme.textMuted,
+        fontSize: 11,
+        fontWeight: pw.FontWeight.bold,
       ),
     );
   }

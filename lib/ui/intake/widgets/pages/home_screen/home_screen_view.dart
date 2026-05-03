@@ -78,6 +78,7 @@ class HomeScreenView extends ConsumerWidget {
                               .watch(context);
                           final bool isLoadingMore = presenter.isLoadingMore
                               .watch(context);
+                          final bool hasMore = presenter.hasMore.watch(context);
                           final bool showEmptyState = presenter.showEmptyState
                               .watch(context);
                           final String? errorMessage = presenter.generalError
@@ -87,6 +88,7 @@ class HomeScreenView extends ConsumerWidget {
                             analyses: analyses,
                             isLoading: isLoadingInitialData,
                             isLoadingMore: isLoadingMore,
+                            hasMore: hasMore,
                             showEmptyState: showEmptyState,
                             errorMessage: errorMessage,
                             formatCreatedAt: presenter.formatCreatedAt,
@@ -95,9 +97,7 @@ class HomeScreenView extends ConsumerWidget {
                             onRetry: () {
                               presenter.initialize();
                             },
-                            onLoadMore: () {
-                              presenter.loadNextPage();
-                            },
+                            onLoadMore: presenter.loadNextPage,
                             onCreateFirstAnalysis: () {
                               presenter.createAnalysis();
                             },

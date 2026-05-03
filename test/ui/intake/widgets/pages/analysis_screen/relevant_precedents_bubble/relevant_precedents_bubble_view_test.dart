@@ -1,4 +1,4 @@
-import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/theme.dart';
@@ -156,13 +156,12 @@ void main() {
     verify(() => presenter.retry()).called(1);
   });
 
-  testWidgets('usa classificationLevel para estilizar o badge', (
+  testWidgets('usa applicabilityLevel para estilizar o badge', (
     WidgetTester tester,
   ) async {
     final AnalysisPrecedentDto precedent = AnalysisPrecedentDtoFaker.fake(
-      applicabilityPercentage: 92,
-      classificationLevel:
-          AnalysisPrecedentClassificationLevelDto.notApplicable,
+      similarityScore: 92,
+      applicabilityLevel: AnalysisPrecedentApplicabilityLevelDto.notApplicable,
       precedent: PrecedentDtoFaker.fake(
         identifier: PrecedentIdentifierDtoFaker.fake(number: 321),
       ),
@@ -171,7 +170,7 @@ void main() {
 
     await tester.pumpWidget(createWidget());
 
-    expect(find.textContaining('92.0% - Não aplicável'), findsOneWidget);
-    expect(find.textContaining('92.0% - Aplicável'), findsNothing);
+    expect(find.text('Não aplicável'), findsOneWidget);
+    expect(find.text('Aplicável'), findsNothing);
   });
 }

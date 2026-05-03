@@ -19,6 +19,13 @@ abstract class IntakeService {
 
   Future<RestResponse<AnalysisDto>> createAnalysis({String? folderId});
 
+  Future<RestResponse<List<AnalysisDto>>> listProcessingAnalyses();
+
+  Future<RestResponse<AnalysisStatusDto>> updateAnalysisStatus({
+    required String analysisId,
+    required AnalysisStatusDto status,
+  });
+
   Future<RestResponse<PetitionDto>> createPetition({
     required PetitionDto petition,
   });

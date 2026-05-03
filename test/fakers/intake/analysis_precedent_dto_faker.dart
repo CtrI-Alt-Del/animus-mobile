@@ -1,4 +1,4 @@
-import 'package:animus/core/intake/dtos/analysis_precedent_classification_level_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_dto.dart';
@@ -48,34 +48,36 @@ final class AnalysisPrecedentDtoFaker {
     String analysisId = 'analysis-1',
     PrecedentDto? precedent,
     bool isChosen = false,
-    double applicabilityPercentage = 80,
+    double similarityScore = 80,
     String synthesis = 'Sintese explicativa do precedente.',
-    AnalysisPrecedentClassificationLevelDto? classificationLevel,
+    int? finalRank,
+    AnalysisPrecedentApplicabilityLevelDto? applicabilityLevel,
   }) {
-    final AnalysisPrecedentClassificationLevelDto resolvedClassificationLevel =
-        classificationLevel ?? _fromPercentage(applicabilityPercentage);
+    final AnalysisPrecedentApplicabilityLevelDto resolvedApplicabilityLevel =
+        applicabilityLevel ?? _fromScore(similarityScore);
 
     return AnalysisPrecedentDto(
       analysisId: analysisId,
       precedent: precedent ?? PrecedentDtoFaker.fake(),
       isChosen: isChosen,
-      applicabilityPercentage: applicabilityPercentage,
       synthesis: synthesis,
-      classificationLevel: resolvedClassificationLevel,
+      similarityScore: similarityScore,
+      finalRank: finalRank ?? 1,
+      applicabilityLevel: resolvedApplicabilityLevel,
     );
   }
 
-  static AnalysisPrecedentClassificationLevelDto _fromPercentage(
-    double applicabilityPercentage,
+  static AnalysisPrecedentApplicabilityLevelDto _fromScore(
+    double similarityScore,
   ) {
-    if (applicabilityPercentage >= 85) {
-      return AnalysisPrecedentClassificationLevelDto.applicable;
+    if (similarityScore >= 85) {
+      return AnalysisPrecedentApplicabilityLevelDto.applicable;
     }
 
-    if (applicabilityPercentage >= 70) {
-      return AnalysisPrecedentClassificationLevelDto.possiblyApplicable;
+    if (similarityScore >= 70) {
+      return AnalysisPrecedentApplicabilityLevelDto.possiblyApplicable;
     }
 
-    return AnalysisPrecedentClassificationLevelDto.notApplicable;
+    return AnalysisPrecedentApplicabilityLevelDto.notApplicable;
   }
 }

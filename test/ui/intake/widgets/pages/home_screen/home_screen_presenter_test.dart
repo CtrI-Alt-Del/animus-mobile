@@ -51,6 +51,12 @@ void main() {
         fallbackToSettings: any(named: 'fallbackToSettings'),
       ),
     ).thenAnswer((_) async => true);
+    when(() => intakeService.listProcessingAnalyses()).thenAnswer(
+      (_) async => RestResponse<List<AnalysisDto>>(
+        statusCode: 200,
+        body: const <AnalysisDto>[],
+      ),
+    );
   });
 
   CursorPaginationResponse<AnalysisDto> createPagination({

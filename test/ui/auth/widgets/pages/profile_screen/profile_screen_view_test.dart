@@ -17,7 +17,7 @@ void main() {
   setUp(() {
     presenter = _MockProfileScreenPresenter();
     when(() => presenter.initialize()).thenAnswer((_) async {});
-    when(() => presenter.signOut()).thenReturn(null);
+    when(() => presenter.signOut()).thenAnswer((_) async {});
     when(() => presenter.dispose()).thenReturn(null);
     when(() => presenter.appVersionLabel).thenReturn(signal<String>('v1.0.0'));
     when(() => presenter.isLoadingInitialData).thenReturn(signal<bool>(false));

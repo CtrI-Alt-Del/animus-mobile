@@ -16,13 +16,14 @@ void main() {
           analyses: const <AnalysisDto>[],
           isLoading: true,
           isLoadingMore: false,
+          hasMore: false,
           showEmptyState: false,
           errorMessage: null,
           formatCreatedAt: (String value) => value,
           onRefresh: () async {},
           onTapAnalysis: (_) async {},
           onRetry: () {},
-          onLoadMore: () {},
+          onLoadMore: () async {},
           onCreateFirstAnalysis: () {},
         ),
       ),
@@ -45,6 +46,7 @@ void main() {
           analyses: const <AnalysisDto>[],
           isLoading: false,
           isLoadingMore: false,
+          hasMore: false,
           showEmptyState: false,
           errorMessage: 'Falha ao buscar analises',
           formatCreatedAt: (String value) => value,
@@ -53,7 +55,7 @@ void main() {
           onRetry: () {
             retryCount += 1;
           },
-          onLoadMore: () {},
+          onLoadMore: () async {},
           onCreateFirstAnalysis: () {},
         ),
       ),
@@ -79,13 +81,14 @@ void main() {
           analyses: const <AnalysisDto>[],
           isLoading: false,
           isLoadingMore: false,
+          hasMore: false,
           showEmptyState: true,
           errorMessage: null,
           formatCreatedAt: (String value) => value,
           onRefresh: () async {},
           onTapAnalysis: (_) async {},
           onRetry: () {},
-          onLoadMore: () {},
+          onLoadMore: () async {},
           onCreateFirstAnalysis: () {
             createCount += 1;
           },
@@ -124,13 +127,14 @@ void main() {
           analyses: analyses,
           isLoading: false,
           isLoadingMore: false,
+          hasMore: true,
           showEmptyState: false,
           errorMessage: null,
           formatCreatedAt: (_) => '31/03/2026',
           onRefresh: () async {},
           onTapAnalysis: (_) async {},
           onRetry: () {},
-          onLoadMore: () {
+          onLoadMore: () async {
             loadMoreCount += 1;
           },
           onCreateFirstAnalysis: () {},
@@ -141,7 +145,20 @@ void main() {
     expect(find.text('Analise 0'), findsOneWidget);
     expect(find.text('31/03/2026'), findsWidgets);
 
-    await tester.drag(find.byType(ListView), const Offset(0, -2000));
+    final BuildContext listContext = tester.element(
+      find.byType(ListView).first,
+    );
+    ScrollEndNotification(
+      metrics: FixedScrollMetrics(
+        minScrollExtent: 0,
+        maxScrollExtent: 1000,
+        pixels: 950,
+        viewportDimension: 400,
+        axisDirection: AxisDirection.down,
+        devicePixelRatio: 1,
+      ),
+      context: listContext,
+    ).dispatch(listContext);
     await tester.pump();
 
     expect(loadMoreCount, greaterThan(0));

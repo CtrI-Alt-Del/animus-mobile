@@ -18,26 +18,51 @@ class GcsFileStorageDriver implements FileStorageDriver {
     void Function(int sentBytes, int totalBytes)? onProgress,
   }) async {
     final String uploadUrlValue = _resolveUploadUrl(uploadUrl.url);
+    final String contentType = _resolveContentType(file.path);
+    final int contentLength = await file.length();
 
-    await _restClient.put(
+    print('uploadUrlValue: $uploadUrlValue');
+
+    final Map<String, dynamic> headers = <String, dynamic>{
+      HttpHeaders.contentTypeHeader: contentType,
+      HttpHeaders.contentLengthHeader: contentLength.toString(),
+    };
+
+    final bool isLocalFakeGcsJsonUpload = _isLocalFakeGcsJsonUploadUrl(
       uploadUrlValue,
-      body: file.openRead(),
-      headers: <String, dynamic>{
-        HttpHeaders.contentTypeHeader: _resolveContentType(file.path),
-        HttpHeaders.contentLengthHeader: (await file.length()).toString(),
-      },
-      onSendProgress: onProgress,
     );
+
+    final response = isLocalFakeGcsJsonUpload
+        ? await _restClient.post(
+            uploadUrlValue,
+            body: file.openRead(),
+            headers: headers,
+          )
+        : await _restClient.put(
+            uploadUrlValue,
+            body: file.openRead(),
+            headers: headers,
+            onSendProgress: onProgress,
+          );
+
+    if (response.isFailure) {
+      response.throwError();
+    }
   }
 
   @override
   Uri getFileUrl(String filePath) {
-    return Uri.parse('${Env.gcsDownloadUrl}/$filePath');
+    final String encodedFilePath = filePath
+        .split('/')
+        .map(Uri.encodeComponent)
+        .join('/');
+
+    return Uri.parse('${Env.gcsDownloadUrl}/$encodedFilePath');
   }
 
   @override
   Future<File?> getFile(String filePath) async {
-    final Uri fileUri = getFileUrl(filePath);
+    final Uri fileUri = _resolveDownloadUri(getFileUrl(filePath));
     final HttpClient httpClient = HttpClient();
 
     try {
@@ -68,8 +93,15 @@ class GcsFileStorageDriver implements FileStorageDriver {
     }
   }
 
+  bool _isLocalFakeGcsJsonUploadUrl(String url) {
+    final Uri uri = Uri.parse(url);
+
+    return uri.path.startsWith('/upload/storage/v1/b/');
+  }
+
   String _resolveContentType(String path) {
     final String lowerPath = path.toLowerCase();
+
     if (lowerPath.endsWith('.pdf')) {
       return 'application/pdf';
     }
@@ -78,15 +110,28 @@ class GcsFileStorageDriver implements FileStorageDriver {
       return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     }
 
+    if (lowerPath.endsWith('.txt')) {
+      return 'text/plain';
+    }
+
     return 'application/octet-stream';
   }
 
   String _resolveUploadUrl(String url) {
     final Uri uri = Uri.parse(url);
-    if (uri.host != 'localhost') {
+
+    if (uri.host != 'localhost' && uri.host != '127.0.0.1') {
       return url;
     }
 
     return uri.replace(host: '10.0.2.2').toString();
+  }
+
+  Uri _resolveDownloadUri(Uri uri) {
+    if (uri.host != 'localhost' && uri.host != '127.0.0.1') {
+      return uri;
+    }
+
+    return uri.replace(host: '10.0.2.2');
   }
 }
