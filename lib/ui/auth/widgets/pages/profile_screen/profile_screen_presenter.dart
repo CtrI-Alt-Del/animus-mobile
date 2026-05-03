@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,10 +11,12 @@ import 'package:animus/core/auth/interfaces/auth_service.dart';
 import 'package:animus/core/shared/interfaces/app_version_driver.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
+import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/drivers/app-version-driver/index.dart';
 import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/navigation/index.dart';
+import 'package:animus/drivers/push-notification-driver/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class ProfileScreenPresenter {
@@ -21,6 +24,7 @@ class ProfileScreenPresenter {
   final AppVersionDriver _appVersionDriver;
   final CacheDriver _cacheDriver;
   final NavigationDriver _navigationDriver;
+  final PushNotificationDriver _pushNotificationDriver;
 
   final Signal<String> appVersionLabel = signal<String>('Versao indisponivel');
   final Signal<bool> isLoadingInitialData = signal<bool>(false);
@@ -66,10 +70,12 @@ class ProfileScreenPresenter {
     required AppVersionDriver appVersionDriver,
     required CacheDriver cacheDriver,
     required NavigationDriver navigationDriver,
+    required PushNotificationDriver pushNotificationDriver,
   }) : _authService = authService,
        _appVersionDriver = appVersionDriver,
        _cacheDriver = cacheDriver,
-       _navigationDriver = navigationDriver;
+       _navigationDriver = navigationDriver,
+       _pushNotificationDriver = pushNotificationDriver;
 
   Future<void> initialize() async {
     await _initializeAppVersionLabel();
@@ -106,6 +112,7 @@ class ProfileScreenPresenter {
   }
 
   void signOut() {
+    unawaited(_pushNotificationDriver.clearUser().catchError((_) {}));
     _cacheDriver.delete(CacheKeys.accessToken);
     _cacheDriver.delete(CacheKeys.refreshToken);
     _navigationDriver.goTo(Routes.signIn);
@@ -207,12 +214,16 @@ final Provider<ProfileScreenPresenter> profileScreenPresenterProvider =
       final NavigationDriver navigationDriver = ref.watch(
         navigationDriverProvider,
       );
+      final PushNotificationDriver pushNotificationDriver = ref.watch(
+        pushNotificationDriverProvider,
+      );
 
       final ProfileScreenPresenter presenter = ProfileScreenPresenter(
         authService: authService,
         appVersionDriver: appVersionDriver,
         cacheDriver: cacheDriver,
         navigationDriver: navigationDriver,
+        pushNotificationDriver: pushNotificationDriver,
       );
 
       ref.onDispose(presenter.dispose);

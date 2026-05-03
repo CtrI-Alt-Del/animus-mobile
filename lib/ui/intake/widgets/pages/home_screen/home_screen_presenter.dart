@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,10 +12,12 @@ import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
+import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/navigation/index.dart';
+import 'package:animus/drivers/push-notification-driver/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class HomeScreenPresenter {
@@ -24,6 +27,7 @@ class HomeScreenPresenter {
   final IntakeService _intakeService;
   final CacheDriver _cacheDriver;
   final NavigationDriver _navigationDriver;
+  final PushNotificationDriver _pushNotificationDriver;
 
   final Signal<bool> isLoadingInitialData = signal<bool>(false);
   final Signal<bool> isLoadingMore = signal<bool>(false);
@@ -64,10 +68,12 @@ class HomeScreenPresenter {
     required IntakeService intakeService,
     required CacheDriver cacheDriver,
     required NavigationDriver navigationDriver,
+    required PushNotificationDriver pushNotificationDriver,
   }) : _authService = authService,
        _intakeService = intakeService,
        _cacheDriver = cacheDriver,
-       _navigationDriver = navigationDriver;
+       _navigationDriver = navigationDriver,
+       _pushNotificationDriver = pushNotificationDriver;
 
   Future<void> initialize() async {
     if (isLoadingInitialData.value || _didCompleteInitialLoad) {
@@ -96,7 +102,10 @@ class HomeScreenPresenter {
       return;
     }
 
-    firstName.value = _extractFirstName(accountResponse.body);
+    final AccountDto account = accountResponse.body;
+    firstName.value = _extractFirstName(account);
+    _syncPushNotificationUser(account);
+    _requestPushNotificationPermissionOnce();
 
     final RestResponse<CursorPaginationResponse<AnalysisDto>> analysesResponse =
         await _intakeService.listAnalyses(limit: _pageSize, isArchived: false);
@@ -246,6 +255,39 @@ class HomeScreenPresenter {
     return normalizedName.split(RegExp(r'\s+')).first;
   }
 
+  void _syncPushNotificationUser(AccountDto account) {
+    final String accountId = (account.id ?? '').trim();
+    if (accountId.isEmpty) {
+      return;
+    }
+
+    unawaited(
+      _pushNotificationDriver.identifyUser(accountId).catchError((_) {}),
+    );
+  }
+
+  void _requestPushNotificationPermissionOnce() {
+    final String promptAttempted =
+        (_cacheDriver.get(
+                  CacheKeys.pushNotificationPermissionPromptAttempted,
+                ) ??
+                '')
+            .trim();
+    if (promptAttempted.isNotEmpty) {
+      return;
+    }
+
+    _cacheDriver.set(
+      CacheKeys.pushNotificationPermissionPromptAttempted,
+      'true',
+    );
+    unawaited(
+      _pushNotificationDriver
+          .requestPermission(fallbackToSettings: false)
+          .catchError((_) => false),
+    );
+  }
+
   String _resolveGreeting(int hour) {
     if (hour < 12) {
       return 'Bom dia';
@@ -296,12 +338,16 @@ final Provider<HomeScreenPresenter> homeScreenPresenterProvider =
       final NavigationDriver navigationDriver = ref.watch(
         navigationDriverProvider,
       );
+      final PushNotificationDriver pushNotificationDriver = ref.watch(
+        pushNotificationDriverProvider,
+      );
 
       final HomeScreenPresenter presenter = HomeScreenPresenter(
         authService: authService,
         intakeService: intakeService,
         cacheDriver: cacheDriver,
         navigationDriver: navigationDriver,
+        pushNotificationDriver: pushNotificationDriver,
       );
 
       ref.onDispose(presenter.dispose);
