@@ -79,6 +79,50 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
+  Future<RestResponse<List<AnalysisDto>>> listProcessingAnalyses() async {
+    final RestResponse<List<AnalysisDto>>? authFailure =
+        requireAuth<List<AnalysisDto>>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/processing',
+    );
+
+    return response.mapBody<List<AnalysisDto>>((Json json) {
+      final dynamic itemsValue = json['items'] ?? json['analyses'] ?? json['data'];
+      if (itemsValue is! List<dynamic>) {
+        return const <AnalysisDto>[];
+      }
+
+      return itemsValue
+          .whereType<Json>()
+          .map(AnalysisMapper.toDto)
+          .toList(growable: false);
+    });
+  }
+
+  @override
+  Future<RestResponse<AnalysisStatusDto>> updateAnalysisStatus({
+    required String analysisId,
+    required AnalysisStatusDto status,
+  }) async {
+    final RestResponse<AnalysisStatusDto>? authFailure =
+        requireAuth<AnalysisStatusDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.patch(
+      '/intake/analyses/$analysisId/status',
+      body: <String, dynamic>{'status': status.value},
+    );
+
+    return response.mapBody<AnalysisStatusDto>(_mapAnalysisStatus);
+  }
+
+  @override
   Future<RestResponse<PetitionDto>> createPetition({
     required PetitionDto petition,
   }) async {
@@ -314,15 +358,17 @@ class IntakeRestService extends Service implements IntakeService {
       },
     );
 
-    return response.mapBody<AnalysisStatusDto>((Json json) {
-      final String statusValue =
-          (json['status'] ?? json['analysis_status'] ?? json['value'] ?? '')
-              .toString();
+    return response.mapBody<AnalysisStatusDto>(_mapAnalysisStatus);
+  }
 
-      return AnalysisStatusDto.values.firstWhere(
-        (AnalysisStatusDto status) => status.value == statusValue,
-        orElse: () => AnalysisStatusDto.waitingPrecedentChoice,
-      );
-    });
+  static AnalysisStatusDto _mapAnalysisStatus(Json json) {
+    final String statusValue =
+        (json['status'] ?? json['analysis_status'] ?? json['value'] ?? '')
+            .toString();
+
+    return AnalysisStatusDto.values.firstWhere(
+      (AnalysisStatusDto status) => status.value == statusValue,
+      orElse: () => AnalysisStatusDto.waitingPrecedentChoice,
+    );
   }
 }
