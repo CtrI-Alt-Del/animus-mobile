@@ -63,59 +63,147 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: tokens.surfacePage,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          color: tokens.surfaceCard,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: tokens.borderSubtle),
         ),
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Nova pasta',
-              style: textTheme.titleMedium?.copyWith(
-                color: tokens.textPrimary,
-                fontWeight: FontWeight.w600,
+          children: <Widget>[
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: tokens.borderStrong,
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            Row(
+              children: <Widget>[
+                Icon(
+                  Icons.create_new_folder_outlined,
+                  color: tokens.accent,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Nova pasta',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: tokens.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: _controller,
-              style: textTheme.bodyMedium,
-              decoration: InputDecoration(
-                labelText: 'Nome da pasta',
-                labelStyle: textTheme.bodySmall,
-                hintStyle: textTheme.bodySmall,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                hintText: 'Ex: Ações Civis',
-                errorText: _errorMessage,
-              ),
               autofocus: true,
               enabled: !_isCreating,
+              textInputAction: TextInputAction.done,
+              style: textTheme.bodyMedium?.copyWith(
+                color: tokens.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Ex: Ações Civis',
+                hintStyle: textTheme.bodyMedium?.copyWith(
+                  color: tokens.textMuted,
+                ),
+                filled: true,
+                fillColor: tokens.surfacePage,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: tokens.borderStrong),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: tokens.accent),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: tokens.danger),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: tokens.danger),
+                ),
+                errorText: _errorMessage,
+                errorStyle: textTheme.bodySmall?.copyWith(color: tokens.danger),
+              ),
               onSubmitted: (_) => _handleCreate(),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: _isCreating
-                      ? null
-                      : () => Navigator.of(context).pop(),
-                  child: Text('Cancelar'),
+              children: <Widget>[
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _isCreating
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                      side: BorderSide(color: tokens.borderSubtle),
+                      backgroundColor: tokens.surfaceElevated,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Cancelar',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: tokens.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: _isCreating ? null : _handleCreate,
-                  child: _isCreating
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Criar pasta'),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _isCreating ? null : _handleCreate,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: tokens.accent,
+                      foregroundColor: tokens.surfacePage,
+                      disabledBackgroundColor: tokens.accent.withValues(
+                        alpha: 0.4,
+                      ),
+                      disabledForegroundColor: tokens.surfacePage.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                    child: _isCreating
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                tokens.surfacePage,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            'Criar pasta',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: tokens.surfacePage,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                  ),
                 ),
               ],
             ),
