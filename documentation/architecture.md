@@ -139,6 +139,18 @@ Quando a analise chega ao estado `precedentChosen`, a exportacao do relatorio se
 6. `PdfDriver` define a capacidade de gerar e compartilhar o PDF sem expor tipos de `pdf` ou `printing` para a UI.
 7. `PrintingPdfDriver` monta o documento em memoria com `pdf` e delega o share sheet nativo ao pacote `printing`.
 
+## Fluxo da Tela de Pasta da Biblioteca
+
+A tela dedicada de pasta da biblioteca segue o mesmo fluxo MVP e mantem as operacoes de organizacao no bounded context `library`:
+
+1. `LibraryFolderScreenView` recebe o `folderId` pela rota `Routes.libraryFolder`, observa o presenter e apenas compoe loading, erro, vazio, lista, action bar e modais.
+2. `LibraryFolderScreenPresenter` centraliza metadados da pasta, paginacao, selecao multipla, erros recuperaveis, movimentacao em lote, arquivamento em lote, renomeacao e arquivamento da pasta.
+3. `LibraryService` publica no `core` os contratos tipados de listagem de analises por pasta e operacoes batch, alem dos contratos de pasta ja existentes.
+4. `LibraryRestService` encapsula os endpoints remotos: `GET /library/folders/{folderId}`, `GET /intake/analyses` com `folder_id`, `PATCH /intake/analyses/folder`, `PATCH /intake/analyses/archive`, `PATCH /library/folders/{folderId}` e `PATCH /library/folders/{folderId}/archive`.
+5. `MoveAnalysesModalPresenter` carrega todos os destinos possiveis via paginacao de `LibraryService.listFolders`, exclui a pasta atual da lista e trata a selecao explicita com `folderId == null` como destino `Sem pasta`.
+6. `FolderSettingsModalPresenter` mantem estado local de validacao e delega renomeacao ou arquivamento ao presenter da tela.
+7. A navegacao para analises e o retorno para a biblioteca continuam isolados por `NavigationDriver`, sem acoplamento dos presenters ao `go_router`.
+
 ## Contrato da API
 
 A integracao com o Animus Server e RESTful com payloads JSON. Os atributos seguem o padrao `snake_case` no transporte. O mobile converte esses payloads em DTOs tipados antes de expor dados para a UI.
