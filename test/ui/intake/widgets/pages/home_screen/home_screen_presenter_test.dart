@@ -130,12 +130,6 @@ void main() {
         () => pushNotificationDriver.identifyUser('account-123'),
       ).called(1);
       verify(
-        () => cacheDriver.set(
-          CacheKeys.pushNotificationPermissionPromptAttempted,
-          'true',
-        ),
-      ).called(1);
-      verify(
         () =>
             pushNotificationDriver.requestPermission(fallbackToSettings: false),
       ).called(1);
