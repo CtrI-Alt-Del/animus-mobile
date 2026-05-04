@@ -54,16 +54,6 @@ class AnalysisReportMapper {
     return <String, dynamic>{};
   }
 
-  static Json _toRequiredJsonField(dynamic value, String fieldName) {
-    if (value is Json) {
-      return value;
-    }
-
-    throw FormatException(
-      'Invalid analysis report payload: $fieldName is required.',
-    );
-  }
-
   static bool _hasValidChosenPrecedent(Json chosenPrecedent) {
     final dynamic precedentValue = chosenPrecedent['precedent'];
     if (precedentValue is! Json) {

@@ -15,6 +15,7 @@ import 'package:animus/rest/services/index.dart';
 
 class LibraryFolderScreenPresenter {
   static const int _pageSize = 50;
+  static const int _availableAnalysesLimit = 50;
 
   final String folderId;
   final LibraryService _libraryService;
@@ -22,13 +23,21 @@ class LibraryFolderScreenPresenter {
 
   final Signal<bool> isLoading = signal<bool>(false);
   final Signal<bool> isLoadingMore = signal<bool>(false);
+  final Signal<bool> isLoadingAvailableAnalyses = signal<bool>(false);
+  final Signal<bool> isAddingAvailableAnalyses = signal<bool>(false);
   final Signal<bool> isOperating = signal<bool>(false);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<FolderDto?> folder = signal<FolderDto?>(null);
   final Signal<List<AnalysisDto>> analyses = signal<List<AnalysisDto>>(
     const <AnalysisDto>[],
   );
+  final Signal<List<AnalysisDto>> availableAnalyses = signal<List<AnalysisDto>>(
+    const <AnalysisDto>[],
+  );
   final Signal<Set<String>> selectedAnalysisIds = signal<Set<String>>(
+    <String>{},
+  );
+  final Signal<Set<String>> selectedAvailableAnalysisIds = signal<Set<String>>(
     <String>{},
   );
   final Signal<String?> nextCursor = signal<String?>(null);
@@ -49,10 +58,20 @@ class LibraryFolderScreenPresenter {
     return cursor != null && cursor.trim().isNotEmpty;
   });
 
+  late final ReadonlySignal<bool> showAvailableAnalysisPicker = computed(() {
+    return !isLoading.value &&
+        generalError.value == null &&
+        analyses.value.isEmpty &&
+        (isLoadingAvailableAnalyses.value ||
+            availableAnalyses.value.isNotEmpty);
+  });
+
   late final ReadonlySignal<bool> showEmptyState = computed(() {
     return !isLoading.value &&
         generalError.value == null &&
-        analyses.value.isEmpty;
+        analyses.value.isEmpty &&
+        availableAnalyses.value.isEmpty &&
+        !isLoadingAvailableAnalyses.value;
   });
 
   LibraryFolderScreenPresenter({
@@ -114,8 +133,14 @@ class LibraryFolderScreenPresenter {
       );
       nextCursor.value = analysesResponse.body.nextCursor;
       selectedAnalysisIds.value = <String>{};
+      selectedAvailableAnalysisIds.value = <String>{};
+      availableAnalyses.value = const <AnalysisDto>[];
       generalError.value = null;
       isLoading.value = false;
+
+      if (analysesResponse.body.items.isEmpty) {
+        await loadAvailableAnalysesForEmptyFolder();
+      }
     } catch (_) {
       if (_isDisposed) {
         return;
@@ -133,7 +158,9 @@ class LibraryFolderScreenPresenter {
     }
 
     selectedAnalysisIds.value = <String>{};
+    selectedAvailableAnalysisIds.value = <String>{};
     analyses.value = const <AnalysisDto>[];
+    availableAnalyses.value = const <AnalysisDto>[];
     nextCursor.value = null;
     await load();
   }
@@ -185,6 +212,129 @@ class LibraryFolderScreenPresenter {
     isLoadingMore.value = false;
   }
 
+  Future<void> loadAvailableAnalysesForEmptyFolder() async {
+    if (_isDisposed || isLoadingAvailableAnalyses.value) {
+      return;
+    }
+
+    isLoadingAvailableAnalyses.value = true;
+    generalError.value = null;
+
+    final RestResponse<CursorPaginationResponse<AnalysisDto>> response =
+        await _libraryService.listUnfolderedAnalyses(
+          limit: _availableAnalysesLimit,
+        );
+
+    if (_isDisposed) {
+      return;
+    }
+
+    if (response.isFailure) {
+      generalError.value = _resolveErrorMessage(
+        response,
+        fallback: 'Nao foi possivel carregar analises disponiveis agora.',
+      );
+      isLoadingAvailableAnalyses.value = false;
+      return;
+    }
+
+    final Set<String> currentAnalysisIds = analyses.value
+        .map((AnalysisDto analysis) => (analysis.id ?? '').trim())
+        .where((String id) => id.isNotEmpty)
+        .toSet();
+
+    availableAnalyses.value = List<AnalysisDto>.unmodifiable(
+      response.body.items.where((AnalysisDto analysis) {
+        final String analysisId = (analysis.id ?? '').trim();
+        if (analysisId.isEmpty || currentAnalysisIds.contains(analysisId)) {
+          return false;
+        }
+
+        return analysis.folderId == null || analysis.folderId!.trim().isEmpty;
+      }),
+    );
+    isLoadingAvailableAnalyses.value = false;
+  }
+
+  void toggleAvailableAnalysisSelection(String analysisId) {
+    final String normalizedAnalysisId = analysisId.trim();
+    if (normalizedAnalysisId.isEmpty) {
+      return;
+    }
+
+    final Set<String> nextSelection = Set<String>.from(
+      selectedAvailableAnalysisIds.value,
+    );
+    if (nextSelection.contains(normalizedAnalysisId)) {
+      nextSelection.remove(normalizedAnalysisId);
+    } else {
+      nextSelection.add(normalizedAnalysisId);
+    }
+
+    selectedAvailableAnalysisIds.value = Set<String>.unmodifiable(
+      nextSelection,
+    );
+  }
+
+  void clearAvailableAnalysisSelection() {
+    selectedAvailableAnalysisIds.value = <String>{};
+  }
+
+  Future<void> addSelectedAvailableAnalyses() async {
+    if (_isDisposed || isAddingAvailableAnalyses.value) {
+      return;
+    }
+
+    final List<String> analysisIds = selectedAvailableAnalysisIds.value.toList(
+      growable: false,
+    );
+    if (analysisIds.isEmpty) {
+      return;
+    }
+
+    isAddingAvailableAnalyses.value = true;
+    generalError.value = null;
+
+    final RestResponse<void> response = await _libraryService
+        .moveAnalysesToFolder(analysisIds: analysisIds, folderId: folderId);
+
+    if (_isDisposed) {
+      return;
+    }
+
+    if (response.isFailure) {
+      generalError.value = _resolveErrorMessage(
+        response,
+        fallback: 'Nao foi possivel adicionar as analises nesta pasta.',
+      );
+      isAddingAvailableAnalyses.value = false;
+      return;
+    }
+
+    final Set<String> selectedIds = analysisIds.toSet();
+    final List<AnalysisDto> selectedAnalyses = availableAnalyses.value
+        .where(
+          (AnalysisDto analysis) =>
+              selectedIds.contains((analysis.id ?? '').trim()),
+        )
+        .toList(growable: false);
+
+    analyses.value = List<AnalysisDto>.unmodifiable(<AnalysisDto>[
+      ...analyses.value,
+      ...selectedAnalyses,
+    ]);
+    _updateFolderAnalysisCount(analyses.value.length);
+
+    availableAnalyses.value = List<AnalysisDto>.unmodifiable(
+      availableAnalyses.value.where(
+        (AnalysisDto analysis) =>
+            !selectedIds.contains((analysis.id ?? '').trim()),
+      ),
+    );
+    selectedAvailableAnalysisIds.value = <String>{};
+    isAddingAvailableAnalyses.value = false;
+  }
+
   Future<void> openAnalysis(AnalysisDto analysis) async {
     final String analysisId = (analysis.id ?? '').trim();
     if (analysisId.isEmpty) {
@@ -234,7 +384,7 @@ class LibraryFolderScreenPresenter {
     final RestResponse<void> response = await _libraryService
         .moveAnalysesToFolder(
           analysisIds: analysisIds,
-          folderId: destinationFolderId,
+          folderId: _normalizeDestinationFolderId(destinationFolderId),
         );
 
     if (_isDisposed) {
@@ -255,6 +405,7 @@ class LibraryFolderScreenPresenter {
     clearSelection();
     generalError.value = null;
     isOperating.value = false;
+    await _loadAvailableWhenCurrentListIsEmpty();
     return true;
   }
 
@@ -295,6 +446,7 @@ class LibraryFolderScreenPresenter {
     clearSelection();
     generalError.value = null;
     isOperating.value = false;
+    await _loadAvailableWhenCurrentListIsEmpty();
     return true;
   }
 
@@ -394,15 +546,20 @@ class LibraryFolderScreenPresenter {
     _isDisposed = true;
     isLoading.dispose();
     isLoadingMore.dispose();
+    isLoadingAvailableAnalyses.dispose();
+    isAddingAvailableAnalyses.dispose();
     isOperating.dispose();
     generalError.dispose();
     folder.dispose();
     analyses.dispose();
+    availableAnalyses.dispose();
     selectedAnalysisIds.dispose();
+    selectedAvailableAnalysisIds.dispose();
     nextCursor.dispose();
     hasSelection.dispose();
     selectedCount.dispose();
     hasMore.dispose();
+    showAvailableAnalysisPicker.dispose();
     showEmptyState.dispose();
   }
 
@@ -427,6 +584,42 @@ class LibraryFolderScreenPresenter {
       accountId: currentFolder.accountId,
       isArchived: currentFolder.isArchived,
     );
+  }
+
+  void _updateFolderAnalysisCount(int analysisCount) {
+    final FolderDto? currentFolder = folder.value;
+    if (currentFolder == null) {
+      return;
+    }
+
+    folder.value = FolderDto(
+      id: currentFolder.id,
+      name: currentFolder.name,
+      analysisCount: analysisCount < 0 ? 0 : analysisCount,
+      accountId: currentFolder.accountId,
+      isArchived: currentFolder.isArchived,
+    );
+  }
+
+  Future<void> _loadAvailableWhenCurrentListIsEmpty() async {
+    if (analyses.value.isNotEmpty ||
+        hasMore.value ||
+        isLoadingAvailableAnalyses.value) {
+      return;
+    }
+
+    availableAnalyses.value = const <AnalysisDto>[];
+    selectedAvailableAnalysisIds.value = <String>{};
+    await loadAvailableAnalysesForEmptyFolder();
+  }
+
+  String? _normalizeDestinationFolderId(String? destinationFolderId) {
+    final String? normalizedFolderId = destinationFolderId?.trim();
+    if (normalizedFolderId == null || normalizedFolderId.isEmpty) {
+      return null;
+    }
+
+    return normalizedFolderId;
   }
 
   String _resolveLoadErrorMessage(RestResponse<dynamic> response) {

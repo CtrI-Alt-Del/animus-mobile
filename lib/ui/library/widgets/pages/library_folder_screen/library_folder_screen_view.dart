@@ -9,6 +9,7 @@ import 'package:animus/core/library/dtos/folder_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/library/widgets/pages/library_folder_screen/archive_selected_analyses_dialog/index.dart';
 import 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_analysis_list/index.dart';
+import 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_available_analysis_picker/index.dart';
 import 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_empty_state/index.dart';
 import 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_error_state/index.dart';
 import 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_loading_state/index.dart';
@@ -108,10 +109,22 @@ class LibraryFolderScreenView extends ConsumerWidget {
     final bool isLoading = presenter.isLoading.watch(context);
     final FolderDto? folder = presenter.folder.watch(context);
     final List<AnalysisDto> analyses = presenter.analyses.watch(context);
+    final List<AnalysisDto> availableAnalyses = presenter.availableAnalyses
+        .watch(context);
+    final Set<String> selectedAvailableAnalysisIds = presenter
+        .selectedAvailableAnalysisIds
+        .watch(context);
     final bool hasSelection = presenter.hasSelection.watch(context);
     final int selectedCount = presenter.selectedCount.watch(context);
     final bool isOperating = presenter.isOperating.watch(context);
+    final bool isLoadingAvailableAnalyses = presenter.isLoadingAvailableAnalyses
+        .watch(context);
+    final bool isAddingAvailableAnalyses = presenter.isAddingAvailableAnalyses
+        .watch(context);
     final String? generalError = presenter.generalError.watch(context);
+    final bool showAvailableAnalysisPicker = presenter
+        .showAvailableAnalysisPicker
+        .watch(context);
     final bool showEmptyState = presenter.showEmptyState.watch(context);
 
     return Scaffold(
@@ -158,6 +171,30 @@ class LibraryFolderScreenView extends ConsumerWidget {
                               return FolderErrorState(
                                 message: generalError,
                                 onRetry: presenter.refresh,
+                              );
+                            }
+
+                            if (generalError != null && analyses.isEmpty) {
+                              return FolderErrorState(
+                                message: generalError,
+                                onRetry: presenter
+                                    .loadAvailableAnalysesForEmptyFolder,
+                              );
+                            }
+
+                            if (showAvailableAnalysisPicker) {
+                              return FolderAvailableAnalysisPicker(
+                                availableAnalyses: availableAnalyses,
+                                selectedAnalysisIds:
+                                    selectedAvailableAnalysisIds,
+                                isLoading: isLoadingAvailableAnalyses,
+                                isAdding: isAddingAvailableAnalyses,
+                                onToggleSelection:
+                                    presenter.toggleAvailableAnalysisSelection,
+                                onConfirm:
+                                    presenter.addSelectedAvailableAnalyses,
+                                onRetry: presenter
+                                    .loadAvailableAnalysesForEmptyFolder,
                               );
                             }
 

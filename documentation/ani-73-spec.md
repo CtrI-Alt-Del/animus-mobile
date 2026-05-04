@@ -1,13 +1,14 @@
 ---
-title: "ANI-73 - Tela de pasta da biblioteca"
-prd: "https://joaogoliveiragarcia.atlassian.net/wiki/spaces/ANM/pages/17989633/PRD+RF+04+Armazenamento+e+organiza+o+de+an+lises"
-ticket: "https://joaogoliveiragarcia.atlassian.net/browse/ANI-73?atlOrigin=eyJpIjoiOWZlMjI0M2JkMTgxNDhiMWIwMDljYzM0YTc3ZjIyMWYiLCJwIjoiaiJ9"
-last_updated_at: "2026-05-04"
+title: Tela de pasta da biblioteca
+status: closed
+prd: https://joaogoliveiragarcia.atlassian.net/wiki/spaces/ANM/pages/17989633/PRD+RF+04+Armazenamento+e+organiza+o+de+an+lises
+ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-73
+last_updated_at: 2026-05-04
 ---
 
 # 1. Objetivo
 
-Implementar a tela dedicada de uma pasta da biblioteca para substituir o placeholder de `/library/folders/:folderId`, permitindo carregar metadados da pasta, listar análises vinculadas, abrir uma análise, selecionar múltiplos itens, mover análises em lote para outra pasta ou para `Sem pasta`, arquivar análises em lote e gerenciar a pasta por modal de configuração. Ao abrir uma pasta vazia, a tela deve exibir o fluxo de adicionar análises disponíveis; ao confirmar a seleção, as análises adicionadas devem aparecer na pasta. A implementação deve respeitar a arquitetura MVP, `Riverpod`, `Signals`, `GoRouter` e os contratos tipados do `core`.
+Detalhar a implementação do fluxo de biblioteca e pasta no recorte `ANI-73`: a tela `F - Biblioteca` (`smS6d`) já existe como entrada do usuário e deve exibir as seções `Sem pasta` e `Pastas`; ao tocar em uma pasta da seção `Pastas`, o app abre a tela `G - Pasta` (`HoZeb`) em `/library/folders/:folderId`. A tela de pasta deve carregar metadados, listar análises associadas, abrir análises salvas, selecionar itens, mover análises em lote para outra pasta ou para `Sem pasta`, arquivar análises em lote, renomear a pasta e arquivar a pasta. Quando a pasta estiver vazia, a tela deve mostrar todas as análises disponíveis para adição; o usuário seleciona quais análises quer adicionar e, ao confirmar, essas análises passam a aparecer dentro da pasta. A entrega deve respeitar `MVP`, `Riverpod`, `signals`, `GoRouter`, `Dio`, `RestResponse`, os contratos dos bounded contexts `library` e `intake`, e a hierarquia visual dos nodes `smS6d` (`F - Biblioteca`), `HoZeb` (`G - Pasta`) e `VqUTX` (`Modal - Config Pasta`) em `design/animus.pen`.
 
 ---
 
@@ -15,28 +16,40 @@ Implementar a tela dedicada de uma pasta da biblioteca para substituir o placeho
 
 ## 2.1 In-scope
 
-- Criar a tela `LibraryFolderScreen` para a rota `/library/folders/:folderId`.
-- Carregar `FolderDto` e análises da pasta com paginação por cursor.
-- Exibir estados de loading, erro recuperável, conteúdo e pasta vazia com fluxo de adicionar análises.
-- Ao abrir uma pasta vazia, listar análises disponíveis para seleção e permitir adicioná-las à pasta atual.
-- Abrir uma análise salva pela rota `/analyses/:analysisId`.
-- Controlar seleção múltipla local e exibir action bar inferior quando houver seleção.
-- Mover análises selecionadas em lote para outra pasta existente ou para `Sem pasta`.
+- Registrar e consumir a rota autenticada `Routes.libraryFolder = '/library/folders/:folderId'`.
+- Manter a tela principal da biblioteca baseada no node `smS6d` (`F - Biblioteca`) com duas seções: `Sem pasta` e `Pastas`.
+- Navegar da seção `Pastas` da biblioteca para a tela de pasta ao tocar em uma pasta válida.
+- Carregar os metadados da pasta por `LibraryService.getFolder({required String folderId})`.
+- Listar análises ativas da pasta por `LibraryService.listFolderAnalyses({required String folderId, String? cursor, required int limit})`.
+- Ao entrar em uma pasta vazia, carregar e exibir análises disponíveis para adição à pasta.
+- Permitir que o usuário selecione uma ou mais análises disponíveis e confirme a adição.
+- Após adicionar análises à pasta vazia, exibir imediatamente essas análises na lista da pasta.
+- Renderizar estados visuais de `Loading`, `Error`, `AvailablePicker`, `Empty` e `Content`.
+- Permitir `pull-to-refresh` e paginação por cursor ao chegar ao fim da lista.
+- Abrir uma análise salva por `Routes.getAnalysis({required String analysisId})`.
+- Controlar seleção múltipla local de análises exibidas na pasta.
+- Exibir action bar inferior apenas quando houver seleção.
+- Mover análises selecionadas para outra pasta existente ou para `Sem pasta`.
 - Arquivar análises selecionadas em lote, sem exclusão permanente.
-- Abrir modal de configuração da pasta para renomear e arquivar a pasta.
-- Atualizar contratos `core`, implementação `rest`, providers e rotas necessários.
-- Seguir os nodes `HoZeb` e `VqUTX` de `design/animus.pen`, adaptando tokens ao `AppTheme`.
+- Abrir modal de configurações da pasta.
+- Renomear a pasta com validação local de nome obrigatório e máximo de 50 caracteres.
+- Arquivar a pasta e retornar para a tela principal da biblioteca.
+- Atualizar a lista e o contador local apenas após sucesso das operações batch.
+- Adaptar o visual dos nodes `HoZeb` e `VqUTX` aos tokens atuais de `AppThemeTokens` e componentes Flutter Material.
+- Manter largura máxima visual de `402px` na tela de pasta.
 
 ## 2.2 Out-of-scope
 
-- Área `Sem pasta` funcional em `/library/unfoldered`.
+- Tela dedicada completa de `/library/unfoldered`; a seção `Sem pasta` dentro da tela `F - Biblioteca` permanece contemplada neste fluxo.
 - Busca textual dentro de análises salvas.
-- Exclusão permanente de análises.
+- Filtros, ordenação manual ou agrupamentos adicionais dentro da pasta.
+- Exclusão permanente de análises ou pastas.
 - Compartilhamento de análises entre usuários.
-- Exportação da listagem de análises.
-- Botão `+` para adicionar análises quando a pasta já possui conteúdo.
-- CRUD completo de pastas fora das operações necessárias nesta tela.
-- Mudanças no `animus-server`; esta spec assume os endpoints de ANI-66 como disponíveis.
+- Uma análise pertencer a múltiplas pastas simultaneamente.
+- Exportação da listagem da pasta.
+- Alterações no fluxo de geração, síntese, precedentes ou exportação individual de relatório.
+- Cache offline da pasta ou da lista de análises.
+- Mudanças de backend além do consumo dos contratos REST já previstos para `library` e `intake`.
 
 ---
 
@@ -44,76 +57,109 @@ Implementar a tela dedicada de uma pasta da biblioteca para substituir o placeho
 
 ## 3.1 Funcionais
 
-- A tela deve receber `folderId` pela rota e bloquear a entrada quando o parâmetro estiver vazio.
-- A tela deve buscar os metadados da pasta e a primeira página de análises vinculadas.
-- Ao clicar em uma pasta na biblioteca, a rota deve abrir a tela daquela pasta e exibir as análises vinculadas a ela, não uma nova listagem de pastas.
-- As análises devem ser exibidas com nome e data de criação; quando o nome vier vazio, usar fallback visual `Análise sem nome`.
-- O contador no header deve refletir a quantidade carregada da pasta ou `FolderDto.analysisCount`, priorizando o valor remoto quando disponível.
-- Se a pasta não tiver análises, a tela não deve parar em uma mensagem vazia: deve mostrar a lista de análises disponíveis para adicionar à pasta.
-- Na lista de adição da pasta vazia, o usuário deve poder selecionar uma ou mais análises disponíveis e confirmar a adição.
-- Ao confirmar a adição com sucesso, chamar o contrato de mover/adicionar análises para a pasta atual, atualizar a lista local e exibir imediatamente as análises adicionadas dentro da pasta.
-- Em falha ao adicionar análises na pasta vazia, manter a seleção e não alterar a lista local da pasta.
-- Ao tocar em uma análise fora do modo seleção, navegar para `Routes.getAnalysis`.
-- Ao tocar no checkbox do item, alternar a seleção da análise.
-- Ao selecionar ao menos uma análise, exibir action bar com contador, ação `Mover` e ação de arquivamento.
-- Ao mover com sucesso para outra pasta ou para `Sem pasta`, remover os itens movidos da lista atual e limpar a seleção.
-- Ao arquivar com sucesso, remover os itens arquivados da lista atual e limpar a seleção.
-- Em falha de lote, manter seleção e lista local inalteradas.
-- O modal de configuração deve permitir renomear a pasta e arquivar a pasta.
-- Ao renomear com sucesso, atualizar o nome da pasta no header sem recarregar toda a tela.
-- Ao arquivar a pasta com sucesso, voltar para a biblioteca.
+- A rota `/library/folders/:folderId` deve rejeitar `folderId` ausente ou vazio e redirecionar para `Routes.library`.
+- A tela principal da biblioteca deve existir como `F - Biblioteca` e exibir duas seções principais: `Sem pasta` e `Pastas`.
+- A seção `Sem pasta` da tela `F - Biblioteca` deve exibir análises sem pasta para acesso rápido, sem ser confundida com a rota dedicada `/library/unfoldered`.
+- A seção `Pastas` da tela `F - Biblioteca` deve exibir cards de pasta e navegar para `Routes.getLibraryFolder(folderId: folderId)` ao tocar em uma pasta.
+- A tela de pasta deve carregar metadados da pasta e primeira página de análises em paralelo.
+- O cabeçalho deve exibir nome da pasta, contador de análises, botão de voltar e botão de configurações.
+- A lista deve exibir cada análise com nome, data de criação formatada em `dd/MM/yyyy`, ícone de documento e checkbox de seleção.
+- Ao entrar em uma pasta sem análises, a tela não deve ficar apenas em estado vazio informativo; ela deve carregar todas as análises disponíveis para adição.
+- Análises disponíveis são análises ativas retornadas por `IntakeService.listAnalyses(isArchived: false)` que não pertencem à pasta atual.
+- O usuário deve poder selecionar uma ou mais análises disponíveis na pasta vazia.
+- Ao confirmar a seleção de análises disponíveis, o presenter deve chamar `LibraryService.moveAnalysesToFolder(analysisIds: ids, folderId: folderId)` para vincular as análises à pasta atual.
+- Em sucesso ao adicionar análises, os itens selecionados devem sair da lista de disponíveis e aparecer imediatamente na lista principal da pasta.
+- Em falha ao adicionar análises, a seleção de disponíveis deve ser preservada e nenhuma análise deve ser adicionada localmente.
+- Quando `analysis.id` estiver vazio, o item não deve navegar nem entrar na seleção.
+- Em modo normal, tocar no card deve abrir a análise.
+- Em modo seleção, tocar no card deve alternar a seleção do item.
+- A action bar inferior deve exibir contador de selecionadas e ações `Mover` e `Arquivar`.
+- A ação `Mover` deve abrir seletor de destino com a opção `Sem pasta` e todas as pastas carregadas, exceto a pasta atual.
+- A ação `Mover` deve chamar `LibraryService.moveAnalysesToFolder(...)` em uma única requisição batch.
+- A ação `Arquivar` deve pedir confirmação explícita antes de chamar `LibraryService.archiveAnalyses(...)`.
+- Falha em movimentação ou arquivamento deve manter a seleção e exibir erro recuperável.
+- Sucesso em movimentação ou arquivamento deve remover os itens da lista atual, limpar seleção e atualizar o contador da pasta.
+- O modal de configurações deve permitir renomear a pasta.
+- O modal de configurações deve permitir arquivar a pasta, deixando claro que análises não são excluídas permanentemente.
+- Sucesso ao arquivar a pasta deve navegar de volta para `Routes.library`.
+- Falhas de carregamento inicial devem exibir estado de erro com CTA de retry.
+- Falhas de paginação ou operação em lote não devem apagar dados já renderizados.
 
 ## 3.2 Não funcionais
 
-- **Arquitetura:** `View` não chama `RestClient`; toda orquestração fica em `Presenter` consumindo `LibraryService`.
-- **Estado:** usar `Signal<T>` e `computed<T>` para estado local da tela e seleção.
-- **Navegação:** a rota de pasta deve permanecer autenticada e preservar o estado da branch Biblioteca.
-- **Acessibilidade:** botões de voltar, configurações, seleção e ações devem ter área mínima de toque de 44x44 e labels/tooltip semânticos.
-- **Performance:** carregar a primeira página com `limit` definido no presenter e buscar próximas páginas apenas quando o scroll aproximar do fim.
-- **Consistência visual:** cores, tipografia, bordas e gradientes devem usar `AppThemeTokens` sempre que houver token correspondente.
+- **Performance:** a carga inicial deve evitar chamadas duplicadas por meio de `initialize()` idempotente.
+- **Performance:** `loadNextPage()` não pode executar se já houver carga inicial, paginação ou ausência de `nextCursor`.
+- **Performance:** operações batch devem bloquear concorrência por `isOperating`.
+- **Acessibilidade:** cards, botões, checkbox, dialogs e modal devem manter labels/textos visíveis e áreas de toque compatíveis com Material.
+- **Offline/Conectividade:** falhas de rede devem manter contexto visual recuperável e permitir retry.
+- **Segurança:** a UI não deve lidar com token, header HTTP ou payload cru; autenticação permanece encapsulada na classe base `Service`.
+- **Compatibilidade:** a implementação deve continuar usando Flutter Material, `flutter_riverpod`, `signals_flutter`, `go_router` e `dio` já presentes na aplicação.
+- **Arquitetura:** `View` não deve conter regra de negócio; seleção, paginação, movimentação, arquivamento e navegação ficam no `Presenter`.
+- **Arquitetura:** presenters não acessam `RestClient`; eles consomem `LibraryService` e `NavigationDriver`.
+- **Robustez:** respostas `404` e `403` da pasta devem virar mensagens amigáveis, sem vazar mensagens técnicas do transporte para a UI.
 
 ---
 
 # 4. O que já existe?
 
-## Core
+## Camada Core
 
-- **`AnalysisDto`** (`lib/core/intake/dtos/analysis_dto.dart`) - DTO de análise com `id`, `name`, `createdAt`, `folderId` e `isArchived`.
+- **`AnalysisDto`** (`lib/core/intake/dtos/analysis_dto.dart`) - DTO usado na lista da pasta, com `id`, `name`, `createdAt`, `folderId`, `isArchived`, `status`, `summary` e `accountId`.
+- **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) - contrato já expõe `listAnalyses({String? cursor, required int limit, bool isArchived = false})`, usado para carregar análises disponíveis quando a pasta está vazia.
 - **`FolderDto`** (`lib/core/library/dtos/folder_dto.dart`) - DTO de pasta com `id`, `name`, `analysisCount`, `accountId` e `isArchived`.
-- **`LibraryService`** (`lib/core/library/interfaces/library_service.dart`) - contrato atual para listar/criar/buscar/renomear/arquivar pastas e listar análises sem pasta.
-- **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) - contrato atual para listar análises por `listAnalyses`, criar, buscar, renomear e arquivar uma análise individual.
-- **`CursorPaginationResponse<T>`** (`lib/core/shared/responses/cursor_pagination_response.dart`) - envelope de paginação por cursor.
-- **`RestResponse<T>`** (`lib/core/shared/responses/rest_response.dart`) - wrapper de sucesso/falha usado pelos services.
-- **`NavigationDriver`** (`lib/core/shared/interfaces/navigation_driver.dart`) - contrato para `goTo`, `pushTo`, `goBack` e `canGoBack`.
+- **`LibraryService`** (`lib/core/library/interfaces/library_service.dart`) - contrato do bounded context `library`, consumido pela UI e implementado na camada REST.
+- **`CursorPaginationResponse<T>`** (`lib/core/shared/responses/cursor_pagination_response.dart`) - wrapper de paginação por cursor com `items` e `nextCursor`.
+- **`RestResponse<T>`** (`lib/core/shared/responses/rest_response.dart`) - envelope padrão de sucesso/falha usado pelos services.
+- **`NavigationDriver`** (`lib/core/shared/interfaces/navigation_driver.dart`) - contrato usado por presenters para navegar sem acoplar a UI a `GoRouter`.
 
-## REST
+## Camada REST
 
-- **`LibraryRestService`** (`lib/rest/services/library_rest_service.dart`) - implementação REST atual de `LibraryService`.
-- **`IntakeRestService`** (`lib/rest/services/intake_rest_service.dart`) - implementação REST atual de `IntakeService`.
-- **`FolderMapper`** (`lib/rest/mappers/library/folder_mapper.dart`) - mapper de payload `snake_case` para `FolderDto`.
-- **`AnalysisMapper`** (`lib/rest/mappers/intake/analysis_mapper.dart`) - mapper de payload `snake_case` para `AnalysisDto`.
-- **`CursorPaginationMapper`** (`lib/rest/mappers/shared/cursor_pagination_mapper.dart`) - mapper para respostas com `items`/`data` e `next_cursor`.
-- **`libraryServiceProvider`** (`lib/rest/services/index.dart`) - provider Riverpod que compõe `LibraryRestService`.
+- **`LibraryRestService`** (`lib/rest/services/library_rest_service.dart`) - implementação concreta de `LibraryService`; concentra endpoints de pastas e operações batch de análises.
+- **`IntakeRestService`** (`lib/rest/services/intake_rest_service.dart`) - implementação concreta de `IntakeService`; fornece `GET /intake/analyses` para carregar análises disponíveis.
+- **`FolderMapper`** (`lib/rest/mappers/library/folder_mapper.dart`) - mapper de `FolderDto` para payloads `snake_case`.
+- **`AnalysisMapper`** (`lib/rest/mappers/intake/analysis_mapper.dart`) - mapper de análises retornadas por `/intake/analyses`.
+- **`CursorPaginationMapper`** (`lib/rest/mappers/shared/cursor_pagination_mapper.dart`) - mapper genérico de respostas com `items` ou `data` e `next_cursor` ou `nextCursor`.
+- **`libraryServiceProvider`** (`lib/rest/services/index.dart`) - provider Riverpod que injeta `RestClient`, `CacheDriver` e `NavigationDriver` em `LibraryRestService`.
+- **`Service`** (`lib/rest/services/service.dart`) - classe base que valida autenticação e normaliza respostas de services REST.
 
-## UI
+## Camada UI
 
-- **`LibraryScreenView`** (`lib/ui/storage/widgets/pages/library_screen/library_screen_view.dart`) - tela atual da biblioteca com listagem de pastas e navegação para pasta.
-- **`LibraryScreenPresenter`** (`lib/ui/storage/widgets/pages/library_screen/library_screen_presenter.dart`) - presenter que carrega pastas e chama `Routes.getLibraryFolder`.
-- **`FolderListItem`** (`lib/ui/storage/widgets/pages/library_screen/folder_list_item/folder_list_item_view.dart`) - item visual de pasta.
-- **`CreateFolderModal`** (`lib/ui/storage/widgets/pages/library_screen/create_folder_modal/create_folder_modal_view.dart`) - referência de modal/form de pasta existente.
-- **`RecentAnalysesSection`** (`lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart`) - referência de lista paginada, estados e pull-to-refresh.
-- **`RecentAnalysisCard`** (`lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/recent_analysis_card_view.dart`) - referência de card de análise.
-- **`RenameAnalysisDialog`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_header/rename_analysis_dialog/rename_analysis_dialog_view.dart`) - referência de diálogo de renomeação.
-- **`ArchiveAnalysisDialog`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_header/archive_analysis_dialog/archive_analysis_dialog_view.dart`) - referência de confirmação de arquivamento.
+- **`LibraryScreenView`** (`lib/ui/library/widgets/pages/library_screen/library_screen_view.dart`) - tela principal da biblioteca, equivalente ao node `smS6d`, que exibe as seções `Sem pasta` e `Pastas` e dispara navegação para a tela de pasta.
+- **`LibraryScreenPresenter`** (`lib/ui/library/widgets/pages/library_screen/library_screen_presenter.dart`) - presenter da biblioteca; referência direta de carregamento, criação de pasta e `openFolder(String folderId)`.
+- **`LibraryFolderScreenView`** (`lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_view.dart`) - tela de pasta do recorte `ANI-73`.
+- **`LibraryFolderScreenPresenter`** (`lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart`) - presenter da tela de pasta, responsável por carga, paginação, seleção, batch actions e navegação.
+- **`MoveAnalysesModalPresenter`** (`lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_presenter.dart`) - presenter do seletor de destino de movimentação.
+- **`FolderSettingsModalPresenter`** (`lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_presenter.dart`) - presenter do modal de configuração da pasta.
+- **`LibraryFolderBackgroundView`** (`lib/ui/library/widgets/pages/library_folder_screen/library_folder_background/library_folder_background_view.dart`) - fundo decorativo da tela, reutilizando `RadialGlow`.
+- **`LibraryFolderHeaderView`** (`lib/ui/library/widgets/pages/library_folder_screen/library_folder_header/library_folder_header_view.dart`) - cabeçalho com título, contador, voltar e configurações.
+- **`FolderAnalysisListView`** (`lib/ui/library/widgets/pages/library_folder_screen/folder_analysis_list/folder_analysis_list_view.dart`) - lista paginada com `RefreshIndicator` e `NotificationListener<ScrollNotification>`.
+- **`FolderAnalysisCardView`** (`lib/ui/library/widgets/pages/library_folder_screen/folder_analysis_card/folder_analysis_card_view.dart`) - card individual de análise.
+- **`FolderSelectionActionBarView`** (`lib/ui/library/widgets/pages/library_folder_screen/folder_selection_action_bar/folder_selection_action_bar_view.dart`) - action bar de seleção.
+- **`MoveAnalysesModalView`** (`lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_view.dart`) - modal de escolha de destino.
+- **`FolderSettingsModalView`** (`lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_view.dart`) - modal de renomeação e arquivamento da pasta.
+- **`ArchiveSelectedAnalysesDialogView`** (`lib/ui/library/widgets/pages/library_folder_screen/archive_selected_analyses_dialog/archive_selected_analyses_dialog_view.dart`) - diálogo de confirmação para arquivamento em lote.
+- **`FolderAvailableAnalysisPickerView`** (`lib/ui/storage/widgets/pages/library_folder_screen/folder_available_analysis_picker/folder_available_analysis_picker_view.dart`) - implementação legada no módulo `storage` que serve como referência de comportamento para o picker de análises disponíveis no módulo correto `ui/library`.
 
-## Rotas e Design
+## App / Router
 
-- **`Routes.libraryFolder`** (`lib/constants/routes.dart`) - rota `/library/folders/:folderId` já declarada.
-- **`Routes.getLibraryFolder`** (`lib/constants/routes.dart`) - builder de URL com `Uri.encodeComponent`.
-- **`router.dart`** (`lib/router.dart`) - registra a rota de pasta como placeholder.
-- **`AppShell`** (`lib/ui/shared/widgets/pages/app_shell/app_shell_view.dart`) - shell autenticado com bottom navigation.
-- **Node `HoZeb`** (`design/animus.pen`) - tela "G - Pasta" com header, lista de análises, alerta e action bar.
-- **Node `VqUTX`** (`design/animus.pen`) - modal "Config Pasta" com input de nome, atualizar nome, perigo e deletar pasta.
+- **`Routes.library`** (`lib/constants/routes.dart`) - rota principal da biblioteca.
+- **`Routes.libraryFolder`** (`lib/constants/routes.dart`) - rota parametrizada `/library/folders/:folderId`.
+- **`Routes.getLibraryFolder({required String folderId})`** (`lib/constants/routes.dart`) - helper que aplica `Uri.encodeComponent` no `folderId`.
+- **`Routes.analysis`** (`lib/constants/routes.dart`) - rota de detalhes de análise.
+- **`Routes.getAnalysis({required String analysisId})`** (`lib/constants/routes.dart`) - helper usado para abrir análise salva.
+- **`appRouter`** (`lib/router.dart`) - registra a tela de pasta no shell autenticado e protege `folderId` vazio via redirect.
+
+## Design
+
+- **`F - Biblioteca`** (`design/animus.pen`, node `smS6d`) - referência visual da tela de biblioteca com seção `Sem pasta`, seção `Pastas`, botão `Nova` e navegação inferior.
+- **`G - Pasta`** (`design/animus.pen`, node `HoZeb`) - referência visual da tela de pasta, com status bar, header, cards, seleção e action bar inferior.
+- **`Modal - Config Pasta`** (`design/animus.pen`, node `VqUTX`) - referência visual do modal de configurações.
+- **Tokens do Pencil** (`design/animus.pen`) - paleta `bg-page`, `bg-card`, `bg-elevated`, `text-primary`, `text-muted`, `red-error` e `indigo` usada como referência para `AppThemeTokens`.
+
+## Pontos de atenção
+
+- **Duplicidade histórica de módulo:** existem artefatos similares em `lib/ui/storage/widgets/pages/library_folder_screen/`, incluindo `folder_available_analysis_picker`, mas a rota de produção importa `lib/ui/library/widgets/pages/library_folder_screen/index.dart`.
+- **Sem pasta:** `ANI-73` contempla a seção `Sem pasta` dentro da tela `F - Biblioteca` e o destino `Sem pasta` em movimentações; a rota dedicada `/library/unfoldered` permanece fora deste recorte.
 
 ---
 
@@ -121,287 +167,396 @@ Implementar a tela dedicada de uma pasta da biblioteca para substituir o placeho
 
 ## Camada UI (Presenters)
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart` (**novo arquivo**)
-- **Dependências injetadas:** `LibraryService`, `IntakeService` e `NavigationDriver`.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart` (**novo arquivo no recorte ANI-73**)
+- **Dependências injetadas:** `LibraryService`, `IntakeService`, `NavigationDriver`
 - **Estado (`signals`):**
-  - `Signal<bool> isLoadingInitialData` - indica carga inicial de pasta e análises.
-  - `Signal<bool> isLoadingMore` - indica paginação incremental.
-  - `Signal<bool> isLoadingAvailableAnalyses` - indica carga da lista de análises disponíveis para adicionar em pasta vazia.
-  - `Signal<bool> isAddingAvailableAnalyses` - bloqueia confirmações concorrentes ao adicionar análises à pasta vazia.
-  - `Signal<bool> isMovingAnalyses` - bloqueia operações concorrentes de mover.
-  - `Signal<bool> isArchivingAnalyses` - bloqueia operações concorrentes de arquivamento.
-  - `Signal<bool> isManagingFolder` - bloqueia renomeação/arquivamento concorrente da pasta.
-  - `Signal<String?> generalError` - mensagem recuperável para falhas remotas.
-  - `Signal<FolderDto?> folder` - metadados da pasta carregada.
-  - `Signal<List<AnalysisDto>> analyses` - análises visíveis da pasta.
-  - `Signal<List<AnalysisDto>> availableAnalyses` - análises não arquivadas disponíveis para adicionar quando a pasta atual estiver vazia.
-  - `Signal<Set<String>> selectedAnalysisIds` - seleção múltipla por id.
-  - `Signal<Set<String>> selectedAvailableAnalysisIds` - seleção da lista de análises disponíveis para adicionar à pasta vazia.
-  - `Signal<String?> nextCursor` - cursor da próxima página.
-  - `ReadonlySignal<bool> hasMore` - `true` quando `nextCursor` não está vazio.
-  - `ReadonlySignal<bool> hasSelection` - `true` quando há ids selecionados.
-  - `ReadonlySignal<int> selectedCount` - quantidade de ids selecionados.
-  - `ReadonlySignal<bool> showAvailableAnalysisPicker` - `true` quando não está carregando, não há erro, a pasta está vazia e `isLoadingAvailableAnalyses` está ativo ou `availableAnalyses` tem itens.
-  - `ReadonlySignal<bool> showEmptyState` - `true` apenas quando a pasta está vazia, `availableAnalyses` também está vazia e não há carregamento de análises disponíveis em andamento.
-- **Provider Riverpod:** `libraryFolderScreenPresenterProvider`, `Provider.autoDispose.family<LibraryFolderScreenPresenter, String>`.
+- `Signal<bool> isLoading` - controla a primeira carga.
+- `Signal<bool> isLoadingMore` - controla paginação.
+- `Signal<bool> isLoadingAvailableAnalyses` - controla a carga de análises disponíveis quando a pasta está vazia.
+- `Signal<bool> isAddingAvailableAnalyses` - controla o submit de adição de análises à pasta.
+- `Signal<bool> isOperating` - bloqueia operações batch concorrentes.
+- `Signal<String?> generalError` - guarda erro recuperável.
+- `Signal<FolderDto?> folder` - metadados da pasta atual.
+- `Signal<List<AnalysisDto>> analyses` - análises renderizadas.
+- `Signal<List<AnalysisDto>> availableAnalyses` - análises disponíveis para adição quando a pasta está vazia.
+- `Signal<Set<String>> selectedAnalysisIds` - seleção múltipla local.
+- `Signal<Set<String>> selectedAvailableAnalysisIds` - seleção local das análises disponíveis.
+- `Signal<String?> nextCursor` - cursor da próxima página.
+- **Computeds:**
+- `ReadonlySignal<bool> hasSelection` - verdadeiro quando há pelo menos uma análise selecionada.
+- `ReadonlySignal<int> selectedCount` - quantidade de análises selecionadas.
+- `ReadonlySignal<bool> hasMore` - verdadeiro quando `nextCursor` não está vazio.
+- `ReadonlySignal<bool> showAvailableAnalysisPicker` - verdadeiro quando a pasta está vazia e há carga ou itens disponíveis para adição.
+- `ReadonlySignal<bool> showEmptyState` - verdadeiro quando não há loading, erro, análises da pasta ou análises disponíveis.
+- **Provider Riverpod:** `libraryFolderScreenPresenterProvider`
 - **Métodos:**
-  - `Future<void> initialize()` - garante carga inicial única para o `folderId`.
-  - `Future<void> load()` - busca `getFolder` e `listFolderAnalyses` em paralelo, popula estado e, se a pasta vier vazia, chama `loadAvailableAnalysesForEmptyFolder`.
-  - `Future<void> refresh()` - limpa cursor/lista e recarrega a primeira página.
-  - `Future<void> loadNextPage()` - busca próxima página por `nextCursor`.
-  - `Future<void> loadAvailableAnalysesForEmptyFolder()` - chama `IntakeService.listAnalyses(isArchived: false, limit: 50)`, remove itens sem `id` e remove itens já vinculados à pasta caso existam no estado local.
-  - `void toggleAvailableAnalysisSelection(String analysisId)` - adiciona/remove id da seleção da lista de análises disponíveis.
-  - `void clearAvailableAnalysisSelection()` - limpa a seleção da lista de análises disponíveis.
-  - `Future<void> addSelectedAvailableAnalyses()` - chama `LibraryService.moveAnalysesToFolder` com `folderId` da rota, atualiza `analyses` com os itens adicionados e limpa `selectedAvailableAnalysisIds` somente em sucesso.
-  - `Future<void> openAnalysis(AnalysisDto analysis)` - navega para `/analyses/:analysisId` quando houver `id`.
-  - `void toggleSelection(String analysisId)` - adiciona/remove id da seleção.
-  - `void clearSelection()` - limpa a seleção atual.
-  - `Future<void> moveSelectedAnalyses(String? folderId)` - chama `LibraryService.moveAnalysesToFolder`, atualiza a lista local e limpa seleção em sucesso.
-  - `Future<void> archiveSelectedAnalyses()` - chama `LibraryService.archiveAnalyses`, remove itens arquivados da lista e limpa seleção em sucesso.
-  - `Future<bool> renameFolder(String name)` - valida nome, chama `LibraryService.updateFolderName` e atualiza `folder`.
-  - `Future<bool> archiveFolder()` - chama `LibraryService.archiveFolder` e volta para a biblioteca em sucesso.
-  - `void goBack()` - usa `NavigationDriver.goBack` quando possível; fallback para `Routes.library`.
-  - `String formatCreatedAt(String value)` - formata ISO em `dd/MM/yyyy`; fallback `Data indisponível`.
-  - `void dispose()` - descarta todos os signals/computeds.
+- `Future<void> initialize()` - executa `load()` apenas uma vez por instância do presenter.
+- `Future<void> load()` - carrega `getFolder` e primeira página de `listFolderAnalyses` em paralelo.
+- `Future<void> refresh()` - limpa seleção, lista e cursor, depois recarrega a pasta.
+- `Future<void> loadNextPage()` - carrega próxima página quando `hasMore` estiver verdadeiro.
+- `Future<void> loadAvailableAnalysesForEmptyFolder()` - carrega análises ativas por `IntakeService.listAnalyses(isArchived: false)` e remove itens já vinculados à pasta atual.
+- `void toggleAvailableAnalysisSelection(String analysisId)` - alterna seleção de análise disponível.
+- `void clearAvailableAnalysisSelection()` - limpa seleção de disponíveis.
+- `Future<void> addSelectedAvailableAnalyses()` - adiciona análises disponíveis selecionadas à pasta atual via `LibraryService.moveAnalysesToFolder`.
+- `Future<void> openAnalysis(AnalysisDto analysis)` - navega para `Routes.getAnalysis` se `analysis.id` for válido.
+- `void toggleSelection(String analysisId)` - alterna seleção de uma análise válida.
+- `void clearSelection()` - limpa seleção.
+- `Future<bool> moveSelectedAnalyses(String? destinationFolderId)` - move seleção para outra pasta ou `Sem pasta`.
+- `Future<bool> archiveSelectedAnalyses()` - arquiva seleção em lote.
+- `Future<bool> renameFolder(String name)` - valida e atualiza nome da pasta.
+- `Future<bool> archiveFolder()` - arquiva a pasta e navega para `Routes.library` em sucesso.
+- `void goBack()` - volta na pilha se possível; caso contrário navega para `Routes.library`.
+- `String formatCreatedAt(String value)` - formata ISO date em `dd/MM/yyyy` ou retorna fallback.
+- `void dispose()` - libera todos os `signals` e `computed`.
+
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_presenter.dart` (**novo arquivo no recorte ANI-73**)
+- **Dependências injetadas:** `LibraryService`
+- **Estado (`signals`):**
+- `Signal<bool> isLoading` - carrega destinos.
+- `Signal<String?> generalError` - erro ao carregar destinos.
+- `Signal<List<FolderDto>> folders` - pastas disponíveis, excluindo a pasta atual.
+- `Signal<String?> selectedFolderId` - destino escolhido; `null` representa `Sem pasta`.
+- `Signal<bool> hasSelectedDestination` - diferencia destino `null` escolhido de ausência de escolha.
+- **Provider Riverpod:** `moveAnalysesModalPresenterProvider`
+- **Métodos:**
+- `Future<void> load()` - pagina `LibraryService.listFolders(limit: 50)`, acumulando destinos até `nextCursor` acabar.
+- `void selectFolder(String? folderId)` - seleciona destino, incluindo `null` para `Sem pasta`.
+- `void dispose()` - libera estado reativo.
+
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_presenter.dart` (**novo arquivo no recorte ANI-73**)
+- **Dependências injetadas:** callbacks do `LibraryFolderScreenPresenter` via provider family.
+- **Estado (`signals`):**
+- `Signal<String> name` - nome editado.
+- `Signal<bool> isSavingName` - loading da renomeação.
+- `Signal<bool> isArchivingFolder` - loading do arquivamento da pasta.
+- `Signal<String?> nameError` - erro de validação do campo.
+- `Signal<String?> generalError` - erro operacional do modal.
+- **Computed:** `ReadonlySignal<bool> canSaveName` - verdadeiro quando o nome tem 1 a 50 caracteres.
+- **Provider Riverpod:** `folderSettingsModalPresenterProvider`
+- **Métodos:**
+- `void setName(String value)` - atualiza campo e limpa erros.
+- `Future<bool> submitRename()` - valida e delega renomeação ao presenter da tela.
+- `Future<bool> submitArchiveFolder()` - delega arquivamento ao presenter da tela.
+- `void dispose()` - libera estado reativo.
 
 ## Camada UI (Views)
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_screen_view.dart` (**novo arquivo**)
-- **Base class:** `ConsumerWidget`.
-- **Props:** `final String folderId`.
-- **Bibliotecas de UI:** `flutter/material.dart`, `flutter_riverpod`, `signals_flutter`.
-- **Estados visuais:**
-  - Loading: skeleton ou `CircularProgressIndicator` central durante carga inicial.
-  - Error: mensagem com CTA `Tentar novamente`.
-  - Empty/add: quando a pasta não tem análises, renderizar a lista de análises disponíveis para adicionar; usar mensagem vazia apenas se também não houver análises disponíveis.
-  - Content: header, lista paginada, alerta e action bar condicional.
-- **Responsabilidade:** compor a tela, observar signals do presenter e delegar eventos.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_view.dart` (**novo arquivo no recorte ANI-73**)
+- **Base class:** `ConsumerWidget`
+- **Props:** `required String folderId`
+- **Bibliotecas de UI:** `flutter/material.dart`, `flutter_riverpod`, `signals_flutter`
+- **Estados visuais:** `Loading`, `Error`, `AvailablePicker`, `Empty`, `Content`
+- **Responsabilidade:** compor a tela, observar `signals`, abrir modais/dialogs, exibir o picker de análises disponíveis quando a pasta estiver vazia e despachar ações para `LibraryFolderScreenPresenter`.
+
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_view.dart` (**novo arquivo no recorte ANI-73**)
+- **Base class:** `ConsumerStatefulWidget`
+- **Props:** `required String currentFolderId`, `required int selectedCount`, `required Future<bool> Function(String? folderId) onMove`
+- **Bibliotecas de UI:** `flutter/material.dart`, `flutter_riverpod`, `signals_flutter`
+- **Estados visuais:** carregando destinos, erro de destinos, lista de destinos, erro de submit.
+- **Responsabilidade:** permitir escolha de destino e executar `onMove` apenas quando houver destino selecionado.
+
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_view.dart` (**novo arquivo no recorte ANI-73**)
+- **Base class:** `ConsumerStatefulWidget`
+- **Props:** `required String folderId`, `required FolderDto folder`
+- **Bibliotecas de UI:** `flutter/material.dart`, `flutter_riverpod`, `signals_flutter`
+- **Estados visuais:** edição de nome, erro de validação, loading de renomeação, loading de arquivamento.
+- **Responsabilidade:** renderizar o modal de configurações e delegar submit ao presenter.
 
 ## Camada UI (Widgets Internos)
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_header/` (**novo arquivo**)
-- **Tipo:** `View only`.
-- **Props:** `String title`, `int count`, `VoidCallback onBackPressed`, `VoidCallback onSettingsPressed`.
-- **Responsabilidade:** renderizar botão de voltar, nome da pasta, contador e botão de configurações conforme node `HoZeb`.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_available_analysis_picker/` (**novo arquivo**)
+- **Tipo:** `View only`
+- **Props:** `required List<AnalysisDto> availableAnalyses`, `required Set<String> selectedAnalysisIds`, `required bool isLoading`, `required bool isAdding`, `required void Function(String analysisId) onToggleSelection`, `required Future<void> Function() onConfirm`, `required Future<void> Function() onRetry`
+- **Responsabilidade:** renderizar a lista de análises disponíveis quando a pasta estiver vazia, permitir seleção múltipla e confirmar a adição à pasta.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_analysis_list/` (**novo arquivo**)
-- **Tipo:** `View only`.
-- **Props:** `List<AnalysisDto> analyses`, `Set<String> selectedAnalysisIds`, `bool isLoadingMore`, `bool hasMore`, `String Function(String) formatCreatedAt`, `Future<void> Function(AnalysisDto) onTapAnalysis`, `void Function(String) onToggleSelection`, `Future<void> Function() onLoadMore`, `Future<void> Function() onRefresh`.
-- **Responsabilidade:** renderizar lista com `RefreshIndicator`/scroll listener, disparar paginação e repassar seleção.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/library_folder_background/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** `required AppThemeTokens tokens`
+- **Responsabilidade:** renderizar glows decorativos de fundo com `RadialGlow`.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_analysis_item/` (**novo arquivo**)
-- **Tipo:** `View only`.
-- **Props:** `AnalysisDto analysis`, `bool isSelected`, `String dateLabel`, `VoidCallback onTap`, `VoidCallback onToggleSelection`.
-- **Responsabilidade:** renderizar card da análise com ícone, nome, data, checkbox e estado selecionado.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/library_folder_header/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** `required String title`, `required int analysisCount`, `required VoidCallback onBack`, `required VoidCallback onSettings`
+- **Responsabilidade:** renderizar título, contador, navegação de volta e botão de configurações.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/folder_available_analysis_picker/` (**novo arquivo**)
-- **Tipo:** `View only`.
-- **Props:** `List<AnalysisDto> availableAnalyses`, `Set<String> selectedAnalysisIds`, `bool isLoading`, `bool isAdding`, `void Function(String) onToggleSelection`, `Future<void> Function() onConfirm`, `Future<void> Function() onRetry`.
-- **Responsabilidade:** renderizar, quando a pasta estiver vazia, a lista de análises disponíveis para adicionar à pasta atual. O usuário seleciona uma ou mais análises e confirma; em sucesso, a tela volta a exibir a lista normal da pasta já com as análises adicionadas.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_loading_state/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** nenhuma.
+- **Responsabilidade:** renderizar skeleton visual da lista durante a carga inicial.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_action_bar/` (**novo arquivo**)
-- **Tipo:** `View only`.
-- **Props:** `int selectedCount`, `bool isMoving`, `bool isArchiving`, `VoidCallback onMovePressed`, `VoidCallback onArchivePressed`.
-- **Responsabilidade:** renderizar a action bar inferior do node `HoZeb`; desabilitar ações durante operação remota.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_error_state/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** `required String message`, `required Future<void> Function() onRetry`
+- **Responsabilidade:** renderizar erro bloqueante inicial com retry.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_settings_modal/` (**novo arquivo**)
-- **Tipo:** `View + Presenter`.
-- **Props:** `FolderDto folder`, `Future<bool> Function(String name) onRename`, `Future<bool> Function() onArchive`.
-- **Responsabilidade:** renderizar modal `VqUTX`, controlar campo de nome, validação local, loading e erro de renomear/arquivar.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_empty_state/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** `required String folderName`, `required Future<void> Function() onRefresh`
+- **Responsabilidade:** renderizar estado vazio somente quando a pasta não tiver análises e também não houver análises disponíveis para adicionar.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_settings_modal/library_folder_settings_modal_presenter.dart` (**novo arquivo**)
-- **Dependências injetadas:** callbacks recebidos por props; não injeta services.
-- **Estado (`signals`):**
-  - `Signal<String?> errorMessage` - erro de validação ou operação.
-  - `Signal<bool> isUpdatingName` - loading de renomeação.
-  - `Signal<bool> isArchivingFolder` - loading de arquivamento da pasta.
-- **Métodos:**
-  - `Future<bool> submitName(String name)` - valida nome não vazio e até 50 caracteres, chama `onRename`.
-  - `Future<bool> confirmArchive()` - chama `onArchive`.
-  - `void dispose()` - descarta signals.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_analysis_list/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** `required List<AnalysisDto> analyses`, `required Set<String> selectedIds`, `required bool isLoadingMore`, `required bool hasMore`, `required String Function(String value) formatCreatedAt`, `required Future<void> Function() onRefresh`, `required Future<void> Function() onLoadMore`, `required Future<void> Function(AnalysisDto analysis) onTapAnalysis`, `required void Function(String analysisId) onToggleSelection`
+- **Responsabilidade:** renderizar lista paginada, refresh e disparo de próxima página.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/folder_destination_picker/` (**novo arquivo**)
-- **Tipo:** `View + Presenter`.
-- **Props:** `String currentFolderId`, `Future<void> Function(String? folderId) onSelected`.
-- **Responsabilidade:** abrir seletor de destino para mover análises, incluindo opção `Sem pasta` e pastas existentes.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_analysis_card/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** `required AnalysisDto analysis`, `required String dateLabel`, `required bool isSelected`, `required VoidCallback onTap`, `required VoidCallback onToggleSelection`
+- **Responsabilidade:** renderizar card de análise, fallback de nome e checkbox.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/folder_destination_picker/folder_destination_picker_presenter.dart` (**novo arquivo**)
-- **Dependências injetadas:** `LibraryService`.
-- **Estado (`signals`):**
-  - `Signal<bool> isLoading` - carga de pastas.
-  - `Signal<String?> errorMessage` - erro recuperável.
-  - `Signal<List<FolderDto>> folders` - pastas disponíveis, excluindo a pasta atual.
-- **Provider Riverpod:** `folderDestinationPickerPresenterProvider`, `Provider.autoDispose.family<FolderDestinationPickerPresenter, String>`.
-- **Métodos:**
-  - `Future<void> load()` - chama `LibraryService.listFolders(limit: 50)` e remove `currentFolderId`.
-  - `Future<void> retry()` - recarrega lista.
-  - `void dispose()` - descarta signals.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_selection_action_bar/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** `required int selectedCount`, `required bool isOperating`, `required VoidCallback onMove`, `required VoidCallback onArchive`
+- **Responsabilidade:** renderizar action bar inferior com contador e ações batch.
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_empty_state/` (**novo arquivo**)
-- **Tipo:** `View only`.
-- **Props:** nenhuma obrigatória.
-- **Responsabilidade:** renderizar fallback de vazio apenas quando a pasta não tem análises e também não existem análises disponíveis para adicionar.
-
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_error_state/` (**novo arquivo**)
-- **Tipo:** `View only`.
-- **Props:** `String message`, `VoidCallback onRetry`.
-- **Responsabilidade:** renderizar erro recuperável.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/archive_selected_analyses_dialog/` (**novo arquivo no recorte ANI-73**)
+- **Tipo:** `View only`
+- **Props:** `required int selectedCount`
+- **Responsabilidade:** confirmar arquivamento em lote e deixar claro que não há exclusão permanente.
 
 ## Camada UI (Barrel Files / `index.dart`)
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/index.dart` (**novo arquivo**)
-- **`typedef` exportado:** `typedef LibraryFolderScreen = LibraryFolderScreenView`.
-- **Widgets internos exportados:** exportar apenas os barrels dos widgets usados fora da pasta, se houver. Os subwidgets internos permanecem importados pela própria tela.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/index.dart` (**novo arquivo no recorte ANI-73**)
+- **`typedef` exportado:** `typedef LibraryFolderScreen = LibraryFolderScreenView`
+- **Widgets internos exportados:** `archive_selected_analyses_dialog`, `folder_available_analysis_picker`, `folder_analysis_card`, `folder_analysis_list`, `folder_empty_state`, `folder_error_state`, `folder_loading_state`, `folder_selection_action_bar`, `folder_settings_modal`, `library_folder_background`, `library_folder_header`, `move_analyses_modal`
 
-- **Localização:** `lib/ui/storage/widgets/pages/library_folder_screen/<widget_interno>/index.dart` (**novo arquivo**)
-- **`typedef` exportado:** um typedef por widget, como `typedef LibraryFolderHeader = LibraryFolderHeaderView`.
+- **Localização:** subpastas de `lib/ui/library/widgets/pages/library_folder_screen/**/index.dart` (**novo arquivo no recorte ANI-73**)
+- **`typedef` exportado:** um typedef público por widget, como `typedef FolderAnalysisCard = FolderAnalysisCardView`
+- **Widgets internos exportados:** apenas o presenter quando a subpasta possui presenter próprio.
 
-## Camada Core (Interfaces / Contratos)
+## Camada UI (Providers Riverpod)
 
-- **Localização:** `lib/core/library/interfaces/library_service.dart`
-- **Métodos novos:**
-  - `Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listFolderAnalyses({required String folderId, String? cursor, required int limit})` - lista análises não arquivadas vinculadas à pasta.
-  - `Future<RestResponse<void>> moveAnalysesToFolder({required List<String> analysisIds, required String? folderId})` - move análises em lote para uma pasta ou para `Sem pasta`.
-  - `Future<RestResponse<void>> archiveAnalyses({required List<String> analysisIds})` - arquiva análises em lote de forma atômica.
-- **Decisão:** manter essas operações em `LibraryService`, porque a codebase já usa esse contrato para fluxos de biblioteca e já consulta `/intake/analyses/unfoldered` por `LibraryRestService`.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart`
+- **Nome do provider:** `libraryFolderScreenPresenterProvider`
+- **Tipo:** `Provider.autoDispose.family<LibraryFolderScreenPresenter, String>`
+- **Dependências:** `ref.watch(libraryServiceProvider)`, `ref.watch(navigationDriverProvider)`
+- **Dependências adicionais para pasta vazia:** `ref.watch(intakeServiceProvider)` para carregar análises disponíveis.
 
-## Camada REST (Services)
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart`
+- **Nome do provider:** `libraryFolderScreenInitializationProvider`
+- **Tipo:** `Provider.autoDispose.family<void, String>`
+- **Dependências:** `libraryFolderScreenPresenterProvider(folderId)`
 
-- **Localização:** `lib/rest/services/library_rest_service.dart`
-- **Interface implementada:** `LibraryService`.
-- **Dependências:** `RestClient`, `CacheDriver`, `NavigationDriver`.
-- **Métodos novos:**
-  - `Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listFolderAnalyses({required String folderId, String? cursor, required int limit})` - chama endpoint de listagem da pasta, aplica `CursorPaginationMapper.toDto<AnalysisDto>`.
-  - `Future<RestResponse<void>> moveAnalysesToFolder({required List<String> analysisIds, required String? folderId})` - chama `PATCH /intake/analyses/folder` com `analysis_ids` e `folder_id`; usa `toVoidResponse`.
-  - `Future<RestResponse<void>> archiveAnalyses({required List<String> analysisIds})` - chama `PATCH /intake/analyses/archive` com `analysis_ids`; usa `toVoidResponse`.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_presenter.dart`
+- **Nome do provider:** `moveAnalysesModalPresenterProvider`
+- **Tipo:** `Provider.autoDispose.family<MoveAnalysesModalPresenter, String>`
+- **Dependências:** `ref.watch(libraryServiceProvider)`
 
-## Rotas (`go_router`)
-
-- **Localização:** `lib/router.dart`
-- **Caminho da rota:** `/library/folders/:folderId`.
-- **Widget principal:** `LibraryFolderScreen(folderId: folderId)`.
-- **Guards / redirecionamentos:** se `folderId` vazio, redirecionar para `Routes.library`.
-- **Estratégia visual:** registrar a rota autenticada na branch Biblioteca usando `parentNavigatorKey: rootNavigatorKey` para exibir a tela full-screen acima do `AppShell`, evitando conflito entre bottom navigation e action bar inferior, enquanto preserva a pilha da branch.
+- **Localização:** `lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_presenter.dart`
+- **Nome do provider:** `folderSettingsModalPresenterProvider`
+- **Tipo:** `Provider.autoDispose.family<FolderSettingsModalPresenter, ({String folderId, String initialName})>`
+- **Dependências:** `libraryFolderScreenPresenterProvider(args.folderId)`
 
 ## Estrutura de Pastas
 
 ```text
-lib/ui/storage/widgets/pages/library_folder_screen/
+lib/ui/library/widgets/pages/library_folder_screen/
   index.dart
   library_folder_screen_view.dart
   library_folder_screen_presenter.dart
+  archive_selected_analyses_dialog/
+    index.dart
+    archive_selected_analyses_dialog_view.dart
   folder_available_analysis_picker/
     index.dart
     folder_available_analysis_picker_view.dart
-  folder_destination_picker/
+  folder_analysis_card/
     index.dart
-    folder_destination_picker_view.dart
-    folder_destination_picker_presenter.dart
-  library_folder_action_bar/
+    folder_analysis_card_view.dart
+  folder_analysis_list/
     index.dart
-    library_folder_action_bar_view.dart
-  library_folder_analysis_item/
+    folder_analysis_list_view.dart
+  folder_empty_state/
     index.dart
-    library_folder_analysis_item_view.dart
-  library_folder_analysis_list/
+    folder_empty_state_view.dart
+  folder_error_state/
     index.dart
-    library_folder_analysis_list_view.dart
-  library_folder_empty_state/
+    folder_error_state_view.dart
+  folder_loading_state/
     index.dart
-    library_folder_empty_state_view.dart
-  library_folder_error_state/
+    folder_loading_state_view.dart
+  folder_selection_action_bar/
     index.dart
-    library_folder_error_state_view.dart
+    folder_selection_action_bar_view.dart
+  folder_settings_modal/
+    index.dart
+    folder_settings_modal_view.dart
+    folder_settings_modal_presenter.dart
+  library_folder_background/
+    index.dart
+    library_folder_background_view.dart
   library_folder_header/
     index.dart
     library_folder_header_view.dart
-  library_folder_settings_modal/
+  move_analyses_modal/
     index.dart
-    library_folder_settings_modal_view.dart
-    library_folder_settings_modal_presenter.dart
+    move_analyses_modal_view.dart
+    move_analyses_modal_presenter.dart
 ```
 
 ---
 
 # 6. O que deve ser modificado?
 
-## Core
+## Camada Core
 
 - **Arquivo:** `lib/core/library/interfaces/library_service.dart`
-- **Mudança:** adicionar contratos `listFolderAnalyses`, `moveAnalysesToFolder` e `archiveAnalyses`.
-- **Justificativa:** a tela precisa listar análises da pasta e executar operações batch sem conhecer endpoints.
+- **Mudança:** garantir os contratos `listFolderAnalyses`, `getFolder`, `updateFolderName`, `archiveFolder`, `moveAnalysesToFolder` e `archiveAnalyses`.
+- **Justificativa:** a UI da pasta precisa de uma porta estável para consulta de pasta, listagem paginada e operações batch.
+
+- **Arquivo:** `lib/core/library/dtos/folder_dto.dart`
+- **Mudança:** garantir `id`, `name`, `analysisCount`, `accountId` e `isArchived`.
+- **Justificativa:** a tela depende de nome e contador; operações de pasta dependem do identificador e do status arquivado.
+
+- **Arquivo:** `lib/core/intake/dtos/analysis_dto.dart`
+- **Mudança:** garantir `id`, `name`, `createdAt`, `folderId` e `isArchived`.
+- **Justificativa:** a lista de pasta precisa abrir análise, exibir data, validar pertencimento à pasta e ignorar itens arquivados.
 
 - **Arquivo:** `lib/core/intake/interfaces/intake_service.dart`
-- **Mudança:** não adicionar contrato obrigatório; reutilizar `listAnalyses(isArchived: false)` para carregar análises disponíveis no fluxo de adicionar em pasta vazia.
-- **Justificativa:** o contrato atual já expõe a listagem paginada de análises salvas não arquivadas.
+- **Mudança:** reutilizar `Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listAnalyses({String? cursor, required int limit, bool isArchived = false})` no fluxo de pasta vazia.
+- **Justificativa:** ao entrar em uma pasta vazia, o app precisa listar análises disponíveis para o usuário adicionar à pasta sem acessar `RestClient` diretamente.
 
-## REST
+## Camada REST
 
 - **Arquivo:** `lib/rest/services/library_rest_service.dart`
-- **Mudança:** implementar os novos métodos de `LibraryService`, incluindo payloads `analysis_ids` e `folder_id`.
-- **Justificativa:** manter transporte HTTP encapsulado na camada REST e reaproveitar `AnalysisMapper`.
+- **Mudança:** implementar `Future<RestResponse<FolderDto>> getFolder({required String folderId})` com `GET /library/folders/{folderId}`.
+- **Justificativa:** a tela precisa dos metadados da pasta antes de renderizar header e ações.
 
-## UI
+- **Arquivo:** `lib/rest/services/library_rest_service.dart`
+- **Mudança:** implementar `Future<RestResponse<CursorPaginationResponse<AnalysisDto>>> listFolderAnalyses({required String folderId, String? cursor, required int limit})` com `GET /intake/analyses`, query params `folder_id`, `is_archived=false`, `limit` e `cursor`.
+- **Justificativa:** análises salvas continuam no domínio `intake`, mas são consultadas pela experiência de biblioteca.
+
+- **Arquivo:** `lib/rest/services/library_rest_service.dart`
+- **Mudança:** implementar `Future<RestResponse<FolderDto>> updateFolderName({required String folderId, required String name})` com `PATCH /library/folders/{folderId}` e body `{name}`.
+- **Justificativa:** o modal de configurações deve renomear pasta sem a UI conhecer endpoint ou payload.
+
+- **Arquivo:** `lib/rest/services/library_rest_service.dart`
+- **Mudança:** implementar `Future<RestResponse<FolderDto>> archiveFolder({required String folderId})` com `PATCH /library/folders/{folderId}/archive`.
+- **Justificativa:** a ação de "excluir" do PRD é tratada no mobile como arquivamento da pasta, preservando análises e movendo-as para `Sem pasta` conforme regra de negócio.
+
+- **Arquivo:** `lib/rest/services/library_rest_service.dart`
+- **Mudança:** implementar `Future<RestResponse<void>> moveAnalysesToFolder({required List<String> analysisIds, required String? folderId})` com `PATCH /intake/analyses/folder` e body `analysis_ids` + `folder_id`.
+- **Justificativa:** movimentação em lote deve ser uma única operação remota atômica para a experiência do usuário.
+
+- **Arquivo:** `lib/rest/services/library_rest_service.dart`
+- **Mudança:** implementar `Future<RestResponse<void>> archiveAnalyses({required List<String> analysisIds})` com `PATCH /intake/analyses/archive`.
+- **Justificativa:** a ação visual de arquivar remove as análises da visualização ativa sem exclusão permanente.
+
+- **Arquivo:** `lib/rest/services/intake_rest_service.dart`
+- **Mudança:** reutilizar `listAnalyses({String? cursor, required int limit, bool isArchived = false})`, consumindo `GET /intake/analyses` com `is_archived=false`.
+- **Justificativa:** a pasta vazia precisa carregar análises ativas disponíveis antes de chamar o batch de movimentação para a pasta atual.
+
+- **Arquivo:** `lib/rest/mappers/library/folder_mapper.dart`
+- **Mudança:** mapear `id`, `name`, `analysis_count`, `account_id` e `is_archived` para `FolderDto`.
+- **Justificativa:** o payload remoto usa `snake_case` e deve ser convertido antes de chegar à UI.
+
+- **Arquivo:** `lib/rest/services/index.dart`
+- **Mudança:** expor `libraryServiceProvider` para `LibraryRestService`.
+- **Justificativa:** presenters devem consumir `LibraryService` via Riverpod, sem instanciar adapters concretos.
+
+## App / Router
+
+- **Arquivo:** `lib/constants/routes.dart`
+- **Mudança:** adicionar `Routes.libraryFolder = '/library/folders/:folderId'` e `Routes.getLibraryFolder({required String folderId})`.
+- **Justificativa:** navegação deve ser centralizada e fazer encoding do parâmetro.
 
 - **Arquivo:** `lib/router.dart`
-- **Mudança:** substituir o placeholder da rota `Routes.libraryFolder` por `LibraryFolderScreen(folderId: folderId)` e redirecionar `folderId` vazio para `Routes.library`.
-- **Justificativa:** ANI-73 entrega a tela real de pasta.
+- **Mudança:** registrar `GoRoute` para `Routes.libraryFolder`, extrair `state.pathParameters['folderId']`, redirecionar ids vazios para `Routes.library` e construir `LibraryFolderScreen(folderId: folderId)`.
+- **Justificativa:** a rota da pasta substitui o placeholder e precisa permanecer dentro do fluxo autenticado.
 
-- **Arquivo:** `lib/router.dart`
-- **Mudança:** importar `package:animus/ui/storage/widgets/pages/library_folder_screen/index.dart`.
-- **Justificativa:** disponibilizar o widget da nova rota.
+## Camada UI
 
-- **Arquivo:** `lib/ui/storage/widgets/pages/library_screen/library_screen_presenter.dart`
-- **Mudança:** manter `openFolder` usando `Routes.getLibraryFolder`, sem alteração funcional esperada.
-- **Justificativa:** a navegação da biblioteca já aponta para a rota correta.
+- **Arquivo:** `lib/ui/library/widgets/pages/library_screen/library_screen_presenter.dart`
+- **Mudança:** adicionar ou manter `Future<void> openFolder(String folderId)` navegando via `NavigationDriver.pushTo(Routes.getLibraryFolder(folderId: folderId))` e recarregando a biblioteca no retorno.
+- **Justificativa:** a navegação parte da tela principal da biblioteca e deve preservar desacoplamento de `GoRouter`.
 
-- **Arquivo:** `lib/ui/storage/widgets/pages/library_screen/library_screen_view.dart`
-- **Mudança:** não aplicar mudança obrigatória; revisar apenas se a nova navegação exigir feedback de pasta sem `id`.
-- **Justificativa:** a tela já valida `f.id != null` antes de abrir a pasta.
+- **Arquivo:** `lib/ui/library/widgets/pages/library_screen/library_screen_view.dart`
+- **Mudança:** conectar `FolderGridCard.onTap` a `presenter.openFolder(folder.id!)` quando `folder.id` existir.
+- **Justificativa:** torna as pastas listadas navegáveis.
+
+- **Arquivo:** `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart`
+- **Mudança:** injetar `IntakeService`; adicionar estado de análises disponíveis, seleção de disponíveis, loading de disponíveis e loading de adição; carregar disponíveis quando `listFolderAnalyses` retornar vazio; adicionar `addSelectedAvailableAnalyses()`.
+- **Justificativa:** a regra de pasta vazia exige que o usuário consiga escolher análises existentes para preencher a pasta, sem concentrar lógica na View.
+
+- **Arquivo:** `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_view.dart`
+- **Mudança:** renderizar `FolderAvailableAnalysisPicker` quando `presenter.showAvailableAnalysisPicker` estiver ativo.
+- **Justificativa:** a tela de pasta vazia deve mostrar análises disponíveis, não apenas um estado vazio informativo.
+
+- **Arquivo:** `lib/ui/library/widgets/pages/library_folder_screen/index.dart`
+- **Mudança:** exportar `folder_available_analysis_picker/index.dart`.
+- **Justificativa:** manter a fronteira pública da pasta de widgets consistente com os demais componentes internos.
 
 ---
 
 # 7. O que deve ser removido?
 
-## UI
+**Não aplicável**.
 
-- **Arquivo:** `lib/router.dart`
-- **Motivo da remoção:** remover o `Scaffold` com texto `Pasta $folderId (Placeholder)`.
-- **Impacto esperado:** a rota passa a abrir `LibraryFolderScreen` e deixa de expor placeholder ao usuário.
+Os artefatos similares em `lib/ui/storage/widgets/pages/library_folder_screen/` devem ser tratados como limpeza técnica separada, porque a rota de produção de `ANI-73` usa `lib/ui/library/widgets/pages/library_folder_screen/`.
 
 ---
 
 # 8. Decisões Técnicas e Trade-offs
 
-- **Decisão:** concentrar contratos de pasta e organização em lote em `LibraryService`.
-- **Alternativas consideradas:** adicionar métodos em `IntakeService`, conforme texto do ticket ANI-73.
-- **Motivo da escolha:** a codebase já possui `core/library`, `LibraryService`, `LibraryRestService` e usa esse service para fluxos de biblioteca, incluindo análises sem pasta.
-- **Impactos / trade-offs:** `LibraryRestService` continuará chamando endpoints `/intake/analyses/*` quando o caso de uso for organização da biblioteca.
+- **Decisão:** usar o bounded context `library` (`LibraryService`) para a tela de pasta, em vez de adicionar os contratos ao `IntakeService`.
+- **Alternativas consideradas:** seguir literalmente o rascunho do ticket e concentrar `getFolder`, `listFolderAnalyses` e batch actions em `IntakeService`.
+- **Motivo da escolha:** a codebase já possui `core/library`, `rest/services/library_rest_service.dart` e `libraryServiceProvider`; operações de pasta pertencem ao contexto de biblioteca, mesmo quando listam `AnalysisDto` do domínio `intake`.
+- **Impactos / trade-offs:** o fluxo cruza `library` e `intake` no REST, mas a UI consome uma única porta coesa.
 
-- **Decisão:** usar `parentNavigatorKey: rootNavigatorKey` na rota de pasta.
-- **Alternativas consideradas:** manter a tela dentro do `AppShell` com bottom navigation visível.
-- **Motivo da escolha:** o node `HoZeb` tem action bar inferior própria e não prevê bottom navigation; a documentação atual de `go_router` aponta `parentNavigatorKey` como mecanismo para escolher o `Navigator` onde a página é colocada.
-- **Impactos / trade-offs:** a tela fica full-screen acima do shell, mas ainda é autenticada e retorna para a biblioteca com `NavigationDriver.goBack`.
+- **Decisão:** manter `AnalysisDto` em `core/intake` e `FolderDto` em `core/library`.
+- **Alternativas consideradas:** criar um DTO específico de item de pasta ou mover análises para `core/library`.
+- **Motivo da escolha:** análise continua sendo entidade do fluxo `intake`; a pasta apenas organiza análises existentes.
+- **Impactos / trade-offs:** a lista da pasta depende de `AnalysisDto`, mas evita duplicar modelo de análise.
 
-- **Decisão:** pasta vazia abre o fluxo de adicionar análises disponíveis, sem depender de botão `+`.
-- **Alternativas consideradas:** exibir apenas um estado vazio informativo ou exigir um botão `+` no header.
-- **Motivo da escolha:** ao clicar em uma pasta vazia, o usuário precisa conseguir preencher a pasta no mesmo fluxo; a spec deve deixar explícito que, ao confirmar a seleção, as análises passam a aparecer na pasta.
-- **Impactos / trade-offs:** a tela de pasta vazia fica mais funcional, mas exige carregar também a lista de análises disponíveis.
+- **Decisão:** quando uma pasta estiver vazia, trocar o vazio puramente informativo por um picker de análises disponíveis.
+- **Alternativas consideradas:** exibir apenas mensagem vazia com CTA de refresh; exigir que o usuário volte para a biblioteca e mova análises por outro fluxo; criar análises novas diretamente dentro da pasta.
+- **Motivo da escolha:** o fluxo desejado é: entrar em pasta vazia, ver análises disponíveis, selecionar quais adicionar e finalizar com essas análises aparecendo na pasta.
+- **Impactos / trade-offs:** a tela de pasta passa a depender também de `IntakeService.listAnalyses`, mas mantém a movimentação final em `LibraryService.moveAnalysesToFolder` e evita lógica de payload na UI.
 
-- **Decisão:** tratar `Deletar` do design como arquivamento, não exclusão permanente.
-- **Alternativas consideradas:** implementar exclusão definitiva.
-- **Motivo da escolha:** o PRD deixa exclusão permanente fora do escopo, e ANI-66 define `PATCH /intake/analyses/archive` para arquivamento em lote.
-- **Impactos / trade-offs:** textos de confirmação devem dizer `Arquivar` ou explicar que não é remoção definitiva, mesmo se o rótulo visual do node usar `Deletar`.
+- **Decisão:** considerar movimentação e arquivamento em lote como operações atômicas na experiência local.
+- **Alternativas consideradas:** remover cada item otimisticamente antes da resposta do backend; atualizar parcialmente itens bem-sucedidos.
+- **Motivo da escolha:** o ticket exige que falha em qualquer item não remova análises localmente.
+- **Impactos / trade-offs:** o feedback visual depende da resposta remota, mas evita divergência entre UI e servidor.
 
-- **Decisão:** operações batch são otimistas apenas após sucesso remoto.
-- **Alternativas consideradas:** remover itens da UI antes da resposta e reverter em falha.
-- **Motivo da escolha:** ANI-66 exige atomicidade; falha parcial não deve gerar estado local divergente.
-- **Impactos / trade-offs:** feedback pode parecer menos instantâneo, mas evita inconsistência.
+- **Decisão:** remover itens da lista local somente em sucesso.
+- **Alternativas consideradas:** recarregar a pasta inteira após cada operação; manter itens até refresh manual.
+- **Motivo da escolha:** remoção local é mais responsiva e suficiente porque as análises deixam de pertencer à visualização atual.
+- **Impactos / trade-offs:** o contador local precisa ser atualizado defensivamente para não ficar negativo.
 
-- **Decisão:** `LibraryFolderScreenPresenter` orquestra dados da rota; modais com estado próprio têm presenters dedicados.
-- **Alternativas consideradas:** concentrar form, seletor e operações no presenter da tela.
-- **Motivo da escolha:** as regras de UI exigem presenters filhos para widgets com estado, handlers ou validação própria.
-- **Impactos / trade-offs:** mais arquivos, porém responsabilidades menores e manutenção mais simples.
+- **Decisão:** mapear a ação visual de "deletar" do design para `archiveAnalyses` e `archiveFolder`.
+- **Alternativas consideradas:** expor texto de exclusão permanente; criar endpoint de delete definitivo.
+- **Motivo da escolha:** o PRD determina que análises não sejam excluídas ao remover pasta, e o ticket define `PATCH /intake/analyses/archive` para o lote.
+- **Impactos / trade-offs:** a UI deve usar linguagem de arquivamento para reduzir ambiguidade, mesmo que o node `HoZeb` use "Deletar".
+
+- **Decisão:** `MoveAnalysesModalPresenter` usa `hasSelectedDestination` separado de `selectedFolderId`.
+- **Alternativas consideradas:** usar apenas `selectedFolderId == null` para controlar o botão.
+- **Motivo da escolha:** `null` é um destino válido que representa `Sem pasta`; sem um boolean separado não há como diferenciar "não escolheu" de "escolheu Sem pasta".
+- **Impactos / trade-offs:** há um signal extra, mas a regra fica explícita no presenter.
+
+- **Decisão:** carregar todas as pastas de destino por paginação antes de confirmar movimentação.
+- **Alternativas consideradas:** carregar apenas primeira página; criar busca de destino; paginar visualmente dentro do modal.
+- **Motivo da escolha:** o seletor precisa oferecer destinos disponíveis de forma simples, e a quantidade esperada de pastas por usuário é pequena no recorte atual.
+- **Impactos / trade-offs:** contas com muitas pastas podem ter modal mais custoso; se isso crescer, a escolha deve evoluir para busca ou paginação visual.
+
+- **Decisão:** manter widgets internos majoritariamente `View only`, com presenters apenas nos modais que possuem estado próprio.
+- **Alternativas consideradas:** criar presenter para cada card, header, empty state e action bar.
+- **Motivo da escolha:** esses widgets apenas renderizam props e encaminham callbacks; presenters artificiais aumentariam ruído sem reduzir acoplamento.
+- **Impactos / trade-offs:** a tela centraliza a seleção no presenter principal, mas lógica específica de modal fica isolada em presenters filhos.
+
+- **Decisão:** limitar a largura da tela a `402px` com `ConstrainedBox`.
+- **Alternativas consideradas:** ocupar toda largura do dispositivo sem limite; usar breakpoints diferentes.
+- **Motivo da escolha:** o design `HoZeb` foi validado com largura `402px` e o app já prioriza experiência mobile.
+- **Impactos / trade-offs:** em telas largas, a experiência fica centralizada em coluna mobile.
+
+- **Decisão:** usar `NavigationDriver` em presenters e `Navigator` apenas para fechar modal/dialog local na View.
+- **Alternativas consideradas:** injetar `BuildContext` no presenter; chamar `GoRouter` diretamente na View para abrir análise.
+- **Motivo da escolha:** navegação entre rotas é side effect da camada de apresentação orquestrado pelo presenter; fechamento de modal é detalhe visual local.
+- **Impactos / trade-offs:** a View ainda controla `showModalBottomSheet`, `showDialog` e `Navigator.pop`, mas não decide regra de negócio.
+
+- **Decisão:** tratar mensagens técnicas de transporte no presenter e trocar por fallback amigável.
+- **Alternativas consideradas:** exibir `response.errorMessage` diretamente.
+- **Motivo da escolha:** mensagens de `Dio`/HTTP podem vazar detalhes técnicos e não ajudam o usuário.
+- **Impactos / trade-offs:** algumas mensagens específicas do backend podem ser ocultadas quando parecerem técnicas, priorizando UX segura.
 
 ---
 
@@ -410,112 +565,191 @@ lib/ui/storage/widgets/pages/library_folder_screen/
 - **Fluxo de dados:**
 
 ```text
-LibraryFolderScreenView
-  -> LibraryFolderScreenPresenter
+LibraryScreenView
+  -> renderiza F - Biblioteca (node smS6d)
+     -> seção Sem pasta
+        -> lista análises sem folder para acesso rápido
+     -> seção Pastas
+        -> cards de FolderDto
+  -> LibraryScreenPresenter.openFolder(folderId)
+  -> NavigationDriver.pushTo(Routes.getLibraryFolder(folderId))
+  -> GoRouter /library/folders/:folderId
+  -> LibraryFolderScreenView(folderId)
   -> libraryFolderScreenPresenterProvider(folderId)
-  -> LibraryService
-  -> LibraryRestService
-  -> RestClient
-  -> API
-
-LibraryFolderScreenView
-  -> signals/computeds
-  -> loading/error/empty/content/action bar
+  -> LibraryFolderScreenPresenter.initialize()
+     -> LibraryService.getFolder(folderId)
+        -> LibraryRestService.get('/library/folders/{folderId}')
+        -> FolderMapper.toDto(json)
+     -> LibraryService.listFolderAnalyses(folderId, limit: 50)
+        -> LibraryRestService.get('/intake/analyses', queryParams)
+        -> CursorPaginationMapper.toDto(json, AnalysisMapper.toDto)
+     -> signals (folder, analyses, nextCursor, generalError)
+  -> LibraryFolderScreenView renderiza estado
 ```
 
-- **Fluxo de adicionar análises em pasta vazia:**
+- **Fluxo de pasta vazia e adição de análises:**
 
 ```text
-LibraryScreen -> click na pasta -> LibraryFolderScreenView
-  -> LibraryFolderScreenPresenter.load
-  -> LibraryService.listFolderAnalyses
+LibraryFolderScreenPresenter.load()
+  -> LibraryService.getFolder(folderId)
+  -> LibraryService.listFolderAnalyses(folderId, limit: 50)
   -> analyses vazio
-  -> IntakeService.listAnalyses(isArchived: false)
+  -> LibraryFolderScreenPresenter.loadAvailableAnalysesForEmptyFolder()
+     -> IntakeService.listAnalyses(limit: 50, isArchived: false)
+        -> IntakeRestService.get('/intake/analyses', queryParams)
+        -> CursorPaginationMapper.toDto(json, AnalysisMapper.toDto)
+     -> filtra análises sem id, já vinculadas à pasta atual ou já carregadas
   -> FolderAvailableAnalysisPicker
-  -> usuario seleciona analises disponiveis
-  -> LibraryService.moveAnalysesToFolder(folderId atual)
-  -> atualiza analyses e exibe os itens dentro da pasta
+     -> usuário seleciona análises disponíveis
+     -> LibraryFolderScreenPresenter.addSelectedAvailableAnalyses()
+        -> LibraryService.moveAnalysesToFolder(analysisIds, folderId atual)
+        -> LibraryRestService.patch('/intake/analyses/folder')
+     -> sucesso: análises selecionadas aparecem em FolderAnalysisList
+     -> falha: mantém seleção e lista de disponíveis
 ```
 
-- **Fluxo de mover análises:**
+- **Fluxo de movimentação em lote:**
 
 ```text
-Action Bar -> FolderDestinationPicker -> LibraryFolderScreenPresenter
-  -> LibraryService.moveAnalysesToFolder
-  -> LibraryRestService
-  -> PATCH /intake/analyses/folder
-  -> remove itens da lista local somente em sucesso
+FolderSelectionActionBar.onMove
+  -> LibraryFolderScreenView.showModalBottomSheet()
+  -> MoveAnalysesModalView
+  -> MoveAnalysesModalPresenter.load()
+     -> LibraryService.listFolders(limit: 50)
+     -> folders sem currentFolderId
+  -> usuário escolhe destino
+  -> LibraryFolderScreenPresenter.moveSelectedAnalyses(destinationFolderId)
+     -> LibraryService.moveAnalysesToFolder(analysisIds, folderId)
+        -> LibraryRestService.patch('/intake/analyses/folder')
+     -> sucesso: remove análises da lista atual e limpa seleção
+     -> falha: mantém seleção e exibe generalError
 ```
 
-- **Fluxo de arquivar análises:**
+- **Fluxo de arquivamento em lote:**
 
 ```text
-Action Bar -> confirmacao -> LibraryFolderScreenPresenter
-  -> LibraryService.archiveAnalyses
-  -> LibraryRestService
-  -> PATCH /intake/analyses/archive
-  -> remove itens da lista local somente em sucesso
+FolderSelectionActionBar.onArchive
+  -> ArchiveSelectedAnalysesDialog
+  -> confirmação
+  -> LibraryFolderScreenPresenter.archiveSelectedAnalyses()
+     -> LibraryService.archiveAnalyses(analysisIds)
+        -> LibraryRestService.patch('/intake/analyses/archive')
+     -> sucesso: remove análises da lista atual e limpa seleção
+     -> falha: mantém seleção e exibe generalError
+```
+
+- **Fluxo de configuração da pasta:**
+
+```text
+LibraryFolderHeader.onSettings
+  -> FolderSettingsModalView(folder)
+  -> folderSettingsModalPresenterProvider(folderId, initialName)
+     -> usa LibraryFolderScreenPresenter.renameFolder
+     -> usa LibraryFolderScreenPresenter.archiveFolder
+
+Renomear
+  -> FolderSettingsModalPresenter.submitRename()
+  -> LibraryFolderScreenPresenter.renameFolder(name)
+  -> LibraryService.updateFolderName(folderId, name)
+  -> LibraryRestService.patch('/library/folders/{folderId}')
+
+Arquivar pasta
+  -> FolderSettingsModalPresenter.submitArchiveFolder()
+  -> LibraryFolderScreenPresenter.archiveFolder()
+  -> LibraryService.archiveFolder(folderId)
+  -> LibraryRestService.patch('/library/folders/{folderId}/archive')
+  -> NavigationDriver.goTo(Routes.library)
 ```
 
 - **Hierarquia de widgets:**
 
 ```text
+LibraryScreenView
+  Scaffold
+    AppBar("Biblioteca")
+    ListView
+      LibraryTabs
+      Sem pasta
+        UnfolderedAnalysisTile * N
+      Pastas
+        FolderGridCard * N
+
 LibraryFolderScreenView
-  LibraryFolderHeader
-  LibraryFolderErrorState | FolderAvailableAnalysisPicker | LibraryFolderEmptyState | LibraryFolderAnalysisList
-    LibraryFolderAnalysisItem
-  LibraryFolderActionBar
-  LibraryFolderSettingsModal
-  FolderDestinationPicker
+  Scaffold
+    SafeArea
+      Center
+        ConstrainedBox(maxWidth: 402)
+          Stack
+            LibraryFolderBackground
+            Column
+              LibraryFolderHeader
+              Expanded
+                FolderLoadingState
+                FolderErrorState
+                FolderAvailableAnalysisPicker
+                FolderEmptyState
+                FolderAnalysisList
+                  FolderAnalysisCard * N
+                  _LoadingMoreCard
+            FolderSelectionActionBar
+
+Modais e dialogs
+  MoveAnalysesModal
+    _DestinationTile(Sem pasta)
+    _DestinationTile(folder) * N
+  ArchiveSelectedAnalysesDialog
+  FolderSettingsModal
 ```
 
 - **Referências de implementação:**
-  - `lib/ui/storage/widgets/pages/library_screen/library_screen_view.dart`
-  - `lib/ui/storage/widgets/pages/library_screen/library_screen_presenter.dart`
-  - `lib/ui/storage/widgets/pages/library_screen/create_folder_modal/create_folder_modal_view.dart`
-  - `lib/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart`
-  - `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart`
-  - `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/recent_analysis_card_view.dart`
-  - `lib/ui/intake/widgets/pages/analysis_screen/analysis_header/rename_analysis_dialog/rename_analysis_dialog_view.dart`
-  - `lib/ui/intake/widgets/pages/analysis_screen/analysis_header/archive_analysis_dialog/archive_analysis_dialog_view.dart`
-  - `lib/core/library/interfaces/library_service.dart`
-  - `lib/rest/services/library_rest_service.dart`
-  - `lib/constants/routes.dart`
-  - `lib/router.dart`
-  - `design/animus.pen` nodes `HoZeb` e `VqUTX`
+- `lib/core/library/interfaces/library_service.dart`
+- `lib/core/intake/interfaces/intake_service.dart`
+- `lib/core/library/dtos/folder_dto.dart`
+- `lib/core/intake/dtos/analysis_dto.dart`
+- `lib/rest/services/library_rest_service.dart`
+- `lib/rest/services/intake_rest_service.dart`
+- `lib/rest/mappers/library/folder_mapper.dart`
+- `lib/rest/mappers/intake/analysis_mapper.dart`
+- `lib/rest/mappers/shared/cursor_pagination_mapper.dart`
+- `lib/rest/services/index.dart`
+- `lib/constants/routes.dart`
+- `lib/router.dart`
+- `lib/ui/library/widgets/pages/library_screen/library_screen_presenter.dart`
+- `lib/ui/library/widgets/pages/library_screen/library_screen_view.dart`
+- `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart`
+- `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_view.dart`
+- `lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_presenter.dart`
+- `lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_presenter.dart`
+- `lib/ui/storage/widgets/pages/library_folder_screen/folder_available_analysis_picker/folder_available_analysis_picker_view.dart`
+- `design/animus.pen` (nodes `smS6d`, `HoZeb`, `VqUTX`)
 
 ---
 
 # 10. Pendências / Dúvidas
 
-- **Descrição da pendência:** o PRD RF 04 registra ANI-73 como concluída, mas a codebase local ainda possui placeholder em `lib/router.dart`.
-- **Impacto na implementação:** esta spec assume a codebase local como fonte do estado a implementar e o PRD como fonte do comportamento esperado.
-- **Ação sugerida:** validar se o branch atual está atrasado em relação à implementação concluída ou se a spec deve guiar uma reimplementação.
+- **Descrição da pendência:** existem artefatos legados com nomes equivalentes em `lib/ui/storage/widgets/pages/library_folder_screen/`, enquanto a rota real usa `lib/ui/library/widgets/pages/library_folder_screen/`.
+- **Impacto na implementação:** pode haver confusão ao evoluir a feature ou ao procurar referências, principalmente porque os nomes de classes são similares.
+- **Ação sugerida:** abrir tarefa de limpeza técnica para consolidar ou remover o legado de `ui/storage`, sem misturar essa remoção ao escopo funcional de `ANI-73`.
 
-- **Descrição da pendência:** o endpoint exato para listar análises de uma pasta não aparece implementado no mobile atual.
-- **Impacto na implementação:** `listFolderAnalyses` precisa confirmar com o backend se deve chamar `GET /library/folders/{folderId}/analyses` ou `GET /intake/analyses` com filtro `folder_id`.
-- **Ação sugerida:** validar contrato com backend antes de implementar `LibraryRestService.listFolderAnalyses`.
-
-- **Descrição da pendência:** ANI-66 permite que endpoints batch retornem lista de análises, mas o `RestClient` mobile tipa respostas como `Json` (`Map<String, dynamic>`).
-- **Impacto na implementação:** se o backend responder array JSON direto, a camada REST mobile pode exigir ajuste no contrato do `RestClient`; se responder objeto ou sem body, `RestResponse<void>` atende esta tela.
-- **Ação sugerida:** confirmar se `PATCH /intake/analyses/folder` e `PATCH /intake/analyses/archive` retornam objeto/sem body para manter `toVoidResponse`.
-
-- **Descrição da pendência:** ANI-73 usa "excluir/deletar" no layout, enquanto PRD e ANI-66 definem arquivamento para análises.
-- **Impacto na implementação:** textos finais de UI devem evitar interpretação de exclusão permanente.
-- **Ação sugerida:** validar copy com produto/design; se não houver resposta, usar "Arquivar" nos diálogos e manter ícone de lixeira apenas como referência visual do design.
+- **Descrição da pendência:** a tela `F - Biblioteca` contempla a seção `Sem pasta`, mas a rota/tela dedicada `/library/unfoldered` permanece fora do recorte funcional de `ANI-73`.
+- **Impacto na implementação:** o usuário vê análises sem pasta na biblioteca e consegue mover análises para `Sem pasta`, mas uma experiência completa dedicada para todas as análises sem pasta deve ser validada em recorte próprio.
+- **Ação sugerida:** tratar a rota/tela dedicada `Sem pasta` em tarefa separada vinculada ao RF 04, sem remover a seção `Sem pasta` da biblioteca.
 
 ---
 
 # Restrições
 
-- Não incluir testes automatizados na spec.
-- A `View` não deve conter lógica de negócio; toda orquestração fica no `Presenter`.
-- Presenters não fazem chamadas diretas a `RestClient`; consomem sempre uma interface de serviço do `core`.
-- Todos os caminhos citados existem no projeto ou estão marcados como **novo arquivo**.
-- Não introduzir dependência de `Dio`, `GoRouter` concreto ou payload cru em `core`.
-- Não fazer parse de `Map<String, dynamic>` na UI.
-- Todo widget novo deve seguir o padrão `View + Presenter`; o `Presenter` é opcional apenas para widgets puramente visuais sem estado, handlers ou lógica.
-- O `Presenter` da screen deve ser enxuto e orquestrador.
-- Widgets internos com estado, handlers ou validação devem ter pasta própria com `index.dart`, `*_view.dart` e `*_presenter.dart`.
-- Usar componentes Flutter Material alinhados ao tema do projeto.
-- Arquivar análises ou pasta não pode ser tratado como exclusão permanente na lógica local.
+- **Não inclua testes automatizados na spec.**
+- A `View` não deve conter lógica de negócio; toda orquestração de carga, seleção, paginação e operações batch fica em presenters.
+- Presenters não fazem chamadas diretas a `RestClient`; consomem sempre `LibraryService`.
+- A UI não deve montar payload HTTP nem acessar `Dio`.
+- Ao entrar em pasta vazia, a UI deve apenas renderizar o picker; carregamento de disponíveis, seleção e confirmação pertencem ao presenter.
+- A adição de análises à pasta vazia deve usar `IntakeService.listAnalyses` para consulta e `LibraryService.moveAnalysesToFolder` para efetivar o vínculo.
+- `folder_id`, `analysis_ids`, `is_archived` e demais campos `snake_case` ficam confinados à camada REST.
+- Todos os caminhos citados nesta spec existem no projeto ou estão marcados como **novo arquivo no recorte ANI-73**.
+- A ação visual de exclusão deve ser implementada como arquivamento, não como remoção permanente.
+- `null` em `moveAnalysesToFolder.folderId` representa destino `Sem pasta`.
+- O presenter da tela deve preservar a seleção em falhas de operação batch.
+- Widgets internos com estado próprio devem manter presenter próprio; widgets puramente visuais podem ser `View only`.
+- Use componentes Flutter Material alinhados ao tema atual do projeto.
+- A nomenclatura deve seguir a codebase: arquivos em `snake_case`, classes em `PascalCase`, métodos/providers em `camelCase` e barrel files por widget.
