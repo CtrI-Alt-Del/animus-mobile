@@ -5,8 +5,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'package:animus/constants/routes.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
@@ -106,6 +108,7 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
 
   bool _isPrecedentsFlow(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         status == AnalysisStatusDto.generatingSynthesis ||
         status == AnalysisStatusDto.waitingPrecedentChoice ||
@@ -325,7 +328,14 @@ class _AnalysisScreenViewState extends ConsumerState<AnalysisScreenView> {
                       }
 
                       return AnalysisHeader(
-                        onBack: () => Navigator.of(context).maybePop(),
+                        onBack: () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                            return;
+                          }
+
+                          context.go(Routes.home);
+                        },
                         onExportReport: canExportReport
                             ? () {
                                 unawaited(

@@ -1,9 +1,11 @@
 import 'package:animus/app.dart';
 import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/env.dart';
+import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
 import 'package:animus/drivers/caches/shared_preferences/shared_preferences_cache_driver.dart';
 import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/navigation/go_router/go_router_navigation_driver.dart';
+import 'package:animus/drivers/push-notification-driver/index.dart';
 import 'package:animus/rest/dio/dio_rest_client.dart';
 import 'package:animus/rest/services/auth_rest_service.dart';
 import 'package:animus/theme.dart';
@@ -16,10 +18,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  const PushNotificationDriver pushNotificationDriver =
+      OneSignalPushNotificationDriver();
+  await pushNotificationDriver.initialize();
+
   final SharedPreferences sharedPreferences =
       await SharedPreferences.getInstance();
 
-  await _validateSessionOnAppLoad(sharedPreferences);
+  await _validateSessionOnAppLoad(sharedPreferences, pushNotificationDriver);
 
   if (AppTheme.defaultThemeMode == ThemeMode.dark) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -36,13 +42,19 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+        pushNotificationDriverProvider.overrideWithValue(
+          pushNotificationDriver,
+        ),
       ],
       child: const AnimusApp(),
     ),
   );
 }
 
-Future<void> _validateSessionOnAppLoad(SharedPreferences preferences) async {
+Future<void> _validateSessionOnAppLoad(
+  SharedPreferences preferences,
+  PushNotificationDriver pushNotificationDriver,
+) async {
   final String accessToken =
       (preferences.getString(CacheKeys.accessToken) ?? '').trim();
   final String refreshToken =
@@ -65,5 +77,12 @@ Future<void> _validateSessionOnAppLoad(SharedPreferences preferences) async {
   if (response.isFailure) {
     await preferences.remove(CacheKeys.accessToken);
     await preferences.remove(CacheKeys.refreshToken);
+    await pushNotificationDriver.clearUser();
+    return;
+  }
+
+  final String accountId = (response.body.id ?? '').trim();
+  if (accountId.isNotEmpty) {
+    await pushNotificationDriver.identifyUser(accountId);
   }
 }

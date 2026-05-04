@@ -128,6 +128,34 @@ void main() {
     );
 
     test(
+      'should keep polling when analysis status is analyzing precedents similarity',
+      () async {
+        final RelevantPrecedentsBubblePresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              status: AnalysisStatusDto.analyzingPrecedentsSimilarity,
+            ),
+          ),
+        );
+
+        await presenter.initialize();
+
+        expect(
+          presenter.processingStatus.value,
+          AnalysisStatusDto.analyzingPrecedentsSimilarity,
+        );
+        expect(presenter.isLoading.value, isTrue);
+        expect(presenter.generalError.value, isNull);
+      },
+    );
+
+    test(
       'should order precedents by final rank and select chosen precedent',
       () async {
         final RelevantPrecedentsBubblePresenter presenter = createPresenter();

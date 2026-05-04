@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/processing_spinner/index.dart';
 
-class RecentAnalysisCardView extends StatelessWidget {
+class ProcessingAnalysisCardView extends StatelessWidget {
   final String title;
   final String dateLabel;
   final String? statusLabel;
   final VoidCallback onTap;
 
-  const RecentAnalysisCardView({
+  const ProcessingAnalysisCardView({
     required this.title,
     required this.dateLabel,
     this.statusLabel,
@@ -21,13 +22,7 @@ class RecentAnalysisCardView extends StatelessWidget {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
-
     final BorderRadius borderRadius = BorderRadius.circular(18);
-    final BoxDecoration decoration = BoxDecoration(
-      color: tokens.surfaceCard,
-      borderRadius: borderRadius,
-      border: Border.all(color: tokens.borderSubtle),
-    );
 
     return Material(
       color: Colors.transparent,
@@ -36,7 +31,19 @@ class RecentAnalysisCardView extends StatelessWidget {
         borderRadius: borderRadius,
         child: Ink(
           padding: const EdgeInsets.all(16),
-          decoration: decoration,
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                tokens.accent.withValues(alpha: 0.14),
+                tokens.primaryGradient.colors.first.withValues(alpha: 0.08),
+                tokens.surfaceCard.withValues(alpha: 0.92),
+              ],
+            ),
+            border: Border.all(color: tokens.accent.withValues(alpha: 0.32)),
+          ),
           child: Row(
             children: <Widget>[
               Expanded(
@@ -62,14 +69,16 @@ class RecentAnalysisCardView extends StatelessWidget {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: tokens.surfaceElevated,
+                              color: tokens.accent.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: tokens.borderSubtle),
+                              border: Border.all(
+                                color: tokens.accent.withValues(alpha: 0.28),
+                              ),
                             ),
                             child: Text(
                               statusLabel!,
                               style: textTheme.labelSmall?.copyWith(
-                                color: tokens.textSecondary,
+                                color: tokens.accent,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -77,13 +86,21 @@ class RecentAnalysisCardView extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelMedium?.copyWith(
-                        color: tokens.textPrimary,
-                      ),
+                    Row(
+                      children: <Widget>[
+                        ProcessingSpinner(color: tokens.accent),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.labelMedium?.copyWith(
+                              color: tokens.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

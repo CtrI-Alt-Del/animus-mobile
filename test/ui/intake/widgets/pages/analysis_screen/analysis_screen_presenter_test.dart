@@ -14,7 +14,6 @@ import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.da
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
 import 'package:animus/core/storage/interfaces/storage_service.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart';
-import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -47,6 +46,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(PetitionDtoFaker.fake());
+    registerFallbackValue(AnalysisStatusDto.waitingPetition);
   });
 
   setUp(() async {
@@ -58,6 +58,17 @@ void main() {
     documentPickerDriver = _MockDocumentPickerDriver();
     when(() => cacheDriver.get(any())).thenReturn(null);
     when(() => cacheDriver.set(any(), any())).thenReturn(null);
+    when(
+      () => intakeService.updateAnalysisStatus(
+        analysisId: any(named: 'analysisId'),
+        status: any(named: 'status'),
+      ),
+    ).thenAnswer(
+      (_) async => RestResponse<AnalysisStatusDto>(
+        statusCode: 200,
+        body: AnalysisStatusDto.waitingPetition,
+      ),
+    );
     tempDirectory = await Directory.systemTemp.createTemp(
       'analysis_screen_presenter_test_',
     );
@@ -146,6 +157,42 @@ void main() {
       expect(presenter.petition.value, isNull);
       expect(presenter.summary.value, isNull);
       expect(presenter.analysisName.value, 'Nova Análise');
+    });
+
+    test('should reset failed analysis to waiting petition on load', () async {
+      final AnalysisScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.petition.value = PetitionDtoFaker.fake();
+      presenter.summary.value = PetitionSummaryDtoFaker.fake();
+      presenter.status.value = AnalysisStatusDto.petitionAnalyzed;
+
+      when(
+        () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+      ).thenAnswer(
+        (_) async => RestResponse<AnalysisDto>(
+          statusCode: 200,
+          body: AnalysisDtoFaker.fake(
+            status: AnalysisStatusDto.failed,
+            name: 'Analise com falha',
+          ),
+        ),
+      );
+
+      await presenter.load();
+
+      expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
+      expect(presenter.analysisName.value, 'Analise com falha');
+      expect(presenter.petition.value, isNull);
+      expect(presenter.summary.value, isNull);
+      expect(presenter.selectedFile.value, isNull);
+      expect(presenter.generalError.value, AnalysisScreenPresenter.failedMessage);
+      verify(
+        () => intakeService.updateAnalysisStatus(
+          analysisId: 'analysis-1',
+          status: AnalysisStatusDto.waitingPetition,
+        ),
+      ).called(1);
     });
 
     test(
@@ -469,7 +516,7 @@ void main() {
       ).called(1);
     });
 
-    test('should apply failed state when upload url request fails', () async {
+    test('should reset to waiting petition when upload url request fails', () async {
       final AnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       final File file = await createFile('petition.pdf', 2048);
@@ -491,10 +538,18 @@ void main() {
 
       await presenter.pickDocument();
 
-      expect(presenter.status.value, AnalysisStatusDto.failed);
+      expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
       expect(presenter.generalError.value, 'Falha ao gerar URL.');
-      expect(presenter.selectedFile.value?.path, file.path);
+      expect(presenter.selectedFile.value, isNull);
       expect(presenter.uploadProgress.value, isNull);
+      expect(presenter.petition.value, isNull);
+      expect(presenter.summary.value, isNull);
+      verify(
+        () => intakeService.updateAnalysisStatus(
+          analysisId: 'analysis-1',
+          status: AnalysisStatusDto.waitingPetition,
+        ),
+      ).called(1);
       verifyNever(
         () => intakeService.createPetition(petition: any(named: 'petition')),
       );
@@ -541,7 +596,7 @@ void main() {
     });
 
     test(
-      'should move to failed when summarize petition returns remote error',
+      'should reset to waiting petition when summarize petition returns remote error',
       () async {
         final AnalysisScreenPresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
@@ -561,52 +616,20 @@ void main() {
 
         await presenter.analyze();
 
-        expect(presenter.status.value, AnalysisStatusDto.failed);
+        expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
         expect(presenter.generalError.value, 'Falha ao gerar resumo.');
         expect(presenter.summary.value, isNull);
+        expect(presenter.petition.value, isNull);
+        verify(
+          () => intakeService.updateAnalysisStatus(
+            analysisId: 'analysis-1',
+            status: AnalysisStatusDto.waitingPetition,
+          ),
+        ).called(1);
       },
     );
 
-    test('should timeout summarize polling after 60 seconds', () {
-      final AnalysisScreenPresenter presenter = createPresenter();
-      addTearDown(presenter.dispose);
-      final petition = PetitionDtoFaker.fake();
-
-      presenter.petition.value = petition;
-      presenter.status.value = AnalysisStatusDto.petitionUploaded;
-
-      when(
-        () => intakeService.summarizePetition(petitionId: petition.id!),
-      ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
-      when(
-        () => intakeService.getAnalysis(analysisId: petition.analysisId),
-      ).thenAnswer(
-        (_) async => RestResponse<AnalysisDto>(
-          statusCode: 200,
-          body: AnalysisDtoFaker.fake(
-            status: AnalysisStatusDto.analyzingPetition,
-          ),
-        ),
-      );
-
-      fakeAsync((FakeAsync async) {
-        unawaited(presenter.analyze());
-
-        async.flushMicrotasks();
-        async.elapse(const Duration(seconds: 70));
-        async.flushMicrotasks();
-        async.elapse(Duration.zero);
-        async.flushMicrotasks();
-
-        expect(presenter.status.value, AnalysisStatusDto.failed);
-        expect(
-          presenter.generalError.value,
-          contains('O resumo excedeu o tempo limite de 60 segundos.'),
-        );
-      });
-    });
-
-    test('should fail when analysis polling returns failed status', () async {
+    test('should reset when analysis polling returns failed status', () async {
       final AnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       final petition = PetitionDtoFaker.fake();
@@ -628,12 +651,19 @@ void main() {
 
       await presenter.analyze();
 
-      expect(presenter.status.value, AnalysisStatusDto.failed);
+      expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
       expect(
         presenter.generalError.value,
         AnalysisScreenPresenter.failedMessage,
       );
       expect(presenter.summary.value, isNull);
+      expect(presenter.petition.value, isNull);
+      verify(
+        () => intakeService.updateAnalysisStatus(
+          analysisId: 'analysis-1',
+          status: AnalysisStatusDto.waitingPetition,
+        ),
+      ).called(1);
     });
   });
 
