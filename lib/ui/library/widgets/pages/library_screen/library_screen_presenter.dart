@@ -22,11 +22,24 @@ class LibraryScreenPresenter {
 
   final Signal<bool> isLoading = signal<bool>(true);
   final Signal<bool> hasError = signal<bool>(false);
+  final Signal<bool> isOperatingOnUnfolderedAnalyses = signal<bool>(false);
+  final Signal<String?> operationError = signal<String?>(null);
   final Signal<List<FolderDto>> folders = signal<List<FolderDto>>([]);
   final Signal<List<AnalysisDto>> unfolderedAnalyses =
       signal<List<AnalysisDto>>(<AnalysisDto>[]);
   final Signal<int> unfolderedCount = signal<int>(0);
   final Signal<int> selectedTabIndex = signal<int>(0);
+  final Signal<Set<String>> selectedUnfolderedAnalysisIds = signal<Set<String>>(
+    const <String>{},
+  );
+
+  late final ReadonlySignal<bool> hasUnfolderedSelection = computed(() {
+    return selectedUnfolderedAnalysisIds.value.isNotEmpty;
+  });
+
+  late final ReadonlySignal<int> selectedUnfolderedCount = computed(() {
+    return selectedUnfolderedAnalysisIds.value.length;
+  });
 
   bool _isDisposed = false;
   bool _didInitialize = false;
@@ -49,6 +62,7 @@ class LibraryScreenPresenter {
       isLoading.value = true;
     }
     hasError.value = false;
+    operationError.value = null;
 
     try {
       final List<Future<RestResponse>> futures = [
@@ -76,6 +90,7 @@ class LibraryScreenPresenter {
       folders.value = foldersResponse.body.items;
       unfolderedAnalyses.value = analysesResponse.body.items;
       unfolderedCount.value = analysesResponse.body.items.length;
+      selectedUnfolderedAnalysisIds.value = const <String>{};
       isLoading.value = false;
     } catch (_) {
       if (_isDisposed) {
@@ -127,7 +142,126 @@ class LibraryScreenPresenter {
       return;
     }
 
+    if (hasUnfolderedSelection.value) {
+      toggleUnfolderedSelection(analysisId);
+      return;
+    }
+
     await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+  }
+
+  void toggleUnfolderedSelection(String analysisId) {
+    final String normalizedAnalysisId = analysisId.trim();
+    if (normalizedAnalysisId.isEmpty) {
+      return;
+    }
+
+    final Set<String> nextSelection = Set<String>.from(
+      selectedUnfolderedAnalysisIds.value,
+    );
+    if (nextSelection.contains(normalizedAnalysisId)) {
+      nextSelection.remove(normalizedAnalysisId);
+    } else {
+      nextSelection.add(normalizedAnalysisId);
+    }
+
+    selectedUnfolderedAnalysisIds.value = Set<String>.unmodifiable(
+      nextSelection,
+    );
+  }
+
+  void clearUnfolderedSelection() {
+    selectedUnfolderedAnalysisIds.value = const <String>{};
+  }
+
+  Future<bool> moveSelectedUnfolderedAnalyses(
+    String? destinationFolderId,
+  ) async {
+    if (isOperatingOnUnfolderedAnalyses.value) {
+      return false;
+    }
+
+    final String normalizedDestinationFolderId = (destinationFolderId ?? '')
+        .trim();
+    final List<String> analysisIds = selectedUnfolderedAnalysisIds.value.toList(
+      growable: false,
+    );
+    if (analysisIds.isEmpty || normalizedDestinationFolderId.isEmpty) {
+      return false;
+    }
+
+    isOperatingOnUnfolderedAnalyses.value = true;
+    operationError.value = null;
+
+    final RestResponse<void> response = await _libraryService
+        .moveAnalysesToFolder(
+          analysisIds: analysisIds,
+          folderId: normalizedDestinationFolderId,
+        );
+
+    if (_isDisposed) {
+      return false;
+    }
+
+    if (response.isFailure) {
+      operationError.value = _resolveOperationErrorMessage(
+        response,
+        fallback:
+            'Nao foi possivel mover as analises selecionadas agora. Tente novamente.',
+      );
+      isOperatingOnUnfolderedAnalyses.value = false;
+      return false;
+    }
+
+    _removeUnfolderedAnalyses(analysisIds);
+    _incrementFolderAnalysisCount(
+      normalizedDestinationFolderId,
+      analysisIds.length,
+    );
+    selectedUnfolderedAnalysisIds.value = const <String>{};
+    operationError.value = null;
+    isOperatingOnUnfolderedAnalyses.value = false;
+    return true;
+  }
+
+  Future<bool> archiveSelectedUnfolderedAnalyses() async {
+    if (isOperatingOnUnfolderedAnalyses.value) {
+      return false;
+    }
+
+    final List<String> analysisIds = selectedUnfolderedAnalysisIds.value.toList(
+      growable: false,
+    );
+    if (analysisIds.isEmpty) {
+      return false;
+    }
+
+    isOperatingOnUnfolderedAnalyses.value = true;
+    operationError.value = null;
+
+    final RestResponse<void> response = await _libraryService.archiveAnalyses(
+      analysisIds: analysisIds,
+    );
+
+    if (_isDisposed) {
+      return false;
+    }
+
+    if (response.isFailure) {
+      operationError.value = _resolveOperationErrorMessage(
+        response,
+        fallback:
+            'Nao foi possivel arquivar as analises selecionadas agora. Tente novamente.',
+      );
+      isOperatingOnUnfolderedAnalyses.value = false;
+      return false;
+    }
+
+    _removeUnfolderedAnalyses(analysisIds);
+    selectedUnfolderedAnalysisIds.value = const <String>{};
+    operationError.value = null;
+    isOperatingOnUnfolderedAnalyses.value = false;
+    return true;
   }
 
   void selectTab(int index) {
@@ -135,6 +269,9 @@ class LibraryScreenPresenter {
       return;
     }
     selectedTabIndex.value = index;
+    if (index != 0) {
+      clearUnfolderedSelection();
+    }
   }
 
   String formatRelativeDate(String value) {
@@ -176,10 +313,68 @@ class LibraryScreenPresenter {
     _isDisposed = true;
     isLoading.dispose();
     hasError.dispose();
+    isOperatingOnUnfolderedAnalyses.dispose();
+    operationError.dispose();
     folders.dispose();
     unfolderedAnalyses.dispose();
     unfolderedCount.dispose();
     selectedTabIndex.dispose();
+    selectedUnfolderedAnalysisIds.dispose();
+    hasUnfolderedSelection.dispose();
+    selectedUnfolderedCount.dispose();
+  }
+
+  void _removeUnfolderedAnalyses(List<String> analysisIds) {
+    final Set<String> idsToRemove = analysisIds.toSet();
+    unfolderedAnalyses.value = List<AnalysisDto>.unmodifiable(
+      unfolderedAnalyses.value.where(
+        (AnalysisDto analysis) =>
+            !idsToRemove.contains((analysis.id ?? '').trim()),
+      ),
+    );
+    unfolderedCount.value = unfolderedAnalyses.value.length;
+  }
+
+  void _incrementFolderAnalysisCount(String folderId, int increment) {
+    folders.value = List<FolderDto>.unmodifiable(
+      folders.value.map((FolderDto folder) {
+        if (folder.id != folderId) {
+          return folder;
+        }
+
+        return FolderDto(
+          id: folder.id,
+          name: folder.name,
+          analysisCount: folder.analysisCount + increment,
+          accountId: folder.accountId,
+          isArchived: folder.isArchived,
+        );
+      }),
+    );
+  }
+
+  String _resolveOperationErrorMessage(
+    RestResponse<dynamic> response, {
+    required String fallback,
+  }) {
+    final dynamic bodyMessageDynamic = response.errorBody?['message'];
+    final String? bodyMessage = bodyMessageDynamic is String
+        ? bodyMessageDynamic
+        : null;
+    if (bodyMessage != null && bodyMessage.trim().isNotEmpty) {
+      return bodyMessage;
+    }
+
+    try {
+      final String message = response.errorMessage;
+      if (message.trim().isNotEmpty &&
+          !message.contains('RequestOptions.validateStatus') &&
+          !message.contains('developer.mozilla.org/en-US/docs/Web/HTTP')) {
+        return message;
+      }
+    } catch (_) {}
+
+    return fallback;
   }
 
   Future<void> _refreshAfterChildRoute() async {

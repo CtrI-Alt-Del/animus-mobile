@@ -211,6 +211,128 @@ void main() {
     });
   });
 
+  group('unfoldered selection actions', () {
+    test(
+      'openAnalysis alterna selecao quando ja existe selecao ativa',
+      () async {
+        final LibraryScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        presenter.selectedUnfolderedAnalysisIds.value = <String>{'analysis-1'};
+
+        await presenter.openAnalysis(createAnalysis(id: 'analysis-2'));
+
+        expect(presenter.selectedUnfolderedAnalysisIds.value, <String>{
+          'analysis-1',
+          'analysis-2',
+        });
+        verifyNever(() => navigationDriver.pushTo(any()));
+      },
+    );
+
+    test(
+      'moveSelectedUnfolderedAnalyses move para pasta e atualiza listas',
+      () async {
+        final LibraryScreenPresenter presenter = createPresenter();
+        final AnalysisDto selectedAnalysis = createAnalysis(id: 'analysis-1');
+        final AnalysisDto remainingAnalysis = createAnalysis(id: 'analysis-2');
+        final FolderDto destinationFolder = createFolder(
+          id: 'folder-1',
+          analysisCount: 2,
+        );
+        addTearDown(presenter.dispose);
+        presenter.unfolderedAnalyses.value = <AnalysisDto>[
+          selectedAnalysis,
+          remainingAnalysis,
+        ];
+        presenter.unfolderedCount.value = 2;
+        presenter.folders.value = <FolderDto>[destinationFolder];
+        presenter.selectedUnfolderedAnalysisIds.value = <String>{'analysis-1'};
+
+        when(
+          () => libraryService.moveAnalysesToFolder(
+            analysisIds: <String>['analysis-1'],
+            folderId: 'folder-1',
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 204));
+
+        final bool moved = await presenter.moveSelectedUnfolderedAnalyses(
+          'folder-1',
+        );
+
+        expect(moved, isTrue);
+        expect(presenter.unfolderedAnalyses.value, <AnalysisDto>[
+          remainingAnalysis,
+        ]);
+        expect(presenter.unfolderedCount.value, 1);
+        expect(presenter.folders.value.single.analysisCount, 3);
+        expect(presenter.selectedUnfolderedAnalysisIds.value, isEmpty);
+      },
+    );
+
+    test('moveSelectedUnfolderedAnalyses preserva selecao em falha', () async {
+      final LibraryScreenPresenter presenter = createPresenter();
+      final AnalysisDto selectedAnalysis = createAnalysis(id: 'analysis-1');
+      addTearDown(presenter.dispose);
+      presenter.unfolderedAnalyses.value = <AnalysisDto>[selectedAnalysis];
+      presenter.selectedUnfolderedAnalysisIds.value = <String>{'analysis-1'};
+
+      when(
+        () => libraryService.moveAnalysesToFolder(
+          analysisIds: <String>['analysis-1'],
+          folderId: 'folder-1',
+        ),
+      ).thenAnswer(
+        (_) async =>
+            RestResponse<void>(statusCode: 500, errorMessage: 'Falha remota'),
+      );
+
+      final bool moved = await presenter.moveSelectedUnfolderedAnalyses(
+        'folder-1',
+      );
+
+      expect(moved, isFalse);
+      expect(presenter.unfolderedAnalyses.value, <AnalysisDto>[
+        selectedAnalysis,
+      ]);
+      expect(presenter.selectedUnfolderedAnalysisIds.value, <String>{
+        'analysis-1',
+      });
+      expect(presenter.operationError.value, 'Falha remota');
+    });
+
+    test(
+      'archiveSelectedUnfolderedAnalyses arquiva e remove da lista',
+      () async {
+        final LibraryScreenPresenter presenter = createPresenter();
+        final AnalysisDto selectedAnalysis = createAnalysis(id: 'analysis-1');
+        final AnalysisDto remainingAnalysis = createAnalysis(id: 'analysis-2');
+        addTearDown(presenter.dispose);
+        presenter.unfolderedAnalyses.value = <AnalysisDto>[
+          selectedAnalysis,
+          remainingAnalysis,
+        ];
+        presenter.unfolderedCount.value = 2;
+        presenter.selectedUnfolderedAnalysisIds.value = <String>{'analysis-1'};
+
+        when(
+          () => libraryService.archiveAnalyses(
+            analysisIds: <String>['analysis-1'],
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 204));
+
+        final bool archived = await presenter
+            .archiveSelectedUnfolderedAnalyses();
+
+        expect(archived, isTrue);
+        expect(presenter.unfolderedAnalyses.value, <AnalysisDto>[
+          remainingAnalysis,
+        ]);
+        expect(presenter.unfolderedCount.value, 1);
+        expect(presenter.selectedUnfolderedAnalysisIds.value, isEmpty);
+      },
+    );
+  });
+
   group('navigation', () {
     test(
       'openFolder empurra a rota correta da pasta e recarrega ao voltar',
