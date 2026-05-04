@@ -42,9 +42,7 @@ class ProcessingAnalysisCardView extends StatelessWidget {
                 tokens.surfaceCard.withValues(alpha: 0.92),
               ],
             ),
-            border: Border.all(
-              color: tokens.accent.withValues(alpha: 0.32),
-            ),
+            border: Border.all(color: tokens.accent.withValues(alpha: 0.32)),
           ),
           child: Row(
             children: <Widget>[
@@ -63,7 +61,8 @@ class ProcessingAnalysisCardView extends StatelessWidget {
                             color: tokens.textMuted,
                           ),
                         ),
-                        if (statusLabel != null && statusLabel!.trim().isNotEmpty)
+                        if (statusLabel != null &&
+                            statusLabel!.trim().isNotEmpty)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,

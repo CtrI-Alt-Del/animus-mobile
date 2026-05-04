@@ -91,7 +91,8 @@ class IntakeRestService extends Service implements IntakeService {
     );
 
     return response.mapBody<List<AnalysisDto>>((Json json) {
-      final dynamic itemsValue = json['items'] ?? json['analyses'] ?? json['data'];
+      final dynamic itemsValue =
+          json['items'] ?? json['analyses'] ?? json['data'];
       if (itemsValue is! List<dynamic>) {
         return const <AnalysisDto>[];
       }

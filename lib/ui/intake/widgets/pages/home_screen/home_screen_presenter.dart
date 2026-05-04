@@ -288,15 +288,17 @@ class HomeScreenPresenter {
   }
 
   Future<void> _pollProcessingAnalyses() async {
-    if (_isPollingProcessing || isLoadingInitialData.value || isLoadingMore.value) {
+    if (_isPollingProcessing ||
+        isLoadingInitialData.value ||
+        isLoadingMore.value) {
       return;
     }
 
     _isPollingProcessing = true;
 
     try {
-      final RestResponse<List<AnalysisDto>> response =
-          await _intakeService.listProcessingAnalyses();
+      final RestResponse<List<AnalysisDto>> response = await _intakeService
+          .listProcessingAnalyses();
       if (response.isFailure) {
         return;
       }
