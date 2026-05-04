@@ -27,11 +27,15 @@ void main() {
     when(() => navigationDriver.pushTo(any())).thenAnswer((_) async {});
   });
 
-  FolderDto createFolder({String? id = 'folder-1', String name = 'Contratos'}) {
+  FolderDto createFolder({
+    String? id = 'folder-1',
+    String name = 'Contratos',
+    int analysisCount = 0,
+  }) {
     return FolderDto(
       id: id,
       name: name,
-      analysisCount: 0,
+      analysisCount: analysisCount,
       accountId: 'account-1',
     );
   }
@@ -55,6 +59,24 @@ void main() {
     return LibraryScreenPresenter(
       libraryService: libraryService,
       navigationDriver: navigationDriver,
+    );
+  }
+
+  void stubLibraryLoad({
+    List<FolderDto> folders = const <FolderDto>[],
+    List<AnalysisDto> unfolderedAnalyses = const <AnalysisDto>[],
+  }) {
+    when(() => libraryService.listFolders(limit: 50)).thenAnswer(
+      (_) async => RestResponse<CursorPaginationResponse<FolderDto>>(
+        statusCode: 200,
+        body: createPagination<FolderDto>(folders),
+      ),
+    );
+    when(() => libraryService.listUnfolderedAnalyses(limit: 50)).thenAnswer(
+      (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+        statusCode: 200,
+        body: createPagination<AnalysisDto>(unfolderedAnalyses),
+      ),
     );
   }
 
@@ -190,26 +212,48 @@ void main() {
   });
 
   group('navigation', () {
-    test('openFolder empurra a rota correta da pasta', () async {
-      final LibraryScreenPresenter presenter = createPresenter();
-      addTearDown(presenter.dispose);
+    test(
+      'openFolder empurra a rota correta da pasta e recarrega ao voltar',
+      () async {
+        final LibraryScreenPresenter presenter = createPresenter();
+        final FolderDto refreshedFolder = createFolder(analysisCount: 3);
+        addTearDown(presenter.dispose);
+        stubLibraryLoad(folders: <FolderDto>[refreshedFolder]);
 
-      await presenter.openFolder('folder/123');
+        await presenter.openFolder('folder/123');
 
-      verify(
-        () => navigationDriver.pushTo(
-          Routes.getLibraryFolder(folderId: 'folder/123'),
-        ),
-      ).called(1);
-    });
+        verify(
+          () => navigationDriver.pushTo(
+            Routes.getLibraryFolder(folderId: 'folder/123'),
+          ),
+        ).called(1);
+        verify(() => libraryService.listFolders(limit: 50)).called(1);
+        verify(
+          () => libraryService.listUnfolderedAnalyses(limit: 50),
+        ).called(1);
+        expect(presenter.folders.value, <FolderDto>[refreshedFolder]);
+      },
+    );
 
-    test('openUnfoldered empurra a rota de sem pasta', () async {
-      final LibraryScreenPresenter presenter = createPresenter();
-      addTearDown(presenter.dispose);
+    test(
+      'openUnfoldered empurra a rota de sem pasta e recarrega ao voltar',
+      () async {
+        final LibraryScreenPresenter presenter = createPresenter();
+        final AnalysisDto refreshedAnalysis = createAnalysis();
+        addTearDown(presenter.dispose);
+        stubLibraryLoad(unfolderedAnalyses: <AnalysisDto>[refreshedAnalysis]);
 
-      await presenter.openUnfoldered();
+        await presenter.openUnfoldered();
 
-      verify(() => navigationDriver.pushTo(Routes.libraryUnfoldered)).called(1);
-    });
+        verify(
+          () => navigationDriver.pushTo(Routes.libraryUnfoldered),
+        ).called(1);
+        verify(() => libraryService.listFolders(limit: 50)).called(1);
+        verify(
+          () => libraryService.listUnfolderedAnalyses(limit: 50),
+        ).called(1);
+        expect(presenter.unfolderedCount.value, 1);
+      },
+    );
   });
 }

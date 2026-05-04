@@ -12,6 +12,13 @@ abstract class LibraryService {
   Future<RestResponse<CursorPaginationResponse<AnalysisDto>>>
   listUnfolderedAnalyses({String? cursor, required int limit});
 
+  Future<RestResponse<CursorPaginationResponse<AnalysisDto>>>
+  listFolderAnalyses({
+    required String folderId,
+    String? cursor,
+    required int limit,
+  });
+
   Future<RestResponse<FolderDto>> getFolder({required String folderId});
 
   Future<RestResponse<FolderDto>> createFolder({required String name});
@@ -22,4 +29,13 @@ abstract class LibraryService {
   });
 
   Future<RestResponse<FolderDto>> archiveFolder({required String folderId});
+
+  Future<RestResponse<void>> moveAnalysesToFolder({
+    required List<String> analysisIds,
+    required String? folderId,
+  });
+
+  Future<RestResponse<void>> archiveAnalyses({
+    required List<String> analysisIds,
+  });
 }
