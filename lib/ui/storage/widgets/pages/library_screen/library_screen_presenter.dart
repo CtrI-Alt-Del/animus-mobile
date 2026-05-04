@@ -23,7 +23,10 @@ class LibraryScreenPresenter {
   final Signal<bool> isLoading = signal<bool>(true);
   final Signal<bool> hasError = signal<bool>(false);
   final Signal<List<FolderDto>> folders = signal<List<FolderDto>>([]);
+  final Signal<List<AnalysisDto>> unfolderedAnalyses =
+      signal<List<AnalysisDto>>(<AnalysisDto>[]);
   final Signal<int> unfolderedCount = signal<int>(0);
+  final Signal<int> selectedTabIndex = signal<int>(0);
 
   bool _isDisposed = false;
   bool _didInitialize = false;
@@ -69,6 +72,7 @@ class LibraryScreenPresenter {
       }
 
       folders.value = foldersResponse.body.items;
+      unfolderedAnalyses.value = analysesResponse.body.items;
       unfolderedCount.value = analysesResponse.body.items.length;
       isLoading.value = false;
     } catch (_) {
@@ -113,12 +117,65 @@ class LibraryScreenPresenter {
     await _navigationDriver.pushTo(Routes.libraryUnfoldered);
   }
 
+  Future<void> openAnalysis(AnalysisDto analysis) async {
+    final String analysisId = (analysis.id ?? '').trim();
+    if (analysisId.isEmpty) {
+      return;
+    }
+
+    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+  }
+
+  void selectTab(int index) {
+    if (index < 0 || index > 1) {
+      return;
+    }
+    selectedTabIndex.value = index;
+  }
+
+  String formatRelativeDate(String value) {
+    final DateTime? parsedDate = DateTime.tryParse(value);
+    if (parsedDate == null) {
+      return '';
+    }
+
+    final Duration diff = DateTime.now().difference(parsedDate.toLocal());
+
+    if (diff.inSeconds < 60) {
+      return 'agora';
+    }
+    if (diff.inMinutes < 60) {
+      final int minutes = diff.inMinutes;
+      return 'há $minutes ${minutes == 1 ? 'minuto' : 'minutos'}';
+    }
+    if (diff.inHours < 24) {
+      final int hours = diff.inHours;
+      return 'há $hours ${hours == 1 ? 'hora' : 'horas'}';
+    }
+    if (diff.inDays < 7) {
+      final int days = diff.inDays;
+      return 'há $days ${days == 1 ? 'dia' : 'dias'}';
+    }
+    if (diff.inDays < 30) {
+      final int weeks = (diff.inDays / 7).floor();
+      return 'há $weeks ${weeks == 1 ? 'semana' : 'semanas'}';
+    }
+    if (diff.inDays < 365) {
+      final int months = (diff.inDays / 30).floor();
+      return 'há $months ${months == 1 ? 'mês' : 'meses'}';
+    }
+    final int years = (diff.inDays / 365).floor();
+    return 'há $years ${years == 1 ? 'ano' : 'anos'}';
+  }
+
   void dispose() {
     _isDisposed = true;
     isLoading.dispose();
     hasError.dispose();
     folders.dispose();
+    unfolderedAnalyses.dispose();
     unfolderedCount.dispose();
+    selectedTabIndex.dispose();
   }
 }
 
