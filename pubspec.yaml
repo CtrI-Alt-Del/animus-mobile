@@ -53,6 +53,7 @@ dependencies:
   pdf: ^3.11.3
   printing: ^5.14.2
   supabase_flutter: ^2.12.2
+  onesignal_flutter: ^5.5.2
 
 dev_dependencies:
   flutter_test:

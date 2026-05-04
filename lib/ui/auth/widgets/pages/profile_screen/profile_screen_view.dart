@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -114,7 +116,11 @@ class ProfileScreenView extends ConsumerWidget {
                             );
                           }),
                           const SizedBox(height: 24),
-                          ProfileLogoutButton(onPressed: presenter.signOut),
+                          ProfileLogoutButton(
+                            onPressed: () {
+                              unawaited(presenter.signOut());
+                            },
+                          ),
                           const SizedBox(height: 24),
                         ],
                       ),

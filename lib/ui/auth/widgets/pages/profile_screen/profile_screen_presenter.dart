@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,20 +8,26 @@ import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/auth/interfaces/google_auth_driver.dart';
 import 'package:animus/core/shared/interfaces/app_version_driver.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
+import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/drivers/app-version-driver/index.dart';
 import 'package:animus/drivers/cache/index.dart';
+import 'package:animus/drivers/google-auth-driver/index.dart';
 import 'package:animus/drivers/navigation/index.dart';
+import 'package:animus/drivers/push-notification-driver/index.dart';
 import 'package:animus/rest/services/index.dart';
 
 class ProfileScreenPresenter {
   final AuthService _authService;
+  final GoogleAuthDriver _googleAuthDriver;
   final AppVersionDriver _appVersionDriver;
   final CacheDriver _cacheDriver;
   final NavigationDriver _navigationDriver;
+  final PushNotificationDriver _pushNotificationDriver;
 
   final Signal<String> appVersionLabel = signal<String>('Versao indisponivel');
   final Signal<bool> isLoadingInitialData = signal<bool>(false);
@@ -63,13 +70,17 @@ class ProfileScreenPresenter {
 
   ProfileScreenPresenter({
     required AuthService authService,
+    required GoogleAuthDriver googleAuthDriver,
     required AppVersionDriver appVersionDriver,
     required CacheDriver cacheDriver,
     required NavigationDriver navigationDriver,
+    required PushNotificationDriver pushNotificationDriver,
   }) : _authService = authService,
+       _googleAuthDriver = googleAuthDriver,
        _appVersionDriver = appVersionDriver,
        _cacheDriver = cacheDriver,
-       _navigationDriver = navigationDriver;
+       _navigationDriver = navigationDriver,
+       _pushNotificationDriver = pushNotificationDriver;
 
   Future<void> initialize() async {
     await _initializeAppVersionLabel();
@@ -105,7 +116,12 @@ class ProfileScreenPresenter {
     isLoadingInitialData.value = false;
   }
 
-  void signOut() {
+  Future<void> signOut() async {
+    try {
+      unawaited(_pushNotificationDriver.clearUser().catchError((_) {}));
+      await _googleAuthDriver.signOut();
+    } catch (_) {}
+
     _cacheDriver.delete(CacheKeys.accessToken);
     _cacheDriver.delete(CacheKeys.refreshToken);
     _navigationDriver.goTo(Routes.signIn);
@@ -197,27 +213,31 @@ class ProfileScreenPresenter {
   }
 }
 
-final Provider<ProfileScreenPresenter> profileScreenPresenterProvider =
-    Provider.autoDispose<ProfileScreenPresenter>((Ref ref) {
-      final AuthService authService = ref.watch(authServiceProvider);
-      final AppVersionDriver appVersionDriver = ref.watch(
-        appVersionDriverProvider,
-      );
-      final CacheDriver cacheDriver = ref.watch(cacheDriverProvider);
-      final NavigationDriver navigationDriver = ref.watch(
-        navigationDriverProvider,
-      );
+final Provider<ProfileScreenPresenter>
+profileScreenPresenterProvider = Provider.autoDispose<ProfileScreenPresenter>((
+  Ref ref,
+) {
+  final AuthService authService = ref.watch(authServiceProvider);
+  final GoogleAuthDriver googleAuthDriver = ref.watch(googleAuthDriverProvider);
+  final AppVersionDriver appVersionDriver = ref.watch(appVersionDriverProvider);
+  final CacheDriver cacheDriver = ref.watch(cacheDriverProvider);
+  final NavigationDriver navigationDriver = ref.watch(navigationDriverProvider);
+  final PushNotificationDriver pushNotificationDriver = ref.watch(
+    pushNotificationDriverProvider,
+  );
 
-      final ProfileScreenPresenter presenter = ProfileScreenPresenter(
-        authService: authService,
-        appVersionDriver: appVersionDriver,
-        cacheDriver: cacheDriver,
-        navigationDriver: navigationDriver,
-      );
+  final ProfileScreenPresenter presenter = ProfileScreenPresenter(
+    authService: authService,
+    googleAuthDriver: googleAuthDriver,
+    appVersionDriver: appVersionDriver,
+    cacheDriver: cacheDriver,
+    navigationDriver: navigationDriver,
+    pushNotificationDriver: pushNotificationDriver,
+  );
 
-      ref.onDispose(presenter.dispose);
-      return presenter;
-    });
+  ref.onDispose(presenter.dispose);
+  return presenter;
+});
 
 final Provider<void> profileScreenInitializationProvider =
     Provider.autoDispose<void>((Ref ref) {

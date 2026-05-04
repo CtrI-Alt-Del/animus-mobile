@@ -77,10 +77,6 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: ApplicabilityBadge(
-                    percentage: selectedPrecedent.similarityScore,
-                    percentageText: _formatSimilarityScore(
-                      selectedPrecedent.similarityScore,
-                    ),
                     classificationLevel: selectedPrecedent.applicabilityLevel,
                   ),
                 ),
@@ -140,9 +136,5 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatSimilarityScore(double value) {
-    return value.clamp(0, 100).toStringAsFixed(1);
   }
 }

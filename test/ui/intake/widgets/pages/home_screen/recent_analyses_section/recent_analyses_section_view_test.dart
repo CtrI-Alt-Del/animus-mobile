@@ -1,5 +1,6 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_loading_state/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +30,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Recentes'), findsOneWidget);
+    expect(find.byType(RecentAnalysesLoadingState), findsOneWidget);
     expect(find.byType(ListView), findsOneWidget);
     expect(find.text('Tentar novamente'), findsNothing);
     expect(find.text('Iniciar primeira analise'), findsNothing);

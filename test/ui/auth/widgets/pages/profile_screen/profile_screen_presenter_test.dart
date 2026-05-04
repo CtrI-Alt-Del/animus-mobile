@@ -4,9 +4,11 @@ import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
+import 'package:animus/core/auth/interfaces/google_auth_driver.dart';
 import 'package:animus/core/shared/interfaces/app_version_driver.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
+import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_screen_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,34 +20,47 @@ class _MockAuthService extends Mock implements AuthService {}
 
 class _MockAppVersionDriver extends Mock implements AppVersionDriver {}
 
+class _MockGoogleAuthDriver extends Mock implements GoogleAuthDriver {}
+
 class _MockCacheDriver extends Mock implements CacheDriver {}
 
 class _MockNavigationDriver extends Mock implements NavigationDriver {}
 
+class _MockPushNotificationDriver extends Mock
+    implements PushNotificationDriver {}
+
 void main() {
   late _MockAuthService authService;
+  late _MockGoogleAuthDriver googleAuthDriver;
   late _MockAppVersionDriver appVersionDriver;
   late _MockCacheDriver cacheDriver;
   late _MockNavigationDriver navigationDriver;
+  late _MockPushNotificationDriver pushNotificationDriver;
 
   setUp(() {
     authService = _MockAuthService();
+    googleAuthDriver = _MockGoogleAuthDriver();
     appVersionDriver = _MockAppVersionDriver();
     cacheDriver = _MockCacheDriver();
     navigationDriver = _MockNavigationDriver();
+    pushNotificationDriver = _MockPushNotificationDriver();
 
     when(() => appVersionDriver.getVersion()).thenAnswer((_) async => '1.0.0');
+    when(() => googleAuthDriver.signOut()).thenAnswer((_) async {});
     when(() => cacheDriver.get(any())).thenReturn('access-token');
     when(() => cacheDriver.delete(any())).thenReturn(null);
     when(() => navigationDriver.goTo(any())).thenReturn(null);
+    when(() => pushNotificationDriver.clearUser()).thenAnswer((_) async {});
   });
 
   ProfileScreenPresenter createPresenter() {
     return ProfileScreenPresenter(
       authService: authService,
+      googleAuthDriver: googleAuthDriver,
       appVersionDriver: appVersionDriver,
       cacheDriver: cacheDriver,
       navigationDriver: navigationDriver,
+      pushNotificationDriver: pushNotificationDriver,
     );
   }
 
@@ -154,14 +169,16 @@ void main() {
   });
 
   group('signOut', () {
-    test('remove tokens do cache e redireciona para sign in', () {
+    test('faz signOut no Google, remove tokens e redireciona', () async {
       final ProfileScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      presenter.signOut();
+      await presenter.signOut();
 
+      verify(() => googleAuthDriver.signOut()).called(1);
       verify(() => cacheDriver.delete(CacheKeys.accessToken)).called(1);
       verify(() => cacheDriver.delete(CacheKeys.refreshToken)).called(1);
+      verify(() => pushNotificationDriver.clearUser()).called(1);
       verify(() => navigationDriver.goTo(Routes.signIn)).called(1);
     });
   });

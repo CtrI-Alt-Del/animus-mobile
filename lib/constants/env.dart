@@ -19,6 +19,8 @@ class Env {
 
   static String get pangeaUrl => _validateValue('PANGEA_URL');
 
+  static String get oneSignalAppId => _validateValue('ONESIGNAL_APP_ID');
+
   static String _validateValue(String key) {
     final String? value;
     try {
