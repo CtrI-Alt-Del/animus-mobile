@@ -121,6 +121,7 @@ void main() {
     Future<void> pumpModal(
       WidgetTester tester, {
       required Future<bool> Function(String? folderId) onMove,
+      bool showUnfolderedDestination = true,
     }) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -130,6 +131,7 @@ void main() {
               body: MoveAnalysesModalView(
                 currentFolderId: 'folder-1',
                 selectedCount: 1,
+                showUnfolderedDestination: showUnfolderedDestination,
                 onMove: onMove,
               ),
             ),
@@ -178,6 +180,38 @@ void main() {
       await tester.pump();
 
       expect(movedFolderId, isNull);
+    });
+
+    testWidgets('oculta Sem pasta quando origem ja e Sem pasta', (
+      WidgetTester tester,
+    ) async {
+      String? movedFolderId;
+
+      when(() => libraryService.listFolders(limit: 50)).thenAnswer(
+        (_) async => RestResponse<CursorPaginationResponse<FolderDto>>(
+          body: CursorPaginationResponse<FolderDto>(
+            items: <FolderDto>[createFolder('folder-2', 'Destino')],
+          ),
+        ),
+      );
+
+      await pumpModal(
+        tester,
+        showUnfolderedDestination: false,
+        onMove: (String? folderId) async {
+          movedFolderId = folderId;
+          return true;
+        },
+      );
+
+      expect(find.text('Sem pasta'), findsNothing);
+
+      await tester.tap(find.text('Destino'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Mover'));
+      await tester.pump();
+
+      expect(movedFolderId, 'folder-2');
     });
 
     testWidgets('bloqueia mover quando carregar destinos falha', (

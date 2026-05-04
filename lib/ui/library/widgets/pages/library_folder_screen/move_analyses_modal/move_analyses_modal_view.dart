@@ -9,12 +9,14 @@ import 'package:animus/ui/library/widgets/pages/library_folder_screen/move_analy
 class MoveAnalysesModalView extends ConsumerStatefulWidget {
   final String currentFolderId;
   final int selectedCount;
+  final bool showUnfolderedDestination;
   final Future<bool> Function(String? folderId) onMove;
 
   const MoveAnalysesModalView({
     required this.currentFolderId,
     required this.selectedCount,
     required this.onMove,
+    this.showUnfolderedDestination = true,
     super.key,
   });
 
@@ -133,21 +135,35 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
                 )
               else if (generalError != null)
                 const SizedBox.shrink()
+              else if (!widget.showUnfolderedDestination && folders.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    'Crie uma pasta antes de mover analises de Sem pasta.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: tokens.textMuted,
+                      height: 1.35,
+                    ),
+                  ),
+                )
               else
                 Flexible(
                   child: SingleChildScrollView(
                     child: Column(
                       children: <Widget>[
-                        _DestinationTile(
-                          title: 'Sem pasta',
-                          subtitle: 'Remover da pasta atual',
-                          value: null,
-                          isSelected:
-                              hasSelectedDestination &&
-                              selectedFolderId == null,
-                          onChanged: presenter.selectFolder,
-                        ),
-                        const SizedBox(height: 10),
+                        if (widget.showUnfolderedDestination) ...<Widget>[
+                          _DestinationTile(
+                            title: 'Sem pasta',
+                            subtitle: 'Remover da pasta atual',
+                            value: null,
+                            isSelected:
+                                hasSelectedDestination &&
+                                selectedFolderId == null,
+                            onChanged: presenter.selectFolder,
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                         ...folders.map(
                           (FolderDto folder) => Padding(
                             padding: const EdgeInsets.only(bottom: 10),
