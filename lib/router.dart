@@ -1,3 +1,5 @@
+import 'package:animus/ui/storage/widgets/pages/library_unfoldered_screen/index.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -184,7 +186,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: Routes.libraryUnfoldered,
-      builder: (context, state) => const LibraryUnfolderedScreen(),
+      builder: (context, state) => const LibraryUnfolderedScreenView(),
     ),
   ],
 );
