@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,7 +14,8 @@ import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/index.dart';
 import 'package:animus/ui/shared/widgets/pages/app_shell/index.dart';
-import 'package:animus/ui/storage/widgets/pages/library_screen/index.dart';
+import 'package:animus/ui/library/widgets/pages/library_folder_screen/index.dart';
+import 'package:animus/ui/library/widgets/pages/library_screen/index.dart';
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
@@ -70,11 +70,17 @@ final GoRouter appRouter = GoRouter(
             ),
             GoRoute(
               path: Routes.libraryFolder,
+              redirect: (context, state) {
+                final String? folderId = state.pathParameters['folderId'];
+                if (folderId == null || folderId.trim().isEmpty) {
+                  return Routes.library;
+                }
+
+                return null;
+              },
               builder: (context, state) {
-                final folderId = state.pathParameters['folderId'] ?? '';
-                return Scaffold(
-                  body: Center(child: Text('Pasta $folderId (Placeholder)')),
-                );
+                final folderId = state.pathParameters['folderId']?.trim() ?? '';
+                return LibraryFolderScreen(folderId: folderId);
               },
             ),
           ],
@@ -161,6 +167,24 @@ final GoRouter appRouter = GoRouter(
         final String analysisId = state.pathParameters['analysisId'] ?? '';
         return AnalysisScreen(analysisId: analysisId);
       },
+    ),
+    GoRoute(
+      path: Routes.libraryFolder,
+      redirect: (context, state) {
+        final String folderId = state.pathParameters['folderId'] ?? '';
+        if (folderId.trim().isEmpty) {
+          return Routes.library;
+        }
+        return null;
+      },
+      builder: (context, state) {
+        final String folderId = state.pathParameters['folderId'] ?? '';
+        return LibraryFolderScreen(folderId: folderId);
+      },
+    ),
+    GoRoute(
+      path: Routes.libraryUnfoldered,
+      builder: (context, state) => const LibraryUnfolderedScreen(),
     ),
   ],
 );
