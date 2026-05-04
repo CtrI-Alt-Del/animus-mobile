@@ -231,7 +231,7 @@ class LibraryFolderScreenPresenter {
     isOperating.value = true;
     generalError.value = null;
 
-    final RestResponse<List<AnalysisDto>> response = await _libraryService
+    final RestResponse<void> response = await _libraryService
         .moveAnalysesToFolder(
           analysisIds: analysisIds,
           folderId: destinationFolderId,
@@ -273,8 +273,9 @@ class LibraryFolderScreenPresenter {
     isOperating.value = true;
     generalError.value = null;
 
-    final RestResponse<List<AnalysisDto>> response = await _libraryService
-        .archiveAnalyses(analysisIds: analysisIds);
+    final RestResponse<void> response = await _libraryService.archiveAnalyses(
+      analysisIds: analysisIds,
+    );
 
     if (_isDisposed) {
       return false;
