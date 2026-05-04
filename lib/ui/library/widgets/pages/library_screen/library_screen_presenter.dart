@@ -40,12 +40,14 @@ class LibraryScreenPresenter {
     await load();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool showLoading = true}) async {
     if (_isDisposed) {
       return;
     }
 
-    isLoading.value = true;
+    if (showLoading) {
+      isLoading.value = true;
+    }
     hasError.value = false;
 
     try {
@@ -111,10 +113,12 @@ class LibraryScreenPresenter {
 
   Future<void> openFolder(String folderId) async {
     await _navigationDriver.pushTo(Routes.getLibraryFolder(folderId: folderId));
+    await _refreshAfterChildRoute();
   }
 
   Future<void> openUnfoldered() async {
     await _navigationDriver.pushTo(Routes.libraryUnfoldered);
+    await _refreshAfterChildRoute();
   }
 
   Future<void> openAnalysis(AnalysisDto analysis) async {
@@ -176,6 +180,16 @@ class LibraryScreenPresenter {
     unfolderedAnalyses.dispose();
     unfolderedCount.dispose();
     selectedTabIndex.dispose();
+  }
+
+  Future<void> _refreshAfterChildRoute() async {
+    if (_isDisposed) {
+      return;
+    }
+
+    final bool hasRenderedData =
+        folders.value.isNotEmpty || unfolderedCount.value > 0;
+    await load(showLoading: !hasRenderedData);
   }
 }
 
