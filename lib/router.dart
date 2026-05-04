@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -168,6 +167,24 @@ final GoRouter appRouter = GoRouter(
         final String analysisId = state.pathParameters['analysisId'] ?? '';
         return AnalysisScreen(analysisId: analysisId);
       },
+    ),
+    GoRoute(
+      path: Routes.libraryFolder,
+      redirect: (context, state) {
+        final String folderId = state.pathParameters['folderId'] ?? '';
+        if (folderId.trim().isEmpty) {
+          return Routes.library;
+        }
+        return null;
+      },
+      builder: (context, state) {
+        final String folderId = state.pathParameters['folderId'] ?? '';
+        return LibraryFolderScreen(folderId: folderId);
+      },
+    ),
+    GoRoute(
+      path: Routes.libraryUnfoldered,
+      builder: (context, state) => const LibraryUnfolderedScreen(),
     ),
   ],
 );

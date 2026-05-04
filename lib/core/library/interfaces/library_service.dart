@@ -30,12 +30,12 @@ abstract class LibraryService {
 
   Future<RestResponse<FolderDto>> archiveFolder({required String folderId});
 
-  Future<RestResponse<List<AnalysisDto>>> moveAnalysesToFolder({
+  Future<RestResponse<void>> moveAnalysesToFolder({
     required List<String> analysisIds,
     required String? folderId,
   });
 
-  Future<RestResponse<List<AnalysisDto>>> archiveAnalyses({
+  Future<RestResponse<void>> archiveAnalyses({
     required List<String> analysisIds,
   });
 }

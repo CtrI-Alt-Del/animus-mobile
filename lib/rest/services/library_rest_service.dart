@@ -86,8 +86,8 @@ class LibraryRestService extends Service implements LibraryService {
 
     final Json queryParams = <String, dynamic>{
       'folder_id': folderId,
-      'limit': limit,
       'is_archived': false,
+      'limit': limit,
     };
 
     if (cursor != null && cursor.trim().isNotEmpty) {
@@ -98,10 +98,17 @@ class LibraryRestService extends Service implements LibraryService {
       '/intake/analyses',
       queryParams: queryParams,
     );
-    return response.mapBody<CursorPaginationResponse<AnalysisDto>>(
-      (Json json) =>
-          CursorPaginationMapper.toDto<AnalysisDto>(json, AnalysisMapper.toDto),
-    );
+    return response.mapBody<CursorPaginationResponse<AnalysisDto>>((Json json) {
+      final CursorPaginationResponse<AnalysisDto> pagination =
+          CursorPaginationMapper.toDto<AnalysisDto>(json, AnalysisMapper.toDto);
+
+      return CursorPaginationResponse<AnalysisDto>(
+        items: pagination.items
+            .where((AnalysisDto analysis) => analysis.folderId == folderId)
+            .toList(growable: false),
+        nextCursor: pagination.nextCursor,
+      );
+    });
   }
 
   @override
@@ -164,12 +171,11 @@ class LibraryRestService extends Service implements LibraryService {
   }
 
   @override
-  Future<RestResponse<List<AnalysisDto>>> moveAnalysesToFolder({
+  Future<RestResponse<void>> moveAnalysesToFolder({
     required List<String> analysisIds,
     required String? folderId,
   }) async {
-    final RestResponse<List<AnalysisDto>>? authFailure =
-        requireAuth<List<AnalysisDto>>();
+    final RestResponse<void>? authFailure = requireAuth<void>();
     if (authFailure != null) {
       return authFailure;
     }
@@ -178,18 +184,18 @@ class LibraryRestService extends Service implements LibraryService {
       '/intake/analyses/folder',
       body: <String, dynamic>{
         'analysis_ids': analysisIds,
-        'folder_id': folderId?.trim().isEmpty ?? true ? null : folderId?.trim(),
+        'folder_id': folderId?.trim(),
       },
     );
-    return response.mapBody<List<AnalysisDto>>(_toAnalysisList);
+
+    return toVoidResponse(response);
   }
 
   @override
-  Future<RestResponse<List<AnalysisDto>>> archiveAnalyses({
+  Future<RestResponse<void>> archiveAnalyses({
     required List<String> analysisIds,
   }) async {
-    final RestResponse<List<AnalysisDto>>? authFailure =
-        requireAuth<List<AnalysisDto>>();
+    final RestResponse<void>? authFailure = requireAuth<void>();
     if (authFailure != null) {
       return authFailure;
     }
@@ -198,19 +204,7 @@ class LibraryRestService extends Service implements LibraryService {
       '/intake/analyses/archive',
       body: <String, dynamic>{'analysis_ids': analysisIds},
     );
-    return response.mapBody<List<AnalysisDto>>(_toAnalysisList);
-  }
 
-  static List<AnalysisDto> _toAnalysisList(Json json) {
-    final dynamic itemsValue =
-        json['items'] ?? json['data'] ?? json['analyses'];
-    if (itemsValue is! List<dynamic>) {
-      return <AnalysisDto>[];
-    }
-
-    return itemsValue
-        .whereType<Json>()
-        .map(AnalysisMapper.toDto)
-        .toList(growable: false);
+    return toVoidResponse(response);
   }
 }
