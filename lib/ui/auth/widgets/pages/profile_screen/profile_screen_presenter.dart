@@ -76,11 +76,11 @@ class ProfileScreenPresenter {
     required NavigationDriver navigationDriver,
     required PushNotificationDriver pushNotificationDriver,
   }) : _authService = authService,
-        _googleAuthDriver = googleAuthDriver,
-        _appVersionDriver = appVersionDriver,
-        _cacheDriver = cacheDriver,
-        _navigationDriver = navigationDriver,
-        _pushNotificationDriver = pushNotificationDriver;
+       _googleAuthDriver = googleAuthDriver,
+       _appVersionDriver = appVersionDriver,
+       _cacheDriver = cacheDriver,
+       _navigationDriver = navigationDriver,
+       _pushNotificationDriver = pushNotificationDriver;
 
   Future<void> initialize() async {
     await _initializeAppVersionLabel();

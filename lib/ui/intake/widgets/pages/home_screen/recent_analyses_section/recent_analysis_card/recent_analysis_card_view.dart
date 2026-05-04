@@ -54,7 +54,8 @@ class RecentAnalysisCardView extends StatelessWidget {
                             color: tokens.textMuted,
                           ),
                         ),
-                        if (statusLabel != null && statusLabel!.trim().isNotEmpty)
+                        if (statusLabel != null &&
+                            statusLabel!.trim().isNotEmpty)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -63,9 +64,7 @@ class RecentAnalysisCardView extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: tokens.surfaceElevated,
                               borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: tokens.borderSubtle,
-                              ),
+                              border: Border.all(color: tokens.borderSubtle),
                             ),
                             child: Text(
                               statusLabel!,
@@ -90,10 +89,7 @@ class RecentAnalysisCardView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(
-                Icons.chevron_right,
-                color: tokens.textMuted,
-              ),
+              Icon(Icons.chevron_right, color: tokens.textMuted),
             ],
           ),
         ),
