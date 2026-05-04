@@ -171,20 +171,6 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: Routes.libraryFolder,
-      redirect: (context, state) {
-        final String folderId = state.pathParameters['folderId'] ?? '';
-        if (folderId.trim().isEmpty) {
-          return Routes.library;
-        }
-        return null;
-      },
-      builder: (context, state) {
-        final String folderId = state.pathParameters['folderId'] ?? '';
-        return LibraryFolderScreen(folderId: folderId);
-      },
-    ),
-    GoRoute(
       path: Routes.libraryUnfoldered,
       builder: (context, state) => const LibraryUnfolderedScreen(),
     ),

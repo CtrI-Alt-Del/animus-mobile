@@ -3,6 +3,7 @@ import 'package:animus/ui/library/widgets/pages/library_folder_screen/library_fo
 export 'package:animus/ui/library/widgets/pages/library_folder_screen/archive_selected_analyses_dialog/index.dart';
 export 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_analysis_card/index.dart';
 export 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_analysis_list/index.dart';
+export 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_available_analysis_picker/index.dart';
 export 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_empty_state/index.dart';
 export 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_error_state/index.dart';
 export 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_loading_state/index.dart';

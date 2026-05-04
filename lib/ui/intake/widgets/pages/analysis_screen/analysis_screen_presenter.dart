@@ -444,10 +444,7 @@ class AnalysisScreenPresenter {
       final RestResponse<AnalysisReportDto> reportResponse =
           await _intakeService.getAnalysisReport(analysisId: analysisId);
 
-      print(reportResponse.statusCode);
-
       if (reportResponse.isFailure) {
-        print(reportResponse.errorMessage);
         generalError.value = exportFailedMessage;
         return false;
       }

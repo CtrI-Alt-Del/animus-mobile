@@ -180,11 +180,15 @@ class LibraryRestService extends Service implements LibraryService {
       return authFailure;
     }
 
+    final String? normalizedFolderId = folderId?.trim();
+
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
       '/intake/analyses/folder',
       body: <String, dynamic>{
         'analysis_ids': analysisIds,
-        'folder_id': folderId?.trim(),
+        'folder_id': normalizedFolderId == null || normalizedFolderId.isEmpty
+            ? null
+            : normalizedFolderId,
       },
     );
 
