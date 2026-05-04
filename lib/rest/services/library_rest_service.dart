@@ -72,6 +72,46 @@ class LibraryRestService extends Service implements LibraryService {
   }
 
   @override
+  Future<RestResponse<CursorPaginationResponse<AnalysisDto>>>
+  listFolderAnalyses({
+    required String folderId,
+    String? cursor,
+    required int limit,
+  }) async {
+    final RestResponse<CursorPaginationResponse<AnalysisDto>>? authFailure =
+        requireAuth<CursorPaginationResponse<AnalysisDto>>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final Json queryParams = <String, dynamic>{
+      'folder_id': folderId,
+      'is_archived': false,
+      'limit': limit,
+    };
+
+    if (cursor != null && cursor.trim().isNotEmpty) {
+      queryParams['cursor'] = cursor;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses',
+      queryParams: queryParams,
+    );
+    return response.mapBody<CursorPaginationResponse<AnalysisDto>>((Json json) {
+      final CursorPaginationResponse<AnalysisDto> pagination =
+          CursorPaginationMapper.toDto<AnalysisDto>(json, AnalysisMapper.toDto);
+
+      return CursorPaginationResponse<AnalysisDto>(
+        items: pagination.items
+            .where((AnalysisDto analysis) => analysis.folderId == folderId)
+            .toList(growable: false),
+        nextCursor: pagination.nextCursor,
+      );
+    });
+  }
+
+  @override
   Future<RestResponse<FolderDto>> getFolder({required String folderId}) async {
     final RestResponse<FolderDto>? authFailure = requireAuth<FolderDto>();
     if (authFailure != null) {
@@ -128,5 +168,43 @@ class LibraryRestService extends Service implements LibraryService {
       '/library/folders/$folderId/archive',
     );
     return response.mapBody<FolderDto>(FolderMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<void>> moveAnalysesToFolder({
+    required List<String> analysisIds,
+    required String? folderId,
+  }) async {
+    final RestResponse<void>? authFailure = requireAuth<void>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.patch(
+      '/intake/analyses/folder',
+      body: <String, dynamic>{
+        'analysis_ids': analysisIds,
+        'folder_id': folderId?.trim(),
+      },
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<void>> archiveAnalyses({
+    required List<String> analysisIds,
+  }) async {
+    final RestResponse<void>? authFailure = requireAuth<void>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.patch(
+      '/intake/analyses/archive',
+      body: <String, dynamic>{'analysis_ids': analysisIds},
+    );
+
+    return toVoidResponse(response);
   }
 }

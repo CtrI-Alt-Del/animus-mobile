@@ -1,0 +1,3 @@
+import 'package:animus/ui/storage/widgets/pages/library_folder_screen/library_folder_settings_modal/library_folder_settings_modal_view.dart';
+
+typedef LibraryFolderSettingsModal = LibraryFolderSettingsModalView;
