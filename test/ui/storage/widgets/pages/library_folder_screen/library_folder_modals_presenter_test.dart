@@ -8,10 +8,10 @@ import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/rest/services/index.dart';
-import 'package:animus/ui/storage/widgets/pages/library_folder_screen/archive_selected_analyses_dialog/archive_selected_analyses_dialog_view.dart';
-import 'package:animus/ui/storage/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_presenter.dart';
-import 'package:animus/ui/storage/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_presenter.dart';
-import 'package:animus/ui/storage/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_view.dart';
+import 'package:animus/ui/library/widgets/pages/library_folder_screen/archive_selected_analyses_dialog/archive_selected_analyses_dialog_view.dart';
+import 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_presenter.dart';
+import 'package:animus/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_presenter.dart';
+import 'package:animus/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_view.dart';
 
 class _MockLibraryService extends Mock implements LibraryService {}
 
