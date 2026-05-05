@@ -8,7 +8,7 @@ import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/constants/routes.dart';
-import 'package:animus/ui/library/widgets/pages/library_screen/library_screen_presenter.dart';
+import 'package:animus/ui/library/widgets/screens/library_screen/library_screen_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

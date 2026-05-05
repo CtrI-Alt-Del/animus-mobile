@@ -15,9 +15,9 @@ import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/index.dart';
 import 'package:animus/ui/shared/widgets/pages/app_shell/index.dart';
-import 'package:animus/ui/library/widgets/pages/library_folder_screen/index.dart';
-import 'package:animus/ui/library/widgets/pages/library_screen/index.dart';
-import 'package:animus/ui/storage/widgets/pages/library_unfoldered_screen/index.dart';
+import 'package:animus/ui/library/widgets/screens/library_folder_screen/index.dart';
+import 'package:animus/ui/library/widgets/screens/library_screen/index.dart';
+import 'package:animus/ui/library/widgets/screens/library_unfoldered_screen/index.dart';
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,

@@ -1,3 +1,0 @@
-import 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_available_analysis_picker/folder_available_analysis_picker_view.dart';
-
-typedef FolderAvailableAnalysisPicker = FolderAvailableAnalysisPickerView;

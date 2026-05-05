@@ -10,7 +10,7 @@ import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
-import 'package:animus/ui/storage/widgets/pages/library_unfoldered_screen/library_unfoldered_screen_presenter.dart';
+import 'package:animus/ui/library/widgets/screens/library_unfoldered_screen/library_unfoldered_screen_presenter.dart';
 
 class _MockLibraryService extends Mock implements LibraryService {}
 
