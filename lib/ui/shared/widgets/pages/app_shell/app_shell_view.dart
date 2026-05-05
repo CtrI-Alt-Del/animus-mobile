@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:animus/ui/library/widgets/pages/library_screen/library_screen_presenter.dart';
+import 'package:animus/ui/library/widgets/screens/library_screen/library_screen_presenter.dart';
 import 'package:animus/ui/shared/widgets/components/app_bottom_navigation/index.dart';
 
 class AppShellView extends ConsumerWidget {

@@ -9,7 +9,7 @@ import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
-import 'package:animus/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart';
+import 'package:animus/ui/library/widgets/screens/library_folder_screen/library_folder_screen_presenter.dart';
 
 class _MockLibraryService extends Mock implements LibraryService {}
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:animus/theme.dart';
-import 'package:animus/ui/library/widgets/pages/library_folder_screen/folder_selection_action_bar/index.dart';
+import 'package:animus/ui/library/widgets/screens/library_folder_screen/folder_selection_action_bar/index.dart';
 
 void main() {
   testWidgets(
