@@ -115,8 +115,6 @@ void main() {
       );
 
       expect(response.isSuccessful, isTrue);
-      expect(response.body.single.id, 'analysis-1');
-      expect(response.body.single.folderId, isNull);
 
       final verification = verify(
         () => restClient.patch(captureAny(), body: captureAny(named: 'body')),
@@ -130,45 +128,40 @@ void main() {
     },
   );
 
-  test(
-    'archiveAnalyses envia batch e mapeia lista retornada em data',
-    () async {
-      when(() => restClient.patch(any(), body: any(named: 'body'))).thenAnswer(
-        (_) async => RestResponse<Json>(
-          body: <String, dynamic>{
-            'data': <Json>[
-              <String, dynamic>{
-                'id': 'analysis-1',
-                'name': 'Analise',
-                'account_id': 'account-1',
-                'status': 'completed',
-                'summary': '',
-                'created_at': '2026-05-03T10:00:00.000Z',
-                'is_archived': true,
-              },
-            ],
-          },
-        ),
-      );
+  test('archiveAnalyses envia batch de arquivamento', () async {
+    when(() => restClient.patch(any(), body: any(named: 'body'))).thenAnswer(
+      (_) async => RestResponse<Json>(
+        body: <String, dynamic>{
+          'data': <Json>[
+            <String, dynamic>{
+              'id': 'analysis-1',
+              'name': 'Analise',
+              'account_id': 'account-1',
+              'status': 'completed',
+              'summary': '',
+              'created_at': '2026-05-03T10:00:00.000Z',
+              'is_archived': true,
+            },
+          ],
+        },
+      ),
+    );
 
-      final response = await service.archiveAnalyses(
-        analysisIds: <String>['analysis-1'],
-      );
+    final response = await service.archiveAnalyses(
+      analysisIds: <String>['analysis-1'],
+    );
 
-      expect(response.isSuccessful, isTrue);
-      expect(response.body.single.id, 'analysis-1');
-      expect(response.body.single.isArchived, isTrue);
+    expect(response.isSuccessful, isTrue);
 
-      final verification = verify(
-        () => restClient.patch(captureAny(), body: captureAny(named: 'body')),
-      );
-      final captured = verification.captured;
-      expect(captured.first, '/intake/analyses/archive');
-      expect(captured.last, <String, dynamic>{
-        'analysis_ids': <String>['analysis-1'],
-      });
-    },
-  );
+    final verification = verify(
+      () => restClient.patch(captureAny(), body: captureAny(named: 'body')),
+    );
+    final captured = verification.captured;
+    expect(captured.first, '/intake/analyses/archive');
+    expect(captured.last, <String, dynamic>{
+      'analysis_ids': <String>['analysis-1'],
+    });
+  });
 
   test('updateFolderName usa endpoint da pasta e envia nome trimado', () async {
     when(() => restClient.patch(any(), body: any(named: 'body'))).thenAnswer(

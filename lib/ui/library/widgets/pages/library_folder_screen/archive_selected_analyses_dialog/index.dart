@@ -1,3 +1,0 @@
-import 'package:animus/ui/library/widgets/pages/library_folder_screen/archive_selected_analyses_dialog/archive_selected_analyses_dialog_view.dart';
-
-typedef ArchiveSelectedAnalysesDialog = ArchiveSelectedAnalysesDialogView;

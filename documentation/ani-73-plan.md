@@ -1,229 +1,275 @@
 ---
-title: Plano de Implementacao - Tela de Pasta da Biblioteca
-spec: documentation/ani-73-spec.md
+title: Plano de Implementação — Tela de Pasta da Biblioteca
+spec: [documentation/ani-73-spec.md](documentation/ani-73-spec.md)
 created_at: 2026-05-04
 status: closed
 ---
 
 ---
 
-## Analise de Dependencias
+## Análise de Dependências
 
 ### Artefatos do `core` que desbloqueiam outras camadas
-- Atualizacao de `LibraryService` com `listFolderAnalyses`, `moveAnalysesToFolder` e `archiveAnalyses`.
-- Reuso de `AnalysisDto`, `FolderDto`, `CursorPaginationResponse<T>` e `RestResponse<T>` como contratos tipados para REST e UI.
-- `NavigationDriver` ja existe e desbloqueia navegacao da tela sem criar novo driver.
+- `LibraryService` com `getFolder`, `listFolderAnalyses`, `updateFolderName`, `archiveFolder`, `moveAnalysesToFolder` e `archiveAnalyses` desbloqueia `rest` e `ui`.
+- `FolderDto` com `id`, `name`, `analysisCount`, `accountId` e `isArchived` desbloqueia header, modais e mappers.
+- `AnalysisDto` com `id`, `name`, `createdAt`, `folderId` e `isArchived` desbloqueia lista, picker e operações batch.
+- `IntakeService.listAnalyses` desbloqueia o fluxo de pasta vazia.
+- `RestResponse`, `CursorPaginationResponse` e `NavigationDriver` já são contratos-base para services e presenters.
 
 ### Partes de `rest` e `drivers` independentes entre si
-- `LibraryRestService.listFolderAnalyses` e independente das operacoes batch, mas escreve no mesmo arquivo.
-- `LibraryRestService.moveAnalysesToFolder` e `archiveAnalyses` compartilham padrao de payload batch, mas nao dependem da listagem.
-- Nenhum novo `driver` e necessario; `NavigationDriver` existente pode ser consumido pela UI em paralelo ao REST.
+- `LibraryRestService` pode evoluir independente da UI depois do contrato `LibraryService`.
+- `IntakeRestService.listAnalyses` é independente de `LibraryRestService`, pois só precisa respeitar `IntakeService`.
+- `FolderMapper` e `CursorPaginationMapper` podem ser ajustados em paralelo com services, desde que os DTOs estejam estáveis.
+- Não há novo `driver`; `NavigationDriver` e sua implementação existente só precisam ser consumidos.
 
-### Presenters/widgets/screens paralelizaveis
-- `LibraryFolderScreenPresenter`, `FolderDestinationPickerPresenter` e `LibraryFolderSettingsModalPresenter` podem ser criados em paralelo apos os contratos relevantes.
-- Widgets view-only (`Header`, `AnalysisItem`, `ActionBar`, `EmptyState`, `ErrorState`) podem ser criados em paralelo.
-- `FolderAvailableAnalysisPicker`, `LibraryFolderAnalysisList`, `FolderDestinationPicker` e `SettingsModal` podem avancar com props estaveis antes da tela final.
+### Presenters/widgets/screens paralelizáveis
+- `LibraryFolderScreenPresenter`, `MoveAnalysesModalPresenter` e `FolderSettingsModalPresenter` podem ser trabalhados em paralelo após os contratos do `core`.
+- Widgets view-only da pasta podem ser criados em paralelo por arquivo/pasta: header, background, loading, error, empty, list, card, action bar e dialog.
+- `FolderAvailableAnalysisPicker` pode ser criado em `ui/library` em paralelo aos ajustes do presenter.
+- `LibraryScreenPresenter/View` pode ser ajustado em paralelo ao fluxo interno da tela de pasta.
 
-### Tarefas iniciaveis com stub
-- `LibraryFolderScreenPresenter` pode iniciar com fake/stub de `LibraryService`, `IntakeService` e `NavigationDriver`.
-- `LibraryFolderScreenView` pode iniciar com o presenter ja definido, sem aguardar o REST real.
-- Widgets view-only podem iniciar com `AnalysisDto`/`FolderDto` mockados.
-- `FolderDestinationPicker` pode iniciar com stub de `listFolders`.
+### Tarefas iniciáveis com stub
+- `LibraryFolderScreenPresenter` pode iniciar com stubs de `LibraryService` e `IntakeService`.
+- `LibraryFolderScreenView` pode iniciar com stub de `LibraryFolderScreenPresenter`.
+- `FolderAvailableAnalysisPicker` pode iniciar com listas estáticas de `AnalysisDto`.
+- `MoveAnalysesModalView` pode iniciar com stub de `MoveAnalysesModalPresenter`.
+
+### Impacto em navegação, estado compartilhado e integrações
+- Há impacto em `Routes` e `router.dart` para `/library/folders/:folderId`.
+- Estado local fica em `signals`; composição fica em providers Riverpod.
+- Não há novo cache local nem integração de plataforma nova.
 
 ---
 
-## Gargalos identificados
+## ⚠️ Gargalos identificados
 
-- **F1-T1 - Atualizar `LibraryService`**: bloqueia 5 tarefas; deve ser iniciada primeiro.
-- **F3-T1 - Criar `LibraryFolderScreenPresenter`**: bloqueia a composicao final da tela; deve comecar assim que F1-T1 estiver estavel.
-- **F5-T2 - Criar barrel publico da tela**: bloqueia o wiring da rota em `router.dart`.
+- **F1 — Contratos e rotas base**: bloqueia 9 tarefas; deve ser iniciada primeiro.
+- **F3-T1 — Orquestração do `LibraryFolderScreenPresenter`**: bloqueia integração da tela, picker e modais; deve ser priorizada logo após F1.
+- **F4-T1 — `FolderAvailableAnalysisPicker` no módulo correto**: bloqueia o requisito principal de pasta vazia.
 
 ---
 
-## Mapa de Paralelizacao
+## Mapa de Paralelização
 
 | Fase | Objetivo | Depende de | Pode rodar em paralelo com |
 |------|----------|------------|----------------------------|
-| F1 | Definir contratos do `core` | - | F4 parcial com widgets view-only |
-| F2 | Implementar adaptacao REST | F1 | F3, F4, F5 parcial com stubs |
-| F3 | Criar presenters da UI | F1 | F2, F4 |
-| F4 | Criar widgets internos da tela | F1 parcial | F2, F3 |
-| F5 | Compor `LibraryFolderScreen` | F3, F4 | F2, se iniciado com stub de `LibraryService` |
-| F6 | Registrar rota final | F5, F2 | - |
+| F1 | Estabilizar contratos, DTOs e rotas base | - | - |
+| F2 | Alinhar REST e providers | F1 | F3, F4, F5 |
+| F3 | Implementar presenters da pasta e modais | F1 | F2, F4, F5 |
+| F4 | Criar/ajustar widgets internos da pasta | F1, F3-T1 parcial | F2, F3, F5 |
+| F5 | Ligar biblioteca principal à tela de pasta | F1 | F2, F3, F4 |
+| F6 | Integrar tela, barrels e router final | F2, F3, F4, F5 | - |
 
 ---
 
 ## Fases e Tarefas
 
-### F1 - Contratos do Core
+### F1 — Contratos e rotas base
 
-- [x] **F1-T1** - Adicionar operacoes de pasta e lote em `LibraryService`
+- [x] **F1-T1** — Garantir contrato `LibraryService`
   - Camada: `core`
   - Artefato: `lib/core/library/interfaces/library_service.dart`
-  - Artefatos: `lib/core/library/interfaces/library_service.dart` *(alterado)*
-  - Concluido em: 2026-05-04
-  - Depende de: -
-  - Desbloqueia: F2-T1, F2-T2, F3-T1, F3-T3, F5-T1
+  - Depende de: —
+  - Desbloqueia: F2-T1, F3-T1, F3-T2, F3-T3
+  - Artefatos: `lib/core/library/interfaces/library_service.dart`
+  - Concluído em: 2026-05-04
 
-### F2 - Implementacao REST
+- [x] **F1-T2** — Garantir DTOs consumidos pela pasta
+  - Camada: `core`
+  - Artefato: `lib/core/library/dtos/folder_dto.dart`, `lib/core/intake/dtos/analysis_dto.dart`
+  - Depende de: —
+  - Desbloqueia: F2-T2, F4-T1, F4-T4, F4-T5
+  - Artefatos: `lib/core/library/dtos/folder_dto.dart`, `lib/core/intake/dtos/analysis_dto.dart`
+  - Concluído em: 2026-05-04
 
-- [x] **F2-T1** - Implementar listagem paginada de analises da pasta
+- [x] **F1-T3** — Garantir `IntakeService.listAnalyses`
+  - Camada: `core`
+  - Artefato: `lib/core/intake/interfaces/intake_service.dart`
+  - Depende de: —
+  - Desbloqueia: F2-T3, F3-T1
+  - Artefatos: `lib/core/intake/interfaces/intake_service.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F1-T4** — Garantir rota `Routes.libraryFolder` e helper
+  - Camada: `constants`
+  - Artefato: `lib/constants/routes.dart`
+  - Depende de: —
+  - Desbloqueia: F5-T1, F6-T2
+  - Artefatos: `lib/constants/routes.dart`
+  - Concluído em: 2026-05-04
+
+### F2 — REST e providers
+
+- [x] **F2-T1** — Alinhar endpoints de pasta e batch actions
   - Camada: `rest`
   - Artefato: `lib/rest/services/library_rest_service.dart`
-  - Artefatos: `lib/rest/services/library_rest_service.dart` *(alterado)*
-  - Concluido em: 2026-05-04
-  - Depende de: F1-T1
-  - Desbloqueia: carga real da F3-T1 e F5-T1
-
-- [x] **F2-T2** - Implementar mover/adicionar e arquivar analises em lote
-  - Camada: `rest`
-  - Artefato: `lib/rest/services/library_rest_service.dart`
-  - Artefatos: `lib/rest/services/library_rest_service.dart` *(alterado)*
-  - Concluido em: 2026-05-04
-  - Depende de: F1-T1
-  - Desbloqueia: fluxos reais de adicionar, mover e arquivar em F3-T1
-
-### F3 - Presenters da UI
-
-- [x] **F3-T1** - Criar `LibraryFolderScreenPresenter` e provider family
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: F1-T1
-  - Desbloqueia: F5-T1
-
-- [x] **F3-T2** - Criar presenter do modal de configuracoes
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_settings_modal/library_folder_settings_modal_presenter.dart`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_settings_modal/library_folder_settings_modal_presenter.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: `FolderDto` existente
-  - Desbloqueia: F4-T7
-
-- [x] **F3-T3** - Criar presenter do seletor de destino
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/folder_destination_picker/folder_destination_picker_presenter.dart`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/folder_destination_picker/folder_destination_picker_presenter.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: `LibraryService.listFolders`
-  - Desbloqueia: F4-T8
-
-### F4 - Widgets Internos
-
-- [x] **F4-T1** - Criar header da pasta
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_header/`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_header/library_folder_header_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_header/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: -
-  - Desbloqueia: F5-T1
-
-- [x] **F4-T2** - Criar item visual de analise
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_analysis_item/`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_analysis_item/library_folder_analysis_item_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_analysis_item/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: `AnalysisDto` existente
-  - Desbloqueia: F4-T3, F5-T1
-
-- [x] **F4-T3** - Criar lista paginada de analises
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_analysis_list/`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_analysis_list/library_folder_analysis_list_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_analysis_list/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: F4-T2
-  - Desbloqueia: F5-T1
-
-- [x] **F4-T4** - Criar picker de analises disponiveis para pasta vazia
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/folder_available_analysis_picker/`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/folder_available_analysis_picker/folder_available_analysis_picker_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/folder_available_analysis_picker/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: `AnalysisDto` existente
-  - Desbloqueia: F5-T1
-
-- [x] **F4-T5** - Criar action bar inferior de selecao
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_action_bar/`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_action_bar/library_folder_action_bar_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_action_bar/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: -
-  - Desbloqueia: F5-T1
-
-- [x] **F4-T6** - Criar estados de vazio e erro recuperavel
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_empty_state/` e `library_folder_error_state/`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_empty_state/library_folder_empty_state_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_empty_state/index.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_error_state/library_folder_error_state_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_error_state/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: -
-  - Desbloqueia: F5-T1
-
-- [x] **F4-T7** - Criar view do modal de configuracoes da pasta
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_settings_modal/library_folder_settings_modal_view.dart`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_settings_modal/library_folder_settings_modal_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_settings_modal/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: F3-T2
-  - Desbloqueia: F5-T1
-
-- [x] **F4-T8** - Criar view do seletor de destino
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/folder_destination_picker/folder_destination_picker_view.dart`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/folder_destination_picker/folder_destination_picker_view.dart` *(novo)*, `lib/ui/storage/widgets/pages/library_folder_screen/folder_destination_picker/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: F3-T3
-  - Desbloqueia: F5-T1
-
-### F5 - Composicao da Tela
-
-- [x] **F5-T1** - Criar `LibraryFolderScreenView` integrando presenter, estados e widgets
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_screen_view.dart`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/library_folder_screen_view.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: F3-T1, F4-T1, F4-T3, F4-T4, F4-T5, F4-T6, F4-T7, F4-T8
-  - Desbloqueia: F5-T2, F6-T1
-
-- [x] **F5-T2** - Criar barrel publico da tela
-  - Camada: `ui`
-  - Artefato: `lib/ui/storage/widgets/pages/library_folder_screen/index.dart`
-  - Artefatos: `lib/ui/storage/widgets/pages/library_folder_screen/index.dart` *(novo)*
-  - Concluido em: 2026-05-04
-  - Depende de: F5-T1
+  - Depende de: F1-T1, F1-T2
   - Desbloqueia: F6-T1
+  - Artefatos: `lib/rest/services/library_rest_service.dart`, `test/rest/services/library_rest_service_test.dart`
+  - Concluído em: 2026-05-04
 
-### F6 - Router e Entrada da Rota
+- [x] **F2-T2** — Garantir mapper de pasta
+  - Camada: `rest`
+  - Artefato: `lib/rest/mappers/library/folder_mapper.dart`
+  - Depende de: F1-T2
+  - Desbloqueia: F2-T1
+  - Artefatos: `lib/rest/mappers/library/folder_mapper.dart`
+  - Concluído em: 2026-05-04
 
-- [x] **F6-T1** - Substituir placeholder da rota por `LibraryFolderScreen`
+- [x] **F2-T3** — Reutilizar listagem de análises ativas
+  - Camada: `rest`
+  - Artefato: `lib/rest/services/intake_rest_service.dart`
+  - Depende de: F1-T3
+  - Desbloqueia: F3-T1
+  - Artefatos: `lib/rest/services/intake_rest_service.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F2-T4** — Garantir provider de `LibraryService`
+  - Camada: `rest`
+  - Artefato: `lib/rest/services/index.dart`
+  - Depende de: F2-T1
+  - Desbloqueia: F3-T1, F3-T2
+  - Artefatos: `lib/rest/services/index.dart`
+  - Concluído em: 2026-05-04
+
+### F3 — Presenters
+
+- [x] **F3-T1** — Ajustar `LibraryFolderScreenPresenter`
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart`
+  - Depende de: F1-T1, F1-T2, F1-T3
+  - Desbloqueia: F4-T1, F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart`, `test/ui/storage/widgets/pages/library_folder_screen/library_folder_screen_presenter_test.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F3-T2** — Ajustar presenter do modal de movimentação
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_presenter.dart`
+  - Depende de: F1-T1
+  - Desbloqueia: F4-T6, F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_presenter.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F3-T3** — Ajustar presenter do modal de configurações
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_presenter.dart`
+  - Depende de: F1-T1, F1-T2
+  - Desbloqueia: F4-T7, F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_presenter.dart`
+  - Concluído em: 2026-05-04
+
+### F4 — Widgets internos da tela de pasta
+
+- [x] **F4-T1** — Criar picker de análises disponíveis no módulo `ui/library`
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/folder_available_analysis_picker/folder_available_analysis_picker_view.dart`
+  - Depende de: F1-T2, F3-T1
+  - Desbloqueia: F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/folder_available_analysis_picker/folder_available_analysis_picker_view.dart`, `lib/ui/library/widgets/pages/library_folder_screen/folder_available_analysis_picker/index.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F4-T2** — Ajustar estados visuais básicos
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/folder_loading_state`, `folder_error_state`, `folder_empty_state`
+  - Depende de: F1-T2
+  - Desbloqueia: F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/folder_loading_state`, `lib/ui/library/widgets/pages/library_folder_screen/folder_error_state`, `lib/ui/library/widgets/pages/library_folder_screen/folder_empty_state`
+  - Concluído em: 2026-05-04
+
+- [x] **F4-T3** — Ajustar header e background
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/library_folder_header`, `library_folder_background`
+  - Depende de: F1-T2
+  - Desbloqueia: F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/library_folder_header`, `lib/ui/library/widgets/pages/library_folder_screen/library_folder_background`
+  - Concluído em: 2026-05-04
+
+- [x] **F4-T4** — Ajustar lista e card de análise
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/folder_analysis_list`, `folder_analysis_card`
+  - Depende de: F1-T2
+  - Desbloqueia: F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/folder_analysis_list`, `lib/ui/library/widgets/pages/library_folder_screen/folder_analysis_card`
+  - Concluído em: 2026-05-04
+
+- [x] **F4-T5** — Ajustar action bar e dialog de arquivamento
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/folder_selection_action_bar`, `archive_selected_analyses_dialog`
+  - Depende de: F3-T1
+  - Desbloqueia: F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/folder_selection_action_bar`, `lib/ui/library/widgets/pages/library_folder_screen/archive_selected_analyses_dialog`
+  - Concluído em: 2026-05-04
+
+- [x] **F4-T6** — Ajustar modal de movimentação
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_view.dart`
+  - Depende de: F3-T2
+  - Desbloqueia: F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/move_analyses_modal/move_analyses_modal_view.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F4-T7** — Ajustar modal de configurações
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_view.dart`
+  - Depende de: F3-T3
+  - Desbloqueia: F6-T1
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/folder_settings_modal/folder_settings_modal_view.dart`
+  - Concluído em: 2026-05-04
+
+### F5 — Entrada pela biblioteca principal
+
+- [x] **F5-T1** — Garantir navegação por `openFolder`
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_screen/library_screen_presenter.dart`
+  - Depende de: F1-T4
+  - Desbloqueia: F5-T2
+  - Artefatos: `lib/ui/library/widgets/pages/library_screen/library_screen_presenter.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F5-T2** — Conectar cards de pasta ao presenter
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_screen/library_screen_view.dart`
+  - Depende de: F5-T1
+  - Desbloqueia: F6-T2
+  - Artefatos: `lib/ui/library/widgets/pages/library_screen/library_screen_view.dart`
+  - Concluído em: 2026-05-04
+
+### F6 — Integração final
+
+- [x] **F6-T1** — Integrar estados e widgets na tela de pasta
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_view.dart`
+  - Depende de: F2-T4, F3-T1, F3-T2, F3-T3, F4-T1, F4-T2, F4-T3, F4-T4, F4-T5, F4-T6, F4-T7
+  - Desbloqueia: F6-T3
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/library_folder_screen_view.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F6-T2** — Garantir registro da rota autenticada
   - Camada: `ui`
   - Artefato: `lib/router.dart`
-  - Artefatos: `lib/router.dart` *(alterado)*
-  - Concluido em: 2026-05-04
-  - Depende de: F2-T1, F2-T2, F5-T2
-  - Desbloqueia: entrega navegavel da ANI-73
+  - Depende de: F1-T4, F5-T2
+  - Desbloqueia: F6-T3
+  - Artefatos: `lib/router.dart`
+  - Concluído em: 2026-05-04
+
+- [x] **F6-T3** — Atualizar barrels públicos da pasta
+  - Camada: `ui`
+  - Artefato: `lib/ui/library/widgets/pages/library_folder_screen/index.dart`
+  - Depende de: F4-T1, F6-T1
+  - Desbloqueia: —
+  - Artefatos: `lib/ui/library/widgets/pages/library_folder_screen/index.dart`
+  - Concluído em: 2026-05-04
 
 ---
 
-## Pendencias
+## Pendências
 
-- Resolvido em 2026-05-04: `listFolderAnalyses` usa `GET /intake/analyses` com `folder_id`, `is_archived=false`, `limit` e `cursor`, e aplica filtro local defensivo por `AnalysisDto.folderId`.
-- Confirmar se os endpoints batch retornam objeto/sem body para manter `RestResponse<void>`.
-- Validar copy final de "Deletar" versus "Arquivar"; a logica deve tratar como arquivamento, nao exclusao permanente.
-- A implementacao REST toca o mesmo arquivo para tres metodos; se houver paralelizacao nessa fase, coordenar ownership para evitar conflito de merge.
-
----
-
-## Divergencias em relacao a Spec
-
-- **F2-T1:** o endpoint `GET /library/folders/{folderId}/analyses` retornou 404 no backend local; a implementacao foi ajustada para `GET /intake/analyses` com filtro `folder_id`.
-- **F2-T1:** como o sintoma observado indica possivel retorno sem filtro efetivo de pasta, a implementacao tambem filtra localmente os itens retornados por `folder_id` antes de renderizar a tela.
-- **F6-T1:** a rota `/library/folders/:folderId` foi movida para fora da `StatefulShellBranch` em vez de usar `parentNavigatorKey: rootNavigatorKey` dentro da branch, porque o `go_router` valida que subrotas de uma branch usem `parentNavigatorKey` nulo ou igual ao navigator da propria branch.
+- A limpeza dos artefatos legados em `lib/ui/storage/widgets/pages/library_folder_screen/` deve ficar fora deste recorte para evitar misturar migração técnica com a entrega funcional.
+- A rota dedicada `/library/unfoldered` permanece fora do escopo; este plano cobre a seção `Sem pasta` na biblioteca e o destino `Sem pasta` em movimentações.
+- Validar manualmente depois da implementação os fluxos com backend real: 403/404 amigáveis, paginação, pasta vazia, batch move/archive e retorno para biblioteca.
 
 ---
 
-## Validacao
+## Divergências em relação à Spec
 
-- `dart format .` - concluido fora do sandbox em 2026-05-04.
-- `flutter analyze` - sem issues, concluido fora do sandbox em 2026-05-04.
-- `flutter test` - 154 testes passaram, concluido fora do sandbox em 2026-05-04.
+- Nenhuma.

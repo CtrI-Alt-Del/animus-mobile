@@ -9,7 +9,7 @@ import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
-import 'package:animus/ui/library/widgets/pages/library_folder_screen/library_folder_screen_presenter.dart';
+import 'package:animus/ui/library/widgets/screens/library_folder_screen/library_folder_screen_presenter.dart';
 
 class _MockLibraryService extends Mock implements LibraryService {}
 
@@ -49,6 +49,7 @@ void main() {
   AnalysisDto createAnalysis({
     required String id,
     String name = 'Analise trabalhista',
+    String? folderId = 'folder-1',
   }) {
     return AnalysisDto(
       id: id,
@@ -57,7 +58,7 @@ void main() {
       status: AnalysisStatusDto.precedentChosen,
       summary: '',
       createdAt: '2026-05-03T10:00:00Z',
-      folderId: 'folder-1',
+      folderId: folderId,
     );
   }
 
@@ -132,6 +133,52 @@ void main() {
       expect(presenter.folder.value, isNull);
       expect(presenter.analyses.value, isEmpty);
     });
+
+    test(
+      'carrega apenas analises sem pasta quando a pasta esta vazia',
+      () async {
+        final LibraryFolderScreenPresenter presenter = createPresenter();
+        final AnalysisDto unfolderedAnalysis = createAnalysis(
+          id: 'analysis-1',
+          folderId: null,
+        );
+        addTearDown(presenter.dispose);
+
+        when(() => libraryService.getFolder(folderId: 'folder-1')).thenAnswer(
+          (_) async => RestResponse<FolderDto>(body: createFolder()),
+        );
+        when(
+          () => libraryService.listFolderAnalyses(
+            folderId: 'folder-1',
+            limit: 50,
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+            body: createPagination(items: <AnalysisDto>[]),
+          ),
+        );
+        when(() => libraryService.listUnfolderedAnalyses(limit: 50)).thenAnswer(
+          (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+            body: createPagination(
+              items: <AnalysisDto>[
+                unfolderedAnalysis,
+                createAnalysis(id: 'analysis-2'),
+              ],
+            ),
+          ),
+        );
+
+        await presenter.initialize();
+
+        expect(presenter.availableAnalyses.value, <AnalysisDto>[
+          unfolderedAnalysis,
+        ]);
+        expect(presenter.showAvailableAnalysisPicker.value, isTrue);
+        verify(
+          () => libraryService.listUnfolderedAnalyses(limit: 50),
+        ).called(1);
+      },
+    );
   });
 
   group('pagination', () {
@@ -197,11 +244,7 @@ void main() {
             analysisIds: <String>['analysis-1'],
             folderId: null,
           ),
-        ).thenAnswer(
-          (_) async => RestResponse<List<AnalysisDto>>(
-            body: <AnalysisDto>[createAnalysis(id: 'analysis-1')],
-          ),
-        );
+        ).thenAnswer((_) async => RestResponse<void>());
 
         final bool moved = await presenter.moveSelectedAnalyses(null);
 
@@ -225,7 +268,7 @@ void main() {
         () =>
             libraryService.archiveAnalyses(analysisIds: <String>['analysis-1']),
       ).thenAnswer(
-        (_) async => RestResponse<List<AnalysisDto>>(
+        (_) async => RestResponse<void>(
           statusCode: 500,
           errorMessage: 'Falha ao arquivar',
         ),
