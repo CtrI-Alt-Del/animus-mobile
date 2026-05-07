@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:animus/ui/library/widgets/screens/library_screen/library_screen_presenter.dart';
 import 'package:animus/ui/shared/widgets/components/app_bottom_navigation/index.dart';
 
-class AppShellView extends StatelessWidget {
+class AppShellView extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const AppShellView({required this.navigationShell, super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final int currentIndex = navigationShell.currentIndex;
 
     return Scaffold(
@@ -36,9 +38,16 @@ class AppShellView extends StatelessWidget {
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: currentIndex,
         onDestinationSelected: (int index) {
+          if (index == _libraryBranchIndex) {
+            ref.invalidate(libraryScreenInitializationProvider);
+            ref.invalidate(libraryScreenPresenterProvider);
+          }
+
           navigationShell.goBranch(index);
         },
       ),
     );
   }
 }
+
+const int _libraryBranchIndex = 1;
