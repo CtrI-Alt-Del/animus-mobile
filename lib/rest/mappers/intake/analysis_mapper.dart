@@ -28,17 +28,25 @@ final class AnalysisMapper {
   }
 
   static AnalysisTypeDto _toType(String value) {
-    return AnalysisTypeDto.values.firstWhere(
-      (AnalysisTypeDto type) => type.value == value,
-      orElse: () => AnalysisTypeDto.lawyer,
-    );
+    switch (value) {
+      case 'CASE_ASSESSMENT':
+        return AnalysisTypeDto.caseAssessment;
+      case 'FIRST_INSTANCE':
+      case 'LAWYER':
+        return AnalysisTypeDto.firstInstance;
+      case 'SECOND_INSTANCE':
+      case 'JUDGE':
+        return AnalysisTypeDto.secondInstance;
+      default:
+        return AnalysisTypeDto.firstInstance;
+    }
   }
 
   static AnalysisStatusDto _toStatus({
     required AnalysisTypeDto type,
     required String value,
   }) {
-    if (type == AnalysisTypeDto.judge) {
+    if (type == AnalysisTypeDto.secondInstance) {
       final JudgeAnalysisStatusDto status = JudgeAnalysisStatusDto.values
           .firstWhere(
             (JudgeAnalysisStatusDto item) => item.value == value,

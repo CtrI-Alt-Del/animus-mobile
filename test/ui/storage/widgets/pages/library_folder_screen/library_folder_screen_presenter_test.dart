@@ -56,7 +56,7 @@ void main() {
       id: id,
       name: name,
       accountId: 'account-1',
-      type: AnalysisTypeDto.lawyer,
+      type: AnalysisTypeDto.firstInstance,
       status: AnalysisStatusDto.precedentChosen,
       summary: '',
       createdAt: '2026-05-03T10:00:00Z',

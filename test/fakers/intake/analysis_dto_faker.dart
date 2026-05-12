@@ -27,7 +27,7 @@ final class AnalysisDtoFaker {
     String? id = 'analysis-1',
     String name = 'Analise de precedente',
     String accountId = 'account-1',
-    AnalysisTypeDto type = AnalysisTypeDto.lawyer,
+    AnalysisTypeDto type = AnalysisTypeDto.firstInstance,
     AnalysisStatusDto status = AnalysisStatusDto.petitionAnalyzed,
     String summary = 'Resumo gerado.',
     String createdAt = '2026-03-31T10:00:00Z',

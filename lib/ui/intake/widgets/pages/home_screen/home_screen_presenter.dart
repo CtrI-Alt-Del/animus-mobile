@@ -198,7 +198,7 @@ class HomeScreenPresenter {
     generalError.value = null;
 
     final RestResponse<AnalysisDto> response = await _intakeService
-        .createAnalysis(type: AnalysisTypeDto.lawyer);
+        .createAnalysis(type: AnalysisTypeDto.firstInstance);
 
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(

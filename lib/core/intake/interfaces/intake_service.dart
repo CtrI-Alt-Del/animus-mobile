@@ -22,7 +22,7 @@ abstract class IntakeService {
   });
 
   Future<RestResponse<AnalysisDto>> createAnalysis({
-    AnalysisTypeDto type = AnalysisTypeDto.lawyer,
+    AnalysisTypeDto type = AnalysisTypeDto.firstInstance,
     String? folderId,
   });
 

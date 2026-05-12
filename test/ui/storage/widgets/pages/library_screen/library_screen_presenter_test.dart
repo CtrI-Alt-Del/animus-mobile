@@ -46,7 +46,7 @@ void main() {
       id: id,
       name: 'Analise',
       accountId: 'account-1',
-      type: AnalysisTypeDto.lawyer,
+      type: AnalysisTypeDto.firstInstance,
       status: AnalysisStatusDto.waitingPetition,
       summary: '',
       createdAt: '2026-04-28T10:00:00Z',

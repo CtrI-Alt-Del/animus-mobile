@@ -104,7 +104,7 @@ void main() {
           id: 'analysis-123',
           name: 'Analise de precedente',
           accountId: 'account-1',
-          type: AnalysisTypeDto.lawyer,
+          type: AnalysisTypeDto.firstInstance,
           status: AnalysisStatusDto.waitingPetition,
           summary: '',
           createdAt: '2026-03-31T10:00:00Z',

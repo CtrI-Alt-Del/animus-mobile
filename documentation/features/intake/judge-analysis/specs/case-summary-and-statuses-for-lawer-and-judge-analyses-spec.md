@@ -9,6 +9,8 @@ last_updated_at: 2026-05-12
 
 Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, preparando o app para os fluxos `RF 07` (lawyer) e `RF 08` (judge) sem vazar JSON cru para a UI. O recorte desta spec renomeia `PetitionSummaryDto` para `CaseSummaryDto`, introduz `AnalysisTypeDto`, adiciona enums explicitos para status de `lawyer` e `judge`, faz `AnalysisDto.status` refletir o enum especifico do fluxo da analise, publica DTOs e metodos para rascunhos e desarquivamento, e atualiza os mappers e consumidores atuais com a menor mudanca correta para manter o app compilando ate as tasks de UI dedicadas (`ANI-101` e `ANI-103`).
 
+> **Atualizacao de direcionamento (2026-05-12):** o produto deixou de trabalhar com dois tipos (`lawyer` e `judge`) e passa a adotar tres tipos de analise no dominio: `CaseAssessmentAnalysis`, `FirstInstanceAnalysis` e `SecondInstanceAnalysis`. A `FirstInstanceAnalysis` corresponde ao fluxo ja implementado no app atual e deve ser o default de criacao enquanto os demais fluxos nao estiverem disponiveis na UI.
+
 ---
 
 # 2. Escopo
@@ -116,7 +118,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - **Factory `fromJson` (se aplicavel):** Nao aplicavel; o projeto concentra parsing na camada REST.
 
 - **Localizacao:** `lib/core/intake/dtos/analysis_type_dto.dart` (**novo arquivo**)
-- **Atributos:** enum `AnalysisTypeDto { lawyer, judge }` com `final String value` para o transporte remoto.
+- **Atributos:** enum `AnalysisTypeDto { caseAssessment, firstInstance, secondInstance }` com `final String value` para o transporte remoto.
 - **Factory `fromJson` (se aplicavel):** Nao aplicavel.
 
 - **Localizacao:** `lib/core/intake/dtos/lawyer_analysis_status_dto.dart` (**novo arquivo**)
@@ -260,7 +262,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 ## UI
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart`
-- **Mudanca:** manter o metodo publico atual `Future<void> createAnalysis()`, mas fazer a chamada interna a `IntakeService.createAnalysis(type: AnalysisTypeDto.lawyer)`.
+- **Mudanca:** manter o metodo publico atual `Future<void> createAnalysis()`, mas fazer a chamada interna a `IntakeService.createAnalysis(type: AnalysisTypeDto.firstInstance)`.
 - **Justificativa:** preserva o comportamento atual da Home ate `ANI-101`, sem bloquear a introducao obrigatoria do parametro `type` no contrato de service.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart`
