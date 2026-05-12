@@ -1,5 +1,6 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 
 final class AnalysisStatusDtoFaker {
   const AnalysisStatusDtoFaker._();
@@ -26,6 +27,7 @@ final class AnalysisDtoFaker {
     String? id = 'analysis-1',
     String name = 'Analise de precedente',
     String accountId = 'account-1',
+    AnalysisTypeDto type = AnalysisTypeDto.lawyer,
     AnalysisStatusDto status = AnalysisStatusDto.petitionAnalyzed,
     String summary = 'Resumo gerado.',
     String createdAt = '2026-03-31T10:00:00Z',
@@ -36,6 +38,7 @@ final class AnalysisDtoFaker {
       id: id,
       name: name,
       accountId: accountId,
+      type: type,
       status: status,
       summary: summary,
       createdAt: createdAt,

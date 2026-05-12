@@ -1,4 +1,4 @@
-class PetitionSummaryDto {
+class CaseSummaryDto {
   final String caseSummary;
   final String legalIssue;
   final String centralQuestion;
@@ -15,7 +15,7 @@ class PetitionSummaryDto {
   final List<String> proceduralIssues;
   final List<String> excludedOrAccessoryTopics;
 
-  PetitionSummaryDto({
+  const CaseSummaryDto({
     required this.caseSummary,
     required this.legalIssue,
     required this.centralQuestion,

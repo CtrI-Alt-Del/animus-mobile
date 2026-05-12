@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/petition_summary_card/petition_summary_card_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/petition_summary_card/summary_list_section/index.dart';
 import 'package:animus/ui/intake/widgets/pages/analysis_screen/petition_summary_card/summary_section/index.dart';
 
 class PetitionSummaryCardView extends StatefulWidget {
-  final PetitionSummaryDto summary;
+  final CaseSummaryDto summary;
 
   const PetitionSummaryCardView({required this.summary, super.key});
 

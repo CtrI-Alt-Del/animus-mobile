@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
-import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
@@ -103,6 +104,7 @@ void main() {
           id: 'analysis-123',
           name: 'Analise de precedente',
           accountId: 'account-1',
+          type: AnalysisTypeDto.lawyer,
           status: AnalysisStatusDto.waitingPetition,
           summary: '',
           createdAt: '2026-03-31T10:00:00Z',
@@ -142,7 +144,7 @@ void main() {
     late Signal<String> analysisName;
     late Signal<bool> isManagingAnalysis;
     late Signal<PetitionDto?> petition;
-    late Signal<PetitionSummaryDto?> summary;
+    late Signal<CaseSummaryDto?> summary;
     late Signal<bool> canPickDocument;
     late Signal<bool> canAnalyze;
     late Signal<bool> showProcessingBubble;
@@ -171,7 +173,7 @@ void main() {
       analysisName = signal<String>('Analise de precedente');
       isManagingAnalysis = signal<bool>(false);
       petition = signal<PetitionDto?>(null);
-      summary = signal<PetitionSummaryDto?>(null);
+      summary = signal<CaseSummaryDto?>(null);
       canPickDocument = signal<bool>(true);
       canAnalyze = signal<bool>(false);
       showProcessingBubble = signal<bool>(false);
@@ -336,7 +338,7 @@ void main() {
       'renderiza summary card e acao de retry quando peticao foi analisada',
       (WidgetTester tester) async {
         petition.value = PetitionDtoFaker.fake();
-        summary.value = PetitionSummaryDtoFaker.fake(
+        summary.value = CaseSummaryDtoFaker.fake(
           caseSummary: 'Resumo expandivel da peticao.',
         );
         status.value = AnalysisStatusDto.petitionAnalyzed;
@@ -357,7 +359,7 @@ void main() {
       WidgetTester tester,
     ) async {
       petition.value = PetitionDtoFaker.fake();
-      summary.value = PetitionSummaryDtoFaker.fake();
+      summary.value = CaseSummaryDtoFaker.fake();
       status.value = AnalysisStatusDto.petitionAnalyzed;
       primaryActionLabel.value = 'Buscar precedentes';
       fileActionLabel.value = 'Enviar outro documento';
@@ -377,7 +379,7 @@ void main() {
       WidgetTester tester,
     ) async {
       petition.value = PetitionDtoFaker.fake();
-      summary.value = PetitionSummaryDtoFaker.fake();
+      summary.value = CaseSummaryDtoFaker.fake();
       status.value = AnalysisStatusDto.petitionAnalyzed;
       primaryActionLabel.value = 'Buscar precedentes';
       fileActionLabel.value = 'Enviar outro documento';
@@ -395,7 +397,7 @@ void main() {
       'aciona replaceDocument pela acao secundaria quando analisada',
       (WidgetTester tester) async {
         petition.value = PetitionDtoFaker.fake();
-        summary.value = PetitionSummaryDtoFaker.fake();
+        summary.value = CaseSummaryDtoFaker.fake();
         status.value = AnalysisStatusDto.petitionAnalyzed;
         primaryActionLabel.value = 'Buscar precedentes';
         fileActionLabel.value = 'Enviar outro documento';
@@ -551,7 +553,7 @@ void main() {
       'exibe bubble de precedentes e oculta action bar durante fluxo de precedentes',
       (WidgetTester tester) async {
         petition.value = PetitionDtoFaker.fake();
-        summary.value = PetitionSummaryDtoFaker.fake();
+        summary.value = CaseSummaryDtoFaker.fake();
         status.value = AnalysisStatusDto.searchingPrecedents;
 
         await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
@@ -566,7 +568,7 @@ void main() {
       'exibe resumo de precedente escolhido somente quando existe precedente escolhido',
       (WidgetTester tester) async {
         petition.value = PetitionDtoFaker.fake();
-        summary.value = PetitionSummaryDtoFaker.fake();
+        summary.value = CaseSummaryDtoFaker.fake();
         status.value = AnalysisStatusDto.precedentChosen;
 
         selectedPrecedent.value = AnalysisPrecedentDtoFaker.fake(

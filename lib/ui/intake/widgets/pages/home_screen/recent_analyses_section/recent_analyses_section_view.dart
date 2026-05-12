@@ -278,9 +278,12 @@ class RecentAnalysesSectionView extends StatelessWidget {
       case AnalysisStatusDto.waitingPrecedentChoice:
         return 'Aguardando escolha de precedente';
       case AnalysisStatusDto.precedentChosen:
+      case AnalysisStatusDto.done:
         return 'Concluída';
       case AnalysisStatusDto.failed:
         return 'Falhou';
+      default:
+        return 'Processando';
     }
   }
 }

@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
-import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
@@ -69,6 +69,14 @@ void main() {
         body: AnalysisStatusDto.waitingPetition,
       ),
     );
+    when(
+      () => intakeService.getCaseSummary(analysisId: any(named: 'analysisId')),
+    ).thenAnswer(
+      (_) async => RestResponse<CaseSummaryDto>(
+        statusCode: 200,
+        body: CaseSummaryDtoFaker.fake(),
+      ),
+    );
     tempDirectory = await Directory.systemTemp.createTemp(
       'analysis_screen_presenter_test_',
     );
@@ -108,7 +116,7 @@ void main() {
         addTearDown(presenter.dispose);
 
         presenter.petition.value = PetitionDtoFaker.fake();
-        presenter.summary.value = PetitionSummaryDtoFaker.fake();
+        presenter.summary.value = CaseSummaryDtoFaker.fake();
         presenter.status.value = AnalysisStatusDto.petitionAnalyzed;
 
         when(
@@ -164,7 +172,7 @@ void main() {
       addTearDown(presenter.dispose);
 
       presenter.petition.value = PetitionDtoFaker.fake();
-      presenter.summary.value = PetitionSummaryDtoFaker.fake();
+      presenter.summary.value = CaseSummaryDtoFaker.fake();
       presenter.status.value = AnalysisStatusDto.petitionAnalyzed;
 
       when(
@@ -243,8 +251,8 @@ void main() {
         addTearDown(presenter.dispose);
         final File petitionFile = await createFile('uploaded.pdf', 1024);
         final petition = PetitionDtoFaker.fake();
-        final PetitionSummaryDto petitionSummary =
-            PetitionSummaryDtoFaker.fake();
+        final CaseSummaryDto petitionSummary =
+            CaseSummaryDtoFaker.fake();
 
         when(
           () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
@@ -255,7 +263,7 @@ void main() {
           () => fileStorageDriver.getFile(petition.document.filePath),
         ).thenAnswer((_) async => petitionFile);
         when(
-          () => intakeService.getPetitionSummary(petitionId: petition.id!),
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
         ).thenAnswer(
           (_) async => RestResponse(statusCode: 200, body: petitionSummary),
         );
@@ -298,7 +306,7 @@ void main() {
           () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
         ).called(1);
         verify(
-          () => intakeService.getPetitionSummary(petitionId: petition.id!),
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
         ).called(1);
       },
     );
@@ -310,8 +318,8 @@ void main() {
         addTearDown(presenter.dispose);
         final File petitionFile = await createFile('uploaded.pdf', 1024);
         final petition = PetitionDtoFaker.fake();
-        final PetitionSummaryDto petitionSummary =
-            PetitionSummaryDtoFaker.fake();
+        final CaseSummaryDto petitionSummary =
+            CaseSummaryDtoFaker.fake();
 
         when(
           () => intakeService.getAnalysis(analysisId: 'analysis-1'),
@@ -332,7 +340,7 @@ void main() {
           () => fileStorageDriver.getFile(petition.document.filePath),
         ).thenAnswer((_) async => petitionFile);
         when(
-          () => intakeService.getPetitionSummary(petitionId: petition.id!),
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
         ).thenAnswer(
           (_) async => RestResponse(statusCode: 200, body: petitionSummary),
         );
@@ -348,7 +356,7 @@ void main() {
           petitionSummary.caseSummary,
         );
         verify(
-          () => intakeService.getPetitionSummary(petitionId: petition.id!),
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
         ).called(1);
       },
     );
@@ -380,9 +388,9 @@ void main() {
           () => fileStorageDriver.getFile(petition.document.filePath),
         ).thenAnswer((_) async => petitionFile);
         when(
-          () => intakeService.getPetitionSummary(petitionId: petition.id!),
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
         ).thenAnswer(
-          (_) async => RestResponse<PetitionSummaryDto>(
+          (_) async => RestResponse<CaseSummaryDto>(
             statusCode: 500,
             errorMessage: 'Falha ao carregar resumo.',
           ),
@@ -561,7 +569,7 @@ void main() {
       final AnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       final petition = PetitionDtoFaker.fake();
-      final PetitionSummaryDto petitionSummary = PetitionSummaryDtoFaker.fake();
+      final CaseSummaryDto petitionSummary = CaseSummaryDtoFaker.fake();
 
       presenter.petition.value = petition;
       presenter.status.value = AnalysisStatusDto.petitionUploaded;
@@ -580,9 +588,9 @@ void main() {
         ),
       );
       when(
-        () => intakeService.getPetitionSummary(petitionId: petition.id!),
+        () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
       ).thenAnswer(
-        (_) async => RestResponse<PetitionSummaryDto>(
+        (_) async => RestResponse<CaseSummaryDto>(
           statusCode: 200,
           body: petitionSummary,
         ),
@@ -772,7 +780,7 @@ void main() {
         final Completer<File?> pickCompleter = Completer<File?>();
 
         presenter.petition.value = PetitionDtoFaker.fake(id: 'petition-1');
-        presenter.summary.value = PetitionSummaryDtoFaker.fake();
+        presenter.summary.value = CaseSummaryDtoFaker.fake();
         presenter.selectedFile.value = oldFile;
         presenter.generalError.value = 'erro antigo';
         presenter.status.value = AnalysisStatusDto.petitionAnalyzed;
