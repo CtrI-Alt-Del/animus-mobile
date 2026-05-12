@@ -71,7 +71,7 @@ class IntakeRestService extends Service implements IntakeService {
 
   @override
   Future<RestResponse<AnalysisDto>> createAnalysis({
-    AnalysisTypeDto type = AnalysisTypeDto.lawyer,
+    AnalysisTypeDto type = AnalysisTypeDto.firstInstance,
     String? folderId,
   }) async {
     final RestResponse<AnalysisDto>? authFailure = requireAuth<AnalysisDto>();

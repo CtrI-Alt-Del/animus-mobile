@@ -1,6 +1,7 @@
 enum AnalysisTypeDto {
-  lawyer('LAWYER'),
-  judge('JUDGE');
+  caseAssessment('CASE_ASSESSMENT'),
+  firstInstance('FIRST_INSTANCE'),
+  secondInstance('SECOND_INSTANCE');
 
   final String value;
   const AnalysisTypeDto(this.value);
