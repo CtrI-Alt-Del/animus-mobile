@@ -1,23 +1,21 @@
+import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_report_filters_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
-import 'package:animus/core/intake/dtos/petition_dto.dart';
+import 'package:animus/core/intake/dtos/judgment_draft_dto.dart';
 
-class AnalysisReportDto {
+class JudgeAnalysisReportDto {
   final AnalysisDto analysis;
-  final PetitionDto petition;
+  final AnalysisDocumentDto document;
   final CaseSummaryDto caseSummary;
-  final AnalysisReportFiltersDto filters;
   final List<AnalysisPrecedentDto> precedents;
-  final AnalysisPrecedentDto chosenPrecedent;
+  final JudgmentDraftDto judgmentDraft;
 
-  const AnalysisReportDto({
+  const JudgeAnalysisReportDto({
     required this.analysis,
-    required this.petition,
+    required this.document,
     required this.caseSummary,
-    required this.filters,
     required this.precedents,
-    required this.chosenPrecedent,
+    required this.judgmentDraft,
   });
 }

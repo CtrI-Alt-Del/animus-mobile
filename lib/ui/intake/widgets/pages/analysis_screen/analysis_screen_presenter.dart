@@ -12,7 +12,7 @@ import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/petition_document_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
-import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
@@ -56,7 +56,7 @@ class AnalysisScreenPresenter {
   final Signal<bool> isUploading = signal<bool>(false);
   final Signal<double?> uploadProgress = signal<double?>(null);
   final Signal<PetitionDto?> petition = signal<PetitionDto?>(null);
-  final Signal<PetitionSummaryDto?> summary = signal<PetitionSummaryDto?>(null);
+  final Signal<CaseSummaryDto?> summary = signal<CaseSummaryDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
@@ -206,17 +206,17 @@ class AnalysisScreenPresenter {
       return;
     }
 
-    final RestResponse<PetitionSummaryDto> petitionSummaryResponse =
-        await _intakeService.getPetitionSummary(petitionId: petitionId);
+    final RestResponse<CaseSummaryDto> caseSummaryResponse =
+        await _intakeService.getCaseSummary(analysisId: analysisId);
 
-    if (petitionSummaryResponse.isFailure) {
+    if (caseSummaryResponse.isFailure) {
       status.value = analysisStatus;
       summary.value = null;
-      generalError.value = petitionSummaryResponse.errorMessage;
+      generalError.value = caseSummaryResponse.errorMessage;
       return;
     }
 
-    summary.value = petitionSummaryResponse.body;
+    summary.value = caseSummaryResponse.body;
     status.value = analysisStatus;
   }
 
@@ -655,8 +655,8 @@ class AnalysisScreenPresenter {
       status.value = currentStatus;
 
       if (currentStatus == AnalysisStatusDto.petitionAnalyzed) {
-        final RestResponse<PetitionSummaryDto> summaryResponse =
-            await _intakeService.getPetitionSummary(petitionId: petitionId);
+        final RestResponse<CaseSummaryDto> summaryResponse =
+            await _intakeService.getCaseSummary(analysisId: analysisId);
 
         if (summaryResponse.isFailure) {
           await _applyRemoteFailure(summaryResponse.errorMessage);

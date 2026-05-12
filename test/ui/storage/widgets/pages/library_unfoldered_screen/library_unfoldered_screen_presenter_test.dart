@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
@@ -35,6 +36,7 @@ void main() {
       id: id,
       name: 'Analise',
       accountId: 'account-1',
+      type: AnalysisTypeDto.lawyer,
       status: AnalysisStatusDto.waitingPetition,
       summary: '',
       createdAt: '2026-04-28T10:00:00Z',

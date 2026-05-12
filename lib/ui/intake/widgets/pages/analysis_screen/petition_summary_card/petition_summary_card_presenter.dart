@@ -1,16 +1,16 @@
 import 'package:flutter/services.dart';
 
-import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 
 class PetitionSummaryCardPresenter {
-  Future<bool> copySummaryToClipboard(PetitionSummaryDto summary) async {
+  Future<bool> copySummaryToClipboard(CaseSummaryDto summary) async {
     final String summaryText = buildSummaryForClipboard(summary);
 
     await Clipboard.setData(ClipboardData(text: summaryText));
     return true;
   }
 
-  String buildSummaryForClipboard(PetitionSummaryDto summary) {
+  String buildSummaryForClipboard(CaseSummaryDto summary) {
     String buildText(String title, String? content) {
       final String normalizedContent = (content ?? '').trim();
       return '$title\n${normalizedContent.isEmpty ? '-' : normalizedContent}';

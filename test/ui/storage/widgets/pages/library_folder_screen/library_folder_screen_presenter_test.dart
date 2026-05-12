@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/library/dtos/folder_dto.dart';
 import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
@@ -55,6 +56,7 @@ void main() {
       id: id,
       name: name,
       accountId: 'account-1',
+      type: AnalysisTypeDto.lawyer,
       status: AnalysisStatusDto.precedentChosen,
       summary: '',
       createdAt: '2026-05-03T10:00:00Z',

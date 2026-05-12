@@ -1,13 +1,13 @@
 ---
 title: Atualizacao de case summary e status tipados para analises de lawyer e judge
-prd: https://joaogoliveiragarcia.atlassian.net/wiki/spaces/ANM/pages/131218/Requisitos+do+produto
+prd: https://joaogoliveiragarcia.atlassian.net/wiki/x/AYDsAg
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-115
 last_updated_at: 2026-05-12
 ---
 
 # 1. Objetivo
 
-Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, preparando o app para os fluxos `RF 07` (lawyer) e `RF 08` (judge) sem vazar JSON cru para a UI. O recorte desta spec renomeia `PetitionSummaryDto` para `CaseSummaryDto`, introduz `AnalysisTypeDto`, adiciona enums explicitos para status de `lawyer` e `judge`, publica DTOs e metodos para rascunhos e desarquivamento, e atualiza os mappers e consumidores atuais com a menor mudanca correta para manter o app compilando ate as tasks de UI dedicadas (`ANI-101` e `ANI-103`).
+Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, preparando o app para os fluxos `RF 07` (lawyer) e `RF 08` (judge) sem vazar JSON cru para a UI. O recorte desta spec renomeia `PetitionSummaryDto` para `CaseSummaryDto`, introduz `AnalysisTypeDto`, adiciona enums explicitos para status de `lawyer` e `judge`, faz `AnalysisDto.status` refletir o enum especifico do fluxo da analise, publica DTOs e metodos para rascunhos e desarquivamento, e atualiza os mappers e consumidores atuais com a menor mudanca correta para manter o app compilando ate as tasks de UI dedicadas (`ANI-101` e `ANI-103`).
 
 ---
 
@@ -18,8 +18,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - Renomear o contrato de resumo de caso de `PetitionSummaryDto` para `CaseSummaryDto` no `core`, `rest` e consumidores ja existentes.
 - Introduzir `AnalysisTypeDto` com os tipos `lawyer` e `judge`.
 - Criar `LawyerAnalysisStatusDto` e `JudgeAnalysisStatusDto` no `core` para refletir a taxonomia do server.
-- Atualizar o status compartilhado consumido hoje pelo mobile para refletir os novos valores remotos (`DOCUMENT_UPLOADED`, `ANALYZING_CASE`, `CASE_ANALYZED`, `EXTRACTING_PETITION`, `SEARCHING_PRECEDENTS`, `GENERATING_PETITION_DRAFT`, `GENERATING_JUDGMENT_DRAFT`, `DONE`, `FAILED`).
-- Atualizar `AnalysisDto` para expor `type` e o status remoto mapeado para o enum compartilhado do mobile.
+- Atualizar `AnalysisDto` para expor `type` e `status` tipado como `LawyerAnalysisStatusDto | JudgeAnalysisStatusDto`, conforme o tipo da analise.
 - Atualizar `IntakeService` e `IntakeRestService` com `createAnalysis(type: ...)`, `getCaseSummary(...)`, `getPetitionDraft(...)`, `getJudgmentDraft(...)` e `unarchiveAnalysis(...)`.
 - Criar os mappers REST necessarios para `CaseSummaryDto`, `PetitionDraftDto` e `JudgmentDraftDto`.
 - Ajustar os consumidores atuais do app que dependem diretamente de `PetitionSummaryDto`, `getPetitionSummary(...)` ou dos nomes antigos de status, limitando a mudanca a compatibilidade de compilacao e leitura de dados.
@@ -43,8 +42,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - O `core` deve expor `CaseSummaryDto` como substituto direto de `PetitionSummaryDto`, preservando os mesmos campos de negocio ja consumidos hoje pela UI e pelo PDF.
 - O `core` deve expor `AnalysisTypeDto` com `lawyer` e `judge`, para que a criacao e leitura de analises distingam explicitamente os dois fluxos.
 - O `core` deve expor `LawyerAnalysisStatusDto` e `JudgeAnalysisStatusDto` como enums independentes, refletindo os status do server descritos em `ANI-92`.
-- O mobile deve manter um enum compartilhado de status (`AnalysisStatusDto`) para as telas atuais, removendo os valores obsoletos `waitingPrecedentChoice` e `precedentChosen`, e adicionando `documentUploaded`, `extractingPetition`, `analyzingCase`, `caseAnalyzed`, `generatingPetitionDraft`, `generatingJudgmentDraft` e `done`.
-- `AnalysisDto` deve passar a carregar `type: AnalysisTypeDto` e continuar expondo `status: AnalysisStatusDto` para os consumidores atuais do app.
+- `AnalysisDto` deve passar a carregar `type: AnalysisTypeDto` e `status` tipado como `LawyerAnalysisStatusDto | JudgeAnalysisStatusDto`, respeitando o fluxo da analise retornado pelo backend.
 - `IntakeService.createAnalysis({required AnalysisTypeDto type, String? folderId})` deve se tornar obrigatoriamente tipado por analise.
 - `IntakeService.getCaseSummary({required String analysisId})` deve substituir `getPetitionSummary({required String petitionId})`, eliminando a dependencia da UI de conhecer o `petitionId` para carregar o resumo.
 - `IntakeService.getPetitionDraft({required String analysisId})` deve retornar `PetitionDraftDto`.
@@ -71,7 +69,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 ## Core
 
 - **`AnalysisDto`** (`lib/core/intake/dtos/analysis_dto.dart`) - DTO principal da analise; hoje ainda nao expoe `type` e depende do enum legado `AnalysisStatusDto`.
-- **`AnalysisStatusDto`** (`lib/core/intake/dtos/analysis_status_dto.dart`) - enum compartilhado atual do mobile; precisa parar de refletir apenas o fluxo antigo de peticao inicial.
+- **`AnalysisStatusDto`** (`lib/core/intake/dtos/analysis_status_dto.dart`) - enum legado compartilhado do mobile; deve sair do contrato principal de `AnalysisDto` para que o status passe a refletir o fluxo real (`lawyer` ou `judge`).
 - **`PetitionSummaryDto`** (`lib/core/intake/dtos/petition_summary_dto.dart`) - contrato atual de resumo; serve de referencia direta para `CaseSummaryDto`.
 - **`AnalysisReportDto`** (`lib/core/intake/dtos/analysis_report_dto.dart`) - agregado usado pelo export em PDF; hoje ainda referencia `PetitionSummaryDto` no campo `summary`.
 - **`AnalysisPetitionDto`** (`lib/core/intake/dtos/analysis_petition_dto.dart`) - DTO agregado que tambem carrega o resumo atual como `summary` opcional.
@@ -137,6 +135,14 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - **Atributos:** `final String content`.
 - **Factory `fromJson` (se aplicavel):** Nao aplicavel.
 
+- **Localizacao:** `lib/core/intake/dtos/judge_analysis_report_dto.dart` (**novo arquivo**)
+- **Atributos:** `final AnalysisDto analysis`, `final AnalysisDocumentDto document`, `final CaseSummaryDto caseSummary`, `final List<AnalysisPrecedentDto> precedents`, `final JudgmentDraftDto judgmentDraft`.
+- **Factory `fromJson` (se aplicavel):** Nao aplicavel.
+
+- **Localizacao:** `lib/core/intake/dtos/lawer_analysis_report_dto.dart` (**novo arquivo**)
+- **Atributos:** `final AnalysisDto analysis`, `final AnalysisDocumentDto document`, `final CaseSummaryDto caseSummary`, `final List<AnalysisPrecedentDto> precedents`, `final PetitionDraftDto petitionDraft`.
+- **Factory `fromJson` (se aplicavel):** Nao aplicavel.
+
 ## Camada Core (Interfaces / Contratos)
 
 **Nao aplicavel**.
@@ -197,13 +203,9 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 
 ## Core
 
-- **Arquivo:** `lib/core/intake/dtos/analysis_status_dto.dart`
-- **Mudanca:** substituir os valores do fluxo antigo por um enum compartilhado do mobile com `waitingPetition` (apenas bootstrap local), `documentUploaded`, `extractingPetition`, `analyzingCase`, `caseAnalyzed`, `searchingPrecedents`, `generatingPetitionDraft`, `generatingJudgmentDraft`, `done` e `failed`.
-- **Justificativa:** a UI atual ainda precisa de um enum unico para renderizacao, mas os valores remotos antigos `petitionUploaded`, `analyzingPetition`, `petitionAnalyzed`, `waitingPrecedentChoice` e `precedentChosen` deixaram de representar o contrato do server.
-
 - **Arquivo:** `lib/core/intake/dtos/analysis_dto.dart`
-- **Mudanca:** adicionar `final AnalysisTypeDto type`; manter `final AnalysisStatusDto status`; ajustar o construtor para exigir `type`.
-- **Justificativa:** `AnalysisDto` passa a distinguir explicitamente `lawyer` e `judge`, e os callers da Home, Library e telas de detalhe precisam dessa informacao para rotular ou decidir comportamento futuro.
+- **Mudanca:** adicionar `final AnalysisTypeDto type`; substituir o `status` legado por um campo tipado como `LawyerAnalysisStatusDto | JudgeAnalysisStatusDto`; ajustar o construtor para exigir `type` e o status especifico do fluxo.
+- **Justificativa:** `AnalysisDto` passa a distinguir explicitamente `lawyer` e `judge`, e o status deixa de colapsar fluxos juridicos diferentes em um enum artificial compartilhado.
 
 - **Arquivo:** `lib/core/intake/dtos/analysis_report_dto.dart`
 - **Mudanca:** renomear `summary` para `caseSummary` e trocar o tipo para `CaseSummaryDto`.
@@ -225,8 +227,8 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 ## REST
 
 - **Arquivo:** `lib/rest/mappers/intake/analysis_mapper.dart`
-- **Mudanca:** mapear `type` para `AnalysisTypeDto` e traduzir os novos status remotos para o `AnalysisStatusDto` compartilhado do mobile; validar os valores contra `LawyerAnalysisStatusDto` ou `JudgeAnalysisStatusDto` conforme `type` antes de colapsar para o enum compartilhado.
-- **Justificativa:** a desserializacao de `AnalysisDto` passa a depender de dois eixos do payload remoto (`type` e `status`) e precisa continuar devolvendo um objeto seguro para a UI atual.
+- **Mudanca:** mapear `type` para `AnalysisTypeDto` e desserializar `status` diretamente como `LawyerAnalysisStatusDto` ou `JudgeAnalysisStatusDto`, conforme `type`.
+- **Justificativa:** a desserializacao de `AnalysisDto` passa a depender de dois eixos do payload remoto (`type` e `status`) e deve preservar o contrato real do backend em vez de colapsa-lo em um enum compartilhado.
 
 - **Arquivo:** `lib/rest/mappers/intake/analysis_petition_mapper.dart`
 - **Mudanca:** trocar `PetitionSummaryDto` por `CaseSummaryDto`, usar `CaseSummaryMapper` e renomear o campo agregado de saida para `caseSummary`.
@@ -262,20 +264,20 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - **Justificativa:** preserva o comportamento atual da Home ate `ANI-101`, sem bloquear a introducao obrigatoria do parametro `type` no contrato de service.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart`
-- **Mudanca:** substituir os labels e checks do enum antigo pelos novos nomes compartilhados do mobile; rotular estados de judge sem assumir a existencia de tela dedicada.
-- **Justificativa:** a listagem recente e o primeiro ponto de contato com analises `judge`; ela nao pode depender de valores removidos do contrato remoto.
+- **Mudanca:** substituir os labels e checks do enum antigo por comparacoes baseadas em `type` + status especifico do fluxo; rotular estados de judge sem assumir a existencia de tela dedicada.
+- **Justificativa:** a listagem recente e o primeiro ponto de contato com analises `judge`; ela nao pode depender de valores removidos nem de um enum compartilhado que deixou de ser o contrato principal.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart`
-- **Mudanca:** trocar `PetitionSummaryDto` por `CaseSummaryDto`, substituir a chamada `getPetitionSummary(petitionId: ...)` por `getCaseSummary(analysisId: analysisId)`, e alinhar os guards de status aos nomes compartilhados novos (`documentUploaded`, `analyzingCase`, `caseAnalyzed`, `done`, `failed`).
-- **Justificativa:** mesmo sendo uma tela transitoria, ela precisa continuar compilando e carregando o resumo do caso com o novo contrato do `core`.
+- **Mudanca:** trocar `PetitionSummaryDto` por `CaseSummaryDto`, substituir a chamada `getPetitionSummary(petitionId: ...)` por `getCaseSummary(analysisId: analysisId)`, e alinhar os guards de status ao enum especifico retornado em `AnalysisDto.status`.
+- **Justificativa:** mesmo sendo uma tela transitoria, ela precisa continuar compilando e carregando o resumo do caso com o novo contrato do `core`, sem absorver a arquitetura final de lawyer/judge.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_view.dart`
-- **Mudanca:** alinhar comparacoes de status e visibilidade de exportacao ao enum compartilhado novo, usando `done` no lugar do terminal antigo.
-- **Justificativa:** a View atual nao pode continuar referenciando valores removidos do enum.
+- **Mudanca:** alinhar comparacoes de status e visibilidade de exportacao ao enum especifico retornado em `AnalysisDto.status`, mantendo a tela atual apenas como adaptadora transitoria.
+- **Justificativa:** a View atual nao pode continuar referenciando valores removidos do enum legado, nem deve crescer para acomodar o desenho final dos novos fluxos.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart`
-- **Mudanca:** alinhar as comparacoes aos nomes novos do enum compartilhado, removendo dependencia direta de `waitingPrecedentChoice` e `precedentChosen`.
-- **Justificativa:** o componente atual precisa continuar compilando enquanto o fluxo definitivo de lawyer nao e migrado para `ANI-103`.
+- **Mudanca:** alinhar as comparacoes ao enum especifico retornado em `AnalysisDto.status`, removendo dependencia direta de `waitingPrecedentChoice` e `precedentChosen`.
+- **Justificativa:** o componente atual precisa continuar compilando enquanto o fluxo definitivo de lawyer nao e migrado para `ANI-103`, sem virar a tela definitiva.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/analysis_screen/petition_summary_card/petition_summary_card_view.dart`
 - **Mudanca:** trocar o tipo recebido para `CaseSummaryDto`, mantendo o widget e a estrutura visual atuais.
@@ -296,8 +298,8 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - **Impacto esperado:** todos os imports e tipos precisam passar a usar `case_summary_dto.dart`.
 
 - **Arquivo:** `lib/core/intake/dtos/analysis_status_dto.dart`
-- **Motivo da remocao:** remover do enum compartilhado os valores legados `petitionUploaded`, `analyzingPetition`, `petitionAnalyzed`, `waitingPrecedentChoice` e `precedentChosen`.
-- **Impacto esperado:** presenters e views que referenciam esses nomes precisam usar os novos nomes compartilhados do mobile.
+- **Motivo da remocao:** remover do contrato principal o enum legado compartilhado, que nao representa corretamente os fluxos separados de `lawyer` e `judge`.
+- **Impacto esperado:** presenters e views que hoje dependem de `AnalysisStatusDto` precisam passar a comparar `type` + o enum especifico carregado em `AnalysisDto.status`.
 
 ## REST
 
@@ -309,10 +311,10 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 
 # 8. Decisoes Tecnicas e Trade-offs
 
-- **Decisao:** manter `AnalysisStatusDto` como enum compartilhado do mobile e criar `LawyerAnalysisStatusDto` / `JudgeAnalysisStatusDto` como enums adicionais de dominio.
-- **Alternativas consideradas:** tipar `AnalysisDto.status` diretamente com dois enums diferentes; usar `String` cru no `AnalysisDto`; criar um `sealed class` hierarquico so para status.
-- **Motivo da escolha:** a codebase atual tem muitos consumidores diretos de `AnalysisStatusDto`, e `ANI-103` ainda referencia um enum compartilhado; manter esse eixo reduz churn imediato sem abrir mao dos enums especificos pedidos por `ANI-115`.
-- **Impactos / trade-offs:** o mobile passa a conviver com um enum compartilhado e dois enums especificos em paralelo; isso simplifica a migracao incremental, mas exige disciplina para que telas futuras usem o enum correto por fluxo.
+- **Decisao:** `AnalysisDto` deve carregar `status` como `LawyerAnalysisStatusDto | JudgeAnalysisStatusDto`, sem manter `AnalysisStatusDto` como contrato principal.
+- **Alternativas consideradas:** manter um enum compartilhado em paralelo; usar `String` cru no `AnalysisDto`; criar um `sealed class` hierarquico so para status.
+- **Motivo da escolha:** o contrato do server ja separa os fluxos por perfil e `ANI-115` deve refletir esse modelo no `core`, evitando que tasks futuras de UI partam de uma abstracao de status que nao e o contrato real.
+- **Impactos / trade-offs:** consumidores atuais precisam adaptar comparacoes de status com mais contexto (`type` + enum especifico), mas o dominio fica coerente com `ANI-92` e com a arquitetura futura das telas dedicadas.
 
 - **Decisao:** `HomeScreenPresenter.createAnalysis()` continua sem parametro publico e envia internamente `AnalysisTypeDto.lawyer`.
 - **Alternativas consideradas:** mudar a assinatura publica agora; bloquear a criacao de analise ate `ANI-101`; introduzir o dialog de selecao de tipo nesta mesma task.
@@ -321,7 +323,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 
 - **Decisao:** nao renomear widgets visuais atuais (`petition_summary_card`, `analysis_screen`) nesta task.
 - **Alternativas consideradas:** renomear todos os widgets e pastas para `case_summary_*`; reestruturar a tela atual em `lawyer_analysis_screen` imediatamente.
-- **Motivo da escolha:** a tarefa e de dominio/contrato; a UI dedicada ja foi desmembrada para `ANI-103` e a renomeacao ampla agora geraria churn desnecessario em arquivos e imports.
+- **Motivo da escolha:** a tarefa e de dominio/contrato; a `analysis_screen` atual deve ser mantida como artefato legado de compatibilidade, enquanto a UI dedicada ja foi desmembrada para `ANI-103` e para a task correspondente de judge.
 - **Impactos / trade-offs:** permanecera uma discrepancia temporaria entre nome de widget e nome do DTO de dominio; isso deve ser resolvido junto da nova tela de lawyer, nao nesta fundacao tecnica.
 
 - **Decisao:** atualizar `AnalysisReportDto` e `PrintingPdfDriver` para `caseSummary`, sem alterar a geracao de PDF.
@@ -354,8 +356,10 @@ AnalysisScreenPresenter.load()
 - **Hierarquia de widgets (se aplicavel):** Nao aplicavel.
 
 - **Referencias:**
+- `https://joaogoliveiragarcia.atlassian.net/wiki/x/AYDsAg` - `RF 07`, referencia funcional primaria deste recorte.
+- `https://joaogoliveiragarcia.atlassian.net/wiki/x/AQDxAg` - `RF 08`, referencia funcional complementar para o fluxo de judge.
 - `lib/core/intake/dtos/petition_summary_dto.dart` - referencia direta para a estrutura do novo `CaseSummaryDto`.
-- `lib/core/intake/dtos/analysis_status_dto.dart` - referencia para o ponto de migracao do status compartilhado atual.
+- `lib/core/intake/dtos/analysis_status_dto.dart` - referencia do contrato legado a ser removido do eixo principal de `AnalysisDto`.
 - `lib/core/intake/interfaces/intake_service.dart` - contrato central a ser expandido.
 - `lib/rest/mappers/intake/analysis_mapper.dart` - referencia para o mapeamento atual de status e para a adicao de `type`.
 - `lib/rest/services/intake_rest_service.dart` - referencia para todos os novos metodos REST do modulo.
@@ -367,19 +371,11 @@ AnalysisScreenPresenter.load()
 
 ---
 
-# 10. Pendencias / Duvidas
+# 10. Alinhamentos Fechados
 
-- **Descricao da pendencia:** `ANI-103` ainda descreve a futura tela de lawyer como se existisse um unico `AnalysisStatusDto` atualizado, enquanto `ANI-115` e `ANI-92` pedem `LawyerAnalysisStatusDto` e `JudgeAnalysisStatusDto` separados.
-- **Impacto na implementacao:** sem alinhamento, tasks futuras de UI podem assumir um modelo de status diferente do que `ANI-115` implantar no `core`.
-- **Acao sugerida:** validar com produto/tech lead se `ANI-103` deve ser atualizado para consumir o enum compartilhado do mobile + os enums especificos, ou se o modelo final de status do mobile sera outro.
-
-- **Descricao da pendencia:** a `analysis_screen` atual e um artefato legado do fluxo antigo; ela nao representa a arquitetura final de `RF 07` nem de `RF 08`.
-- **Impacto na implementacao:** `ANI-115` deve limitar-se a compatibilidade contratual e nao deve ser usado como desculpa para crescer a tela atual com logica de lawyer/judge.
-- **Acao sugerida:** manter a migracao funcional das telas em `ANI-103` e na task correspondente da tela de judge, reutilizando apenas os contratos entregues por esta spec.
-
-- **Descricao da pendencia:** o frontmatter desta spec aponta para a pagina agregadora `Requisitos do produto`, enquanto o usuario forneceu diretamente o `RF 08` e o ticket cruza `RF 07` + `RF 08`.
-- **Impacto na implementacao:** a origem funcional da task esta correta, mas reviews futuros podem precisar lembrar que este recorte suporta dois PRDs funcionais diferentes.
-- **Acao sugerida:** manter como referencia primaria a pagina agregadora e citar `RF 07` / `RF 08` na descricao do ticket e no PR de implementacao.
+- **Status da analise:** `AnalysisDto` deve conter `status: LawyerAnalysisStatusDto | JudgeAnalysisStatusDto`; `ANI-103` e tasks futuras de UI devem consumir esse modelo, sem reintroduzir `AnalysisStatusDto` como contrato final.
+- **Tela legada:** a `analysis_screen` atual deve ser mantida como esta, apenas com ajustes mecanicos de compatibilidade contratual; a migracao funcional continua pertencendo a `ANI-103` e a task correspondente da tela de judge.
+- **Referencia funcional:** esta spec passa a usar `RF 07` como referencia primaria no frontmatter e deve citar explicitamente `RF 08` quando o recorte impactar o fluxo de judge em reviews, tickets e PRs.
 
 ---
 

@@ -5,8 +5,8 @@ import 'package:animus/core/shared/types/json.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_report_filters_mapper.dart';
+import 'package:animus/rest/mappers/intake/case_summary_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_mapper.dart';
-import 'package:animus/rest/mappers/intake/petition_summary_mapper.dart';
 
 class AnalysisReportMapper {
   const AnalysisReportMapper._();
@@ -15,7 +15,7 @@ class AnalysisReportMapper {
     return AnalysisReportDto(
       analysis: AnalysisMapper.toDto(_toJsonField(json['analysis'])),
       petition: PetitionMapper.toDto(_toJsonField(json['petition'])),
-      summary: PetitionSummaryMapper.toDto(_toJsonField(json['summary'])),
+      caseSummary: CaseSummaryMapper.toDto(_toJsonField(json['summary'])),
       filters: AnalysisReportFiltersMapper.toDto(
         json['analysis']['precedents_search_filters'],
       ),
