@@ -1,8 +1,9 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
-import 'package:animus/core/intake/dtos/judge_analysis_status_dto.dart';
-import 'package:animus/core/intake/dtos/lawyer_analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/case_assessment_analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_analysis_status_dto.dart';
 import 'package:animus/core/shared/types/json.dart';
 
 final class AnalysisMapper {
@@ -46,22 +47,32 @@ final class AnalysisMapper {
     required AnalysisTypeDto type,
     required String value,
   }) {
-    if (type == AnalysisTypeDto.secondInstance) {
-      final JudgeAnalysisStatusDto status = JudgeAnalysisStatusDto.values
-          .firstWhere(
-            (JudgeAnalysisStatusDto item) => item.value == value,
-            orElse: () => JudgeAnalysisStatusDto.documentUploaded,
+    if (type == AnalysisTypeDto.caseAssessment) {
+      final CaseAssessmentAnalysisStatusDto status =
+          CaseAssessmentAnalysisStatusDto.values.firstWhere(
+            (CaseAssessmentAnalysisStatusDto item) => item.value == value,
+            orElse: () => CaseAssessmentAnalysisStatusDto.waitingDocumentUpload,
           );
 
-      return AnalysisStatusDto.judge(status);
+      return AnalysisStatusDto.caseAssessment(status);
     }
 
-    final LawyerAnalysisStatusDto status = LawyerAnalysisStatusDto.values
-        .firstWhere(
-          (LawyerAnalysisStatusDto item) => item.value == value,
-          orElse: () => LawyerAnalysisStatusDto.documentUploaded,
+    if (type == AnalysisTypeDto.firstInstance) {
+      final FirstInstanceAnalysisStatusDto status =
+          FirstInstanceAnalysisStatusDto.values.firstWhere(
+            (FirstInstanceAnalysisStatusDto item) => item.value == value,
+            orElse: () => FirstInstanceAnalysisStatusDto.waitingDocumentUpload,
+          );
+
+      return AnalysisStatusDto.firstInstance(status);
+    }
+
+    final SecondInstanceAnalysisStatusDto status =
+        SecondInstanceAnalysisStatusDto.values.firstWhere(
+          (SecondInstanceAnalysisStatusDto item) => item.value == value,
+          orElse: () => SecondInstanceAnalysisStatusDto.waitingDocumentUpload,
         );
 
-    return AnalysisStatusDto.lawyer(status);
+    return AnalysisStatusDto.secondInstance(status);
   }
 }

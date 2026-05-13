@@ -1,5 +1,5 @@
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
-import 'package:animus/core/intake/dtos/lawer_analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/shared/types/json.dart';
 
 import 'package:animus/rest/mappers/intake/analysis_document_mapper.dart';
@@ -8,11 +8,11 @@ import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
 import 'package:animus/rest/mappers/intake/case_summary_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_draft_mapper.dart';
 
-final class LawerAnalysisReportMapper {
-  const LawerAnalysisReportMapper._();
+final class CaseAssessmentAnalysisReportMapper {
+  const CaseAssessmentAnalysisReportMapper._();
 
-  static LawerAnalysisReportDto toDto(Json json) {
-    return LawerAnalysisReportDto(
+  static CaseAssessmentAnalysisReportDto toDto(Json json) {
+    return CaseAssessmentAnalysisReportDto(
       analysis: AnalysisMapper.toDto(_toJsonField(json['analysis'])),
       document: AnalysisDocumentMapper.toDto(_toJsonField(json['document'])),
       caseSummary: CaseSummaryMapper.toDto(_toJsonField(json['case_summary'])),

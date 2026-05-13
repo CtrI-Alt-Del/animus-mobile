@@ -1,15 +1,16 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedents_search_filters_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
+import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/judgment_draft_dto.dart';
-import 'package:animus/core/intake/dtos/lawer_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/list_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
@@ -39,13 +40,14 @@ abstract class IntakeService {
 
   Future<RestResponse<AnalysisDto>> getAnalysis({required String analysisId});
 
-  Future<RestResponse<AnalysisReportDto>> getAnalysisReport({
-    required String analysisId,
-  });
+  Future<RestResponse<SecondInstanceAnalysisReportDto>>
+  getSecondInstanceAnalysisReport({required String analysisId});
 
-  Future<RestResponse<LawerAnalysisReportDto>> getLawerAnalysisReport({
-    required String analysisId,
-  });
+  Future<RestResponse<CaseAssessmentAnalysisReportDto>>
+  getCaseAssessmentAnalysisReport({required String analysisId});
+
+  Future<RestResponse<FirstInstanceAnalysisReportDto>>
+  getFirstInstanceAnalysisReport({required String analysisId});
 
   Future<RestResponse<AnalysisDto>> renameAnalysis({
     required String analysisId,
