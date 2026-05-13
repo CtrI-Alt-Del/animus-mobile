@@ -362,6 +362,45 @@ void main() {
       },
     );
 
+    test('should load summary even when petition id is absent', () async {
+      final AnalysisScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+      final File petitionFile = await createFile('uploaded.pdf', 1024);
+      final petition = PetitionDtoFaker.fake(id: null);
+      final CaseSummaryDto petitionSummary = CaseSummaryDtoFaker.fake();
+
+      when(
+        () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+      ).thenAnswer(
+        (_) async => RestResponse<AnalysisDto>(
+          statusCode: 200,
+          body: AnalysisDtoFaker.fake(
+            status: AnalysisStatusDto.petitionAnalyzed,
+          ),
+        ),
+      );
+      when(
+        () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+      ).thenAnswer((_) async => RestResponse(statusCode: 200, body: petition));
+      when(
+        () => fileStorageDriver.getFile(petition.document.filePath),
+      ).thenAnswer((_) async => petitionFile);
+      when(
+        () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+      ).thenAnswer(
+        (_) async => RestResponse(statusCode: 200, body: petitionSummary),
+      );
+
+      await presenter.load();
+
+      expect(presenter.status.value, AnalysisStatusDto.petitionAnalyzed);
+      expect(presenter.petition.value?.id, isNull);
+      expect(presenter.summary.value?.caseSummary, petitionSummary.caseSummary);
+      verify(
+        () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+      ).called(1);
+    });
+
     test(
       'should keep analyzed status and expose error when summary load fails',
       () async {

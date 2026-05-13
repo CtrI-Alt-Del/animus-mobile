@@ -200,12 +200,6 @@ class AnalysisScreenPresenter {
       return;
     }
 
-    final String? petitionId = petition.value?.id;
-    if (petitionId == null || petitionId.isEmpty) {
-      status.value = AnalysisStatusDto.petitionUploaded;
-      return;
-    }
-
     final RestResponse<CaseSummaryDto> caseSummaryResponse =
         await _intakeService.getCaseSummary(analysisId: analysisId);
 
