@@ -23,7 +23,7 @@ abstract class IntakeService {
   });
 
   Future<RestResponse<AnalysisDto>> createAnalysis({
-    AnalysisTypeDto type = AnalysisTypeDto.firstInstance,
+    required AnalysisTypeDto type,
     String? folderId,
   });
 
