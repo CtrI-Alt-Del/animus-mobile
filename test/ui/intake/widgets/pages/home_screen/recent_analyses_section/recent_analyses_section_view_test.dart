@@ -1,4 +1,5 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_loading_state/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart';
@@ -164,6 +165,48 @@ void main() {
 
     expect(loadMoreCount, greaterThan(0));
   });
+
+  testWidgets(
+    'separa analises em andamento e concluidas com labels esperadas',
+    (WidgetTester tester) async {
+      final List<AnalysisDto> analyses = <AnalysisDto>[
+        AnalysisDtoFaker.fake(
+          id: 'processing-1',
+          name: 'Analise em andamento',
+          status: AnalysisStatusDto.analyzingPetition,
+        ),
+        AnalysisDtoFaker.fake(
+          id: 'done-1',
+          name: 'Analise concluida',
+          status: AnalysisStatusDto.precedentChosen,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _createWidget(
+          RecentAnalysesSectionView(
+            analyses: analyses,
+            isLoading: false,
+            isLoadingMore: false,
+            hasMore: false,
+            showEmptyState: false,
+            errorMessage: null,
+            formatCreatedAt: (_) => '31/03/2026',
+            onRefresh: () async {},
+            onTapAnalysis: (_) async {},
+            onRetry: () {},
+            onLoadMore: () async {},
+            onCreateFirstAnalysis: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('Em andamento'), findsOneWidget);
+      expect(find.text('Recentes'), findsOneWidget);
+      expect(find.text('Peticao em análise'), findsOneWidget);
+      expect(find.text('Concluída'), findsOneWidget);
+    },
+  );
 }
 
 Widget _createWidget(Widget child) {

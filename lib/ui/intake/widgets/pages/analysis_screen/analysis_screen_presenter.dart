@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/constants/cache_keys.dart';
-import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/petition_document_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
@@ -441,15 +441,17 @@ class AnalysisScreenPresenter {
     generalError.value = null;
 
     try {
-      final RestResponse<AnalysisReportDto> reportResponse =
-          await _intakeService.getAnalysisReport(analysisId: analysisId);
+      final RestResponse<FirstInstanceAnalysisReportDto> reportResponse =
+          await _intakeService.getFirstInstanceAnalysisReport(
+            analysisId: analysisId,
+          );
 
       if (reportResponse.isFailure) {
         generalError.value = exportFailedMessage;
         return false;
       }
 
-      final AnalysisReportDto report = reportResponse.body;
+      final FirstInstanceAnalysisReportDto report = reportResponse.body;
       final Uint8List bytes = await _pdfDriver.generateAnalysisReport(
         report: report,
       );
@@ -716,7 +718,7 @@ class AnalysisScreenPresenter {
 class _PendingPdfDriver implements PdfDriver {
   @override
   Future<Uint8List> generateAnalysisReport({
-    required AnalysisReportDto report,
+    required FirstInstanceAnalysisReportDto report,
   }) async {
     throw UnimplementedError();
   }

@@ -1,6 +1,7 @@
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
@@ -286,7 +287,9 @@ void main() {
       final HomeScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      when(() => intakeService.createAnalysis()).thenAnswer(
+      when(
+        () => intakeService.createAnalysis(type: AnalysisTypeDto.firstInstance),
+      ).thenAnswer(
         (_) async => RestResponse<AnalysisDto>(
           statusCode: 201,
           body: AnalysisDtoFaker.fake(id: 'analysis-123'),
@@ -315,6 +318,9 @@ void main() {
       expect(presenter.isCreatingAnalysis.value, isFalse);
       expect(presenter.generalError.value, isNull);
       verify(
+        () => intakeService.createAnalysis(type: AnalysisTypeDto.firstInstance),
+      ).called(1);
+      verify(
         () => navigationDriver.pushTo(
           Routes.getAnalysis(analysisId: 'analysis-123'),
         ),
@@ -325,7 +331,9 @@ void main() {
       final HomeScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      when(() => intakeService.createAnalysis()).thenAnswer(
+      when(
+        () => intakeService.createAnalysis(type: AnalysisTypeDto.firstInstance),
+      ).thenAnswer(
         (_) async => RestResponse<AnalysisDto>(
           statusCode: 201,
           body: AnalysisDtoFaker.fake(id: '   '),

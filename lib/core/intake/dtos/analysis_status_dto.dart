@@ -1,5 +1,6 @@
-import 'package:animus/core/intake/dtos/judge_analysis_status_dto.dart';
-import 'package:animus/core/intake/dtos/lawyer_analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/case_assessment_analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_analysis_status_dto.dart';
 
 class AnalysisStatusDto {
   final String value;
@@ -11,6 +12,12 @@ class AnalysisStatusDto {
   );
   static const AnalysisStatusDto petitionUploaded = AnalysisStatusDto(
     'PETITION_UPLOADED',
+  );
+  static const AnalysisStatusDto waitingDocumentUpload = AnalysisStatusDto(
+    'WAITING_DOCUMENT_UPLOAD',
+  );
+  static const AnalysisStatusDto documentUploaded = AnalysisStatusDto(
+    'DOCUMENT_UPLOADED',
   );
   static const AnalysisStatusDto analyzingPetition = AnalysisStatusDto(
     'ANALYZING_PETITION',
@@ -55,6 +62,8 @@ class AnalysisStatusDto {
   static const List<AnalysisStatusDto> values = <AnalysisStatusDto>[
     waitingPetition,
     petitionUploaded,
+    waitingDocumentUpload,
+    documentUploaded,
     analyzingPetition,
     petitionAnalyzed,
     searchingPrecedents,
@@ -72,42 +81,83 @@ class AnalysisStatusDto {
     generatingJudgmentDraft,
   ];
 
-  factory AnalysisStatusDto.lawyer(LawyerAnalysisStatusDto value) {
+  factory AnalysisStatusDto.caseAssessment(
+    CaseAssessmentAnalysisStatusDto value,
+  ) {
     switch (value) {
-      case LawyerAnalysisStatusDto.documentUploaded:
-        return petitionUploaded;
-      case LawyerAnalysisStatusDto.analyzingCase:
+      case CaseAssessmentAnalysisStatusDto.waitingDocumentUpload:
+        return waitingDocumentUpload;
+      case CaseAssessmentAnalysisStatusDto.documentUploaded:
+        return documentUploaded;
+      case CaseAssessmentAnalysisStatusDto.analyzingCase:
         return analyzingCase;
-      case LawyerAnalysisStatusDto.caseAnalyzed:
-        return petitionAnalyzed;
-      case LawyerAnalysisStatusDto.searchingPrecedents:
+      case CaseAssessmentAnalysisStatusDto.caseAnalyzed:
+        return caseAnalyzed;
+      case CaseAssessmentAnalysisStatusDto.searchingPrecedents:
         return searchingPrecedents;
-      case LawyerAnalysisStatusDto.generatingPetitionDraft:
+      case CaseAssessmentAnalysisStatusDto.analyzingPrecedentsSimilarity:
+        return analyzingPrecedentsSimilarity;
+      case CaseAssessmentAnalysisStatusDto.analyzingPrecedentsApplicability:
+        return analyzingPrecedentsApplicability;
+      case CaseAssessmentAnalysisStatusDto.generatingPetitionDraft:
         return generatingPetitionDraft;
-      case LawyerAnalysisStatusDto.done:
+      case CaseAssessmentAnalysisStatusDto.done:
         return done;
-      case LawyerAnalysisStatusDto.failed:
+      case CaseAssessmentAnalysisStatusDto.failed:
         return failed;
     }
   }
 
-  factory AnalysisStatusDto.judge(JudgeAnalysisStatusDto value) {
+  factory AnalysisStatusDto.firstInstance(
+    FirstInstanceAnalysisStatusDto value,
+  ) {
     switch (value) {
-      case JudgeAnalysisStatusDto.documentUploaded:
+      case FirstInstanceAnalysisStatusDto.waitingDocumentUpload:
+        return waitingPetition;
+      case FirstInstanceAnalysisStatusDto.documentUploaded:
         return petitionUploaded;
-      case JudgeAnalysisStatusDto.extractingPetition:
-        return extractingPetition;
-      case JudgeAnalysisStatusDto.analyzingCase:
-        return analyzingCase;
-      case JudgeAnalysisStatusDto.caseAnalyzed:
-        return caseAnalyzed;
-      case JudgeAnalysisStatusDto.searchingPrecedents:
+      case FirstInstanceAnalysisStatusDto.analyzingCase:
+        return analyzingPetition;
+      case FirstInstanceAnalysisStatusDto.caseAnalyzed:
+        return petitionAnalyzed;
+      case FirstInstanceAnalysisStatusDto.searchingPrecedents:
         return searchingPrecedents;
-      case JudgeAnalysisStatusDto.generatingJudgmentDraft:
+      case FirstInstanceAnalysisStatusDto.analyzingPrecedentsSimilarity:
+        return analyzingPrecedentsSimilarity;
+      case FirstInstanceAnalysisStatusDto.analyzingPrecedentsApplicability:
+        return analyzingPrecedentsApplicability;
+      case FirstInstanceAnalysisStatusDto.done:
+        return precedentChosen;
+      case FirstInstanceAnalysisStatusDto.failed:
+        return failed;
+    }
+  }
+
+  factory AnalysisStatusDto.secondInstance(
+    SecondInstanceAnalysisStatusDto value,
+  ) {
+    switch (value) {
+      case SecondInstanceAnalysisStatusDto.waitingDocumentUpload:
+        return waitingDocumentUpload;
+      case SecondInstanceAnalysisStatusDto.documentUploaded:
+        return documentUploaded;
+      case SecondInstanceAnalysisStatusDto.extractingPetition:
+        return extractingPetition;
+      case SecondInstanceAnalysisStatusDto.analyzingCase:
+        return analyzingCase;
+      case SecondInstanceAnalysisStatusDto.caseAnalyzed:
+        return caseAnalyzed;
+      case SecondInstanceAnalysisStatusDto.searchingPrecedents:
+        return searchingPrecedents;
+      case SecondInstanceAnalysisStatusDto.analyzingPrecedentsSimilarity:
+        return analyzingPrecedentsSimilarity;
+      case SecondInstanceAnalysisStatusDto.analyzingPrecedentsApplicability:
+        return analyzingPrecedentsApplicability;
+      case SecondInstanceAnalysisStatusDto.generatingJudgmentDraft:
         return generatingJudgmentDraft;
-      case JudgeAnalysisStatusDto.done:
+      case SecondInstanceAnalysisStatusDto.done:
         return done;
-      case JudgeAnalysisStatusDto.failed:
+      case SecondInstanceAnalysisStatusDto.failed:
         return failed;
     }
   }

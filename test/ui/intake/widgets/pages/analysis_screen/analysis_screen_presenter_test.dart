@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
@@ -18,7 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../fakers/intake/analysis_dto_faker.dart';
-import '../../../../../fakers/intake/analysis_report_dto_faker.dart';
+import '../../../../../fakers/intake/first_instance_analysis_report_dto_faker.dart';
 import '../../../../../fakers/intake/petition_dto_faker.dart';
 import '../../../../../fakers/intake/petition_summary_dto_faker.dart';
 import '../../../../../fakers/storage/upload_url_dto_faker.dart';
@@ -194,7 +194,10 @@ void main() {
       expect(presenter.petition.value, isNull);
       expect(presenter.summary.value, isNull);
       expect(presenter.selectedFile.value, isNull);
-      expect(presenter.generalError.value, AnalysisScreenPresenter.failedMessage);
+      expect(
+        presenter.generalError.value,
+        AnalysisScreenPresenter.failedMessage,
+      );
       verify(
         () => intakeService.updateAnalysisStatus(
           analysisId: 'analysis-1',
@@ -251,8 +254,7 @@ void main() {
         addTearDown(presenter.dispose);
         final File petitionFile = await createFile('uploaded.pdf', 1024);
         final petition = PetitionDtoFaker.fake();
-        final CaseSummaryDto petitionSummary =
-            CaseSummaryDtoFaker.fake();
+        final CaseSummaryDto petitionSummary = CaseSummaryDtoFaker.fake();
 
         when(
           () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
@@ -318,8 +320,7 @@ void main() {
         addTearDown(presenter.dispose);
         final File petitionFile = await createFile('uploaded.pdf', 1024);
         final petition = PetitionDtoFaker.fake();
-        final CaseSummaryDto petitionSummary =
-            CaseSummaryDtoFaker.fake();
+        final CaseSummaryDto petitionSummary = CaseSummaryDtoFaker.fake();
 
         when(
           () => intakeService.getAnalysis(analysisId: 'analysis-1'),
@@ -524,44 +525,49 @@ void main() {
       ).called(1);
     });
 
-    test('should reset to waiting petition when upload url request fails', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
-      addTearDown(presenter.dispose);
-      final File file = await createFile('petition.pdf', 2048);
+    test(
+      'should reset to waiting petition when upload url request fails',
+      () async {
+        final AnalysisScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final File file = await createFile('petition.pdf', 2048);
 
-      when(
-        () => documentPickerDriver.pickDocument(
-          allowedExtensions: AnalysisScreenPresenter.allowedExtensions,
-        ),
-      ).thenAnswer((_) async => file);
-      when(
-        () => storageService.generatePetitionUploadUrl(
-          analysisId: 'analysis-1',
-          documentType: 'pdf',
-        ),
-      ).thenAnswer(
-        (_) async =>
-            RestResponse(statusCode: 500, errorMessage: 'Falha ao gerar URL.'),
-      );
+        when(
+          () => documentPickerDriver.pickDocument(
+            allowedExtensions: AnalysisScreenPresenter.allowedExtensions,
+          ),
+        ).thenAnswer((_) async => file);
+        when(
+          () => storageService.generatePetitionUploadUrl(
+            analysisId: 'analysis-1',
+            documentType: 'pdf',
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse(
+            statusCode: 500,
+            errorMessage: 'Falha ao gerar URL.',
+          ),
+        );
 
-      await presenter.pickDocument();
+        await presenter.pickDocument();
 
-      expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
-      expect(presenter.generalError.value, 'Falha ao gerar URL.');
-      expect(presenter.selectedFile.value, isNull);
-      expect(presenter.uploadProgress.value, isNull);
-      expect(presenter.petition.value, isNull);
-      expect(presenter.summary.value, isNull);
-      verify(
-        () => intakeService.updateAnalysisStatus(
-          analysisId: 'analysis-1',
-          status: AnalysisStatusDto.waitingPetition,
-        ),
-      ).called(1);
-      verifyNever(
-        () => intakeService.createPetition(petition: any(named: 'petition')),
-      );
-    });
+        expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
+        expect(presenter.generalError.value, 'Falha ao gerar URL.');
+        expect(presenter.selectedFile.value, isNull);
+        expect(presenter.uploadProgress.value, isNull);
+        expect(presenter.petition.value, isNull);
+        expect(presenter.summary.value, isNull);
+        verify(
+          () => intakeService.updateAnalysisStatus(
+            analysisId: 'analysis-1',
+            status: AnalysisStatusDto.waitingPetition,
+          ),
+        ).called(1);
+        verifyNever(
+          () => intakeService.createPetition(petition: any(named: 'petition')),
+        );
+      },
+    );
   });
 
   group('analyze', () {
@@ -851,23 +857,28 @@ void main() {
       () async {
         final AnalysisScreenPresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
-        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
-          analysis: AnalysisDtoFaker.fake(
-            id: 'analysis-1',
-            name: 'Analise final',
-            status: AnalysisStatusDto.precedentChosen,
-          ),
-        );
+        final FirstInstanceAnalysisReportDto report =
+            FirstInstanceAnalysisReportDtoFaker.fake(
+              analysis: AnalysisDtoFaker.fake(
+                id: 'analysis-1',
+                name: 'Analise final',
+                status: AnalysisStatusDto.precedentChosen,
+              ),
+            );
         final Uint8List bytes = Uint8List.fromList(<int>[1, 2, 3]);
 
         presenter.status.value = AnalysisStatusDto.precedentChosen;
         presenter.generalError.value = 'erro antigo';
 
         when(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).thenAnswer(
-          (_) async =>
-              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+          (_) async => RestResponse<FirstInstanceAnalysisReportDto>(
+            statusCode: 200,
+            body: report,
+          ),
         );
         when(
           () => pdfDriver.generateAnalysisReport(report: report),
@@ -886,7 +897,9 @@ void main() {
         expect(presenter.isExportingReport.value, isFalse);
         expect(presenter.isManagingAnalysis.value, isFalse);
         verifyInOrder(<dynamic Function()>[
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
           () => pdfDriver.generateAnalysisReport(report: report),
           () => pdfDriver.sharePdf(
             bytes: bytes,
@@ -901,21 +914,24 @@ void main() {
       () async {
         final AnalysisScreenPresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
-        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
-          analysis: AnalysisDtoFaker.fake(
-            id: 'analysis-1',
-            name: 'Analise para retry',
-            status: AnalysisStatusDto.precedentChosen,
-          ),
-        );
+        final FirstInstanceAnalysisReportDto report =
+            FirstInstanceAnalysisReportDtoFaker.fake(
+              analysis: AnalysisDtoFaker.fake(
+                id: 'analysis-1',
+                name: 'Analise para retry',
+                status: AnalysisStatusDto.precedentChosen,
+              ),
+            );
         final Uint8List bytes = Uint8List.fromList(<int>[7, 8, 9]);
 
         presenter.status.value = AnalysisStatusDto.precedentChosen;
 
         when(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).thenAnswer(
-          (_) async => RestResponse<AnalysisReportDto>(
+          (_) async => RestResponse<FirstInstanceAnalysisReportDto>(
             statusCode: 500,
             errorMessage: 'Falha remota.',
           ),
@@ -931,10 +947,14 @@ void main() {
         expect(presenter.isExportingReport.value, isFalse);
 
         when(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).thenAnswer(
-          (_) async =>
-              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+          (_) async => RestResponse<FirstInstanceAnalysisReportDto>(
+            statusCode: 200,
+            body: report,
+          ),
         );
         when(
           () => pdfDriver.generateAnalysisReport(report: report),
@@ -951,7 +971,9 @@ void main() {
         expect(secondAttempt, isTrue);
         expect(presenter.generalError.value, isNull);
         verify(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).called(2);
       },
     );
@@ -961,22 +983,27 @@ void main() {
       () async {
         final AnalysisScreenPresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
-        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
-          analysis: AnalysisDtoFaker.fake(
-            id: 'analysis-1',
-            name: 'Analise com falha no share',
-            status: AnalysisStatusDto.precedentChosen,
-          ),
-        );
+        final FirstInstanceAnalysisReportDto report =
+            FirstInstanceAnalysisReportDtoFaker.fake(
+              analysis: AnalysisDtoFaker.fake(
+                id: 'analysis-1',
+                name: 'Analise com falha no share',
+                status: AnalysisStatusDto.precedentChosen,
+              ),
+            );
         final Uint8List bytes = Uint8List.fromList(<int>[4, 5, 6]);
 
         presenter.status.value = AnalysisStatusDto.precedentChosen;
 
         when(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).thenAnswer(
-          (_) async =>
-              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+          (_) async => RestResponse<FirstInstanceAnalysisReportDto>(
+            statusCode: 200,
+            body: report,
+          ),
         );
         when(
           () => pdfDriver.generateAnalysisReport(report: report),
@@ -1005,22 +1032,27 @@ void main() {
       () async {
         final AnalysisScreenPresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
-        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
-          analysis: AnalysisDtoFaker.fake(
-            id: 'analysis-1',
-            name: '   ',
-            status: AnalysisStatusDto.precedentChosen,
-          ),
-        );
+        final FirstInstanceAnalysisReportDto report =
+            FirstInstanceAnalysisReportDtoFaker.fake(
+              analysis: AnalysisDtoFaker.fake(
+                id: 'analysis-1',
+                name: '   ',
+                status: AnalysisStatusDto.precedentChosen,
+              ),
+            );
         final Uint8List bytes = Uint8List.fromList(<int>[9, 9, 9]);
 
         presenter.status.value = AnalysisStatusDto.precedentChosen;
 
         when(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).thenAnswer(
-          (_) async =>
-              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+          (_) async => RestResponse<FirstInstanceAnalysisReportDto>(
+            statusCode: 200,
+            body: report,
+          ),
         );
         when(
           () => pdfDriver.generateAnalysisReport(report: report),
@@ -1049,23 +1081,28 @@ void main() {
       () async {
         final AnalysisScreenPresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
-        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
-          analysis: AnalysisDtoFaker.fake(
-            id: 'analysis-1',
-            name: 'Analise concorrente',
-            status: AnalysisStatusDto.precedentChosen,
-          ),
-        );
+        final FirstInstanceAnalysisReportDto report =
+            FirstInstanceAnalysisReportDtoFaker.fake(
+              analysis: AnalysisDtoFaker.fake(
+                id: 'analysis-1',
+                name: 'Analise concorrente',
+                status: AnalysisStatusDto.precedentChosen,
+              ),
+            );
         final Completer<Uint8List> generateCompleter = Completer<Uint8List>();
         final Uint8List bytes = Uint8List.fromList(<int>[1]);
 
         presenter.status.value = AnalysisStatusDto.precedentChosen;
 
         when(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).thenAnswer(
-          (_) async =>
-              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+          (_) async => RestResponse<FirstInstanceAnalysisReportDto>(
+            statusCode: 200,
+            body: report,
+          ),
         );
         when(
           () => pdfDriver.generateAnalysisReport(report: report),
@@ -1086,7 +1123,9 @@ void main() {
 
         expect(secondAttempt, isFalse);
         verify(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).called(1);
 
         generateCompleter.complete(bytes);
@@ -1099,23 +1138,28 @@ void main() {
       () async {
         final AnalysisScreenPresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
-        final AnalysisReportDto report = AnalysisReportDtoFaker.fake(
-          analysis: AnalysisDtoFaker.fake(
-            id: 'analysis-1',
-            name: 'Analise bloqueada',
-            status: AnalysisStatusDto.precedentChosen,
-          ),
-        );
+        final FirstInstanceAnalysisReportDto report =
+            FirstInstanceAnalysisReportDtoFaker.fake(
+              analysis: AnalysisDtoFaker.fake(
+                id: 'analysis-1',
+                name: 'Analise bloqueada',
+                status: AnalysisStatusDto.precedentChosen,
+              ),
+            );
         final Completer<Uint8List> generateCompleter = Completer<Uint8List>();
         final Uint8List bytes = Uint8List.fromList(<int>[2]);
 
         presenter.status.value = AnalysisStatusDto.precedentChosen;
 
         when(
-          () => intakeService.getAnalysisReport(analysisId: 'analysis-1'),
+          () => intakeService.getFirstInstanceAnalysisReport(
+            analysisId: 'analysis-1',
+          ),
         ).thenAnswer(
-          (_) async =>
-              RestResponse<AnalysisReportDto>(statusCode: 200, body: report),
+          (_) async => RestResponse<FirstInstanceAnalysisReportDto>(
+            statusCode: 200,
+            body: report,
+          ),
         );
         when(
           () => pdfDriver.generateAnalysisReport(report: report),

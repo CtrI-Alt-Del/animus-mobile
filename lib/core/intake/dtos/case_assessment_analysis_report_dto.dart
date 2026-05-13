@@ -4,14 +4,14 @@ import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
 
-class LawerAnalysisReportDto {
+class CaseAssessmentAnalysisReportDto {
   final AnalysisDto analysis;
   final AnalysisDocumentDto document;
   final CaseSummaryDto caseSummary;
   final List<AnalysisPrecedentDto> precedents;
   final PetitionDraftDto petitionDraft;
 
-  const LawerAnalysisReportDto({
+  const CaseAssessmentAnalysisReportDto({
     required this.analysis,
     required this.document,
     required this.caseSummary,

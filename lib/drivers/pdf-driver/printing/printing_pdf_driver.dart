@@ -6,10 +6,7 @@ import 'package:printing/printing.dart';
 
 import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_report_filters_dto.dart';
-import 'package:animus/core/intake/dtos/court_dto.dart';
-import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/drivers/pdf-driver/printing/animus_pdf_theme.dart';
 
@@ -20,7 +17,7 @@ class PrintingPdfDriver implements PdfDriver {
 
   @override
   Future<Uint8List> generateAnalysisReport({
-    required AnalysisReportDto report,
+    required FirstInstanceAnalysisReportDto report,
   }) async {
     final pw.Document doc = pw.Document(
       theme: await _theme.load(),
@@ -39,11 +36,20 @@ class PrintingPdfDriver implements PdfDriver {
     doc.addPage(
       _buildPrecedentsPage(
         precedents: sortedPrecedents,
-        filters: report.filters,
         generatedAt: generatedAt,
       ),
     );
-    doc.addPage(_buildChosenPrecedentPage(report.chosenPrecedent, generatedAt));
+    AnalysisPrecedentDto? chosenPrecedent;
+    for (final AnalysisPrecedentDto precedent in report.precedents) {
+      if (precedent.isChosen) {
+        chosenPrecedent = precedent;
+        break;
+      }
+    }
+
+    if (chosenPrecedent != null) {
+      doc.addPage(_buildChosenPrecedentPage(chosenPrecedent, generatedAt));
+    }
 
     return doc.save();
   }
@@ -69,7 +75,10 @@ class PrintingPdfDriver implements PdfDriver {
         .toList(growable: false);
   }
 
-  pw.Page _buildHeaderPage(AnalysisReportDto report, DateTime generatedAt) {
+  pw.Page _buildHeaderPage(
+    FirstInstanceAnalysisReportDto report,
+    DateTime generatedAt,
+  ) {
     final String analysisName = _nonEmpty(
       report.analysis.name,
       fallback: 'Analise sem nome',
@@ -89,7 +98,7 @@ class PrintingPdfDriver implements PdfDriver {
             _buildSectionTitle('Relatório de análise jurídica', fontSize: 24),
             pw.SizedBox(height: 8),
             pw.Text(
-              'Petição: ${_nonEmpty(report.petition.document.name)}',
+              'Documento: ${_nonEmpty(report.document.name)}',
               style: pw.TextStyle(color: _theme.textMuted, fontSize: 13),
             ),
             pw.SizedBox(height: 16),
@@ -105,12 +114,12 @@ class PrintingPdfDriver implements PdfDriver {
             pw.SizedBox(height: 12),
             _buildDivider(height: 2),
             pw.SizedBox(height: 14),
-            _buildEyebrow('DADOS DA PETIÇÃO'),
+            _buildEyebrow('DADOS DO DOCUMENTO'),
             pw.SizedBox(height: 10),
-            _buildMetaRow('Arquivo', report.petition.document.name),
+            _buildMetaRow('Arquivo', report.document.name),
             _buildMetaRow(
               'Upload em',
-              _formatDateTime(_parseDate(report.petition.uploadedAt)),
+              _formatDateTime(_parseDate(report.document.uploadedAt)),
             ),
           ],
         );
@@ -119,7 +128,7 @@ class PrintingPdfDriver implements PdfDriver {
   }
 
   pw.Page _buildPetitionSummaryPage(
-    AnalysisReportDto report,
+    FirstInstanceAnalysisReportDto report,
     DateTime generatedAt,
   ) {
     return pw.MultiPage(
@@ -158,7 +167,6 @@ class PrintingPdfDriver implements PdfDriver {
 
   pw.Page _buildPrecedentsPage({
     required List<AnalysisPrecedentDto> precedents,
-    required AnalysisReportFiltersDto filters,
     required DateTime generatedAt,
   }) {
     return pw.MultiPage(
@@ -173,86 +181,11 @@ class PrintingPdfDriver implements PdfDriver {
             'Precedentes analisados (${precedents.length} encontrados)',
             fontSize: 22,
           ),
-          pw.SizedBox(height: 12),
-          _buildAppliedFiltersSection(filters),
           pw.SizedBox(height: 16),
           ...buildPrecedentCards(precedents: precedents),
         ];
       },
     );
-  }
-
-  pw.Widget _buildAppliedFiltersSection(AnalysisReportFiltersDto filters) {
-    return pw.Container(
-      width: double.infinity,
-      padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: _cardDecoration(),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: <pw.Widget>[
-          _buildEyebrow('FILTROS APLICADOS'),
-          pw.SizedBox(height: 10),
-          _buildFilterRow(
-            'Quantidade de precedentes',
-            filters.limit.toString(),
-          ),
-          _buildFilterRow(
-            'Tribunais selecionados',
-            _formatCourts(filters.courts),
-          ),
-          _buildFilterRow(
-            'Tipos selecionados',
-            _formatPrecedentKinds(filters.precedentKinds),
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildFilterRow(String title, String content) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 8),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: <pw.Widget>[
-          pw.SizedBox(
-            width: 150,
-            child: pw.Text(
-              title,
-              style: pw.TextStyle(color: _theme.textMuted, fontSize: 12),
-            ),
-          ),
-          pw.Expanded(
-            child: pw.Text(
-              _nonEmpty(content),
-              style: pw.TextStyle(
-                color: _theme.textPrimary,
-                fontSize: 12,
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatCourts(List<CourtDto> courts) {
-    if (courts.isEmpty) {
-      return 'Sem filtros de tribunal';
-    }
-
-    return courts.map((CourtDto court) => court.value).join(', ');
-  }
-
-  String _formatPrecedentKinds(List<PrecedentKindDto> kinds) {
-    if (kinds.isEmpty) {
-      return 'Sem filtros de tipo';
-    }
-
-    return kinds
-        .map((PrecedentKindDto kind) => _theme.formatKindLabel(kind))
-        .join(', ');
   }
 
   pw.Page _buildChosenPrecedentPage(
