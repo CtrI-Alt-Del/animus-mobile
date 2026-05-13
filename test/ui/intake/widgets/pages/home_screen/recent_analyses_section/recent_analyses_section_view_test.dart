@@ -173,7 +173,12 @@ void main() {
         AnalysisDtoFaker.fake(
           id: 'processing-1',
           name: 'Analise em andamento',
-          status: AnalysisStatusDto.analyzingPetition,
+          status: AnalysisStatusDto.generatingJudgmentDraft,
+        ),
+        AnalysisDtoFaker.fake(
+          id: 'processing-2',
+          name: 'Analise extraindo peticao',
+          status: AnalysisStatusDto.extractingPetition,
         ),
         AnalysisDtoFaker.fake(
           id: 'done-1',
@@ -203,7 +208,8 @@ void main() {
 
       expect(find.text('Em andamento'), findsOneWidget);
       expect(find.text('Recentes'), findsOneWidget);
-      expect(find.text('Peticao em análise'), findsOneWidget);
+      expect(find.text('Gerando minuta do julgamento'), findsOneWidget);
+      expect(find.text('Extraindo petição'), findsOneWidget);
       expect(find.text('Concluída'), findsOneWidget);
     },
   );
