@@ -3,7 +3,7 @@ title: Atualizacao de case summary, tipos e reports para analises de intake
 prd: https://joaogoliveiragarcia.atlassian.net/wiki/x/AYDsAg
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-115
 status: closed
-last_updated_at: 2026-05-12
+last_updated_at: 2026-05-17
 ---
 
 # 1. Objetivo
@@ -96,7 +96,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 
 - **`HomeScreenPresenter`** (`lib/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart`) - caller atual de `IntakeService.createAnalysis()`; hoje cria explicitamente uma analise `firstInstance`.
 - **`RecentAnalysesSectionView`** (`lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart`) - resolve labels e estados visuais a partir do enum legado de status.
-- **`AnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart`) - usa `CaseSummaryDto`, `getCaseSummary(analysisId)` e preserva guards baseados no `AnalysisStatusDto` legado, agora alimentado pelo mapeamento de `FirstInstanceAnalysisStatusDto`.
+- **`FirstInstanceAnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart`) - usa `CaseSummaryDto`, `getCaseSummary(analysisId)` e preserva guards baseados no `AnalysisStatusDto` legado, agora alimentado pelo mapeamento de `FirstInstanceAnalysisStatusDto`.
 - **`RelevantPrecedentsBubblePresenter`** (`lib/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart`) - continua dependente do `AnalysisStatusDto` legado e do fluxo atual de escolha de precedente, sustentado pelo mapeamento de compatibilidade do fluxo de `firstInstance`.
 - **`PetitionSummaryCardView`** (`lib/ui/intake/widgets/pages/analysis_screen/petition_summary_card/petition_summary_card_view.dart`) - consumidor visual direto do DTO de resumo atual.
 - **`PetitionSummaryCardPresenter`** (`lib/ui/intake/widgets/pages/analysis_screen/petition_summary_card/petition_summary_card_presenter.dart`) - gera o texto de copiar resumo com base no DTO atual.
@@ -333,7 +333,7 @@ HomeScreenPresenter.createAnalysis()
       -> IntakeRestService.createAnalysis(...)
           -> RestClient -> API
 
-AnalysisScreenPresenter.load()
+FirstInstanceAnalysisScreenPresenter.load()
   -> IntakeService.getAnalysis(analysisId)
       -> IntakeRestService.getAnalysis(...)
           -> AnalysisMapper(type + status -> AnalysisStatusDto compat)
