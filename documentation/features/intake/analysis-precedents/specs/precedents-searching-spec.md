@@ -53,7 +53,7 @@ Entregar o recorte mobile de `ANI-49` na tela `analysis_screen`: apos o usuario 
 
 ## 3.1 Funcionais
 
-- Enquanto `AnalysisScreenPresenter.status == AnalysisStatusDto.petitionAnalyzed`, o CTA principal da `AnalysisActionBar` deve continuar com o label `Buscar precedentes`.
+- Enquanto `FirstInstanceAnalysisScreenPresenter.status == AnalysisStatusDto.petitionAnalyzed`, o CTA principal da `AnalysisActionBar` deve continuar com o label `Buscar precedentes`.
 - Ao tocar em `Buscar precedentes`, a tela deve entrar no passo de precedentes e montar `RelevantPrecedentsBubble` abaixo do `PetitionSummaryCard`, ocultando a `AnalysisActionBar` para evitar disparos duplicados.
 - Ao abrir a tela com `AnalysisStatusDto.searchingPrecedents`, `analyzingPrecedentsApplicability`, `generatingSynthesis`, `waitingPrecedentChoice` ou `precedentChosen`, a tela deve montar o bubble automaticamente.
 - Na primeira montagem do bubble para uma `analysis` ainda em `petitionAnalyzed`, o app deve chamar `IntakeService.searchAnalysisPrecedents(...)` usando filtros selecionados no fluxo; na ausencia de ajuste manual, usar filtros vazios e `limit` default `5`.
@@ -73,7 +73,7 @@ Entregar o recorte mobile de `ANI-49` na tela `analysis_screen`: apos o usuario 
 - O valor selecionado no slider deve ser refletido visualmente no chip do dialog e usado na proxima chamada de `searchAnalysisPrecedents(...)`.
 - O valor selecionado no slider deve ser persistido em cache (`CacheDriver` + `CacheKeys.precedentsLimit`) e recarregado na abertura da `analysis_screen`.
 - O menu de configuracao deve exibir a acao `Filtros`, com badge numerico quando houver filtros aplicados.
-- Ao tocar em `Filtros`, o app deve abrir modal dedicado com selecao de tribunais e tipos de precedente, e deve persistir a selecao no `AnalysisScreenPresenter` para reutilizacao nas proximas buscas.
+- Ao tocar em `Filtros`, o app deve abrir modal dedicado com selecao de tribunais e tipos de precedente, e deve persistir a selecao no `FirstInstanceAnalysisScreenPresenter` para reutilizacao nas proximas buscas.
 - A busca (`searchAnalysisPrecedents`) deve enviar `courts` e `precedent_kinds` conforme o estado atual dos filtros aplicados.
 - O header do bubble deve mostrar o total retornado apenas no estado final de `content` ou `empty`.
 - O bubble deve seguir a composicao do node `9RKck`: container externo horizontal com `avatar` a esquerda e `bubble card` a direita.
@@ -96,7 +96,7 @@ Entregar o recorte mobile de `ANI-49` na tela `analysis_screen`: apos o usuario 
 - O badge de aplicabilidade no `ChosenPrecedentSummary` deve ficar abaixo do identificador do precedente.
 - Ao confirmar a escolha no dialog, o estado local do bubble nao pode regredir para `searchingPrecedents`; regressao de status no sync com `analysisStatus` deve ser ignorada.
 - Se a lista final vier vazia, o bubble deve exibir mensagem informativa contextualizada e nao deve mostrar itens fantasmas.
-- `AnalysisScreenPresenter.load()` deve continuar carregando `petition` e `summary` para estados de precedentes, garantindo reentrada da tela com o contexto do caso ainda visivel acima do bubble.
+- `FirstInstanceAnalysisScreenPresenter.load()` deve continuar carregando `petition` e `summary` para estados de precedentes, garantindo reentrada da tela com o contexto do caso ainda visivel acima do bubble.
 
 ## 3.2 Nao funcionais
 
@@ -136,7 +136,7 @@ Entregar o recorte mobile de `ANI-49` na tela `analysis_screen`: apos o usuario 
 
 ## UI
 
-- **`AnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart`) - presenter atual da tela, ja controla upload, resumo, erro geral e o CTA `Buscar precedentes`; hoje `confirmAndViewPrecedents()` esta vazio.
+- **`FirstInstanceAnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart`) - presenter atual da tela, ja controla upload, resumo, erro geral e o CTA `Buscar precedentes`; hoje `confirmAndViewPrecedents()` esta vazio.
 - **`CacheDriver`** (`lib/core/shared/interfaces/cache_driver.dart`) + `CacheKeys.precedentsLimit` (`lib/constants/cache_keys.dart`) - contrato e chave para persistencia local do limite de precedentes.
 - **`AnalysisScreenView`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_view.dart`) - tela atual que ja renderiza `AiBubble`, `PetitionFileBubble`, `PetitionSummaryCard`, `MessageBox` e `AnalysisActionBar`.
 - **`AiBubble`** (`lib/ui/intake/widgets/pages/analysis_screen/ai_bubble/ai_bubble_view.dart`) - referencia visual do bubble de IA com avatar, texto e estado `isTyping`.
@@ -445,7 +445,7 @@ lib/ui/intake/widgets/pages/analysis_screen/
 
 # 8. Decisoes Tecnicas e Trade-offs
 
-- **Decisao:** concentrar o fluxo de `POST + polling + GET final` em `RelevantPrecedentsBubblePresenter`, e nao em `AnalysisScreenPresenter`.
+- **Decisao:** concentrar o fluxo de `POST + polling + GET final` em `RelevantPrecedentsBubblePresenter`, e nao em `FirstInstanceAnalysisScreenPresenter`.
 - **Alternativas consideradas:** manter todo o fluxo no presenter da screen; disparar o polling diretamente na View.
 - **Motivo da escolha:** segue as regras da camada UI do projeto, que pedem presenter proprio para widget filho com estado e side effects relevantes.
 - **Impactos / trade-offs:** adiciona um provider e uma pasta interna nova, mas evita inflar o presenter da tela principal com uma segunda responsabilidade grande.
@@ -498,7 +498,7 @@ lib/ui/intake/widgets/pages/analysis_screen/
 
 ```text
 AnalysisScreenView
-  -> AnalysisScreenPresenter.confirmAndViewPrecedents()
+  -> FirstInstanceAnalysisScreenPresenter.confirmAndViewPrecedents()
   -> showRelevantPrecedents = true
   -> menu action 'Qtd. precedentes'
       -> PrecedentsLimitDialogView
@@ -607,9 +607,9 @@ AnalysisScreenView
 
 - **Nao inclua testes automatizados na spec.**
 - A `View` nao deve conter logica de negocio; o disparo da busca, o polling e o retry ficam no `RelevantPrecedentsBubblePresenter`.
-- Presenters nao fazem chamadas diretas a `RestClient`; `AnalysisScreenPresenter` e `RelevantPrecedentsBubblePresenter` devem consumir somente `IntakeService`.
+- Presenters nao fazem chamadas diretas a `RestClient`; `FirstInstanceAnalysisScreenPresenter` e `RelevantPrecedentsBubblePresenter` devem consumir somente `IntakeService`.
 - Todos os caminhos citados nesta spec existem no projeto ou estao explicitamente marcados como **novo arquivo**.
-- Esta spec reutiliza `AnalysisPrecedentDto`, `PrecedentDto`, `AnalysisStatusDto`, `IntakeService`, `AnalysisScreenPresenter` e `AnalysisScreenView`; nao inventa novo gateway nem nova tela de rota para substituir estruturas existentes.
+- Esta spec reutiliza `AnalysisPrecedentDto`, `PrecedentDto`, `AnalysisStatusDto`, `IntakeService`, `FirstInstanceAnalysisScreenPresenter` e `AnalysisScreenView`; nao inventa novo gateway nem nova tela de rota para substituir estruturas existentes.
 - O fluxo de busca deve usar `POST /intake/analyses/{analysis_id}/precedents/search`, e a listagem final deve consumir `ListResponse<AnalysisPrecedentDto>`.
 - O uso de `AnalysisStatusDto` deve respeitar os valores atuais publicados pelo backend, inclusive `WAITING_PRECEDENT_CHOISE` e `PRECEDENT_CHOSED`.
 - O `POST /precedents/search` deve seguir o controller real informado para a task: body JSON com `courts`, `precedent_kinds` e `limit`.

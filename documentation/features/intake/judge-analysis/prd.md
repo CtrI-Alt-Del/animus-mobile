@@ -24,6 +24,7 @@ Alinhar o dominio de analises de `intake` no mobile ao contrato atual do backend
 
 - Como nao havia um `prd.md` materializado nesta pasta, este documento foi consolidado com base na implementacao concluida e na spec fechada.
 - Nenhum desvio funcional em relacao a Spec original foi identificado na entrega final.
+- A entrega foi revalidada no mobile em `2026-05-17`, com testes automatizados e analise estatica sem pendencias.
 
 ## Observacoes de rollout
 
