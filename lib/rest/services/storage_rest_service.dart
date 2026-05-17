@@ -15,7 +15,7 @@ class StorageRestService extends Service implements StorageService {
   }) : super(restClient, cacheDriver, navigationDriver);
 
   @override
-  Future<RestResponse<UploadUrlDto>> generatePetitionUploadUrl({
+  Future<RestResponse<UploadUrlDto>> generateAnalysisDocumentUploadUrl({
     required String analysisId,
     required String documentType,
   }) async {
@@ -25,7 +25,7 @@ class StorageRestService extends Service implements StorageService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/storage/analyses/$analysisId/petitions/upload',
+      '/storage/analyses/$analysisId/documents',
       queryParams: <String, dynamic>{'document_type': documentType},
     );
 

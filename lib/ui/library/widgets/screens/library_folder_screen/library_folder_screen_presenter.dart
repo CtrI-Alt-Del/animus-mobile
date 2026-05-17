@@ -341,7 +341,9 @@ class LibraryFolderScreenPresenter {
       return;
     }
 
-    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+    await _navigationDriver.pushTo(
+      Routes.getAnalysis(analysisId: analysisId, analysisType: analysis.type),
+    );
   }
 
   void toggleSelection(String analysisId) {

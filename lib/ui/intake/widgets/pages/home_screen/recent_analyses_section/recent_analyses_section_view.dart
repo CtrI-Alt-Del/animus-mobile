@@ -188,7 +188,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                   if (index < processingAnalyses.length) {
                     final AnalysisDto analysis = processingAnalyses[index];
                     final String title = analysis.name.trim().isEmpty
-                        ? 'Analise sem nome'
+                        ? 'Análise sem nome'
                         : analysis.name;
 
                     return ProcessingAnalysisCard(
@@ -223,7 +223,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                     final AnalysisDto analysis =
                         recentAnalyses[index - recentStartIndex];
                     final String title = analysis.name.trim().isEmpty
-                        ? 'Analise sem nome'
+                        ? 'Análise sem nome'
                         : analysis.name;
 
                     return RecentAnalysisCard(
@@ -275,11 +275,12 @@ class RecentAnalysesSectionView extends StatelessWidget {
         return 'Peticao em análise';
       case AnalysisStatusDto.extractingPetition:
         return 'Extraindo petição';
-      case AnalysisStatusDto.petitionAnalyzed:
       case AnalysisStatusDto.caseAnalyzed:
         return 'Peticao analisada';
       case AnalysisStatusDto.searchingPrecedents:
         return 'Buscando precedentes';
+      case AnalysisStatusDto.precedentsSearched:
+        return 'Precedentes encontrados';
       case AnalysisStatusDto.analyzingPrecedentsSimilarity:
       case AnalysisStatusDto.analyzingPrecedentsApplicability:
         return 'Comparando precedentes';

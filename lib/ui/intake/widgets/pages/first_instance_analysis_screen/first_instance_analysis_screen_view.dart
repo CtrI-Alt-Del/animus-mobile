@@ -1,0 +1,769 @@
+import 'dart:async';
+
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:signals_flutter/signals_flutter.dart';
+
+import 'package:animus/constants/routes.dart';
+import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/court_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
+import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/components/ai_bubble/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_action_bar/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_header/archive_analysis_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_header/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_header/rename_analysis_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/index.dart';
+import 'package:animus/ui/intake/widgets/components/case_summary_card/index.dart';
+import 'package:animus/ui/intake/widgets/components/document_file_bubble/index.dart';
+import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/chosen_precedent_summary/index.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/dot_grid_background/index.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedent_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_filters_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_limit_dialog/index.dart';
+
+class FirstInstanceAnalysisScreenView extends ConsumerStatefulWidget {
+  final String analysisId;
+
+  const FirstInstanceAnalysisScreenView({required this.analysisId, super.key});
+
+  @override
+  ConsumerState<FirstInstanceAnalysisScreenView> createState() =>
+      _FirstInstanceAnalysisScreenViewState();
+}
+
+class _FirstInstanceAnalysisScreenViewState
+    extends ConsumerState<FirstInstanceAnalysisScreenView> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+  }
+
+  void _jumpToBottom() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+  }
+
+  void _scheduleJumpToBottom() {
+    if (!mounted) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      _jumpToBottom();
+
+      Future<void>.delayed(const Duration(milliseconds: 60), () {
+        if (!mounted) {
+          return;
+        }
+
+        _jumpToBottom();
+      });
+
+      Future<void>.delayed(const Duration(milliseconds: 160), () {
+        if (!mounted) {
+          return;
+        }
+
+        _jumpToBottom();
+      });
+    });
+  }
+
+  bool _isPrecedentsFlow(AnalysisStatusDto status) {
+    return status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.precedentsSearched ||
+        status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        status == AnalysisStatusDto.generatingSynthesis ||
+        status == AnalysisStatusDto.waitingPrecedentChoice ||
+        status == AnalysisStatusDto.precedentChosen;
+  }
+
+  Future<void> _showPrecedentsLimitDialog(
+    BuildContext context,
+    FirstInstanceAnalysisScreenPresenter presenter,
+  ) async {
+    int selectedLimit = presenter.precedentsLimit.value;
+
+    final int? newLimit = await showDialog<int>(
+      context: context,
+      barrierColor: const Color(0x99000000),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return PrecedentsLimitDialog(
+              currentValue: selectedLimit,
+              minValue: FirstInstanceAnalysisScreenPresenter.minPrecedentsLimit,
+              maxValue: FirstInstanceAnalysisScreenPresenter.maxPrecedentsLimit,
+              onChanged: (int value) {
+                setState(() {
+                  selectedLimit = value;
+                });
+              },
+              onCancel: () => Navigator.of(context).pop(),
+              onApply: () => Navigator.of(context).pop(selectedLimit),
+            );
+          },
+        );
+      },
+    );
+
+    if (newLimit != null) {
+      presenter.setPrecedentsLimit(newLimit);
+    }
+  }
+
+  Future<void> _showPrecedentsFiltersDialog(
+    BuildContext context,
+    FirstInstanceAnalysisScreenPresenter presenter,
+  ) async {
+    List<CourtDto> selectedCourts = List<CourtDto>.from(
+      presenter.precedentsCourts.value,
+    );
+    List<PrecedentKindDto> selectedKinds = List<PrecedentKindDto>.from(
+      presenter.precedentsKinds.value,
+    );
+
+    final ({List<CourtDto> courts, List<PrecedentKindDto> kinds})? result =
+        await showDialog<
+          ({List<CourtDto> courts, List<PrecedentKindDto> kinds})
+        >(
+          context: context,
+          barrierColor: const Color(0x99000000),
+          builder: (BuildContext context) {
+            return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return PrecedentsFiltersDialog(
+                  selectedCourts: selectedCourts,
+                  selectedKinds: selectedKinds,
+                  onToggleCourt: (CourtDto court) {
+                    setState(() {
+                      if (selectedCourts.contains(court)) {
+                        selectedCourts.remove(court);
+                      } else {
+                        selectedCourts.add(court);
+                      }
+                    });
+                  },
+                  onToggleKind: (PrecedentKindDto kind) {
+                    setState(() {
+                      if (selectedKinds.contains(kind)) {
+                        selectedKinds.remove(kind);
+                      } else {
+                        selectedKinds.add(kind);
+                      }
+                    });
+                  },
+                  onClear: () {
+                    setState(() {
+                      selectedCourts = <CourtDto>[];
+                      selectedKinds = <PrecedentKindDto>[];
+                    });
+                  },
+                  onApply: () {
+                    Navigator.of(context).pop((
+                      courts: List<CourtDto>.from(selectedCourts),
+                      kinds: List<PrecedentKindDto>.from(selectedKinds),
+                    ));
+                  },
+                );
+              },
+            );
+          },
+        );
+
+    if (result == null) {
+      return;
+    }
+
+    presenter.setPrecedentFilters(courts: result.courts, kinds: result.kinds);
+  }
+
+  Future<void> _showPrecedentDialog(
+    BuildContext context,
+    AnalysisPrecedentDto precedent,
+  ) async {
+    final FirstInstanceAnalysisScreenPresenter presenter = ref.read(
+      firstInstanceAnalysisScreenPresenterProvider(widget.analysisId),
+    );
+    final AnalysisPrecedentsBubblePresenter precedentsPresenter = ref.read(
+      analysisPrecedentsBubblePresenterProvider(widget.analysisId),
+    );
+    final bool hadChosenPrecedentBefore =
+        precedentsPresenter.selectedPrecedent.value?.isChosen ?? false;
+
+    await Navigator.of(context, rootNavigator: true).push<void>(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (BuildContext context) {
+          return PrecedentDialog(
+            analysisId: widget.analysisId,
+            precedent: precedent,
+          );
+        },
+      ),
+    );
+
+    final bool hasChosenPrecedentNow =
+        precedentsPresenter.selectedPrecedent.value?.isChosen ?? false;
+    if (hadChosenPrecedentBefore || !hasChosenPrecedentNow) {
+      return;
+    }
+
+    presenter.markPrecedentChosen();
+    _scheduleJumpToBottom();
+  }
+
+  Future<void> _handleExportReport(
+    BuildContext context,
+    FirstInstanceAnalysisScreenPresenter presenter,
+  ) async {
+    final bool exported = await presenter.exportAnalysisReport();
+    if (!mounted || !context.mounted || !exported) {
+      return;
+    }
+
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Relatorio exportado com sucesso.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final FirstInstanceAnalysisScreenPresenter presenter = ref.watch(
+      firstInstanceAnalysisScreenPresenterProvider(widget.analysisId),
+    );
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return Scaffold(
+      backgroundColor: tokens.surfacePage,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 402),
+            child: Stack(
+              children: <Widget>[
+                const Positioned.fill(child: DotGridBackground()),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Watch((BuildContext context) {
+                      final String analysisName = presenter.analysisName.watch(
+                        context,
+                      );
+                      final bool isManagingAnalysis = presenter
+                          .isManagingAnalysis
+                          .watch(context);
+                      final int appliedFiltersCount = presenter
+                          .appliedPrecedentFiltersCount
+                          .watch(context);
+                      final AnalysisStatusDto status = presenter.status.watch(
+                        context,
+                      );
+                      final bool showExportReport =
+                          status == AnalysisStatusDto.precedentChosen;
+                      bool canExportReport = false;
+                      bool isExportingReport = false;
+
+                      if (showExportReport) {
+                        try {
+                          isExportingReport = presenter.isExportingReport.watch(
+                            context,
+                          );
+                        } catch (_) {
+                          isExportingReport = false;
+                        }
+
+                        try {
+                          canExportReport = presenter.canExportReport.watch(
+                            context,
+                          );
+                        } catch (_) {
+                          canExportReport = !isExportingReport;
+                        }
+                      }
+
+                      return AnalysisHeader(
+                        onBack: () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                            return;
+                          }
+
+                          context.go(Routes.home);
+                        },
+                        onExportReport: canExportReport
+                            ? () {
+                                unawaited(
+                                  _handleExportReport(context, presenter),
+                                );
+                              }
+                            : null,
+                        title: analysisName,
+                        onPrecedentsCount: isManagingAnalysis
+                            ? null
+                            : () {
+                                unawaited(
+                                  _showPrecedentsLimitDialog(
+                                    context,
+                                    presenter,
+                                  ),
+                                );
+                              },
+                        onRename: isManagingAnalysis
+                            ? null
+                            : () async {
+                                if (!context.mounted) {
+                                  return;
+                                }
+
+                                final BuildContext dialogHostContext =
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).context;
+
+                                final String? newName =
+                                    await showDialog<String>(
+                                      context: dialogHostContext,
+                                      barrierColor: const Color(0x99000000),
+                                      builder: (_) => RenameAnalysisDialog(
+                                        initialName:
+                                            presenter.analysisName.value,
+                                      ),
+                                    );
+
+                                if (newName == null) {
+                                  return;
+                                }
+
+                                await presenter.renameAnalysis(newName);
+                              },
+                        onFilters: isManagingAnalysis
+                            ? null
+                            : () {
+                                unawaited(
+                                  _showPrecedentsFiltersDialog(
+                                    context,
+                                    presenter,
+                                  ),
+                                );
+                              },
+                        onArchive: isManagingAnalysis
+                            ? null
+                            : () async {
+                                if (!context.mounted) {
+                                  return;
+                                }
+
+                                final BuildContext dialogHostContext =
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).context;
+
+                                final bool shouldArchive =
+                                    await showDialog<bool>(
+                                      context: dialogHostContext,
+                                      barrierColor: const Color(0x99000000),
+                                      builder: (_) =>
+                                          const ArchiveAnalysisDialog(),
+                                    ) ??
+                                    false;
+
+                                if (!shouldArchive) {
+                                  return;
+                                }
+
+                                final bool archived = await presenter
+                                    .archiveAnalysis();
+                                if (!context.mounted || !archived) {
+                                  return;
+                                }
+
+                                Navigator.of(context).maybePop();
+                              },
+                        appliedFiltersCount: appliedFiltersCount,
+                        isMenuEnabled: !isManagingAnalysis,
+                        showExportReport: showExportReport,
+                        isExportingReport: isExportingReport,
+                      );
+                    }),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            const AiBubble(
+                              message:
+                                  'Envie a petição inicial para começarmos a análise. Vamos resumir o caso e destacar os pontos jurídicos mais importantes.',
+                              isTyping: false,
+                              footerText: null,
+                            ),
+                            Watch((BuildContext context) {
+                              final AnalysisStatusDto status = presenter.status
+                                  .watch(context);
+
+                              if (status != AnalysisStatusDto.waitingPetition) {
+                                return const SizedBox(height: 16);
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 10,
+                                  bottom: 16,
+                                ),
+                                child: Text(
+                                  'Formatos aceitos: PDF, DOCX • Máx. 50MB',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: tokens.textMuted,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            }),
+                            Watch((BuildContext context) {
+                              final File? file = presenter.selectedFile.watch(
+                                context,
+                              );
+                              final bool isUploading = presenter.isUploading
+                                  .watch(context);
+                              final AnalysisDocumentDto? analysisDocument =
+                                  presenter.analysisDocument.watch(context);
+
+                              if (file == null && analysisDocument == null) {
+                                return const SizedBox.shrink();
+                              }
+
+                              final String fileName = analysisDocument != null
+                                  ? analysisDocument.name
+                                  : presenter.fileName(file!);
+                              final String fileSizeLabel = file != null
+                                  ? presenter.formatFileSize(file.lengthSync())
+                                  : 'Documento enviado';
+
+                              return Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: DocumentFileBubble(
+                                      fileName: fileName,
+                                      fileSizeLabel: fileSizeLabel,
+                                      isLoading: isUploading,
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 280.ms)
+                                  .slideY(
+                                    begin: 0.08,
+                                    end: 0,
+                                    duration: 280.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
+                            }),
+                            Watch((BuildContext context) {
+                              final bool show = presenter.showProcessingBubble
+                                  .watch(context);
+
+                              if (!show) {
+                                return const SizedBox.shrink();
+                              }
+
+                              return const Padding(
+                                    padding: EdgeInsets.only(bottom: 16),
+                                    child: AiBubble(
+                                      message: 'Analisando a petição enviada.',
+                                      isTyping: true,
+                                      footerText:
+                                          'Aguarde enquanto processamos o documento e montamos o resumo.',
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 260.ms)
+                                  .slideY(
+                                    begin: 0.08,
+                                    end: 0,
+                                    duration: 260.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
+                            }),
+                            Watch((BuildContext context) {
+                              final String? error = presenter.generalError
+                                  .watch(context);
+                              final AnalysisStatusDto status = presenter.status
+                                  .watch(context);
+
+                              if (error == null || error.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+
+                              final Color color =
+                                  status == AnalysisStatusDto.failed
+                                  ? tokens.danger
+                                  : tokens.warning;
+
+                              return Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: MessageBox(
+                                      message: error,
+                                      color: color,
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 220.ms)
+                                  .slideY(
+                                    begin: 0.06,
+                                    end: 0,
+                                    duration: 220.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
+                            }),
+                            Watch((BuildContext context) {
+                              final summary = presenter.summary.watch(context);
+                              final AnalysisStatusDto status = presenter.status
+                                  .watch(context);
+                              final bool showRelevantPrecedents =
+                                  _isPrecedentsFlow(status);
+
+                              if (summary == null ||
+                                  (status != AnalysisStatusDto.caseAnalyzed &&
+                                      !showRelevantPrecedents)) {
+                                return const SizedBox.shrink();
+                              }
+
+                              return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: <Widget>[
+                                      CaseSummaryCard(summary: summary),
+                                      if (status ==
+                                          AnalysisStatusDto
+                                              .caseAnalyzed) ...<Widget>[
+                                        const SizedBox(height: 10),
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: TextButton.icon(
+                                            onPressed: () {
+                                              unawaited(
+                                                presenter.retrySummary(),
+                                              );
+                                            },
+                                            icon: const Icon(
+                                              Icons.refresh,
+                                              size: 16,
+                                            ),
+                                            label: const Text(
+                                              'Tentar resumo novamente',
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 320.ms)
+                                  .slideY(
+                                    begin: 0.1,
+                                    end: 0,
+                                    duration: 320.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
+                            }),
+                            Watch((BuildContext context) {
+                              final AnalysisStatusDto status = presenter.status
+                                  .watch(context);
+                              final bool showRelevantPrecedents =
+                                  _isPrecedentsFlow(status);
+
+                              if (!showRelevantPrecedents) {
+                                return const SizedBox.shrink();
+                              }
+
+                              final AnalysisPrecedentsBubblePresenter
+                              precedentsPresenter = ref.watch(
+                                analysisPrecedentsBubblePresenterProvider(
+                                  widget.analysisId,
+                                ),
+                              );
+                              precedentsPresenter.syncSelectedLimit(
+                                presenter.precedentsLimit.value,
+                              );
+                              precedentsPresenter.syncSelectedFilters(
+                                courts: presenter.precedentsCourts.value,
+                                kinds: presenter.precedentsKinds.value,
+                              );
+
+                              final AnalysisPrecedentDto? selectedPrecedent =
+                                  precedentsPresenter.selectedPrecedent.watch(
+                                    context,
+                                  );
+
+                              return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 16,
+                                          bottom: 16,
+                                        ),
+                                        child: AnalysisPrecedentsBubble(
+                                          analysisId: widget.analysisId,
+                                          analysisStatus: status,
+                                          onPrecedentTap:
+                                              (AnalysisPrecedentDto precedent) {
+                                                unawaited(
+                                                  _showPrecedentDialog(
+                                                    context,
+                                                    precedent,
+                                                  ),
+                                                );
+                                              },
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 16,
+                                        ),
+                                        child:
+                                            selectedPrecedent == null ||
+                                                !selectedPrecedent.isChosen
+                                            ? const SizedBox.shrink()
+                                            : ChosenPrecedentSummary(
+                                                selectedPrecedent:
+                                                    selectedPrecedent,
+                                              ),
+                                      ),
+                                    ],
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 280.ms)
+                                  .slideY(
+                                    begin: 0.08,
+                                    end: 0,
+                                    duration: 280.ms,
+                                    curve: Curves.easeOutCubic,
+                                  );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Watch((BuildContext context) {
+                      final String fileActionLabel = presenter.fileActionLabel
+                          .watch(context);
+                      final String primaryActionLabel = presenter
+                          .primaryActionLabel
+                          .watch(context);
+                      final bool canPickDocument = presenter.canPickDocument
+                          .watch(context);
+                      final bool canAnalyze = presenter.canAnalyze.watch(
+                        context,
+                      );
+                      final bool isUploading = presenter.isUploading.watch(
+                        context,
+                      );
+                      final AnalysisStatusDto status = presenter.status.watch(
+                        context,
+                      );
+                      final bool showRelevantPrecedents = _isPrecedentsFlow(
+                        status,
+                      );
+
+                      if (showRelevantPrecedents) {
+                        return const SizedBox.shrink();
+                      }
+
+                      final bool showFileAction =
+                          status == AnalysisStatusDto.waitingPetition ||
+                          status == AnalysisStatusDto.petitionUploaded ||
+                          status == AnalysisStatusDto.caseAnalyzed;
+                      final bool showPrimaryAction = true;
+
+                      return AnalysisActionBar(
+                        showFileAction: showFileAction,
+                        fileActionLabel: fileActionLabel,
+                        onFileAction: isUploading
+                            ? null
+                            : canPickDocument
+                            ? () {
+                                if (status == AnalysisStatusDto.caseAnalyzed) {
+                                  unawaited(presenter.replaceDocument());
+                                  return;
+                                }
+
+                                unawaited(presenter.pickDocument());
+                              }
+                            : null,
+                        primaryActionLabel: primaryActionLabel,
+                        showPrimaryAction: showPrimaryAction,
+                        onPrimaryAction: isUploading
+                            ? null
+                            : status == AnalysisStatusDto.caseAnalyzed
+                            ? presenter.confirmAndViewPrecedents
+                            : canAnalyze
+                            ? () {
+                                unawaited(presenter.analyze());
+                              }
+                            : null,
+                        isPrimaryBusy: isUploading,
+                        helperText: null,
+                      );
+                    }),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

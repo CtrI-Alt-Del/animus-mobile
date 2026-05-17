@@ -67,6 +67,12 @@ final class AnalysisMapper {
       return AnalysisStatusDto.firstInstance(status);
     }
 
+    if (value == AnalysisStatusDto.petitionNotFound.value) {
+      return AnalysisStatusDto.secondInstance(
+        SecondInstanceAnalysisStatusDto.petitionNotFound,
+      );
+    }
+
     final SecondInstanceAnalysisStatusDto status =
         SecondInstanceAnalysisStatusDto.values.firstWhere(
           (SecondInstanceAnalysisStatusDto item) => item.value == value,

@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/generate_judgment_draft_card/generate_judgment_draft_card_view.dart';
+
+typedef GenerateJudgmentDraftCard = GenerateJudgmentDraftCardView;

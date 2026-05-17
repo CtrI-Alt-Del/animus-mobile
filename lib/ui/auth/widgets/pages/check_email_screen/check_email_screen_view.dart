@@ -7,7 +7,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/theme.dart';
 import 'package:animus/ui/auth/widgets/pages/check_email_screen/check_email_screen_presenter.dart';
-import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
 
 class CheckEmailScreenView extends ConsumerWidget {
   final String email;

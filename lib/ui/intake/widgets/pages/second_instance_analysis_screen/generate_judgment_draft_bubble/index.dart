@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/generate_judgment_draft_bubble/generate_judgment_draft_bubble_view.dart';
+
+typedef GenerateJudgmentDraftBubble = GenerateJudgmentDraftBubbleView;

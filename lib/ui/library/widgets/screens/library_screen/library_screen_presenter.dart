@@ -147,7 +147,9 @@ class LibraryScreenPresenter {
       return;
     }
 
-    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+    await _navigationDriver.pushTo(
+      Routes.getAnalysis(analysisId: analysisId, analysisType: analysis.type),
+    );
   }
 
   void toggleUnfolderedSelection(String analysisId) {
