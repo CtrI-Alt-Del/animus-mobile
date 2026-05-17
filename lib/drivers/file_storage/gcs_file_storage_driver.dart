@@ -35,6 +35,7 @@ class GcsFileStorageDriver implements FileStorageDriver {
             uploadUrlValue,
             body: file.openRead(),
             headers: headers,
+            onSendProgress: onProgress,
           )
         : await _restClient.put(
             uploadUrlValue,

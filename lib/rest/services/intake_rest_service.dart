@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedents_search_filters_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
@@ -10,9 +11,9 @@ import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/judgment_draft_dto.dart';
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
-import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
@@ -22,14 +23,15 @@ import 'package:animus/core/shared/responses/list_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/shared/types/json.dart';
 import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
+import 'package:animus/rest/mappers/intake/analysis_document_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/case_assessment_analysis_report_mapper.dart';
 import 'package:animus/rest/mappers/intake/case_summary_mapper.dart';
 import 'package:animus/rest/mappers/intake/first_instance_analysis_report_mapper.dart';
 import 'package:animus/rest/mappers/intake/judgment_draft_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_draft_mapper.dart';
-import 'package:animus/rest/mappers/intake/petition_mapper.dart';
 import 'package:animus/rest/mappers/intake/second_instance_analysis_report_mapper.dart';
+import 'package:animus/rest/mappers/intake/second_instance_judgment_draft_mapper.dart';
 import 'package:animus/rest/mappers/shared/cursor_pagination_mapper.dart';
 import 'package:animus/rest/services/service.dart';
 
@@ -138,23 +140,6 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
-  Future<RestResponse<PetitionDto>> createPetition({
-    required PetitionDto petition,
-  }) async {
-    final RestResponse<PetitionDto>? authFailure = requireAuth<PetitionDto>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
-    final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/intake/petitions',
-      body: PetitionMapper.toJson(petition),
-    );
-
-    return response.mapBody<PetitionDto>(PetitionMapper.toDto);
-  }
-
-  @override
   Future<RestResponse<AnalysisDto>> getAnalysis({
     required String analysisId,
   }) async {
@@ -168,6 +153,46 @@ class IntakeRestService extends Service implements IntakeService {
     );
 
     return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<AnalysisDocumentDto>> createAnalysisDocument({
+    required String analysisId,
+    required AnalysisDocumentDto document,
+  }) async {
+    final RestResponse<AnalysisDocumentDto>? authFailure =
+        requireAuth<AnalysisDocumentDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/analyses/$analysisId/documents',
+      body: <String, dynamic>{
+        'uploaded_at': document.uploadedAt,
+        'file_path': document.filePath,
+        'name': document.name,
+      },
+    );
+
+    return response.mapBody<AnalysisDocumentDto>(AnalysisDocumentMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<AnalysisDocumentDto>> getAnalysisDocument({
+    required String analysisId,
+  }) async {
+    final RestResponse<AnalysisDocumentDto>? authFailure =
+        requireAuth<AnalysisDocumentDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId/documents',
+    );
+
+    return response.mapBody<AnalysisDocumentDto>(AnalysisDocumentMapper.toDto);
   }
 
   @override
@@ -328,22 +353,6 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
-  Future<RestResponse<PetitionDto>> getAnalysisPetition({
-    required String analysisId,
-  }) async {
-    final RestResponse<PetitionDto>? authFailure = requireAuth<PetitionDto>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
-    final RestResponse<Map<String, dynamic>> response = await restClient.get(
-      '/intake/analyses/$analysisId/petition',
-    );
-
-    return response.mapBody<PetitionDto>(PetitionMapper.toDto);
-  }
-
-  @override
   Future<RestResponse<CaseSummaryDto>> getCaseSummary({
     required String analysisId,
   }) async {
@@ -354,7 +363,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
-      '/intake/analyses/$analysisId/summary',
+      '/intake/analyses/$analysisId/case-summaries',
     );
 
     return response.mapBody<CaseSummaryDto>(CaseSummaryMapper.toDto);
@@ -395,8 +404,8 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
-  Future<RestResponse<void>> summarizePetition({
-    required String petitionId,
+  Future<RestResponse<void>> triggerFirstInstanceCaseSummarization({
+    required String analysisId,
   }) async {
     final RestResponse<void>? authFailure = requireAuth<void>();
     if (authFailure != null) {
@@ -404,10 +413,60 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/intake/petitions/$petitionId/summary',
+      '/intake/analyses/$analysisId/case-summaries',
     );
 
     return toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<void>> triggerSecondInstanceCaseSummarization({
+    required String analysisId,
+  }) async {
+    final RestResponse<void>? authFailure = requireAuth<void>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/analyses/$analysisId/petition-extraction',
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<void>> triggerSecondInstanceJudgmentDraftGeneration({
+    required String analysisId,
+  }) async {
+    final RestResponse<void>? authFailure = requireAuth<void>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/analyses/$analysisId/second-instance-judgment-drafts',
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<SecondInstanceJudgmentDraftDto>>
+  getSecondInstanceJudgmentDraft({required String analysisId}) async {
+    final RestResponse<SecondInstanceJudgmentDraftDto>? authFailure =
+        requireAuth<SecondInstanceJudgmentDraftDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId/second-instance-judgment-drafts',
+    );
+
+    return response.mapBody<SecondInstanceJudgmentDraftDto>(
+      SecondInstanceJudgmentDraftMapper.toDto,
+    );
   }
 
   @override
@@ -490,6 +549,46 @@ class IntakeRestService extends Service implements IntakeService {
         'kind': identifier.kind.value,
         'number': identifier.number,
       },
+    );
+
+    return response.mapBody<AnalysisStatusDto>(_mapAnalysisStatus);
+  }
+
+  @override
+  Future<RestResponse<AnalysisStatusDto>> unchooseAnalysisPrecedent({
+    required String analysisId,
+    required PrecedentIdentifierDto identifier,
+  }) async {
+    final RestResponse<AnalysisStatusDto>? authFailure =
+        requireAuth<AnalysisStatusDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.patch(
+      '/intake/analyses/$analysisId/precedents/unchoose',
+      queryParams: <String, dynamic>{
+        'court': identifier.court.value,
+        'kind': identifier.kind.value,
+        'number': identifier.number,
+      },
+    );
+
+    return response.mapBody<AnalysisStatusDto>(_mapAnalysisStatus);
+  }
+
+  @override
+  Future<RestResponse<AnalysisStatusDto>> getAnalysisStatus({
+    required String analysisId,
+  }) async {
+    final RestResponse<AnalysisStatusDto>? authFailure =
+        requireAuth<AnalysisStatusDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId/status',
     );
 
     return response.mapBody<AnalysisStatusDto>(_mapAnalysisStatus);

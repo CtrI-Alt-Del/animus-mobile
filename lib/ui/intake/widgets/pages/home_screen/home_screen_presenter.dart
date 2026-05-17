@@ -217,7 +217,9 @@ class HomeScreenPresenter {
     }
 
     isCreatingAnalysis.value = false;
-    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+    await _navigationDriver.pushTo(
+      Routes.getFirstInstanceAnalysis(analysisId: analysisId),
+    );
     await refresh();
   }
 
@@ -239,7 +241,23 @@ class HomeScreenPresenter {
       return;
     }
 
-    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+    switch (analysis.type) {
+      case AnalysisTypeDto.firstInstance:
+        await _navigationDriver.pushTo(
+          Routes.getFirstInstanceAnalysis(analysisId: analysisId),
+        );
+        break;
+      case AnalysisTypeDto.secondInstance:
+        await _navigationDriver.pushTo(
+          Routes.getSecondInstanceAnalysis(analysisId: analysisId),
+        );
+        break;
+      case AnalysisTypeDto.caseAssessment:
+        await _navigationDriver.pushTo(
+          Routes.getSecondInstanceAnalysis(analysisId: analysisId),
+        );
+    }
+
     await refresh();
   }
 
@@ -298,6 +316,11 @@ class HomeScreenPresenter {
     _isPollingProcessing = true;
 
     try {
+      final Set<String> previousProcessingIds = _processingAnalyses
+          .map((AnalysisDto analysis) => (analysis.id ?? '').trim())
+          .where((String id) => id.isNotEmpty)
+          .toSet();
+
       final RestResponse<List<AnalysisDto>> response = await _intakeService
           .listProcessingAnalyses();
       if (response.isFailure) {
@@ -305,12 +328,45 @@ class HomeScreenPresenter {
       }
 
       _processingAnalyses = List<AnalysisDto>.unmodifiable(response.body);
+
+      final Set<String> currentProcessingIds = _processingAnalyses
+          .map((AnalysisDto analysis) => (analysis.id ?? '').trim())
+          .where((String id) => id.isNotEmpty)
+          .toSet();
+
+      final bool hasCompletedAnalyses = previousProcessingIds.any(
+        (String id) => !currentProcessingIds.contains(id),
+      );
+
+      if (hasCompletedAnalyses) {
+        await _refreshRecentAnalysesPage();
+        return;
+      }
+
       recentAnalyses.value = List<AnalysisDto>.unmodifiable(
         _mergeProcessingAnalyses(recentAnalyses.value),
       );
     } finally {
       _isPollingProcessing = false;
     }
+  }
+
+  Future<void> _refreshRecentAnalysesPage() async {
+    final RestResponse<CursorPaginationResponse<AnalysisDto>> response =
+        await _intakeService.listAnalyses(limit: _pageSize, isArchived: false);
+
+    if (response.isFailure) {
+      recentAnalyses.value = List<AnalysisDto>.unmodifiable(
+        _mergeProcessingAnalyses(recentAnalyses.value),
+      );
+      return;
+    }
+
+    final CursorPaginationResponse<AnalysisDto> pagination = response.body;
+    recentAnalyses.value = List<AnalysisDto>.unmodifiable(
+      _mergeProcessingAnalyses(pagination.items),
+    );
+    nextCursor.value = pagination.nextCursor;
   }
 
   String _extractFirstName(AccountDto account) {

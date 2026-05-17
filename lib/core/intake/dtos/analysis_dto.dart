@@ -1,4 +1,5 @@
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedents_search_filters_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 
 class AnalysisDto {
@@ -10,6 +11,7 @@ class AnalysisDto {
   final String createdAt;
   final String? folderId;
   final bool isArchived;
+  final AnalysisPrecedentsSearchFiltersDto? precedentsSearchFilters;
   final String? id;
 
   const AnalysisDto({
@@ -21,6 +23,7 @@ class AnalysisDto {
     required this.createdAt,
     this.folderId,
     this.isArchived = false,
+    this.precedentsSearchFilters,
     this.id,
   });
 }
