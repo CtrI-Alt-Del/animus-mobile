@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
-import 'package:animus/core/intake/dtos/petition_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
@@ -19,20 +19,19 @@ import 'package:animus/drivers/document-picker-driver/index.dart';
 import 'package:animus/drivers/file_storage/index.dart';
 import 'package:animus/rest/services/index.dart';
 import 'package:animus/theme.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_action_bar/analysis_action_bar_view.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_header/analysis_header_view.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/chosen_precedent_summary/chosen_precedent_summary_view.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_view.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_view.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_presenter.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_action_bar/analysis_action_bar_view.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_header/analysis_header_view.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/chosen_precedent_summary/chosen_precedent_summary_view.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_view.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
-import '../../../../../fakers/intake/petition_dto_faker.dart';
 import '../../../../../fakers/intake/petition_summary_dto_faker.dart';
 import '../../../../../fakers/intake/analysis_precedent_dto_faker.dart';
 
@@ -46,8 +45,8 @@ class _MockFileStorageDriver extends Mock implements FileStorageDriver {}
 
 class _MockDocumentPickerDriver extends Mock implements DocumentPickerDriver {}
 
-class _MockAnalysisScreenPresenter extends Mock
-    implements AnalysisScreenPresenter {}
+class _MockFirstInstanceAnalysisScreenPresenter extends Mock
+    implements FirstInstanceAnalysisScreenPresenter {}
 
 class _MockRelevantPrecedentsBubblePresenter extends Mock
     implements RelevantPrecedentsBubblePresenter {}
@@ -55,24 +54,39 @@ class _MockRelevantPrecedentsBubblePresenter extends Mock
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  AnalysisDocumentDto createDocument({
+    String analysisId = 'analysis-123',
+    String filePath = 'uploads/documents/petition.pdf',
+    String name = 'petition.pdf',
+  }) {
+    return AnalysisDocumentDto(
+      analysisId: analysisId,
+      uploadedAt: '2026-03-31T10:00:00Z',
+      filePath: filePath,
+      name: name,
+    );
+  }
+
   setUpAll(() {
     registerFallbackValue(File('dummy.pdf'));
     registerFallbackValue(AnalysisStatusDto.searchingPrecedents);
   });
 
-  Widget createWidget(AnalysisScreenPresenter presenter) {
+  Widget createWidget(FirstInstanceAnalysisScreenPresenter presenter) {
     return SizedBox(
       width: 430,
       height: 900,
       child: ProviderScope(
         overrides: [
-          analysisScreenPresenterProvider(
+          firstInstanceAnalysisScreenPresenterProvider(
             'analysis-123',
           ).overrideWithValue(presenter),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
-          home: const AnalysisScreenView(analysisId: 'analysis-123'),
+          home: const FirstInstanceAnalysisScreenView(
+            analysisId: 'analysis-123',
+          ),
         ),
       ),
     );
@@ -123,7 +137,9 @@ void main() {
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
-          home: const AnalysisScreenView(analysisId: 'analysis-123'),
+          home: const FirstInstanceAnalysisScreenView(
+            analysisId: 'analysis-123',
+          ),
         ),
       ),
     );
@@ -131,11 +147,14 @@ void main() {
 
     expect(find.text('Selecionar petição'), findsOneWidget);
     expect(find.text('Analisar'), findsOneWidget);
-    expect(find.textContaining('Formatos aceitos: PDF, DOCX'), findsOneWidget);
+    expect(
+      find.textContaining('Formatos aceitos: PDF, DOCX • Máx. 50MB'),
+      findsOneWidget,
+    );
   });
 
   group('AnalysisScreenView states', () {
-    late _MockAnalysisScreenPresenter presenter;
+    late _MockFirstInstanceAnalysisScreenPresenter presenter;
     late Signal<AnalysisStatusDto> status;
     late Signal<File?> selectedFile;
     late Signal<bool> isUploading;
@@ -143,7 +162,7 @@ void main() {
     late Signal<String?> generalError;
     late Signal<String> analysisName;
     late Signal<bool> isManagingAnalysis;
-    late Signal<PetitionDto?> petition;
+    late Signal<AnalysisDocumentDto?> analysisDocument;
     late Signal<CaseSummaryDto?> summary;
     late Signal<bool> canPickDocument;
     late Signal<bool> canAnalyze;
@@ -163,7 +182,7 @@ void main() {
     late ReadonlySignal<bool> precedentsShowEmptyState;
 
     setUp(() {
-      presenter = _MockAnalysisScreenPresenter();
+      presenter = _MockFirstInstanceAnalysisScreenPresenter();
       relevantPrecedentsPresenter = _MockRelevantPrecedentsBubblePresenter();
       status = signal<AnalysisStatusDto>(AnalysisStatusDto.waitingPetition);
       selectedFile = signal<File?>(null);
@@ -172,7 +191,7 @@ void main() {
       generalError = signal<String?>(null);
       analysisName = signal<String>('Analise de precedente');
       isManagingAnalysis = signal<bool>(false);
-      petition = signal<PetitionDto?>(null);
+      analysisDocument = signal<AnalysisDocumentDto?>(null);
       summary = signal<CaseSummaryDto?>(null);
       canPickDocument = signal<bool>(true);
       canAnalyze = signal<bool>(false);
@@ -206,7 +225,7 @@ void main() {
       when(() => presenter.generalError).thenReturn(generalError);
       when(() => presenter.analysisName).thenReturn(analysisName);
       when(() => presenter.isManagingAnalysis).thenReturn(isManagingAnalysis);
-      when(() => presenter.petition).thenReturn(petition);
+      when(() => presenter.analysisDocument).thenReturn(analysisDocument);
       when(() => presenter.summary).thenReturn(summary);
       when(() => presenter.canPickDocument).thenReturn(canPickDocument);
       when(() => presenter.canAnalyze).thenReturn(canAnalyze);
@@ -282,7 +301,7 @@ void main() {
       generalError.dispose();
       analysisName.dispose();
       isManagingAnalysis.dispose();
-      petition.dispose();
+      analysisDocument.dispose();
       summary.dispose();
       canPickDocument.dispose();
       canAnalyze.dispose();
@@ -307,7 +326,7 @@ void main() {
         height: 900,
         child: ProviderScope(
           overrides: [
-            analysisScreenPresenterProvider(
+            firstInstanceAnalysisScreenPresenterProvider(
               'analysis-123',
             ).overrideWithValue(presenter),
             relevantPrecedentsBubblePresenterProvider(
@@ -316,7 +335,9 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.dark,
-            home: const AnalysisScreenView(analysisId: 'analysis-123'),
+            home: const FirstInstanceAnalysisScreenView(
+              analysisId: 'analysis-123',
+            ),
           ),
         ),
       );
@@ -337,11 +358,11 @@ void main() {
     testWidgets(
       'renderiza summary card e acao de retry quando peticao foi analisada',
       (WidgetTester tester) async {
-        petition.value = PetitionDtoFaker.fake();
+        analysisDocument.value = createDocument();
         summary.value = CaseSummaryDtoFaker.fake(
           caseSummary: 'Resumo expandivel da peticao.',
         );
-        status.value = AnalysisStatusDto.petitionAnalyzed;
+        status.value = AnalysisStatusDto.caseAnalyzed;
         primaryActionLabel.value = 'Buscar precedentes';
         fileActionLabel.value = 'Enviar outro documento';
 
@@ -358,9 +379,9 @@ void main() {
     testWidgets('aciona retry do resumo pelo presenter', (
       WidgetTester tester,
     ) async {
-      petition.value = PetitionDtoFaker.fake();
+      analysisDocument.value = createDocument();
       summary.value = CaseSummaryDtoFaker.fake();
-      status.value = AnalysisStatusDto.petitionAnalyzed;
+      status.value = AnalysisStatusDto.caseAnalyzed;
       primaryActionLabel.value = 'Buscar precedentes';
       fileActionLabel.value = 'Enviar outro documento';
 
@@ -375,12 +396,12 @@ void main() {
       verify(() => presenter.retrySummary()).called(1);
     });
 
-    testWidgets('aciona CTA final quando status e petitionAnalyzed', (
+    testWidgets('aciona CTA final quando status e caseAnalyzed', (
       WidgetTester tester,
     ) async {
-      petition.value = PetitionDtoFaker.fake();
+      analysisDocument.value = createDocument();
       summary.value = CaseSummaryDtoFaker.fake();
-      status.value = AnalysisStatusDto.petitionAnalyzed;
+      status.value = AnalysisStatusDto.caseAnalyzed;
       primaryActionLabel.value = 'Buscar precedentes';
       fileActionLabel.value = 'Enviar outro documento';
 
@@ -396,9 +417,9 @@ void main() {
     testWidgets(
       'aciona replaceDocument pela acao secundaria quando analisada',
       (WidgetTester tester) async {
-        petition.value = PetitionDtoFaker.fake();
+        analysisDocument.value = createDocument();
         summary.value = CaseSummaryDtoFaker.fake();
-        status.value = AnalysisStatusDto.petitionAnalyzed;
+        status.value = AnalysisStatusDto.caseAnalyzed;
         primaryActionLabel.value = 'Buscar precedentes';
         fileActionLabel.value = 'Enviar outro documento';
 
@@ -437,7 +458,7 @@ void main() {
     testWidgets('bloqueia acao primaria enquanto analisa a peticao', (
       WidgetTester tester,
     ) async {
-      petition.value = PetitionDtoFaker.fake();
+      analysisDocument.value = createDocument();
       status.value = AnalysisStatusDto.analyzingPetition;
       canPickDocument.value = false;
       canAnalyze.value = false;
@@ -552,7 +573,7 @@ void main() {
     testWidgets(
       'exibe bubble de precedentes e oculta action bar durante fluxo de precedentes',
       (WidgetTester tester) async {
-        petition.value = PetitionDtoFaker.fake();
+        analysisDocument.value = createDocument();
         summary.value = CaseSummaryDtoFaker.fake();
         status.value = AnalysisStatusDto.searchingPrecedents;
 
@@ -567,7 +588,7 @@ void main() {
     testWidgets(
       'exibe resumo de precedente escolhido somente quando existe precedente escolhido',
       (WidgetTester tester) async {
-        petition.value = PetitionDtoFaker.fake();
+        analysisDocument.value = createDocument();
         summary.value = CaseSummaryDtoFaker.fake();
         status.value = AnalysisStatusDto.precedentChosen;
 

@@ -211,7 +211,10 @@ void main() {
 
       verify(
         () => navigationDriver.pushTo(
-          Routes.getAnalysis(analysisId: 'analysis/123'),
+          Routes.getAnalysis(
+            analysisId: 'analysis/123',
+            analysisType: AnalysisTypeDto.firstInstance,
+          ),
         ),
       ).called(1);
     });

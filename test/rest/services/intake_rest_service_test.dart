@@ -82,7 +82,7 @@ void main() {
     expect(response.body.caseSummary, 'Resumo do caso');
     expect(response.body.excludedOrAccessoryTopics, <String>['Topico legado']);
     verify(
-      () => restClient.get('/intake/analyses/analysis-1/summary'),
+      () => restClient.get('/intake/analyses/analysis-1/case-summaries'),
     ).called(1);
   });
 

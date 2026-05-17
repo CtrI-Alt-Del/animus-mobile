@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
@@ -13,13 +14,12 @@ import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
 import 'package:animus/core/storage/interfaces/storage_service.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../fakers/intake/analysis_dto_faker.dart';
 import '../../../../../fakers/intake/first_instance_analysis_report_dto_faker.dart';
-import '../../../../../fakers/intake/petition_dto_faker.dart';
 import '../../../../../fakers/intake/petition_summary_dto_faker.dart';
 import '../../../../../fakers/storage/upload_url_dto_faker.dart';
 
@@ -45,8 +45,15 @@ void main() {
   late Directory tempDirectory;
 
   setUpAll(() {
-    registerFallbackValue(PetitionDtoFaker.fake());
     registerFallbackValue(AnalysisStatusDto.waitingPetition);
+    registerFallbackValue(
+      AnalysisDocumentDto(
+        analysisId: 'analysis-fallback',
+        uploadedAt: '2026-01-01T00:00:00Z',
+        filePath: 'uploads/fallback.pdf',
+        name: 'fallback.pdf',
+      ),
+    );
   });
 
   setUp(() async {
@@ -88,8 +95,8 @@ void main() {
     }
   });
 
-  AnalysisScreenPresenter createPresenter() {
-    return AnalysisScreenPresenter(
+  FirstInstanceAnalysisScreenPresenter createPresenter() {
+    return FirstInstanceAnalysisScreenPresenter(
       intakeService: intakeService,
       storageService: storageService,
       cacheDriver: cacheDriver,
@@ -108,16 +115,31 @@ void main() {
     return file;
   }
 
+  AnalysisDocumentDto createDocument({
+    String analysisId = 'analysis-1',
+    String filePath = 'uploads/documents/uploaded.pdf',
+    String name = 'uploaded.pdf',
+    String uploadedAt = '2026-03-31T10:00:00Z',
+  }) {
+    return AnalysisDocumentDto(
+      analysisId: analysisId,
+      uploadedAt: uploadedAt,
+      filePath: filePath,
+      name: name,
+    );
+  }
+
   group('load', () {
     test(
       'should clear petition data when analysis is waiting petition',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
 
-        presenter.petition.value = PetitionDtoFaker.fake();
+        presenter.analysisDocument.value = createDocument();
         presenter.summary.value = CaseSummaryDtoFaker.fake();
-        presenter.status.value = AnalysisStatusDto.petitionAnalyzed;
+        presenter.status.value = AnalysisStatusDto.caseAnalyzed;
 
         when(
           () => intakeService.getAnalysis(analysisId: 'analysis-1'),
@@ -135,11 +157,11 @@ void main() {
 
         expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
         expect(presenter.analysisName.value, 'Nova analise pendente');
-        expect(presenter.petition.value, isNull);
+        expect(presenter.analysisDocument.value, isNull);
         expect(presenter.summary.value, isNull);
         expect(presenter.selectedFile.value, isNull);
         verifyNever(
-          () => intakeService.getAnalysisPetition(
+          () => intakeService.getAnalysisDocument(
             analysisId: any(named: 'analysisId'),
           ),
         );
@@ -147,7 +169,7 @@ void main() {
     );
 
     test('should keep waiting shell when getAnalysis fails', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
       when(
@@ -162,18 +184,18 @@ void main() {
       await presenter.load();
 
       expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
-      expect(presenter.petition.value, isNull);
+      expect(presenter.analysisDocument.value, isNull);
       expect(presenter.summary.value, isNull);
       expect(presenter.analysisName.value, 'Nova Análise');
     });
 
     test('should reset failed analysis to waiting petition on load', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      presenter.petition.value = PetitionDtoFaker.fake();
+      presenter.analysisDocument.value = createDocument();
       presenter.summary.value = CaseSummaryDtoFaker.fake();
-      presenter.status.value = AnalysisStatusDto.petitionAnalyzed;
+      presenter.status.value = AnalysisStatusDto.caseAnalyzed;
 
       when(
         () => intakeService.getAnalysis(analysisId: 'analysis-1'),
@@ -191,12 +213,12 @@ void main() {
 
       expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
       expect(presenter.analysisName.value, 'Analise com falha');
-      expect(presenter.petition.value, isNull);
+      expect(presenter.analysisDocument.value, isNull);
       expect(presenter.summary.value, isNull);
       expect(presenter.selectedFile.value, isNull);
       expect(
         presenter.generalError.value,
-        AnalysisScreenPresenter.failedMessage,
+        FirstInstanceAnalysisScreenPresenter.failedMessage,
       );
       verify(
         () => intakeService.updateAnalysisStatus(
@@ -209,10 +231,11 @@ void main() {
     test(
       'should load petition and selected file when status is petitionUploaded',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final File petitionFile = await createFile('uploaded.pdf', 1024);
-        final petition = PetitionDtoFaker.fake();
+        final document = createDocument();
 
         when(
           () => intakeService.getAnalysis(analysisId: 'analysis-1'),
@@ -226,23 +249,23 @@ void main() {
           ),
         );
         when(
-          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
         ).thenAnswer(
-          (_) async => RestResponse(statusCode: 200, body: petition),
+          (_) async => RestResponse(statusCode: 200, body: document),
         );
         when(
-          () => fileStorageDriver.getFile(petition.document.filePath),
+          () => fileStorageDriver.getFile(document.filePath),
         ).thenAnswer((_) async => petitionFile);
 
         await presenter.load();
 
         expect(presenter.analysisName.value, 'Analise pronta para resumo');
         expect(presenter.status.value, AnalysisStatusDto.petitionUploaded);
-        expect(presenter.petition.value?.id, petition.id);
+        expect(presenter.analysisDocument.value?.filePath, document.filePath);
         expect(presenter.selectedFile.value?.path, petitionFile.path);
         expect(presenter.summary.value, isNull);
         verify(
-          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
         ).called(1);
       },
     );
@@ -250,19 +273,20 @@ void main() {
     test(
       'should resume polling and load summary when status is analyzingPetition',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final File petitionFile = await createFile('uploaded.pdf', 1024);
-        final petition = PetitionDtoFaker.fake();
+        final document = createDocument();
         final CaseSummaryDto petitionSummary = CaseSummaryDtoFaker.fake();
 
         when(
-          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
         ).thenAnswer(
-          (_) async => RestResponse(statusCode: 200, body: petition),
+          (_) async => RestResponse(statusCode: 200, body: document),
         );
         when(
-          () => fileStorageDriver.getFile(petition.document.filePath),
+          () => fileStorageDriver.getFile(document.filePath),
         ).thenAnswer((_) async => petitionFile);
         when(
           () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
@@ -288,24 +312,22 @@ void main() {
 
           return RestResponse<AnalysisDto>(
             statusCode: 200,
-            body: AnalysisDtoFaker.fake(
-              status: AnalysisStatusDto.petitionAnalyzed,
-            ),
+            body: AnalysisDtoFaker.fake(status: AnalysisStatusDto.caseAnalyzed),
           );
         });
 
         await presenter.load();
 
         expect(presenter.analysisName.value, 'Analise processando resumo');
-        expect(presenter.status.value, AnalysisStatusDto.petitionAnalyzed);
-        expect(presenter.petition.value?.id, petition.id);
+        expect(presenter.status.value, AnalysisStatusDto.caseAnalyzed);
+        expect(presenter.analysisDocument.value?.filePath, document.filePath);
         expect(presenter.selectedFile.value?.path, petitionFile.path);
         expect(
           presenter.summary.value?.caseSummary,
           petitionSummary.caseSummary,
         );
         verify(
-          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
         ).called(1);
         verify(
           () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
@@ -314,12 +336,13 @@ void main() {
     );
 
     test(
-      'should load petition and summary when status is petitionAnalyzed',
+      'should load petition and summary when status is caseAnalyzed',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final File petitionFile = await createFile('uploaded.pdf', 1024);
-        final petition = PetitionDtoFaker.fake();
+        final document = createDocument();
         final CaseSummaryDto petitionSummary = CaseSummaryDtoFaker.fake();
 
         when(
@@ -327,18 +350,16 @@ void main() {
         ).thenAnswer(
           (_) async => RestResponse<AnalysisDto>(
             statusCode: 200,
-            body: AnalysisDtoFaker.fake(
-              status: AnalysisStatusDto.petitionAnalyzed,
-            ),
+            body: AnalysisDtoFaker.fake(status: AnalysisStatusDto.caseAnalyzed),
           ),
         );
         when(
-          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
         ).thenAnswer(
-          (_) async => RestResponse(statusCode: 200, body: petition),
+          (_) async => RestResponse(statusCode: 200, body: document),
         );
         when(
-          () => fileStorageDriver.getFile(petition.document.filePath),
+          () => fileStorageDriver.getFile(document.filePath),
         ).thenAnswer((_) async => petitionFile);
         when(
           () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
@@ -349,8 +370,8 @@ void main() {
         await presenter.load();
 
         expect(presenter.analysisName.value, 'Analise de precedente');
-        expect(presenter.status.value, AnalysisStatusDto.petitionAnalyzed);
-        expect(presenter.petition.value?.id, petition.id);
+        expect(presenter.status.value, AnalysisStatusDto.caseAnalyzed);
+        expect(presenter.analysisDocument.value?.filePath, document.filePath);
         expect(presenter.selectedFile.value?.path, petitionFile.path);
         expect(
           presenter.summary.value?.caseSummary,
@@ -363,10 +384,10 @@ void main() {
     );
 
     test('should load summary even when petition id is absent', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       final File petitionFile = await createFile('uploaded.pdf', 1024);
-      final petition = PetitionDtoFaker.fake(id: null);
+      final document = createDocument();
       final CaseSummaryDto petitionSummary = CaseSummaryDtoFaker.fake();
 
       when(
@@ -374,16 +395,14 @@ void main() {
       ).thenAnswer(
         (_) async => RestResponse<AnalysisDto>(
           statusCode: 200,
-          body: AnalysisDtoFaker.fake(
-            status: AnalysisStatusDto.petitionAnalyzed,
-          ),
+          body: AnalysisDtoFaker.fake(status: AnalysisStatusDto.caseAnalyzed),
         ),
       );
       when(
-        () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
-      ).thenAnswer((_) async => RestResponse(statusCode: 200, body: petition));
+        () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
+      ).thenAnswer((_) async => RestResponse(statusCode: 200, body: document));
       when(
-        () => fileStorageDriver.getFile(petition.document.filePath),
+        () => fileStorageDriver.getFile(document.filePath),
       ).thenAnswer((_) async => petitionFile);
       when(
         () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
@@ -393,8 +412,8 @@ void main() {
 
       await presenter.load();
 
-      expect(presenter.status.value, AnalysisStatusDto.petitionAnalyzed);
-      expect(presenter.petition.value?.id, isNull);
+      expect(presenter.status.value, AnalysisStatusDto.caseAnalyzed);
+      expect(presenter.analysisDocument.value?.filePath, document.filePath);
       expect(presenter.summary.value?.caseSummary, petitionSummary.caseSummary);
       verify(
         () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
@@ -404,28 +423,27 @@ void main() {
     test(
       'should keep analyzed status and expose error when summary load fails',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final File petitionFile = await createFile('uploaded.pdf', 1024);
-        final petition = PetitionDtoFaker.fake();
+        final document = createDocument();
 
         when(
           () => intakeService.getAnalysis(analysisId: 'analysis-1'),
         ).thenAnswer(
           (_) async => RestResponse<AnalysisDto>(
             statusCode: 200,
-            body: AnalysisDtoFaker.fake(
-              status: AnalysisStatusDto.petitionAnalyzed,
-            ),
+            body: AnalysisDtoFaker.fake(status: AnalysisStatusDto.caseAnalyzed),
           ),
         );
         when(
-          () => intakeService.getAnalysisPetition(analysisId: 'analysis-1'),
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
         ).thenAnswer(
-          (_) async => RestResponse(statusCode: 200, body: petition),
+          (_) async => RestResponse(statusCode: 200, body: document),
         );
         when(
-          () => fileStorageDriver.getFile(petition.document.filePath),
+          () => fileStorageDriver.getFile(document.filePath),
         ).thenAnswer((_) async => petitionFile);
         when(
           () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
@@ -438,7 +456,7 @@ void main() {
 
         await presenter.load();
 
-        expect(presenter.status.value, AnalysisStatusDto.petitionAnalyzed);
+        expect(presenter.status.value, AnalysisStatusDto.caseAnalyzed);
         expect(presenter.summary.value, isNull);
         expect(presenter.generalError.value, 'Falha ao carregar resumo.');
       },
@@ -447,13 +465,14 @@ void main() {
 
   group('pickDocument', () {
     test('should show inline error when extension is invalid', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       final File file = await createFile('petition.txt', 1024);
 
       when(
         () => documentPickerDriver.pickDocument(
-          allowedExtensions: AnalysisScreenPresenter.allowedExtensions,
+          allowedExtensions:
+              FirstInstanceAnalysisScreenPresenter.allowedExtensions,
         ),
       ).thenAnswer((_) async => file);
 
@@ -462,7 +481,7 @@ void main() {
       expect(presenter.generalError.value, 'Selecione um arquivo PDF ou DOCX.');
       expect(presenter.selectedFile.value, isNull);
       verifyNever(
-        () => storageService.generatePetitionUploadUrl(
+        () => storageService.generateAnalysisDocumentUploadUrl(
           analysisId: any(named: 'analysisId'),
           documentType: any(named: 'documentType'),
         ),
@@ -470,16 +489,17 @@ void main() {
     });
 
     test('should show inline error when file is larger than limit', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       final File file = await createFile(
         'petition.pdf',
-        AnalysisScreenPresenter.maxFileSizeInBytes + 1,
+        FirstInstanceAnalysisScreenPresenter.maxFileSizeInBytes + 1,
       );
 
       when(
         () => documentPickerDriver.pickDocument(
-          allowedExtensions: AnalysisScreenPresenter.allowedExtensions,
+          allowedExtensions:
+              FirstInstanceAnalysisScreenPresenter.allowedExtensions,
         ),
       ).thenAnswer((_) async => file);
 
@@ -487,10 +507,10 @@ void main() {
 
       expect(
         presenter.generalError.value,
-        'O arquivo deve ter no maximo 20MB.',
+        'O arquivo deve ter no maximo 50MB.',
       );
       verifyNever(
-        () => storageService.generatePetitionUploadUrl(
+        () => storageService.generateAnalysisDocumentUploadUrl(
           analysisId: any(named: 'analysisId'),
           documentType: any(named: 'documentType'),
         ),
@@ -498,24 +518,23 @@ void main() {
     });
 
     test('should upload file and create petition on happy path', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       final File file = await createFile('petition.pdf', 4096);
       final uploadUrl = UploadUrlDtoFaker.fake();
-      final createdPetition = PetitionDtoFaker.fake(
-        document: PetitionDocumentDtoFaker.fake(
-          filePath: uploadUrl.filePath,
-          name: 'petition.pdf',
-        ),
+      final createdDocument = createDocument(
+        filePath: uploadUrl.filePath,
+        name: 'petition.pdf',
       );
 
       when(
         () => documentPickerDriver.pickDocument(
-          allowedExtensions: AnalysisScreenPresenter.allowedExtensions,
+          allowedExtensions:
+              FirstInstanceAnalysisScreenPresenter.allowedExtensions,
         ),
       ).thenAnswer((_) async => file);
       when(
-        () => storageService.generatePetitionUploadUrl(
+        () => storageService.generateAnalysisDocumentUploadUrl(
           analysisId: 'analysis-1',
           documentType: 'pdf',
         ),
@@ -533,21 +552,27 @@ void main() {
         onProgress?.call(4096, 4096);
       });
       when(
-        () => intakeService.createPetition(petition: any(named: 'petition')),
+        () => intakeService.createAnalysisDocument(
+          analysisId: any(named: 'analysisId'),
+          document: any(named: 'document'),
+        ),
       ).thenAnswer(
-        (_) async => RestResponse(statusCode: 201, body: createdPetition),
+        (_) async => RestResponse(statusCode: 201, body: createdDocument),
       );
 
       await presenter.pickDocument();
 
       expect(presenter.status.value, AnalysisStatusDto.petitionUploaded);
-      expect(presenter.petition.value?.id, createdPetition.id);
+      expect(
+        presenter.analysisDocument.value?.filePath,
+        createdDocument.filePath,
+      );
       expect(presenter.summary.value, isNull);
       expect(presenter.generalError.value, isNull);
       expect(presenter.uploadProgress.value, 1);
       expect(presenter.selectedFile.value?.path, file.path);
       verify(
-        () => storageService.generatePetitionUploadUrl(
+        () => storageService.generateAnalysisDocumentUploadUrl(
           analysisId: 'analysis-1',
           documentType: 'pdf',
         ),
@@ -560,24 +585,29 @@ void main() {
         ),
       ).called(1);
       verify(
-        () => intakeService.createPetition(petition: any(named: 'petition')),
+        () => intakeService.createAnalysisDocument(
+          analysisId: any(named: 'analysisId'),
+          document: any(named: 'document'),
+        ),
       ).called(1);
     });
 
     test(
       'should reset to waiting petition when upload url request fails',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final File file = await createFile('petition.pdf', 2048);
 
         when(
           () => documentPickerDriver.pickDocument(
-            allowedExtensions: AnalysisScreenPresenter.allowedExtensions,
+            allowedExtensions:
+                FirstInstanceAnalysisScreenPresenter.allowedExtensions,
           ),
         ).thenAnswer((_) async => file);
         when(
-          () => storageService.generatePetitionUploadUrl(
+          () => storageService.generateAnalysisDocumentUploadUrl(
             analysisId: 'analysis-1',
             documentType: 'pdf',
           ),
@@ -594,7 +624,7 @@ void main() {
         expect(presenter.generalError.value, 'Falha ao gerar URL.');
         expect(presenter.selectedFile.value, isNull);
         expect(presenter.uploadProgress.value, isNull);
-        expect(presenter.petition.value, isNull);
+        expect(presenter.analysisDocument.value, isNull);
         expect(presenter.summary.value, isNull);
         verify(
           () => intakeService.updateAnalysisStatus(
@@ -603,7 +633,10 @@ void main() {
           ),
         ).called(1);
         verifyNever(
-          () => intakeService.createPetition(petition: any(named: 'petition')),
+          () => intakeService.createAnalysisDocument(
+            analysisId: any(named: 'analysisId'),
+            document: any(named: 'document'),
+          ),
         );
       },
     );
@@ -611,25 +644,25 @@ void main() {
 
   group('analyze', () {
     test('should summarize petition successfully', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
-      final petition = PetitionDtoFaker.fake();
+      final document = createDocument();
       final CaseSummaryDto petitionSummary = CaseSummaryDtoFaker.fake();
 
-      presenter.petition.value = petition;
+      presenter.analysisDocument.value = document;
       presenter.status.value = AnalysisStatusDto.petitionUploaded;
 
       when(
-        () => intakeService.summarizePetition(petitionId: petition.id!),
+        () => intakeService.triggerFirstInstanceCaseSummarization(
+          analysisId: 'analysis-1',
+        ),
       ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
       when(
-        () => intakeService.getAnalysis(analysisId: petition.analysisId),
+        () => intakeService.getAnalysis(analysisId: 'analysis-1'),
       ).thenAnswer(
         (_) async => RestResponse<AnalysisDto>(
           statusCode: 200,
-          body: AnalysisDtoFaker.fake(
-            status: AnalysisStatusDto.petitionAnalyzed,
-          ),
+          body: AnalysisDtoFaker.fake(status: AnalysisStatusDto.caseAnalyzed),
         ),
       );
       when(
@@ -643,7 +676,7 @@ void main() {
 
       await presenter.analyze();
 
-      expect(presenter.status.value, AnalysisStatusDto.petitionAnalyzed);
+      expect(presenter.status.value, AnalysisStatusDto.caseAnalyzed);
       expect(presenter.summary.value?.legalIssue, petitionSummary.legalIssue);
       expect(presenter.generalError.value, isNull);
     });
@@ -651,15 +684,18 @@ void main() {
     test(
       'should reset to waiting petition when summarize petition returns remote error',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
-        final petition = PetitionDtoFaker.fake();
+        final document = createDocument();
 
-        presenter.petition.value = petition;
+        presenter.analysisDocument.value = document;
         presenter.status.value = AnalysisStatusDto.petitionUploaded;
 
         when(
-          () => intakeService.summarizePetition(petitionId: petition.id!),
+          () => intakeService.triggerFirstInstanceCaseSummarization(
+            analysisId: 'analysis-1',
+          ),
         ).thenAnswer(
           (_) async => RestResponse<void>(
             statusCode: 500,
@@ -672,7 +708,7 @@ void main() {
         expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
         expect(presenter.generalError.value, 'Falha ao gerar resumo.');
         expect(presenter.summary.value, isNull);
-        expect(presenter.petition.value, isNull);
+        expect(presenter.analysisDocument.value, isNull);
         verify(
           () => intakeService.updateAnalysisStatus(
             analysisId: 'analysis-1',
@@ -683,18 +719,20 @@ void main() {
     );
 
     test('should reset when analysis polling returns failed status', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
-      final petition = PetitionDtoFaker.fake();
+      final document = createDocument();
 
-      presenter.petition.value = petition;
+      presenter.analysisDocument.value = document;
       presenter.status.value = AnalysisStatusDto.petitionUploaded;
 
       when(
-        () => intakeService.summarizePetition(petitionId: petition.id!),
+        () => intakeService.triggerFirstInstanceCaseSummarization(
+          analysisId: 'analysis-1',
+        ),
       ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
       when(
-        () => intakeService.getAnalysis(analysisId: petition.analysisId),
+        () => intakeService.getAnalysis(analysisId: 'analysis-1'),
       ).thenAnswer(
         (_) async => RestResponse<AnalysisDto>(
           statusCode: 200,
@@ -707,10 +745,10 @@ void main() {
       expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
       expect(
         presenter.generalError.value,
-        AnalysisScreenPresenter.failedMessage,
+        FirstInstanceAnalysisScreenPresenter.failedMessage,
       );
       expect(presenter.summary.value, isNull);
-      expect(presenter.petition.value, isNull);
+      expect(presenter.analysisDocument.value, isNull);
       verify(
         () => intakeService.updateAnalysisStatus(
           analysisId: 'analysis-1',
@@ -722,7 +760,7 @@ void main() {
 
   group('analysis management', () {
     test('should rename analysis successfully', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
       when(
@@ -747,7 +785,8 @@ void main() {
     test(
       'should validate empty analysis name before calling service',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
 
         final bool renamed = await presenter.renameAnalysis('   ');
@@ -767,7 +806,7 @@ void main() {
     );
 
     test('should archive analysis successfully', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
       presenter.generalError.value = 'erro antigo';
 
@@ -787,7 +826,7 @@ void main() {
     });
 
     test('should expose remote error when archive analysis fails', () async {
-      final AnalysisScreenPresenter presenter = createPresenter();
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
       when(
@@ -808,35 +847,34 @@ void main() {
     test(
       'should clear previous state and reuse pick document flow on replace',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final File oldFile = await createFile('old.pdf', 1024);
         final File newFile = await createFile('new.docx', 4096);
         final uploadUrl = UploadUrlDtoFaker.fake(
           filePath: 'uploads/petitions/new.docx',
         );
-        final newPetition = PetitionDtoFaker.fake(
-          id: 'petition-2',
-          document: PetitionDocumentDtoFaker.fake(
-            filePath: uploadUrl.filePath,
-            name: 'new.docx',
-          ),
+        final newDocument = createDocument(
+          filePath: uploadUrl.filePath,
+          name: 'new.docx',
         );
         final Completer<File?> pickCompleter = Completer<File?>();
 
-        presenter.petition.value = PetitionDtoFaker.fake(id: 'petition-1');
+        presenter.analysisDocument.value = createDocument(name: 'old.pdf');
         presenter.summary.value = CaseSummaryDtoFaker.fake();
         presenter.selectedFile.value = oldFile;
         presenter.generalError.value = 'erro antigo';
-        presenter.status.value = AnalysisStatusDto.petitionAnalyzed;
+        presenter.status.value = AnalysisStatusDto.caseAnalyzed;
 
         when(
           () => documentPickerDriver.pickDocument(
-            allowedExtensions: AnalysisScreenPresenter.allowedExtensions,
+            allowedExtensions:
+                FirstInstanceAnalysisScreenPresenter.allowedExtensions,
           ),
         ).thenAnswer((_) => pickCompleter.future);
         when(
-          () => storageService.generatePetitionUploadUrl(
+          () => storageService.generateAnalysisDocumentUploadUrl(
             analysisId: 'analysis-1',
             documentType: 'docx',
           ),
@@ -851,15 +889,18 @@ void main() {
           ),
         ).thenAnswer((_) async {});
         when(
-          () => intakeService.createPetition(petition: any(named: 'petition')),
+          () => intakeService.createAnalysisDocument(
+            analysisId: any(named: 'analysisId'),
+            document: any(named: 'document'),
+          ),
         ).thenAnswer(
-          (_) async => RestResponse(statusCode: 201, body: newPetition),
+          (_) async => RestResponse(statusCode: 201, body: newDocument),
         );
 
         final Future<void> replaceFuture = presenter.replaceDocument();
 
         expect(presenter.status.value, AnalysisStatusDto.waitingPetition);
-        expect(presenter.petition.value, isNull);
+        expect(presenter.analysisDocument.value, isNull);
         expect(presenter.summary.value, isNull);
         expect(presenter.selectedFile.value, isNull);
         expect(presenter.generalError.value, isNull);
@@ -868,23 +909,30 @@ void main() {
         await replaceFuture;
 
         expect(presenter.status.value, AnalysisStatusDto.petitionUploaded);
-        expect(presenter.petition.value?.id, 'petition-2');
+        expect(
+          presenter.analysisDocument.value?.filePath,
+          newDocument.filePath,
+        );
         expect(presenter.summary.value, isNull);
         expect(presenter.selectedFile.value?.path, newFile.path);
         expect(presenter.uploadProgress.value, 1);
         verify(
           () => documentPickerDriver.pickDocument(
-            allowedExtensions: AnalysisScreenPresenter.allowedExtensions,
+            allowedExtensions:
+                FirstInstanceAnalysisScreenPresenter.allowedExtensions,
           ),
         ).called(1);
         verify(
-          () => storageService.generatePetitionUploadUrl(
+          () => storageService.generateAnalysisDocumentUploadUrl(
             analysisId: 'analysis-1',
             documentType: 'docx',
           ),
         ).called(1);
         verify(
-          () => intakeService.createPetition(petition: any(named: 'petition')),
+          () => intakeService.createAnalysisDocument(
+            analysisId: any(named: 'analysisId'),
+            document: any(named: 'document'),
+          ),
         ).called(1);
       },
     );
@@ -894,7 +942,8 @@ void main() {
     test(
       'should fetch report, generate pdf, share file and clear transient states on success',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final FirstInstanceAnalysisReportDto report =
             FirstInstanceAnalysisReportDtoFaker.fake(
@@ -951,7 +1000,8 @@ void main() {
     test(
       'should expose friendly error and allow retry when remote request fails',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final FirstInstanceAnalysisReportDto report =
             FirstInstanceAnalysisReportDtoFaker.fake(
@@ -981,7 +1031,7 @@ void main() {
         expect(firstAttempt, isFalse);
         expect(
           presenter.generalError.value,
-          AnalysisScreenPresenter.exportFailedMessage,
+          FirstInstanceAnalysisScreenPresenter.exportFailedMessage,
         );
         expect(presenter.isExportingReport.value, isFalse);
 
@@ -1020,7 +1070,8 @@ void main() {
     test(
       'should expose friendly error and clear loading when pdf generation or share fails',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final FirstInstanceAnalysisReportDto report =
             FirstInstanceAnalysisReportDtoFaker.fake(
@@ -1059,7 +1110,7 @@ void main() {
         expect(exported, isFalse);
         expect(
           presenter.generalError.value,
-          AnalysisScreenPresenter.exportFailedMessage,
+          FirstInstanceAnalysisScreenPresenter.exportFailedMessage,
         );
         expect(presenter.isExportingReport.value, isFalse);
         expect(presenter.isManagingAnalysis.value, isFalse);
@@ -1069,7 +1120,8 @@ void main() {
     test(
       'should use deterministic fallback filename when analysis name is empty',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final FirstInstanceAnalysisReportDto report =
             FirstInstanceAnalysisReportDtoFaker.fake(
@@ -1118,7 +1170,8 @@ void main() {
     test(
       'should block concurrent export attempts while export is in progress',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final FirstInstanceAnalysisReportDto report =
             FirstInstanceAnalysisReportDtoFaker.fake(
@@ -1175,7 +1228,8 @@ void main() {
     test(
       'should block rename and archive while export is in progress',
       () async {
-        final AnalysisScreenPresenter presenter = createPresenter();
+        final FirstInstanceAnalysisScreenPresenter presenter =
+            createPresenter();
         addTearDown(presenter.dispose);
         final FirstInstanceAnalysisReportDto report =
             FirstInstanceAnalysisReportDtoFaker.fake(

@@ -1,7 +1,7 @@
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/theme.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/precedents_filters_dialog/precedents_filters_dialog_view.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_filters_dialog/precedents_filters_dialog_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
