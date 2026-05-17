@@ -7,7 +7,7 @@ import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/responses/list_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -44,7 +44,7 @@ void main() {
 
   group('RelevantPrecedentsBubblePresenter', () {
     test(
-      'should trigger search on initialize when status is petitionAnalyzed',
+      'should trigger search on initialize when status is caseAnalyzed',
       () async {
         final RelevantPrecedentsBubblePresenter presenter = createPresenter();
         addTearDown(presenter.dispose);
@@ -54,9 +54,7 @@ void main() {
         ).thenAnswer(
           (_) async => RestResponse<AnalysisDto>(
             statusCode: 200,
-            body: AnalysisDtoFaker.fake(
-              status: AnalysisStatusDto.petitionAnalyzed,
-            ),
+            body: AnalysisDtoFaker.fake(status: AnalysisStatusDto.caseAnalyzed),
           ),
         );
         when(

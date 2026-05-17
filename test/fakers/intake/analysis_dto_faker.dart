@@ -6,7 +6,7 @@ final class AnalysisStatusDtoFaker {
   const AnalysisStatusDtoFaker._();
 
   static AnalysisStatusDto fake({
-    AnalysisStatusDto status = AnalysisStatusDto.petitionAnalyzed,
+    AnalysisStatusDto status = AnalysisStatusDto.caseAnalyzed,
   }) {
     return status;
   }
@@ -28,7 +28,7 @@ final class AnalysisDtoFaker {
     String name = 'Analise de precedente',
     String accountId = 'account-1',
     AnalysisTypeDto type = AnalysisTypeDto.firstInstance,
-    AnalysisStatusDto status = AnalysisStatusDto.petitionAnalyzed,
+    AnalysisStatusDto status = AnalysisStatusDto.caseAnalyzed,
     String summary = 'Resumo gerado.',
     String createdAt = '2026-03-31T10:00:00Z',
     String? folderId,
