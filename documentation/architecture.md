@@ -120,7 +120,7 @@ O fluxo padrao da aplicacao segue esta direcao:
 
 O fluxo de precedentes do modulo `intake` segue a mesma separacao arquitetural e acontece sem abrir nova rota:
 
-1. `AnalysisScreenPresenter` carrega `analysis`, `petition` e `summary`, inclusive em reentrada nos estados de precedentes.
+1. `AnalysisScreenPresenter` carrega `analysis`, `petition` e `caseSummary`, inclusive em reentrada nos estados de precedentes.
 2. `RelevantPrecedentsBubblePresenter` orquestra o fluxo assíncrono de precedentes na UI: dispara a busca, faz polling do status da analise, carrega a lista final e confirma a escolha.
 3. `IntakeService` define os contratos tipados de busca, listagem e escolha de precedentes no `core`.
 4. `IntakeRestService` encapsula `POST /precedents/search`, `GET /precedents` e `PATCH /precedents/choose`, devolvendo `RestResponse` e `ListResponse` tipados para a UI.
@@ -134,10 +134,11 @@ Quando a analise chega ao estado `precedentChosen`, a exportacao do relatorio se
 1. `AnalysisHeaderActionsView` exibe a acao `Exportar PDF` no menu do header.
 2. `AnalysisScreenView` apenas delega a interacao e exibe feedback visual de loading, sucesso e erro.
 3. `AnalysisScreenPresenter` orquestra o fluxo e bloqueia tentativas concorrentes durante a exportacao.
-4. `IntakeService` publica o contrato `getAnalysisReport`, consumido pela UI sem conhecimento de HTTP.
-5. `IntakeRestService` chama `GET /intake/analyses/{analysis_id}/report` e usa `AnalysisReportMapper` para traduzir o payload agregado em `AnalysisReportDto`.
-6. `PdfDriver` define a capacidade de gerar e compartilhar o PDF sem expor tipos de `pdf` ou `printing` para a UI.
-7. `PrintingPdfDriver` monta o documento em memoria com `pdf` e delega o share sheet nativo ao pacote `printing`.
+4. `IntakeService` publica contratos tipados por tipo de analise, e a tela atual consome `getFirstInstanceAnalysisReport` sem conhecimento de HTTP.
+5. `IntakeRestService` chama `GET /intake/analyses/{analysis_id}/first-instance-analysis-report` para o fluxo atual e preserva endpoints agregados separados para `caseAssessment` e `secondInstance`.
+6. Os mappers REST traduzem `type`, status especificos por tipo, `caseSummary` e drafts tipados antes de expor dados para a UI.
+7. `PdfDriver` define a capacidade de gerar e compartilhar o PDF com `FirstInstanceAnalysisReportDto`, sem expor tipos de `pdf` ou `printing` para a UI.
+8. `PrintingPdfDriver` monta o documento em memoria com `pdf`, usa `report.caseSummary` e detecta o precedente escolhido a partir de `report.precedents` antes de delegar o share sheet nativo ao pacote `printing`.
 
 ## Fluxo da Tela de Pasta da Biblioteca
 

@@ -9,6 +9,7 @@ import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
@@ -197,7 +198,7 @@ class HomeScreenPresenter {
     generalError.value = null;
 
     final RestResponse<AnalysisDto> response = await _intakeService
-        .createAnalysis();
+        .createAnalysis(type: AnalysisTypeDto.firstInstance);
 
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(

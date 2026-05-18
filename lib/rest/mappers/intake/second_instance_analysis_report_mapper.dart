@@ -1,35 +1,29 @@
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/core/shared/types/json.dart';
 
+import 'package:animus/rest/mappers/intake/analysis_document_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
-import 'package:animus/rest/mappers/intake/analysis_report_filters_mapper.dart';
-import 'package:animus/rest/mappers/intake/petition_mapper.dart';
-import 'package:animus/rest/mappers/intake/petition_summary_mapper.dart';
+import 'package:animus/rest/mappers/intake/case_summary_mapper.dart';
 
-class AnalysisReportMapper {
-  const AnalysisReportMapper._();
+class SecondInstanceAnalysisReportMapper {
+  const SecondInstanceAnalysisReportMapper._();
 
-  static AnalysisReportDto toDto(Json json) {
-    return AnalysisReportDto(
+  static SecondInstanceAnalysisReportDto toDto(Json json) {
+    return SecondInstanceAnalysisReportDto(
       analysis: AnalysisMapper.toDto(_toJsonField(json['analysis'])),
-      petition: PetitionMapper.toDto(_toJsonField(json['petition'])),
-      summary: PetitionSummaryMapper.toDto(_toJsonField(json['summary'])),
-      filters: AnalysisReportFiltersMapper.toDto(
-        json['analysis']['precedents_search_filters'],
-      ),
+      document: AnalysisDocumentMapper.toDto(_toJsonField(json['document'])),
+      caseSummary: CaseSummaryMapper.toDto(_toJsonField(json['case_summary'])),
       precedents: _toPrecedents(json['precedents']),
       chosenPrecedent: _toChosenPrecedent(json),
     );
   }
 
-  static AnalysisPrecedentDto _toChosenPrecedent(Json json) {
+  static AnalysisPrecedentDto? _toChosenPrecedent(Json json) {
     final dynamic value = json['chosen_precedent'];
     if (value is! Json || !_hasValidChosenPrecedent(value)) {
-      throw const FormatException(
-        'Invalid analysis report payload: chosen_precedent is required.',
-      );
+      return null;
     }
 
     return AnalysisPrecedentMapper.toDto(value);

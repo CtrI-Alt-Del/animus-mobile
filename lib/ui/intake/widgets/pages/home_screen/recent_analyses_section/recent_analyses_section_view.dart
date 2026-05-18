@@ -252,21 +252,31 @@ class RecentAnalysesSectionView extends StatelessWidget {
 
   bool _isProcessingStatus(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.analyzingPetition ||
+        status == AnalysisStatusDto.extractingPetition ||
+        status == AnalysisStatusDto.analyzingCase ||
         status == AnalysisStatusDto.searchingPrecedents ||
         status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
-        status == AnalysisStatusDto.generatingSynthesis;
+        status == AnalysisStatusDto.generatingSynthesis ||
+        status == AnalysisStatusDto.generatingPetitionDraft ||
+        status == AnalysisStatusDto.generatingJudgmentDraft;
   }
 
   String _resolveStatusLabel(AnalysisStatusDto status) {
     switch (status) {
       case AnalysisStatusDto.waitingPetition:
+      case AnalysisStatusDto.waitingDocumentUpload:
         return 'Aguardando petição';
       case AnalysisStatusDto.petitionUploaded:
+      case AnalysisStatusDto.documentUploaded:
         return 'Peticao enviada';
       case AnalysisStatusDto.analyzingPetition:
+      case AnalysisStatusDto.analyzingCase:
         return 'Peticao em análise';
+      case AnalysisStatusDto.extractingPetition:
+        return 'Extraindo petição';
       case AnalysisStatusDto.petitionAnalyzed:
+      case AnalysisStatusDto.caseAnalyzed:
         return 'Peticao analisada';
       case AnalysisStatusDto.searchingPrecedents:
         return 'Buscando precedentes';
@@ -275,12 +285,19 @@ class RecentAnalysesSectionView extends StatelessWidget {
         return 'Comparando precedentes';
       case AnalysisStatusDto.generatingSynthesis:
         return 'Gerando síntese';
+      case AnalysisStatusDto.generatingPetitionDraft:
+        return 'Gerando minuta da petição';
+      case AnalysisStatusDto.generatingJudgmentDraft:
+        return 'Gerando minuta do julgamento';
       case AnalysisStatusDto.waitingPrecedentChoice:
         return 'Aguardando escolha de precedente';
       case AnalysisStatusDto.precedentChosen:
+      case AnalysisStatusDto.done:
         return 'Concluída';
       case AnalysisStatusDto.failed:
         return 'Falhou';
     }
+
+    return 'Processando';
   }
 }

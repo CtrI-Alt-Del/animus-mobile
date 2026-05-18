@@ -1,15 +1,15 @@
-import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/shared/types/json.dart';
 
-final class PetitionSummaryMapper {
-  const PetitionSummaryMapper._();
+final class CaseSummaryMapper {
+  const CaseSummaryMapper._();
 
-  static PetitionSummaryDto toDto(Json json) {
+  static CaseSummaryDto toDto(Json json) {
     final dynamic excludedOrAccessoryTopicsRaw =
         json['excluded_or_accessory_topics'] ??
         json['excluded_or_acessory_topics'];
 
-    return PetitionSummaryDto(
+    return CaseSummaryDto(
       caseSummary: _toString(json['case_summary']),
       legalIssue: _toString(json['legal_issue']),
       centralQuestion: _toString(json['central_question']),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/library/dtos/folder_dto.dart';
 import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
@@ -45,6 +46,7 @@ void main() {
       id: id,
       name: 'Analise',
       accountId: 'account-1',
+      type: AnalysisTypeDto.firstInstance,
       status: AnalysisStatusDto.waitingPetition,
       summary: '',
       createdAt: '2026-04-28T10:00:00Z',

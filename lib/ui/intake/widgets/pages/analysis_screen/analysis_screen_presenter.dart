@@ -6,13 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/constants/cache_keys.dart';
-import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/petition_document_dto.dart';
 import 'package:animus/core/intake/dtos/petition_dto.dart';
-import 'package:animus/core/intake/dtos/petition_summary_dto.dart';
+import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
@@ -56,7 +56,7 @@ class AnalysisScreenPresenter {
   final Signal<bool> isUploading = signal<bool>(false);
   final Signal<double?> uploadProgress = signal<double?>(null);
   final Signal<PetitionDto?> petition = signal<PetitionDto?>(null);
-  final Signal<PetitionSummaryDto?> summary = signal<PetitionSummaryDto?>(null);
+  final Signal<CaseSummaryDto?> summary = signal<CaseSummaryDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
@@ -200,23 +200,17 @@ class AnalysisScreenPresenter {
       return;
     }
 
-    final String? petitionId = petition.value?.id;
-    if (petitionId == null || petitionId.isEmpty) {
-      status.value = AnalysisStatusDto.petitionUploaded;
-      return;
-    }
+    final RestResponse<CaseSummaryDto> caseSummaryResponse =
+        await _intakeService.getCaseSummary(analysisId: analysisId);
 
-    final RestResponse<PetitionSummaryDto> petitionSummaryResponse =
-        await _intakeService.getPetitionSummary(petitionId: petitionId);
-
-    if (petitionSummaryResponse.isFailure) {
+    if (caseSummaryResponse.isFailure) {
       status.value = analysisStatus;
       summary.value = null;
-      generalError.value = petitionSummaryResponse.errorMessage;
+      generalError.value = caseSummaryResponse.errorMessage;
       return;
     }
 
-    summary.value = petitionSummaryResponse.body;
+    summary.value = caseSummaryResponse.body;
     status.value = analysisStatus;
   }
 
@@ -441,15 +435,17 @@ class AnalysisScreenPresenter {
     generalError.value = null;
 
     try {
-      final RestResponse<AnalysisReportDto> reportResponse =
-          await _intakeService.getAnalysisReport(analysisId: analysisId);
+      final RestResponse<FirstInstanceAnalysisReportDto> reportResponse =
+          await _intakeService.getFirstInstanceAnalysisReport(
+            analysisId: analysisId,
+          );
 
       if (reportResponse.isFailure) {
         generalError.value = exportFailedMessage;
         return false;
       }
 
-      final AnalysisReportDto report = reportResponse.body;
+      final FirstInstanceAnalysisReportDto report = reportResponse.body;
       final Uint8List bytes = await _pdfDriver.generateAnalysisReport(
         report: report,
       );
@@ -655,8 +651,8 @@ class AnalysisScreenPresenter {
       status.value = currentStatus;
 
       if (currentStatus == AnalysisStatusDto.petitionAnalyzed) {
-        final RestResponse<PetitionSummaryDto> summaryResponse =
-            await _intakeService.getPetitionSummary(petitionId: petitionId);
+        final RestResponse<CaseSummaryDto> summaryResponse =
+            await _intakeService.getCaseSummary(analysisId: analysisId);
 
         if (summaryResponse.isFailure) {
           await _applyRemoteFailure(summaryResponse.errorMessage);
@@ -716,7 +712,7 @@ class AnalysisScreenPresenter {
 class _PendingPdfDriver implements PdfDriver {
   @override
   Future<Uint8List> generateAnalysisReport({
-    required AnalysisReportDto report,
+    required FirstInstanceAnalysisReportDto report,
   }) async {
     throw UnimplementedError();
   }
