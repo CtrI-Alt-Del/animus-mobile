@@ -189,7 +189,9 @@ class HomeScreenPresenter {
     isLoadingMore.value = false;
   }
 
-  Future<void> createAnalysis() async {
+  Future<void> createAnalysis({
+    AnalysisTypeDto type = AnalysisTypeDto.firstInstance,
+  }) async {
     if (isCreatingAnalysis.value) {
       return;
     }
@@ -198,7 +200,7 @@ class HomeScreenPresenter {
     generalError.value = null;
 
     final RestResponse<AnalysisDto> response = await _intakeService
-        .createAnalysis(type: AnalysisTypeDto.firstInstance);
+        .createAnalysis(type: type);
 
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
@@ -218,7 +220,7 @@ class HomeScreenPresenter {
 
     isCreatingAnalysis.value = false;
     await _navigationDriver.pushTo(
-      Routes.getFirstInstanceAnalysis(analysisId: analysisId),
+      Routes.getAnalysis(analysisId: analysisId, analysisType: type),
     );
     await refresh();
   }
