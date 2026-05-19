@@ -2,7 +2,7 @@
 title: Tela de Analises Arquivadas (ANI-107)
 prd: ../prd.md
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-107
-status: open
+status: closed
 last_updated_at: 2026-05-18
 ---
 

@@ -2,7 +2,7 @@
 title: Plano de Implementação — Archived Analyses Screen (ANI-107)
 spec: ../specs/archived-analyses-screen-spec.md
 created_at: 2026-05-18
-status: open
+status: closed
 ---
 
 ---
@@ -54,13 +54,13 @@ status: open
 
 ### F1 — Constants + Router
 
-- [ ] **F1-T1** — Adicionar `Routes.archivedAnalyses = '/archived-analyses'` em `lib/constants/routes.dart`.
+- [x] **F1-T1** — Adicionar `Routes.archivedAnalyses = '/archived-analyses'` em `lib/constants/routes.dart`.
   - Camada: `constants`
   - Artefato: `lib/constants/routes.dart`
   - Depende de: —
   - Desbloqueia: F1-T2, F2-T1, F7-T1
 
-- [ ] **F1-T2** — Registrar `GoRoute(path: Routes.archivedAnalyses, builder: ...)` no nível raiz de `appRouter`, importando `archived_analyses_screen/index.dart`.
+- [x] **F1-T2** — Registrar `GoRoute(path: Routes.archivedAnalyses, builder: ...)` no nível raiz de `appRouter`, importando `archived_analyses_screen/index.dart`.
   - Camada: `app/router`
   - Artefato: `lib/router.dart`
   - Depende de: F1-T1, F3-T1 (o builder referencia `ArchivedAnalysesScreen`; pode ser deixado como stub temporário se F3-T1 ainda não estiver pronto)
@@ -68,7 +68,7 @@ status: open
 
 ### F2 — Presenter da Screen
 
-- [ ] **F2-T1** — Implementar `ArchivedAnalysesScreenPresenter` com todos os signals, computeds, métodos (`initialize`, `loadNextPage`, `refresh`, `updateSearchQuery`, `clearSearch`, `unarchive`, `openAnalysis`, `goBack`, `formatCreatedAt`, `dispose`, `_resolveErrorMessage`) e os Riverpod providers (`archivedAnalysesScreenPresenterProvider` e `archivedAnalysesScreenInitializationProvider`).
+- [x] **F2-T1** — Implementar `ArchivedAnalysesScreenPresenter` com todos os signals, computeds, métodos (`initialize`, `loadNextPage`, `refresh`, `updateSearchQuery`, `clearSearch`, `unarchive`, `openAnalysis`, `goBack`, `formatCreatedAt`, `dispose`, `_resolveErrorMessage`) e os Riverpod providers (`archivedAnalysesScreenPresenterProvider` e `archivedAnalysesScreenInitializationProvider`).
   - Camada: `ui` (presenter)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_screen_presenter.dart`
   - Depende de: F1-T1
@@ -76,7 +76,7 @@ status: open
 
 ### F3 — View da Screen
 
-- [ ] **F3-T1** — Implementar `ArchivedAnalysesScreenView` (`ConsumerWidget`), montar `Scaffold + SafeArea + AppBar/header com back + título`, integrar `ArchivedAnalysesSearchBar`, e reagir aos signals do presenter via `Watch` para alternar entre `LoadingState`, `ErrorState`, `EmptyState` (geral/busca) e `ArchivedAnalysesList`. Implementar SnackBars para `unarchive` (sucesso e erro). Criar `index.dart` exportando `typedef ArchivedAnalysesScreen = ArchivedAnalysesScreenView;` e re-exportando os barrels dos widgets internos.
+- [x] **F3-T1** — Implementar `ArchivedAnalysesScreenView` (`ConsumerWidget`), montar `Scaffold + SafeArea + AppBar/header com back + título`, integrar `ArchivedAnalysesSearchBar`, e reagir aos signals do presenter via `Watch` para alternar entre `LoadingState`, `ErrorState`, `EmptyState` (geral/busca) e `ArchivedAnalysesList`. Implementar SnackBars para `unarchive` (sucesso e erro). Criar `index.dart` exportando `typedef ArchivedAnalysesScreen = ArchivedAnalysesScreenView;` e re-exportando os barrels dos widgets internos.
   - Camada: `ui` (view)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_screen_view.dart`, `lib/ui/intake/widgets/pages/archived_analyses_screen/index.dart`
   - Depende de: F2-T1, F4-T1..T8
@@ -84,55 +84,55 @@ status: open
 
 ### F4 — Widgets internos da Screen
 
-- [ ] **F4-T1** — Implementar `ArchivedAnalysesLoadingState` (`View only`) com 4 `ArchivedAnalysesSkeletonCard`. Criar `index.dart`.
+- [x] **F4-T1** — Implementar `ArchivedAnalysesLoadingState` (`View only`) com 4 `ArchivedAnalysesSkeletonCard`. Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_loading_state/`
   - Depende de: F4-T4
   - Desbloqueia: F3-T1
 
-- [ ] **F4-T2** — Implementar `ArchivedAnalysesEmptyState` (`View only`) com props `message` e `icon` (default `Icons.inbox_outlined`). Criar `index.dart`.
+- [x] **F4-T2** — Implementar `ArchivedAnalysesEmptyState` (`View only`) com props `message` e `icon` (default `Icons.inbox_outlined`). Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_empty_state/`
   - Depende de: —
   - Desbloqueia: F3-T1
 
-- [ ] **F4-T3** — Implementar `ArchivedAnalysesErrorState` (`View only`) com props `message` e `onRetry`. Criar `index.dart`.
+- [x] **F4-T3** — Implementar `ArchivedAnalysesErrorState` (`View only`) com props `message` e `onRetry`. Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_error_state/`
   - Depende de: —
   - Desbloqueia: F3-T1
 
-- [ ] **F4-T4** — Implementar `ArchivedAnalysesSkeletonCard` (`View only`). Criar `index.dart`.
+- [x] **F4-T4** — Implementar `ArchivedAnalysesSkeletonCard` (`View only`). Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_skeleton_card/`
   - Depende de: —
   - Desbloqueia: F4-T1
 
-- [ ] **F4-T5** — Implementar `ArchivedAnalysesInlineError` (`View only`) com prop `message`. Criar `index.dart`.
+- [x] **F4-T5** — Implementar `ArchivedAnalysesInlineError` (`View only`) com prop `message`. Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_inline_error/`
   - Depende de: —
   - Desbloqueia: F4-T8
 
-- [ ] **F4-T6** — Implementar `ArchivedAnalysesLoadingMore` (`View only`). Criar `index.dart`.
+- [x] **F4-T6** — Implementar `ArchivedAnalysesLoadingMore` (`View only`). Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_loading_more/`
   - Depende de: —
   - Desbloqueia: F4-T8
 
-- [ ] **F4-T7** — Implementar `ArchivedAnalysesSearchBar` (`View + Presenter`) com `TextEditingController`, prefix `search`, suffix `clear` condicional, props `initialQuery`, `onQueryChanged`, `onClear`. Criar `index.dart`.
+- [x] **F4-T7** — Implementar `ArchivedAnalysesSearchBar` (`View + Presenter`) com `TextEditingController`, prefix `search`, suffix `clear` condicional, props `initialQuery`, `onQueryChanged`, `onClear`. Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_search_bar/`
   - Depende de: —
   - Desbloqueia: F3-T1
 
-- [ ] **F4-T8** — Implementar `ArchivedAnalysesList` (`View only`) com `NotificationListener<ScrollNotification>` para `onLoadMore`, `ListView.separated` com `ArchivedAnalysisCard`, `ArchivedAnalysesInlineError` no topo quando `errorMessage != null`, `ArchivedAnalysesLoadingMore` no footer quando `isLoadingMore`. Criar `index.dart`.
+- [x] **F4-T8** — Implementar `ArchivedAnalysesList` (`View only`) com `NotificationListener<ScrollNotification>` para `onLoadMore`, `ListView.separated` com `ArchivedAnalysisCard`, `ArchivedAnalysesInlineError` no topo quando `errorMessage != null`, `ArchivedAnalysesLoadingMore` no footer quando `isLoadingMore`. Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_list/`
   - Depende de: F4-T5, F4-T6, F4-T9
   - Desbloqueia: F3-T1
 
-- [ ] **F4-T9** — Implementar `ArchivedAnalysisCard` (`View only`) com `InkWell` (tap), título, dateLabel, `IconButton` trailing de `Desarquivar` que abre um `AlertDialog` de confirmação e em seguida chama `onUnarchive`. Criar `index.dart`.
+- [x] **F4-T9** — Implementar `ArchivedAnalysisCard` (`View only`) com `InkWell` (tap), título, dateLabel, `IconButton` trailing de `Desarquivar` que abre um `AlertDialog` de confirmação e em seguida chama `onUnarchive`. Criar `index.dart`.
   - Camada: `ui` (widget interno)
   - Artefato: `lib/ui/intake/widgets/pages/archived_analyses_screen/archived_analysis_card/`
   - Depende de: —
@@ -140,7 +140,7 @@ status: open
 
 ### F5 — Analysis Header (badge `Analise arquivada`)
 
-- [ ] **F5-T1** — Adicionar prop `final bool isArchived` (default `false`) ao `AnalysisHeaderView` e renderizar um chip/badge inline com texto `Analise arquivada` quando `isArchived = true`.
+- [x] **F5-T1** — Adicionar prop `final bool isArchived` (default `false`) ao `AnalysisHeaderView` e renderizar um chip/badge inline com texto `Analise arquivada` quando `isArchived = true`.
   - Camada: `ui` (componente compartilhado)
   - Artefato: `lib/ui/intake/widgets/components/analysis_header/analysis_header_view.dart`
   - Depende de: —
@@ -148,13 +148,13 @@ status: open
 
 ### F6 — Consumo do badge nas screens de análise
 
-- [ ] **F6-T1** — Em `FirstInstanceAnalysisScreenView`, ler o estado de `presenter.analysis?.isArchived` (signal correspondente) e repassar para `AnalysisHeader.isArchived`.
+- [x] **F6-T1** — Em `FirstInstanceAnalysisScreenView`, ler o estado de `presenter.analysis?.isArchived` (signal correspondente) e repassar para `AnalysisHeader.isArchived`.
   - Camada: `ui` (view)
   - Artefato: `lib/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_view.dart`
   - Depende de: F5-T1
   - Desbloqueia: —
 
-- [ ] **F6-T2** — Em `SecondInstanceAnalysisScreenView`, ler `presenter.analysis?.isArchived` (signal correspondente) e repassar para `AnalysisHeader.isArchived`.
+- [x] **F6-T2** — Em `SecondInstanceAnalysisScreenView`, ler `presenter.analysis?.isArchived` (signal correspondente) e repassar para `AnalysisHeader.isArchived`.
   - Camada: `ui` (view)
   - Artefato: `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_view.dart`
   - Depende de: F5-T1
@@ -162,7 +162,7 @@ status: open
 
 ### F7 — Entrada no perfil
 
-- [ ] **F7-T1** — Adicionar tile `Analises arquivadas` (com `Icons.inventory_2_outlined`) em `ProfileSettingsGroupView`, expor callback `onArchivedAnalysesTap` no construtor; adicionar metodo `goToArchivedAnalyses()` em `ProfileScreenPresenter` que chama `_navigationDriver.pushTo(Routes.archivedAnalyses)`; repassar `presenter.goToArchivedAnalyses` em `ProfileScreenView`.
+- [x] **F7-T1** — Adicionar tile `Analises arquivadas` (com `Icons.inventory_2_outlined`) em `ProfileSettingsGroupView`, expor callback `onArchivedAnalysesTap` no construtor; adicionar metodo `goToArchivedAnalyses()` em `ProfileScreenPresenter` que chama `_navigationDriver.pushTo(Routes.archivedAnalyses)`; repassar `presenter.goToArchivedAnalyses` em `ProfileScreenView`.
   - Camada: `ui` (presenter + view)
   - Artefato: `lib/ui/auth/widgets/pages/profile_screen/profile_settings_group/profile_settings_group_view.dart`, `lib/ui/auth/widgets/pages/profile_screen/profile_screen_presenter.dart`, `lib/ui/auth/widgets/pages/profile_screen/profile_screen_view.dart`
   - Depende de: F1-T1

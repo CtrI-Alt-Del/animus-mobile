@@ -9,13 +9,13 @@ Permitir que o usuario consulte, busque e desarquive as analises previamente arq
 
 ## Entregas do fluxo
 
-- [ ] Entrada visivel na tela de Perfil para acessar `Analises arquivadas`.
-- [ ] Tela dedicada (`Routes.archivedAnalyses`) com listagem paginada por cursor das analises com `is_archived = true`.
-- [ ] Estados visuais previstos: `loading` (skeleton), `empty`, `error com retry`, conteudo com `loading more` e `inline error` em paginacao subsequente.
-- [ ] Busca textual local sobre os items ja carregados, com `clear` rapido.
-- [ ] Ao tocar em uma analise arquivada, navegar para a tela correta segundo o `AnalysisTypeDto` (`FIRST_INSTANCE/LAWYER`, `SECOND_INSTANCE/JUDGE`, `PRECEDENT/CASE_ASSESSMENT`).
-- [ ] Acao `Desarquivar` no item da lista que dispara `IntakeService.unarchiveAnalysis(analysisId)`, removendo o item da listagem em sucesso.
-- [ ] Label visual `Analise arquivada` no `AnalysisHeader` quando `AnalysisDto.isArchived = true`, refletido em `AnalysisScreenView`, `FirstInstanceAnalysisScreenView` e `SecondInstanceAnalysisScreenView`.
+- [x] Entrada visivel na tela de Perfil para acessar `Analises arquivadas`.
+- [x] Tela dedicada (`Routes.archivedAnalyses`) com listagem paginada por cursor das analises com `is_archived = true`.
+- [x] Estados visuais previstos: `loading` (skeleton), `empty`, `error com retry`, conteudo com `loading more` e `inline error` em paginacao subsequente.
+- [x] Busca textual local sobre os items ja carregados, com `clear` rapido.
+- [x] Ao tocar em uma analise arquivada, navegar para a tela correta segundo o `AnalysisTypeDto` (`FIRST_INSTANCE/LAWYER`, `SECOND_INSTANCE/JUDGE`, `PRECEDENT/CASE_ASSESSMENT`).
+- [x] Acao `Desarquivar` no item da lista que dispara `IntakeService.unarchiveAnalysis(analysisId)`, removendo o item da listagem em sucesso.
+- [x] Label visual `Analise arquivada` no `AnalysisHeader` quando `AnalysisDto.isArchived = true`, refletido em `FirstInstanceAnalysisScreenView` (cobre `FIRST_INSTANCE/LAWYER`) e `SecondInstanceAnalysisScreenView` (cobre `SECOND_INSTANCE/JUDGE` e `CASE_ASSESSMENT/PRECEDENT`, conforme o mapeamento atual em `Routes.getAnalysis`).
 
 ## Impacto da entrega
 
