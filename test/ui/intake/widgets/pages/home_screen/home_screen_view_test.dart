@@ -72,9 +72,7 @@ void main() {
       expect(find.text('Cancelar'), findsOneWidget);
       expect(find.text('Criar'), findsOneWidget);
 
-      verifyNever(
-        () => presenter.createAnalysis(type: any(named: 'type')),
-      );
+      verifyNever(() => presenter.createAnalysis(type: any(named: 'type')));
     },
   );
 
@@ -98,25 +96,22 @@ void main() {
     },
   );
 
-  testWidgets(
-    'ao cancelar o dialog, nao chama createAnalysis',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_createWidget(presenter));
-      await tester.pump();
+  testWidgets('ao cancelar o dialog, nao chama createAnalysis', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_createWidget(presenter));
+    await tester.pump();
 
-      clearInteractions(presenter);
+    clearInteractions(presenter);
 
-      await tester.tap(find.byIcon(Icons.add));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Cancelar'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
 
-      verifyNever(
-        () => presenter.createAnalysis(type: any(named: 'type')),
-      );
-    },
-  );
+    verifyNever(() => presenter.createAnalysis(type: any(named: 'type')));
+  });
 
   testWidgets('ao tocar no card, delega abertura da analise', (
     WidgetTester tester,
