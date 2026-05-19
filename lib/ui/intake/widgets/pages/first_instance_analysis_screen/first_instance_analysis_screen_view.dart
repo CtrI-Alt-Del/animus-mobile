@@ -298,6 +298,9 @@ class _FirstInstanceAnalysisScreenViewState
                       final String analysisName = presenter.analysisName.watch(
                         context,
                       );
+                      final bool isArchived = presenter.isArchived.watch(
+                        context,
+                      );
                       final bool isManagingAnalysis = presenter
                           .isManagingAnalysis
                           .watch(context);
@@ -347,6 +350,7 @@ class _FirstInstanceAnalysisScreenViewState
                               }
                             : null,
                         title: analysisName,
+                        isArchived: isArchived,
                         onPrecedentsCount: isManagingAnalysis
                             ? null
                             : () {

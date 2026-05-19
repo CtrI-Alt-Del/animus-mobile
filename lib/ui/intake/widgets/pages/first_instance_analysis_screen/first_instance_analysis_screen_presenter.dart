@@ -59,6 +59,7 @@ class FirstInstanceAnalysisScreenPresenter {
   final Signal<CaseSummaryDto?> summary = signal<CaseSummaryDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
+  final Signal<bool> isArchived = signal<bool>(false);
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
   final Signal<bool> isExportingReport = signal<bool>(false);
   final Signal<int> precedentsLimit = signal<int>(defaultPrecedentsLimit);
@@ -151,6 +152,7 @@ class FirstInstanceAnalysisScreenPresenter {
 
     final AnalysisStatusDto analysisStatus = analysisResponse.body.status;
     analysisName.value = analysisResponse.body.name;
+    isArchived.value = analysisResponse.body.isArchived;
 
     if (analysisStatus == AnalysisStatusDto.failed) {
       await _resetFailedAnalysis();
@@ -531,6 +533,7 @@ class FirstInstanceAnalysisScreenPresenter {
     summary.dispose();
     generalError.dispose();
     analysisName.dispose();
+    isArchived.dispose();
     isManagingAnalysis.dispose();
     isExportingReport.dispose();
     precedentsLimit.dispose();

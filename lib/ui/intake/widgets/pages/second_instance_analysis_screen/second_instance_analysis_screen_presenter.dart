@@ -46,6 +46,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
       signal<SecondInstanceJudgmentDraftDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
+  final Signal<bool> isArchived = signal<bool>(false);
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
   final Signal<bool> precedentsReady = signal<bool>(false);
 
@@ -168,6 +169,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
     final AnalysisDto analysis = analysisResponse.body;
     analysisName.value = analysis.name;
+    isArchived.value = analysis.isArchived;
     status.value = analysis.status;
     precedentsReady.value = _isPrecedentsReadyStatus(analysis.status);
 
@@ -406,6 +408,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     judgmentDraft.dispose();
     generalError.dispose();
     analysisName.dispose();
+    isArchived.dispose();
     isManagingAnalysis.dispose();
     precedentsReady.dispose();
     canPickDocument.dispose();

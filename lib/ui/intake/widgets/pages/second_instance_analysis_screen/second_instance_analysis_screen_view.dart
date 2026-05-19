@@ -137,6 +137,9 @@ class _SecondInstanceAnalysisScreenViewState
                       final String analysisName = presenter.analysisName.watch(
                         context,
                       );
+                      final bool isArchived = presenter.isArchived.watch(
+                        context,
+                      );
                       final bool isManaging = presenter.isManagingAnalysis
                           .watch(context);
 
@@ -151,6 +154,7 @@ class _SecondInstanceAnalysisScreenViewState
                         },
                         onExportReport: null,
                         title: analysisName,
+                        isArchived: isArchived,
                         onPrecedentsCount: null,
                         onFilters: null,
                         onRename: isManaging
