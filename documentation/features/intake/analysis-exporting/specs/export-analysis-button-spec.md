@@ -47,7 +47,7 @@ Entregar o recorte mobile de `ANI-51` dentro da `analysis_screen`: quando a anal
 ## 3.1 Funcionais
 
 - O menu `AnalysisHeaderActions` deve incluir a acao `Exportar PDF` no mesmo popover que hoje concentra `Renomear`, `Arquivar`, `Filtros` e `Qtd. precedentes`.
-- A acao `Exportar PDF` so deve ficar visivel quando `AnalysisScreenPresenter.status == AnalysisStatusDto.precedentChosen`.
+- A acao `Exportar PDF` so deve ficar visivel quando `FirstInstanceAnalysisScreenPresenter.status == AnalysisStatusDto.precedentChosen`.
 - Depois que um precedente for confirmado no fluxo da propria tela, a disponibilidade de `Exportar PDF` deve aparecer imediatamente no popover sem exigir recarga manual da `analysis_screen`.
 - Ao selecionar `Exportar PDF`, a tela deve bloquear novas tentativas de exportacao ate o termino do fluxo atual.
 - Durante a exportacao, o header deve refletir estado ocupado e impedir novas acoes concorrentes de menu.
@@ -113,7 +113,7 @@ Entregar o recorte mobile de `ANI-51` dentro da `analysis_screen`: quando a anal
 
 ## UI
 
-- **`AnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart`) - presenter atual da tela, ja dono do estado de `analysis`, `summary`, erros gerais e acoes do header; e o ponto mais coeso para orquestrar a exportacao.
+- **`FirstInstanceAnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart`) - presenter atual da tela, ja dono do estado de `analysis`, `summary`, erros gerais e acoes do header; e o ponto mais coeso para orquestrar a exportacao.
 - **`AnalysisScreenView`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_view.dart`) - tela atual que ja conecta `AnalysisHeader`, `MessageBox`, resumo, precedentes e action bar.
 - **`AnalysisHeaderView`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_header/analysis_header_view.dart`) - wrapper visual do header que repassa as acoes para `AnalysisHeaderActions`.
 - **`AnalysisHeaderActionsView`** (`lib/ui/intake/widgets/pages/analysis_screen/analysis_header/analysis_header_actions/analysis_header_actions_view.dart`) - popover atual do menu `tune`; sera o ponto de entrada direto para `Exportar PDF`.
@@ -274,7 +274,7 @@ Entregar o recorte mobile de `ANI-51` dentro da `analysis_screen`: quando a anal
 - **Motivo da escolha:** `core` nao pode depender de Flutter nem de tipos concretos de pacote externo; o acoplamento visual deve ficar confinado a `drivers`.
 - **Impactos / trade-offs:** a implementacao concreta do driver precisa ler `AppTheme` internamente, mas a arquitetura continua correta.
 
-- **Decisao:** manter a logica de exportacao no `AnalysisScreenPresenter`, sem criar presenter filho dedicado para o header.
+- **Decisao:** manter a logica de exportacao no `FirstInstanceAnalysisScreenPresenter`, sem criar presenter filho dedicado para o header.
 - **Alternativas consideradas:** criar um `analysis_export_action_presenter` ou um presenter exclusivo para `AnalysisHeaderActions`.
 - **Motivo da escolha:** a exportacao e uma unica acao de tela, parametrizada pelo `analysisId` atual e dependente do estado principal da analise; mover isso para um presenter filho acrescentaria mais acoplamento do que organizacao.
 - **Impactos / trade-offs:** o presenter da tela ganha mais um handler, mas continua agindo como orquestrador de acoes de cabecalho sem concentrar subfluxos inteiros de UI.
@@ -314,7 +314,7 @@ Entregar o recorte mobile de `ANI-51` dentro da `analysis_screen`: quando a anal
 PopupMenuItem("Exportar PDF")
   -> AnalysisHeaderActionsView.onSelected
   -> AnalysisScreenView
-  -> AnalysisScreenPresenter.exportAnalysisReport()
+  -> FirstInstanceAnalysisScreenPresenter.exportAnalysisReport()
      -> IntakeService.getAnalysisReport(analysisId)
         -> IntakeRestService.get('/intake/analyses/{analysis_id}/report')
         -> AnalysisReportMapper.toDto(json)
@@ -390,11 +390,11 @@ PDF Juridico / Relatorio Recriado
 # Restricoes
 
 - **Nao inclua testes automatizados na spec.**
-- A `View` nao deve conter logica de negocio; toda orquestracao de exportacao fica no `AnalysisScreenPresenter`.
+- A `View` nao deve conter logica de negocio; toda orquestracao de exportacao fica no `FirstInstanceAnalysisScreenPresenter`.
 - Presenters nao fazem chamadas diretas a `RestClient`; a busca do relatorio passa sempre por `IntakeService`.
 - Todos os caminhos citados nesta spec existem no projeto ou estao marcados como **novo arquivo**.
 - Nenhum contrato novo do `core` deve depender de `ThemeData`, `BuildContext`, `pw.ThemeData` ou qualquer tipo de SDK/pacote concreto.
 - O share sheet nativo deve ficar encapsulado em `drivers`; a UI nao pode importar `printing`.
-- O `AnalysisScreenPresenter` continua enxuto como orquestrador de acoes de tela; nao deve absorver montagem visual do PDF nem detalhes de pacote externo.
+- O `FirstInstanceAnalysisScreenPresenter` continua enxuto como orquestrador de acoes de tela; nao deve absorver montagem visual do PDF nem detalhes de pacote externo.
 - Use componentes Flutter Material alinhados ao tema atual do projeto para o feedback visual de loading e sucesso na tela.
 - A spec segue o padrao atual da codebase: arquivos em `snake_case`, classes em `PascalCase`, `Provider` Riverpod para composicao e barrel files apenas quando houver nova pasta publica.

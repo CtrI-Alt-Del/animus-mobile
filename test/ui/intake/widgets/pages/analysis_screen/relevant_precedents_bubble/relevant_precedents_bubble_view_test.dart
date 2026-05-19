@@ -2,8 +2,8 @@ import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_d
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/theme.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_view.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

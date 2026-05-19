@@ -22,11 +22,11 @@ class AnalysisStatusDto {
   static const AnalysisStatusDto analyzingPetition = AnalysisStatusDto(
     'ANALYZING_PETITION',
   );
-  static const AnalysisStatusDto petitionAnalyzed = AnalysisStatusDto(
-    'PETITION_ANALYZED',
-  );
   static const AnalysisStatusDto searchingPrecedents = AnalysisStatusDto(
     'SEARCHING_PRECEDENTS',
+  );
+  static const AnalysisStatusDto precedentsSearched = AnalysisStatusDto(
+    'PRECEDENTS_SEARCHED',
   );
   static const AnalysisStatusDto analyzingPrecedentsSimilarity =
       AnalysisStatusDto('ANALYZING_PRECEDENTS_SIMILARITY');
@@ -58,6 +58,9 @@ class AnalysisStatusDto {
   static const AnalysisStatusDto generatingJudgmentDraft = AnalysisStatusDto(
     'GENERATING_JUDGMENT_DRAFT',
   );
+  static const AnalysisStatusDto petitionNotFound = AnalysisStatusDto(
+    'PETITION_NOT_FOUND',
+  );
 
   static const List<AnalysisStatusDto> values = <AnalysisStatusDto>[
     waitingPetition,
@@ -65,8 +68,8 @@ class AnalysisStatusDto {
     waitingDocumentUpload,
     documentUploaded,
     analyzingPetition,
-    petitionAnalyzed,
     searchingPrecedents,
+    precedentsSearched,
     analyzingPrecedentsSimilarity,
     analyzingPrecedentsApplicability,
     generatingSynthesis,
@@ -79,6 +82,7 @@ class AnalysisStatusDto {
     caseAnalyzed,
     generatingPetitionDraft,
     generatingJudgmentDraft,
+    petitionNotFound,
   ];
 
   factory AnalysisStatusDto.caseAssessment(
@@ -119,13 +123,15 @@ class AnalysisStatusDto {
       case FirstInstanceAnalysisStatusDto.analyzingCase:
         return analyzingPetition;
       case FirstInstanceAnalysisStatusDto.caseAnalyzed:
-        return petitionAnalyzed;
+        return caseAnalyzed;
       case FirstInstanceAnalysisStatusDto.searchingPrecedents:
         return searchingPrecedents;
       case FirstInstanceAnalysisStatusDto.analyzingPrecedentsSimilarity:
         return analyzingPrecedentsSimilarity;
       case FirstInstanceAnalysisStatusDto.analyzingPrecedentsApplicability:
         return analyzingPrecedentsApplicability;
+      case FirstInstanceAnalysisStatusDto.generatingSynthesis:
+        return generatingSynthesis;
       case FirstInstanceAnalysisStatusDto.done:
         return precedentChosen;
       case FirstInstanceAnalysisStatusDto.failed:
@@ -149,12 +155,18 @@ class AnalysisStatusDto {
         return caseAnalyzed;
       case SecondInstanceAnalysisStatusDto.searchingPrecedents:
         return searchingPrecedents;
+      case SecondInstanceAnalysisStatusDto.precedentsSearched:
+        return precedentsSearched;
       case SecondInstanceAnalysisStatusDto.analyzingPrecedentsSimilarity:
         return analyzingPrecedentsSimilarity;
       case SecondInstanceAnalysisStatusDto.analyzingPrecedentsApplicability:
         return analyzingPrecedentsApplicability;
       case SecondInstanceAnalysisStatusDto.generatingJudgmentDraft:
         return generatingJudgmentDraft;
+      case SecondInstanceAnalysisStatusDto.generatingSynthesis:
+        return generatingSynthesis;
+      case SecondInstanceAnalysisStatusDto.petitionNotFound:
+        return petitionNotFound;
       case SecondInstanceAnalysisStatusDto.done:
         return done;
       case SecondInstanceAnalysisStatusDto.failed:

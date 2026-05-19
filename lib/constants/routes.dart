@@ -1,3 +1,5 @@
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
+
 class Routes {
   static const String home = '/';
   static const String library = '/library';
@@ -11,6 +13,8 @@ class Routes {
   static const String newPassword = '/auth/new_password';
   static const String profile = '/auth/profile';
   static const String analysis = '/analyses/:analysisId';
+  static const String secondInstanceAnalysis =
+      '/analyses/:analysisId/second-instance';
 
   static String getLibraryFolder({required String folderId}) {
     final Uri uri = Uri(
@@ -48,8 +52,29 @@ class Routes {
     return uri.toString();
   }
 
-  static String getAnalysis({required String analysisId}) {
+  static String getAnalysis({
+    required String analysisId,
+    required AnalysisTypeDto analysisType,
+  }) {
+    switch (analysisType) {
+      case AnalysisTypeDto.firstInstance:
+        return Routes.getFirstInstanceAnalysis(analysisId: analysisId);
+      case AnalysisTypeDto.secondInstance:
+        return Routes.getSecondInstanceAnalysis(analysisId: analysisId);
+      case AnalysisTypeDto.caseAssessment:
+        return Routes.getSecondInstanceAnalysis(analysisId: analysisId);
+    }
+  }
+
+  static String getFirstInstanceAnalysis({required String analysisId}) {
     final Uri uri = Uri(path: '/analyses/${Uri.encodeComponent(analysisId)}');
+    return uri.toString();
+  }
+
+  static String getSecondInstanceAnalysis({required String analysisId}) {
+    final Uri uri = Uri(
+      path: '/analyses/${Uri.encodeComponent(analysisId)}/second-instance',
+    );
     return uri.toString();
   }
 

@@ -5,7 +5,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_presenter.dart';
-import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
 
 class EmailConfirmationScreenView extends ConsumerWidget {
   final String email;

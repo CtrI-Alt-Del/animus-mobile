@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
-import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
 
 const Color _profileErrorSurfaceColor = Color(0xFF1E1E24);
 const Color _profileErrorBorderColor = Color(0x33FBE26D);

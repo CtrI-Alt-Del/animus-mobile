@@ -2,16 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import 'package:animus/constants/env.dart';
-import 'package:animus/constants/routes.dart';
 import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
-import 'package:animus/drivers/navigation/go_router/go_router_navigation_driver.dart';
 
 class OneSignalPushNotificationDriver implements PushNotificationDriver {
   static bool _foregroundListenerRegistered = false;
   static bool _clickListenerRegistered = false;
-
-  static const GoRouterNavigationDriver _navigationDriver =
-      GoRouterNavigationDriver();
 
   const OneSignalPushNotificationDriver();
 
@@ -51,7 +46,7 @@ class OneSignalPushNotificationDriver implements PushNotificationDriver {
           return;
         }
 
-        _navigationDriver.goTo(Routes.getAnalysis(analysisId: analysisId));
+        // _navigationDriver.goTo(Routes.getAnalysis(analysisId: analysisId));
       });
       _clickListenerRegistered = true;
     } catch (_) {}

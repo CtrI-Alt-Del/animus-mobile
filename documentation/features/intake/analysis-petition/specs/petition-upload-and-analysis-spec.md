@@ -8,7 +8,7 @@ last_updated_at: 2026-04-02
 
 # 1. Objetivo
 
-Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` ja criado, permitindo selecionar um unico arquivo `PDF` ou `DOCX`, validar tamanho maximo de `20MB`, solicitar `Signed URL`, fazer upload direto ao `GCS`, persistir a `Petition` no backend, solicitar o resumo sincrono com timeout de `60s`, permitir gerenciamento rapido da analise no header (renomear e arquivar) e refletir o estado da tela a partir de `AnalysisStatusDto`, combinado com estados locais transitivos de selecao de arquivo, upload e erro, em uma UI estilo chat consistente com o design validado no `design/animus.pen`.
+Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` ja criado, permitindo selecionar um unico arquivo `PDF` ou `DOCX`, validar tamanho maximo de `50MB`, solicitar `Signed URL`, fazer upload direto ao `GCS`, persistir a `Petition` no backend, solicitar o resumo sincrono com timeout de `60s`, permitir gerenciamento rapido da analise no header (renomear e arquivar) e refletir o estado da tela a partir de `AnalysisStatusDto`, combinado com estados locais transitivos de selecao de arquivo, upload e erro, em uma UI estilo chat consistente com o design validado no `design/animus.pen`.
 
 ---
 
@@ -18,7 +18,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 
 - Tela `Nova Analise` parametrizada por `analysisId`.
 - Selecao nativa de arquivo com filtro para `pdf` e `docx`.
-- Validacao client-side de extensao e limite de `20MB` antes de qualquer chamada remota.
+- Validacao client-side de extensao e limite de `50MB` antes de qualquer chamada remota.
 - Orquestracao do fluxo em duas etapas: ao selecionar documento (`generatePetitionUploadUrl -> uploadFile -> createPetition`) e ao analisar (`summarizePetition`).
 - Exibicao dos estados visuais derivada de `AnalysisStatusDto`, combinada com estados locais de selecao de arquivo, upload em andamento e erro recuperavel.
 - Exibicao do bubble do usuario com nome e tamanho do arquivo selecionado.
@@ -42,7 +42,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 
 ## 3.1 Funcionais
 
-- Ao abrir a tela, exibir bubble inicial da IA com a mensagem de boas-vindas e a legenda `Formatos aceitos: PDF, DOCX • Max. 20MB`.
+- Ao abrir a tela, exibir bubble inicial da IA com a mensagem de boas-vindas e a legenda `Formatos aceitos: PDF, DOCX • Max. 50MB`.
 - Ao abrir a tela, consultar o status atual da analise e aplicar carregamento condicional: para `AnalysisStatusDto.petitionUploaded` e `AnalysisStatusDto.analyzingPetition`, buscar apenas `getAnalysisPetition(analysisId)`; para `AnalysisStatusDto.petitionAnalyzed`, buscar `getAnalysisPetition(analysisId)` e `getPetitionSummary(petitionId)`.
 - A tela deve usar fundo visual em dot grid, alinhado aos frames de design (`jhO0x`, `vp2P7`, `pw1KC`), sem interferir em interacoes.
 - O botao de CTA principal deve permanecer desabilitado enquanto nenhum arquivo valido estiver selecionado.
@@ -203,7 +203,7 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 - `computed<bool> showProcessingBubble` — exibe o bubble da IA quando `status == AnalysisStatusDto.analyzingPetition`.
 - `computed<String> primaryActionLabel` — alterna entre `Analisar` e `Buscar precedentes`.
 - `computed<String> fileActionLabel` — alterna entre `Selecionar arquivo` e `Enviar outro documento`.
-- **Provider Riverpod:** `analysisScreenPresenterProvider`
+- **Provider Riverpod:** `FirstInstanceAnalysisScreenPresenterProvider`
 - **Metodos:**
 - `Future<void> pickDocument()` — abre o picker, valida extensao/tamanho e, em caso valido, ja orquestra `generatePetitionUploadUrl`, upload ao `GCS` e `createPetition`, deixando a tela em `AnalysisStatusDto.petitionUploaded`.
 - `Future<void> load()` — carrega estado inicial por status da analise: em `petitionUploaded/analyzingPetition` busca somente `getAnalysisPetition`; em `petitionAnalyzed` busca `getAnalysisPetition` e `getPetitionSummary`; em demais estados do recorte mantem shell de `waitingPetition`.
@@ -305,8 +305,8 @@ Entregar a tela `Nova Analise` do fluxo de `intake`, recebendo um `analysisId` j
 ## Camada UI (Providers Riverpod — se isolados)
 
 - **Localizacao:** `lib/ui/intake/widgets/pages/analysis_screen/analysis_screen_presenter.dart`
-- **Nome do provider:** `analysisScreenPresenterProvider`
-- **Tipo:** `Provider.autoDispose.family<AnalysisScreenPresenter, String>`
+- **Nome do provider:** `FirstInstanceAnalysisScreenPresenterProvider`
+- **Tipo:** `Provider.autoDispose.family<FirstInstanceAnalysisScreenPresenter, String>`
 - **Dependencias:** `intakeServiceProvider`, `storageServiceProvider`, `fileStorageDriverProvider`, `documentPickerDriverProvider`
 
 ## Rotas (`go_router`) — se aplicavel
@@ -451,7 +451,7 @@ lib/ui/intake/widgets/pages/analysis_screen/
 
 ```text
 AnalysisScreenView(analysisId)
-  -> AnalysisScreenPresenter
+  -> FirstInstanceAnalysisScreenPresenter
       -> IntakeService.listAnalysisPetitions(analysisId)
           -> IntakeRestService
               -> RestClient.get('/analyses/{analysisId}/petitions')

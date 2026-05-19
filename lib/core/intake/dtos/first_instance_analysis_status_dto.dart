@@ -6,6 +6,7 @@ enum FirstInstanceAnalysisStatusDto {
   searchingPrecedents('SEARCHING_PRECEDENTS'),
   analyzingPrecedentsSimilarity('ANALYZING_PRECEDENTS_SIMILARITY'),
   analyzingPrecedentsApplicability('ANALYZING_PRECEDENTS_APPLICABILITY'),
+  generatingSynthesis('GENERATING_SYNTHESIS'),
   done('DONE'),
   failed('FAILED');
 

@@ -5,9 +5,12 @@ enum SecondInstanceAnalysisStatusDto {
   analyzingCase('ANALYZING_CASE'),
   caseAnalyzed('CASE_ANALYZED'),
   searchingPrecedents('SEARCHING_PRECEDENTS'),
+  precedentsSearched('PRECEDENTS_SEARCHED'),
   analyzingPrecedentsSimilarity('ANALYZING_PRECEDENTS_SIMILARITY'),
   analyzingPrecedentsApplicability('ANALYZING_PRECEDENTS_APPLICABILITY'),
   generatingJudgmentDraft('GENERATING_JUDGMENT_DRAFT'),
+  generatingSynthesis('GENERATING_SYNTHESIS'),
+  petitionNotFound('PETITION_NOT_FOUND'),
   done('DONE'),
   failed('FAILED');
 

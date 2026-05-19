@@ -25,10 +25,10 @@ class CaseSummaryDto {
     this.typeOfAction,
     this.jurisdictionIssue,
     this.standingIssue,
-    required this.secondaryLegalIssues,
-    required this.alternativeQuestions,
-    required this.requestedRelief,
-    required this.proceduralIssues,
-    required this.excludedOrAccessoryTopics,
+    this.secondaryLegalIssues = const <String>[],
+    this.alternativeQuestions = const <String>[],
+    this.requestedRelief = const <String>[],
+    this.proceduralIssues = const <String>[],
+    this.excludedOrAccessoryTopics = const <String>[],
   });
 }

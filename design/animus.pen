@@ -6405,7 +6405,7 @@
               "id": "maw7G",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -38879,7 +38879,7 @@
               "id": "bTQ6W",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -42863,7 +42863,7 @@
               "id": "Kxlem",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -47120,7 +47120,7 @@
               "id": "x963m",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -52468,7 +52468,7 @@
               "id": "PYC5n",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -61480,7 +61480,7 @@
               "id": "Qem2k",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
