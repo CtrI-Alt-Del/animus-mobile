@@ -2,7 +2,7 @@
 title: Plano de Implementacao — Dialog de criacao de analise por tipo
 spec: ../specs/create-analysis-by-type-dialog-spec.md
 created_at: 2026-05-18
-status: open
+status: closed
 ---
 
 ---
@@ -56,62 +56,49 @@ status: open
 
 ### F1 — Widget interno `CreateAnalysisTypeOption`
 
-- [ ] **F1-T1** — Criar `CreateAnalysisTypeOptionView` (View only)
+- [x] **F1-T1** — Criar `CreateAnalysisTypeOptionView` (View only)
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/create_analysis_type_dialog/create_analysis_type_option/create_analysis_type_option_view.dart` *(novo)*
-  - Detalhes: `StatelessWidget` com props `title`, `description`, `icon`, `isSelected`, `onTap`. Usa `AppThemeTokens` (`surfaceCard`/`surfacePage`/`surfaceElevated`, `borderSubtle`, `accent`, `textPrimary`, `textSecondary`). Renderiza `InkWell` + `Container` com `borderRadius: 16`; alterna borda/cor quando `isSelected == true` (`tokens.accent`, `surfaceElevated`). Inclui icone Material, titulo (`labelMedium` bold) e descricao (`bodySmall`, `textMuted`). Envolve conteudo com `Semantics(selected: isSelected, button: true, label: title)`. Tap delega para `onTap`. Indicador visual: `Icons.radio_button_checked` quando `isSelected`, `Icons.radio_button_unchecked` caso contrario.
-  - Depende de: —
-  - Desbloqueia: F1-T2, F3-T1
+  - Concluido em: 2026-05-18
 
-- [ ] **F1-T2** — Criar `index.dart` do widget interno
+- [x] **F1-T2** — Criar `index.dart` do widget interno
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/create_analysis_type_dialog/create_analysis_type_option/index.dart` *(novo)*
-  - Detalhes: arquivo barrel com `typedef CreateAnalysisTypeOption = CreateAnalysisTypeOptionView;` e import correspondente.
-  - Depende de: F1-T1
-  - Desbloqueia: F3-T1
+  - Concluido em: 2026-05-18
 
 ### F2 — Presenter do dialog
 
-- [ ] **F2-T1** — Criar `CreateAnalysisTypeDialogPresenter`
+- [x] **F2-T1** — Criar `CreateAnalysisTypeDialogPresenter`
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/create_analysis_type_dialog/create_analysis_type_dialog_presenter.dart` *(novo)*
-  - Detalhes: classe `final` com construtor `CreateAnalysisTypeDialogPresenter({AnalysisTypeDto initialType = AnalysisTypeDto.firstInstance})`. Expoe `Signal<AnalysisTypeDto> selectedType` inicializado em `initialType`. Metodos: `void selectType(AnalysisTypeDto)`, `bool isSelected(AnalysisTypeDto)`, getter `AnalysisTypeDto get selected`, `String titleFor(AnalysisTypeDto)`, `String descriptionFor(AnalysisTypeDto)`, `IconData iconFor(AnalysisTypeDto)`, `void dispose()`. Constante estatica `static const List<AnalysisTypeDto> orderedTypes = <AnalysisTypeDto>[caseAssessment, firstInstance, secondInstance];`. Os textos PT-BR e os icones Material seguem o que esta na Secao 5 da spec (titles: `Avaliacao de caso`, `Primeira instancia`, `Segunda instancia`; descriptions: `Diagnostico inicial do caso`, `Resposta a peticao inicial`, `Revisao de decisao em grau de recurso`; icons: `Icons.fact_check_outlined`, `Icons.gavel_outlined`, `Icons.account_balance_outlined`).
-  - Depende de: —
-  - Desbloqueia: F3-T1
+  - Concluido em: 2026-05-18
 
 ### F3 — View do dialog e barrel publico
 
-- [ ] **F3-T1** — Criar `CreateAnalysisTypeDialogView`
+- [x] **F3-T1** — Criar `CreateAnalysisTypeDialogView`
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/create_analysis_type_dialog/create_analysis_type_dialog_view.dart` *(novo)*
-  - Detalhes: `StatefulWidget` com prop opcional `AnalysisTypeDto initialType` (default `AnalysisTypeDto.firstInstance`). O `State` instancia `CreateAnalysisTypeDialogPresenter` em `initState` com `widget.initialType`, descarta em `dispose`. Layout segue a Secao 5 da spec: `Dialog` transparente (`insetPadding: 24h`), `Container` `maxWidth: 352`, `padding: 20`, `surfaceCard`, `borderRadius: 24`, `border: borderSubtle`. Coluna com titulo `Nova analise` (`titleMedium` bold), subtitulo `Escolha o tipo da analise.` (`bodySmall`, `textMuted`), lista de `CreateAnalysisTypeOption` por `presenter.orderedTypes` separadas por `SizedBox(height: 8)` envoltas por `Watch` para reagir a `selectedType`. Linha final com `OutlinedButton('Cancelar')` (pop sem valor) e `FilledButton('Criar')` (pop com `presenter.selected`), mesmas dimensoes do `ArchiveAnalysisDialogView` (`minimumSize: Size.fromHeight(52)`, `borderRadius: 12`). O botao `Criar` esta sempre habilitado porque sempre ha selecao default.
-  - Depende de: F1-T2, F2-T1
-  - Desbloqueia: F3-T2, F5-T1
+  - Concluido em: 2026-05-18
 
-- [ ] **F3-T2** — Criar `index.dart` do dialog
+- [x] **F3-T2** — Criar `index.dart` do dialog
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/create_analysis_type_dialog/index.dart` *(novo)*
-  - Detalhes: barrel com `typedef CreateAnalysisTypeDialog = CreateAnalysisTypeDialogView;` e import correspondente.
-  - Depende de: F3-T1
-  - Desbloqueia: F5-T1
+  - Concluido em: 2026-05-18
 
 ### F4 — Ajuste no `HomeScreenPresenter`
 
-- [ ] **F4-T1** — Adicionar parametro `type` em `createAnalysis` e ajustar navegacao
+- [x] **F4-T1** — Adicionar parametro `type` em `createAnalysis` e ajustar navegacao
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart` *(modificacao)*
-  - Detalhes: alterar a assinatura para `Future<void> createAnalysis({AnalysisTypeDto type = AnalysisTypeDto.firstInstance})`. Trocar `_intakeService.createAnalysis(type: AnalysisTypeDto.firstInstance)` por `_intakeService.createAnalysis(type: type)`. Trocar `_navigationDriver.pushTo(Routes.getFirstInstanceAnalysis(analysisId: analysisId))` por `_navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId, analysisType: type))`. Demais comportamentos preservados (loading, refresh, tratamento de erro). Garantir que a chamada sem argumentos continua valida (default `firstInstance`) para nao quebrar testes existentes em `test/ui/intake/widgets/pages/home_screen/home_screen_presenter_test.dart`.
-  - Depende de: —
-  - Desbloqueia: F5-T1
+  - Concluido em: 2026-05-18
 
 ### F5 — Integracao na `HomeScreenView`
 
-- [ ] **F5-T1** — Integrar `showDialog<AnalysisTypeDto>` no `FAB` e no `EmptyState`
+- [x] **F5-T1** — Integrar `showDialog<AnalysisTypeDto>` no `FAB` e no `EmptyState`
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/home_screen_view.dart` *(modificacao)*
-  - Detalhes: importar `CreateAnalysisTypeDialog` via `create_analysis_type_dialog/index.dart`. Criar funcao local `Future<void> handleCreateAnalysis(BuildContext context)` dentro de `build` que executa `final AnalysisTypeDto? selectedType = await showDialog<AnalysisTypeDto>(context: context, builder: (_) => const CreateAnalysisTypeDialog());` e, se `selectedType != null`, chama `await presenter.createAnalysis(type: selectedType);`. Substituir `onPressed: isLoadingInitialData ? null : presenter.createAnalysis` por `onPressed: isLoadingInitialData ? null : () => handleCreateAnalysis(context)`. Substituir `onCreateFirstAnalysis: () { presenter.createAnalysis(); }` por `onCreateFirstAnalysis: () { unawaited(handleCreateAnalysis(context)); }` (importar `dart:async` se necessario) — manter `unawaited` para nao mudar o tipo do callback.
-  - Depende de: F3-T2, F4-T1
-  - Desbloqueia: —
+  - Concluido em: 2026-05-18
+  - Notas: alem do `home_screen_view.dart`, foi necessario atualizar o teste de widget `test/ui/intake/widgets/pages/home_screen/home_screen_view_test.dart` para refletir o novo fluxo (registrar `AnalysisTypeDto` como fallback, ajustar stub de `createAnalysis(type:)`, abrir/cancelar/confirmar o dialog).
 
 ---
 
