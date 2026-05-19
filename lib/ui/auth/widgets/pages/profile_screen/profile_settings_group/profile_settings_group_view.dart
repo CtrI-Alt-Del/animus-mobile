@@ -14,12 +14,14 @@ class ProfileSettingsGroupView extends StatelessWidget {
   final String appVersionLabel;
   final VoidCallback onEditNameTap;
   final VoidCallback onChangePasswordTap;
+  final VoidCallback onArchivedAnalysesTap;
 
   const ProfileSettingsGroupView({
     required this.isDarkThemeEnabled,
     required this.appVersionLabel,
     required this.onEditNameTap,
     required this.onChangePasswordTap,
+    required this.onArchivedAnalysesTap,
     super.key,
   });
 
@@ -48,6 +50,13 @@ class ProfileSettingsGroupView extends StatelessWidget {
             icon: Icons.lock_outline,
             iconColor: tokens.accent,
             onTap: onChangePasswordTap,
+          ),
+          const ProfileDivider(color: _profileSettingsDividerColor),
+          ProfileSettingsTile(
+            title: 'Analises arquivadas',
+            icon: Icons.inventory_2_outlined,
+            iconColor: tokens.accent,
+            onTap: onArchivedAnalysesTap,
           ),
           const ProfileDivider(color: _profileSettingsDividerColor),
           ProfileSettingsTile(

@@ -133,6 +133,10 @@ class ProfileScreenPresenter {
     );
   }
 
+  void goToArchivedAnalyses() {
+    unawaited(_navigationDriver.pushTo(Routes.archivedAnalyses));
+  }
+
   Future<void> updateDisplayName(String updatedName) async {
     final String normalizedName = updatedName.trim();
     if (normalizedName.isEmpty) {
