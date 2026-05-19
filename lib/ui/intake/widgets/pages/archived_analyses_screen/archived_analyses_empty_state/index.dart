@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_empty_state/archived_analyses_empty_state_view.dart';
+
+typedef ArchivedAnalysesEmptyState = ArchivedAnalysesEmptyStateView;

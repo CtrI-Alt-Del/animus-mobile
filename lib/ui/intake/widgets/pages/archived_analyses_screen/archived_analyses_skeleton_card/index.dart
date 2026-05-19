@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_skeleton_card/archived_analyses_skeleton_card_view.dart';
+
+typedef ArchivedAnalysesSkeletonCard = ArchivedAnalysesSkeletonCardView;
