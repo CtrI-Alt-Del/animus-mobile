@@ -2,7 +2,7 @@
 title: Dialog de criacao de analise por tipo
 prd: ../prd.md
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-101
-status: open
+status: closed
 last_updated_at: 2026-05-18
 ---
 
