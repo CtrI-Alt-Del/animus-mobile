@@ -161,6 +161,7 @@ void main() {
     late Signal<double?> uploadProgress;
     late Signal<String?> generalError;
     late Signal<String> analysisName;
+    late Signal<bool> isArchived;
     late Signal<bool> isManagingAnalysis;
     late Signal<AnalysisDocumentDto?> analysisDocument;
     late Signal<CaseSummaryDto?> summary;
@@ -190,6 +191,7 @@ void main() {
       uploadProgress = signal<double?>(null);
       generalError = signal<String?>(null);
       analysisName = signal<String>('Analise de precedente');
+      isArchived = signal<bool>(false);
       isManagingAnalysis = signal<bool>(false);
       analysisDocument = signal<AnalysisDocumentDto?>(null);
       summary = signal<CaseSummaryDto?>(null);
@@ -224,6 +226,7 @@ void main() {
       when(() => presenter.uploadProgress).thenReturn(uploadProgress);
       when(() => presenter.generalError).thenReturn(generalError);
       when(() => presenter.analysisName).thenReturn(analysisName);
+      when(() => presenter.isArchived).thenReturn(isArchived);
       when(() => presenter.isManagingAnalysis).thenReturn(isManagingAnalysis);
       when(() => presenter.analysisDocument).thenReturn(analysisDocument);
       when(() => presenter.summary).thenReturn(summary);
@@ -300,6 +303,7 @@ void main() {
       uploadProgress.dispose();
       generalError.dispose();
       analysisName.dispose();
+      isArchived.dispose();
       isManagingAnalysis.dispose();
       analysisDocument.dispose();
       summary.dispose();
