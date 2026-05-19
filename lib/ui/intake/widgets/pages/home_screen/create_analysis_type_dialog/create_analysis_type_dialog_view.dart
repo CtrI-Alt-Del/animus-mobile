@@ -75,33 +75,31 @@ class _CreateAnalysisTypeDialogViewState
             ),
             const SizedBox(height: 16),
             Watch((BuildContext context) {
+              final List<Widget> tiles = <Widget>[];
+              for (
+                int index = 0;
+                index < CreateAnalysisTypeDialogPresenter.orderedTypes.length;
+                index++
+              ) {
+                if (index > 0) {
+                  tiles.add(const SizedBox(height: 8));
+                }
+                final AnalysisTypeDto type =
+                    CreateAnalysisTypeDialogPresenter.orderedTypes[index];
+                tiles.add(
+                  CreateAnalysisTypeOption(
+                    title: _presenter.titleFor(type),
+                    description: _presenter.descriptionFor(type),
+                    icon: _presenter.iconFor(type),
+                    isSelected: _presenter.isSelected(type),
+                    onTap: () => _presenter.selectType(type),
+                  ),
+                );
+              }
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  for (
-                    int index = 0;
-                    index <
-                        CreateAnalysisTypeDialogPresenter.orderedTypes.length;
-                    index++
-                  ) ...<Widget>[
-                    if (index > 0) const SizedBox(height: 8),
-                    Builder(
-                      builder: (BuildContext context) {
-                        final AnalysisTypeDto type =
-                            CreateAnalysisTypeDialogPresenter
-                                .orderedTypes[index];
-                        return CreateAnalysisTypeOption(
-                          title: _presenter.titleFor(type),
-                          description: _presenter.descriptionFor(type),
-                          icon: _presenter.iconFor(type),
-                          isSelected: _presenter.isSelected(type),
-                          onTap: () => _presenter.selectType(type),
-                        );
-                      },
-                    ),
-                  ],
-                ],
+                children: tiles,
               );
             }),
             const SizedBox(height: 16),
