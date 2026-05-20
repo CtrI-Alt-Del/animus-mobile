@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/unarchive_analysis_dialog/index.dart';
 
 class ArchivedAnalysisCardView extends StatelessWidget {
   final String title;
@@ -19,29 +20,22 @@ class ArchivedAnalysisCardView extends StatelessWidget {
   });
 
   Future<void> _handleUnarchive(BuildContext context) async {
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Desarquivar analise'),
-          content: Text(
-            'Tem certeza que deseja desarquivar "${title.isEmpty ? 'esta analise' : title}"? Ela voltara a aparecer na sua lista de analises ativas.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Desarquivar'),
-            ),
-          ],
-        );
-      },
-    );
+    final BuildContext dialogHostContext = Navigator.of(
+      context,
+      rootNavigator: true,
+    ).context;
 
-    if (confirmed != true) {
+    final bool confirmed =
+        await showDialog<bool>(
+          context: dialogHostContext,
+          barrierColor: const Color(0x99000000),
+          builder: (_) => UnarchiveAnalysisDialog(
+            analysisName: title.isEmpty ? null : title,
+          ),
+        ) ??
+        false;
+
+    if (!confirmed) {
       return;
     }
 
