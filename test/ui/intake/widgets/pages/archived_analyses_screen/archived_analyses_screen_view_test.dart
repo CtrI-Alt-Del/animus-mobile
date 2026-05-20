@@ -35,7 +35,6 @@ void main() {
   late Signal<String?> nextCursor;
   late Signal<String> searchQuery;
   late ReadonlySignal<bool> hasMore;
-  late ReadonlySignal<List<AnalysisDto>> filteredAnalyses;
   late ReadonlySignal<bool> showEmptyState;
   late ReadonlySignal<bool> showSearchEmptyState;
 
@@ -51,29 +50,19 @@ void main() {
     nextCursor = signal<String?>(null);
     searchQuery = signal<String>('');
     hasMore = computed(() => (nextCursor.value ?? '').trim().isNotEmpty);
-    filteredAnalyses = computed(() {
-      final String query = searchQuery.value.trim().toLowerCase();
-      if (query.isEmpty) {
-        return archivedAnalyses.value;
-      }
-      return archivedAnalyses.value
-          .where(
-            (AnalysisDto analysis) =>
-                analysis.name.toLowerCase().contains(query),
-          )
-          .toList();
-    });
     showEmptyState = computed(
       () =>
           !isLoadingInitialData.value &&
           generalError.value == null &&
+          searchQuery.value.trim().isEmpty &&
           archivedAnalyses.value.isEmpty,
     );
     showSearchEmptyState = computed(
       () =>
+          !isLoadingInitialData.value &&
+          generalError.value == null &&
           searchQuery.value.trim().isNotEmpty &&
-          filteredAnalyses.value.isEmpty &&
-          archivedAnalyses.value.isNotEmpty,
+          archivedAnalyses.value.isEmpty,
     );
 
     when(() => presenter.isLoadingInitialData).thenReturn(isLoadingInitialData);
@@ -86,7 +75,6 @@ void main() {
     when(() => presenter.nextCursor).thenReturn(nextCursor);
     when(() => presenter.searchQuery).thenReturn(searchQuery);
     when(() => presenter.hasMore).thenReturn(hasMore);
-    when(() => presenter.filteredAnalyses).thenReturn(filteredAnalyses);
     when(() => presenter.showEmptyState).thenReturn(showEmptyState);
     when(() => presenter.showSearchEmptyState).thenReturn(showSearchEmptyState);
     when(() => presenter.formatCreatedAt(any())).thenReturn('18/05/2026');
@@ -110,7 +98,6 @@ void main() {
     nextCursor.dispose();
     searchQuery.dispose();
     hasMore.dispose();
-    filteredAnalyses.dispose();
     showEmptyState.dispose();
     showSearchEmptyState.dispose();
   });
@@ -193,9 +180,7 @@ void main() {
   testWidgets('renderiza estado vazio especifico para busca sem resultados', (
     WidgetTester tester,
   ) async {
-    archivedAnalyses.value = <AnalysisDto>[
-      AnalysisDtoFaker.fake(id: 'a-1', name: 'Habeas'),
-    ];
+    archivedAnalyses.value = const <AnalysisDto>[];
     searchQuery.value = 'inexistente';
 
     await tester.pumpWidget(_createWidget(presenter));

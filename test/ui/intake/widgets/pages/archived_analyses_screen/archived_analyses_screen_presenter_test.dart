@@ -29,10 +29,13 @@ void main() {
     when(() => navigationDriver.pushTo(any())).thenAnswer((_) async {});
   });
 
-  ArchivedAnalysesScreenPresenter createPresenter() {
+  ArchivedAnalysesScreenPresenter createPresenter({
+    Duration searchDebounce = Duration.zero,
+  }) {
     return ArchivedAnalysesScreenPresenter(
       intakeService: intakeService,
       navigationDriver: navigationDriver,
+      searchDebounce: searchDebounce,
     );
   }
 
@@ -51,6 +54,7 @@ void main() {
           limit: any(named: 'limit'),
           isArchived: any(named: 'isArchived'),
           cursor: any(named: 'cursor'),
+          search: any(named: 'search'),
         ),
       ).thenAnswer(
         (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
@@ -81,6 +85,7 @@ void main() {
           limit: any(named: 'limit'),
           isArchived: any(named: 'isArchived'),
           cursor: any(named: 'cursor'),
+          search: any(named: 'search'),
         ),
       ).thenAnswer(
         (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
@@ -105,6 +110,7 @@ void main() {
           limit: any(named: 'limit'),
           isArchived: any(named: 'isArchived'),
           cursor: any(named: 'cursor'),
+          search: any(named: 'search'),
         ),
       ).thenAnswer(
         (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
@@ -124,6 +130,7 @@ void main() {
           limit: any(named: 'limit'),
           isArchived: any(named: 'isArchived'),
           cursor: any(named: 'cursor'),
+          search: any(named: 'search'),
         ),
       ).called(1);
     });
@@ -148,6 +155,7 @@ void main() {
           limit: any(named: 'limit'),
           isArchived: any(named: 'isArchived'),
           cursor: any(named: 'cursor'),
+          search: any(named: 'search'),
         ),
       ).thenAnswer((_) async {
         callCount += 1;
@@ -219,7 +227,127 @@ void main() {
   });
 
   group('search', () {
-    test('filtra a lista local por nome case-insensitive', () async {
+    test(
+      'refaz a busca no server quando a query muda e atualiza a lista',
+      () async {
+        final ArchivedAnalysesScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        final List<AnalysisDto> initial = <AnalysisDto>[
+          AnalysisDtoFaker.fake(id: 'a-1', name: 'Habeas Corpus 2024'),
+          AnalysisDtoFaker.fake(id: 'a-2', name: 'Mandado de Seguranca'),
+          AnalysisDtoFaker.fake(id: 'a-3', name: 'Apelacao Civil'),
+        ];
+        final List<AnalysisDto> filtered = <AnalysisDto>[
+          AnalysisDtoFaker.fake(id: 'a-1', name: 'Habeas Corpus 2024'),
+        ];
+
+        when(
+          () => intakeService.listAnalyses(
+            limit: any(named: 'limit'),
+            isArchived: any(named: 'isArchived'),
+            cursor: any(named: 'cursor'),
+            search: '',
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+            statusCode: 200,
+            body: CursorPaginationResponse<AnalysisDto>(
+              items: initial,
+              nextCursor: null,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.listAnalyses(
+            limit: any(named: 'limit'),
+            isArchived: any(named: 'isArchived'),
+            cursor: any(named: 'cursor'),
+            search: 'HABEAS',
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+            statusCode: 200,
+            body: CursorPaginationResponse<AnalysisDto>(
+              items: filtered,
+              nextCursor: null,
+            ),
+          ),
+        );
+
+        await presenter.initialize();
+        expect(presenter.archivedAnalyses.value.length, 3);
+
+        presenter.updateSearchQuery('HABEAS');
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(presenter.archivedAnalyses.value.length, 1);
+        expect(presenter.archivedAnalyses.value.first.id, 'a-1');
+        expect(presenter.showSearchEmptyState.value, isFalse);
+
+        verify(
+          () => intakeService.listAnalyses(
+            limit: any(named: 'limit'),
+            isArchived: any(named: 'isArchived'),
+            cursor: any(named: 'cursor'),
+            search: 'HABEAS',
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'mostra showSearchEmptyState quando o server retorna lista vazia',
+      () async {
+        final ArchivedAnalysesScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        when(
+          () => intakeService.listAnalyses(
+            limit: any(named: 'limit'),
+            isArchived: any(named: 'isArchived'),
+            cursor: any(named: 'cursor'),
+            search: '',
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+            statusCode: 200,
+            body: CursorPaginationResponse<AnalysisDto>(
+              items: <AnalysisDto>[AnalysisDtoFaker.fake(id: 'a-1')],
+              nextCursor: null,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.listAnalyses(
+            limit: any(named: 'limit'),
+            isArchived: any(named: 'isArchived'),
+            cursor: any(named: 'cursor'),
+            search: 'inexistente',
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+            statusCode: 200,
+            body: CursorPaginationResponse<AnalysisDto>(
+              items: const <AnalysisDto>[],
+              nextCursor: null,
+            ),
+          ),
+        );
+
+        await presenter.initialize();
+        presenter.updateSearchQuery('inexistente');
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(presenter.archivedAnalyses.value, isEmpty);
+        expect(presenter.showSearchEmptyState.value, isTrue);
+        expect(presenter.showEmptyState.value, isFalse);
+      },
+    );
+
+    test('clearSearch dispara nova busca sem search', () async {
       final ArchivedAnalysesScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
@@ -228,34 +356,53 @@ void main() {
           limit: any(named: 'limit'),
           isArchived: any(named: 'isArchived'),
           cursor: any(named: 'cursor'),
+          search: '',
         ),
       ).thenAnswer(
         (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
           statusCode: 200,
           body: CursorPaginationResponse<AnalysisDto>(
-            items: <AnalysisDto>[
-              AnalysisDtoFaker.fake(id: 'a-1', name: 'Habeas Corpus 2024'),
-              AnalysisDtoFaker.fake(id: 'a-2', name: 'Mandado de Seguranca'),
-              AnalysisDtoFaker.fake(id: 'a-3', name: 'Apelacao Civil'),
-            ],
+            items: <AnalysisDto>[AnalysisDtoFaker.fake(id: 'a-1')],
+            nextCursor: null,
+          ),
+        ),
+      );
+      when(
+        () => intakeService.listAnalyses(
+          limit: any(named: 'limit'),
+          isArchived: any(named: 'isArchived'),
+          cursor: any(named: 'cursor'),
+          search: 'habeas',
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
+          statusCode: 200,
+          body: CursorPaginationResponse<AnalysisDto>(
+            items: const <AnalysisDto>[],
             nextCursor: null,
           ),
         ),
       );
 
       await presenter.initialize();
-      presenter.updateSearchQuery('HABEAS');
-
-      expect(presenter.filteredAnalyses.value.length, 1);
-      expect(presenter.filteredAnalyses.value.first.id, 'a-1');
-      expect(presenter.showSearchEmptyState.value, isFalse);
-
-      presenter.updateSearchQuery('inexistente');
-      expect(presenter.filteredAnalyses.value, isEmpty);
-      expect(presenter.showSearchEmptyState.value, isTrue);
+      presenter.updateSearchQuery('habeas');
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      expect(presenter.archivedAnalyses.value, isEmpty);
 
       presenter.clearSearch();
-      expect(presenter.filteredAnalyses.value.length, 3);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      expect(presenter.archivedAnalyses.value.length, 1);
+
+      verify(
+        () => intakeService.listAnalyses(
+          limit: any(named: 'limit'),
+          isArchived: any(named: 'isArchived'),
+          cursor: any(named: 'cursor'),
+          search: '',
+        ),
+      ).called(2);
     });
   });
 
@@ -275,6 +422,7 @@ void main() {
           limit: any(named: 'limit'),
           isArchived: any(named: 'isArchived'),
           cursor: any(named: 'cursor'),
+          search: any(named: 'search'),
         ),
       ).thenAnswer(
         (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
@@ -310,6 +458,7 @@ void main() {
           limit: any(named: 'limit'),
           isArchived: any(named: 'isArchived'),
           cursor: any(named: 'cursor'),
+          search: any(named: 'search'),
         ),
       ).thenAnswer(
         (_) async => RestResponse<CursorPaginationResponse<AnalysisDto>>(
