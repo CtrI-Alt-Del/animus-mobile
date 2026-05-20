@@ -130,7 +130,7 @@ void main() {
       expect(presenter.isLoading.value, isFalse);
       expect(
         presenter.generalError.value,
-        'Nao foi possivel carregar esta pasta.',
+        'Não foi possível carregar esta pasta.',
       );
       expect(presenter.folder.value, isNull);
       expect(presenter.analyses.value, isEmpty);
@@ -353,7 +353,7 @@ void main() {
       addTearDown(presenter.dispose);
 
       expect(presenter.formatCreatedAt('2026-05-03T10:00:00Z'), '03/05/2026');
-      expect(presenter.formatCreatedAt('invalida'), 'Data indisponivel');
+      expect(presenter.formatCreatedAt('invalida'), 'Data indisponível');
     });
   });
 }

@@ -551,7 +551,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Relatorio exportado com sucesso.'), findsOneWidget);
+        expect(find.text('Relatório exportado com sucesso.'), findsOneWidget);
       },
     );
 

@@ -14,7 +14,7 @@ class EmptyStateView extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(14),
       child: Text(
-        'Nenhum precedente relevante foi encontrado para esta peticao.',
+        'Nenhum precedente relevante foi encontrado para esta petição.',
         style: textTheme.bodyMedium?.copyWith(
           color: tokens.textSecondary,
           height: 1.35,

@@ -26,7 +26,7 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
     );
     final String synthesis = selectedPrecedent.synthesis.trim();
     final String synthesisText = synthesis.isEmpty
-        ? 'A sintese explicativa ainda nao esta disponivel para este precedente.'
+        ? 'A síntese explicativa ainda não está disponível para este precedente.'
         : synthesis;
 
     return Container(
@@ -117,7 +117,7 @@ class ChosenPrecedentSummaryView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sintese Explicativa',
+            'Síntese Explicativa',
             style: textTheme.titleSmall?.copyWith(
               fontFamily: 'Fraunces',
               fontSize: 18,

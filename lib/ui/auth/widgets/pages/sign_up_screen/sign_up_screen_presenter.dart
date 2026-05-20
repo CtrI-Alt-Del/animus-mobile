@@ -142,25 +142,25 @@ class SignUpScreenPresenter {
       return 'Campo obrigatorio.';
     }
     if (control.hasError(ValidationMessage.email)) {
-      return 'Informe um e-mail valido.';
+      return 'Informe um e-mail válido.';
     }
     if (control.hasError(ValidationMessage.mustMatch)) {
       return 'As senhas precisam ser iguais.';
     }
     if (control.hasError('minLength')) {
-      return 'A senha precisa ter no minimo 8 caracteres.';
+      return 'A senha precisa ter no mínimo 8 caracteres.';
     }
     if (control.hasError('uppercase')) {
-      return 'A senha precisa ter pelo menos 1 letra maiuscula.';
+      return 'A senha precisa ter pelo menos 1 letra maiúscula.';
     }
     if (control.hasError('number')) {
-      return 'A senha precisa ter pelo menos 1 numero.';
+      return 'A senha precisa ter pelo menos 1 número.';
     }
     if (control.hasError('server')) {
       return control.getError('server') as String;
     }
 
-    return 'Campo invalido.';
+    return 'Campo inválido.';
   }
 
   void applyServerFieldErrors(RestResponse<dynamic> response) {
@@ -168,7 +168,7 @@ class SignUpScreenPresenter {
 
     if (response.statusCode == 409) {
       emailControl.setErrors(<String, Object>{
-        'server': 'Este e-mail ja esta em uso.',
+        'server': 'Este e-mail já está em uso.',
       });
       emailControl.markAsTouched();
       return;
@@ -257,7 +257,7 @@ class SignUpScreenPresenter {
       generalError.value = _resolveGeneralError(response);
     } catch (_) {
       generalError.value =
-          'Nao foi possivel continuar com Google agora. Tente novamente.';
+          'Não foi possível continuar com Google agora. Tente novamente.';
     }
 
     isGoogleSubmitting.value = false;
@@ -324,7 +324,7 @@ class SignUpScreenPresenter {
     try {
       return response.errorMessage;
     } catch (_) {
-      return 'Nao foi possivel concluir o cadastro. Tente novamente.';
+      return 'Não foi possível concluir o cadastro. Tente novamente.';
     }
   }
 

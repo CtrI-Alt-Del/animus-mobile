@@ -34,7 +34,7 @@ class ForgotPasswordFormPresenter {
 final Map<String, String Function(Object)> _emailValidationMessages =
     <String, String Function(Object)>{
       ValidationMessage.required: (_) => 'Informe seu e-mail.',
-      ValidationMessage.email: (_) => 'Informe um e-mail valido.',
+      ValidationMessage.email: (_) => 'Informe um e-mail válido.',
     };
 
 final forgotPasswordFormPresenterProvider = Provider.autoDispose

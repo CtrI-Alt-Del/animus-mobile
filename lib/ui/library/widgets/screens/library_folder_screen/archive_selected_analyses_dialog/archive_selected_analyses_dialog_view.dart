@@ -16,8 +16,8 @@ class ArchiveSelectedAnalysesDialogView extends StatelessWidget {
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final String confirmationText = selectedCount == 1
-        ? '1 analise sera arquivada. Ela nao sera excluida permanentemente.'
-        : '$selectedCount analises serao arquivadas. Elas nao serao excluidas permanentemente.';
+        ? '1 análise será arquivada. Ela não será excluída permanentemente.'
+        : '$selectedCount análises serão arquivadas. Elas não serão excluídas permanentemente.';
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -35,7 +35,7 @@ class ArchiveSelectedAnalysesDialogView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Text(
-              'Arquivar analises',
+              'Arquivar análises',
               style: textTheme.titleMedium?.copyWith(
                 color: tokens.textPrimary,
                 fontWeight: FontWeight.w700,

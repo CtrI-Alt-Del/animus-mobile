@@ -78,7 +78,7 @@ class AnalysisHeaderView extends StatelessWidget {
                           border: Border.all(color: tokens.borderSubtle),
                         ),
                         child: Text(
-                          'Analise arquivada',
+                          'Análise arquivada',
                           style: textTheme.labelSmall?.copyWith(
                             color: tokens.textSecondary,
                             fontWeight: FontWeight.w600,

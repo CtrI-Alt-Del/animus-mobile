@@ -227,7 +227,7 @@ void main() {
       await pumpModal(tester, onMove: (_) async => true);
 
       expect(
-        find.text('Nao foi possivel carregar as pastas de destino agora.'),
+        find.text('Não foi possível carregar as pastas de destino agora.'),
         findsOneWidget,
       );
       expect(find.text('Sem pasta'), findsNothing);
@@ -256,9 +256,9 @@ void main() {
       await tester.pump();
 
       expect(
-        tester.getSemantics(find.bySemanticsLabel('Destino, 2 analises')),
+        tester.getSemantics(find.bySemanticsLabel('Destino, 2 análises')),
         matchesSemantics(
-          label: 'Destino, 2 analises',
+          label: 'Destino, 2 análises',
           value: 'Selecionado',
           hint: 'Toque para selecionar este destino',
           isButton: true,
@@ -293,7 +293,7 @@ void main() {
 
       expect(
         find.text(
-          '1 analise sera arquivada. Ela nao sera excluida permanentemente.',
+          '1 análise será arquivada. Ela não será excluída permanentemente.',
         ),
         findsOneWidget,
       );
@@ -306,7 +306,7 @@ void main() {
 
       expect(
         find.text(
-          '2 analises serao arquivadas. Elas nao serao excluidas permanentemente.',
+          '2 análises serão arquivadas. Elas não serão excluídas permanentemente.',
         ),
         findsOneWidget,
       );

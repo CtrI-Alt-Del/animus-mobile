@@ -333,7 +333,7 @@ void main() {
         expect(result, isFalse);
         expect(
           presenter.generalError.value,
-          'Nao foi possivel escolher o precedente agora. Tente novamente.',
+          'Não foi possível escolher o precedente agora. Tente novamente.',
         );
         expect(presenter.selectedPrecedent.value?.isChosen, isFalse);
         expect(presenter.isLoading.value, isFalse);

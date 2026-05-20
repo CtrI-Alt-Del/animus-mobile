@@ -51,7 +51,7 @@ class PrecedentsLimitDialogView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Escolha quantos precedentes a IA deve retornar para esta analise.',
+              'Escolha quantos precedentes a IA deve retornar para esta análise.',
               style: textTheme.bodyMedium?.copyWith(
                 color: const Color(0xFF8E8E93),
                 height: 1.4,

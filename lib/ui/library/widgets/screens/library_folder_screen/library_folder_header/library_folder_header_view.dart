@@ -58,7 +58,7 @@ class LibraryFolderHeaderView extends StatelessWidget {
                   border: Border.all(color: tokens.borderSubtle),
                 ),
                 child: Text(
-                  '$analysisCount analises',
+                  '$analysisCount análises',
                   style: textTheme.bodySmall?.copyWith(
                     color: tokens.textMuted,
                     fontWeight: FontWeight.w600,

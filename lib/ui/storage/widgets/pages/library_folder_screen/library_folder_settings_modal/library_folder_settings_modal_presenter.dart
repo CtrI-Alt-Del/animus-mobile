@@ -37,7 +37,7 @@ class LibraryFolderSettingsModalPresenter {
     isUpdatingName.value = false;
 
     if (!didRename) {
-      errorMessage.value = 'Nao foi possivel atualizar o nome da pasta.';
+      errorMessage.value = 'Não foi possível atualizar o nome da pasta.';
     }
 
     return didRename;
@@ -55,7 +55,7 @@ class LibraryFolderSettingsModalPresenter {
     isArchivingFolder.value = false;
 
     if (!didArchive) {
-      errorMessage.value = 'Nao foi possivel arquivar a pasta.';
+      errorMessage.value = 'Não foi possível arquivar a pasta.';
     }
 
     return didArchive;

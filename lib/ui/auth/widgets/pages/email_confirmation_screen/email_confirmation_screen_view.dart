@@ -80,8 +80,8 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Enviamos um codigo OTP de 6 digitos para $email. '
-                            'Digite o codigo para liberar o acesso ao app.',
+                            'Enviamos um código OTP de 6 dígitos para $email. '
+                            'Digite o código para liberar o acesso ao app.',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Color(0xFF6B6B70),
@@ -112,7 +112,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                 SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Codigo enviado para o e-mail cadastrado. Validade de 1 hora.',
+                                    'Código enviado para o e-mail cadastrado. Validade de 1 hora.',
                                     style: TextStyle(
                                       color: Color(0xFFFAFAF9),
                                       fontSize: 13,
@@ -151,7 +151,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 10),
                           const Text(
-                            'Codigo valido por 1 hora. Se ele expirar, voce pode solicitar um novo envio.',
+                            'Código válido por 1 hora. Se ele expirar, você pode solicitar um novo envio.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Color(0xFF8E8E93),
@@ -253,7 +253,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                 spacing: 4,
                                 children: <Widget>[
                                   const Text(
-                                    'Nao recebeu o codigo?',
+                                    'Não recebeu o código?',
                                     style: TextStyle(
                                       color: Color(0xFF8E8E93),
                                       fontSize: 13,

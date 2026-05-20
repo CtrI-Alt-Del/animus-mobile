@@ -25,7 +25,7 @@ class RecentAnalysesEmptyStateView extends StatelessWidget {
             Icon(Icons.history_toggle_off, color: tokens.textMuted, size: 40),
             const SizedBox(height: 12),
             Text(
-              'Nenhuma analise ainda. Que tal comecar agora?',
+              'Nenhuma análise ainda. Que tal começar agora?',
               textAlign: TextAlign.center,
               style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
             ),
@@ -33,7 +33,7 @@ class RecentAnalysesEmptyStateView extends StatelessWidget {
             FilledButton.icon(
               onPressed: onCreateFirstAnalysis,
               icon: const Icon(Icons.add),
-              label: const Text('Iniciar primeira analise'),
+              label: const Text('Iniciar primeira análise'),
             ),
           ],
         ),

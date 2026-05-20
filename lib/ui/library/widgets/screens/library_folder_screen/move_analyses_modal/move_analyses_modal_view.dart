@@ -54,7 +54,7 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
 
     setState(() {
       _submitError =
-          'Nao foi possivel mover as analises selecionadas agora. Tente novamente.';
+          'Não foi possível mover as análises selecionadas agora. Tente novamente.';
       _isSubmitting = false;
     });
   }
@@ -100,7 +100,7 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Text(
-                'Mover analises',
+                'Mover análises',
                 style: textTheme.titleMedium?.copyWith(
                   color: tokens.textPrimary,
                   fontWeight: FontWeight.w700,
@@ -108,7 +108,7 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
               ),
               const SizedBox(height: 8),
               Text(
-                '${widget.selectedCount} analise${widget.selectedCount == 1 ? '' : 's'} selecionada${widget.selectedCount == 1 ? '' : 's'}',
+                '${widget.selectedCount} análise${widget.selectedCount == 1 ? '' : 's'} selecionada${widget.selectedCount == 1 ? '' : 's'}',
                 style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
               ),
               const SizedBox(height: 20),
@@ -139,7 +139,7 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text(
-                    'Crie uma pasta antes de mover analises de Sem pasta.',
+                    'Crie uma pasta antes de mover análises de Sem pasta.',
                     textAlign: TextAlign.center,
                     style: textTheme.bodySmall?.copyWith(
                       color: tokens.textMuted,
@@ -169,7 +169,7 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
                             padding: const EdgeInsets.only(bottom: 10),
                             child: _DestinationTile(
                               title: folder.name,
-                              subtitle: '${folder.analysisCount} analises',
+                              subtitle: '${folder.analysisCount} análises',
                               value: folder.id,
                               isSelected:
                                   hasSelectedDestination &&
@@ -243,7 +243,7 @@ class _DestinationTile extends StatelessWidget {
       button: true,
       selected: isSelected,
       label: '$title, $subtitle',
-      value: isSelected ? 'Selecionado' : 'Nao selecionado',
+      value: isSelected ? 'Selecionado' : 'Não selecionado',
       hint: 'Toque para selecionar este destino',
       child: Material(
         color: Colors.transparent,

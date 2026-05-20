@@ -149,7 +149,7 @@ class _CaseSummaryCardViewState extends State<CaseSummaryCardView> {
                             ),
                           ),
                           SummaryListSection(
-                            title: 'Questoes processuais',
+                            title: 'Questões processuais',
                             items: _buildListItems(
                               widget.summary.proceduralIssues,
                             ),

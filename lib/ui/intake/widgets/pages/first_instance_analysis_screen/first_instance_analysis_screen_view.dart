@@ -267,7 +267,7 @@ class _FirstInstanceAnalysisScreenViewState
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
-          content: Text('Relatorio exportado com sucesso.'),
+          content: Text('Relatório exportado com sucesso.'),
           duration: Duration(seconds: 2),
         ),
       );

@@ -36,9 +36,9 @@ class FirstInstanceAnalysisScreenPresenter {
   static const Duration summaryPollingInterval = Duration(seconds: 3);
   static const Duration summaryRequestTimeout = Duration(seconds: 10);
   static const String failedMessage =
-      'Nao foi possivel analisar o documento agora. Tente novamente.';
+      'Não foi possível analisar o documento agora. Tente novamente.';
   static const String exportFailedMessage =
-      'Nao foi possivel exportar o relatorio agora. Tente novamente.';
+      'Não foi possível exportar o relatório agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
@@ -262,7 +262,7 @@ class FirstInstanceAnalysisScreenPresenter {
 
     final int fileSize = await file.length();
     if (fileSize > maxFileSizeInBytes) {
-      generalError.value = 'O arquivo deve ter no maximo 50MB.';
+      generalError.value = 'O arquivo deve ter no máximo 50MB.';
       return;
     }
 
@@ -452,7 +452,7 @@ class FirstInstanceAnalysisScreenPresenter {
 
   String _buildReportFilename(String rawAnalysisName) {
     final String normalizedName = rawAnalysisName.trim();
-    final String fallbackName = 'Analise-$analysisId';
+    final String fallbackName = 'Análise-$analysisId';
     final String baseName = normalizedName.isEmpty
         ? fallbackName
         : normalizedName;
@@ -464,7 +464,7 @@ class FirstInstanceAnalysisScreenPresenter {
         ? fallbackName
         : sanitizedName;
 
-    return '$safeName — Relatorio.pdf';
+    return '$safeName — Relatório.pdf';
   }
 
   void setPrecedentsLimit(int value) {

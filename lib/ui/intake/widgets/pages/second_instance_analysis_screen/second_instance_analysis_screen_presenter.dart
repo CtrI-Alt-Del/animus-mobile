@@ -25,7 +25,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   static const Duration pollingInterval = Duration(seconds: 3);
   static const Duration requestTimeout = Duration(seconds: 10);
   static const String failedMessage =
-      'Nao foi possivel concluir esta etapa agora. Tente novamente.';
+      'Não foi possível concluir esta etapa agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
@@ -224,7 +224,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
     final int fileSize = await file.length();
     if (fileSize > maxFileSizeInBytes) {
-      generalError.value = 'O arquivo deve ter no maximo 50MB.';
+      generalError.value = 'O arquivo deve ter no máximo 50MB.';
       return;
     }
 
@@ -631,7 +631,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 
   String _buildTimeoutMessage() {
-    return '$failedMessage A requisicao excedeu o tempo limite de ${requestTimeout.inSeconds} segundos.';
+    return '$failedMessage A requisição excedeu o tempo limite de ${requestTimeout.inSeconds} segundos.';
   }
 
   String _getExtension(String path) {
