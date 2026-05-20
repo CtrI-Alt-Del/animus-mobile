@@ -21,6 +21,7 @@ abstract class IntakeService {
     String? cursor,
     required int limit,
     bool isArchived = false,
+    String search = '',
   });
 
   Future<RestResponse<AnalysisDto>> createAnalysis({
