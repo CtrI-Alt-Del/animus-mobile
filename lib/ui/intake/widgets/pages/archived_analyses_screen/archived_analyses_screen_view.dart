@@ -52,7 +52,7 @@ class ArchivedAnalysesScreenView extends ConsumerWidget {
                         ),
                         Expanded(
                           child: Text(
-                            'Analises arquivadas',
+                            'Análises arquivadas',
                             textAlign: TextAlign.center,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -114,7 +114,7 @@ class ArchivedAnalysesScreenView extends ConsumerWidget {
 
                       if (showEmpty) {
                         return const ArchivedAnalysesEmptyState(
-                          message: 'Voce ainda nao tem analises arquivadas.',
+                          message: 'Você ainda não tem análises arquivadas.',
                         );
                       }
 
@@ -122,7 +122,7 @@ class ArchivedAnalysesScreenView extends ConsumerWidget {
                         return ArchivedAnalysesEmptyState(
                           icon: Icons.search_off,
                           message:
-                              'Nenhuma analise encontrada para "${searchQuery.trim()}".',
+                              'Nenhuma análise encontrada para "${searchQuery.trim()}".',
                         );
                       }
 
@@ -151,8 +151,8 @@ class ArchivedAnalysesScreenView extends ConsumerWidget {
                             SnackBar(
                               content: Text(
                                 succeeded
-                                    ? 'Analise desarquivada com sucesso.'
-                                    : 'Nao foi possivel desarquivar a analise agora. Tente novamente.',
+                                    ? 'Análise desarquivada com sucesso.'
+                                    : 'Não foi possível desarquivar a análise agora. Tente novamente.',
                               ),
                             ),
                           );

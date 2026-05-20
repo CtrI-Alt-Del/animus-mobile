@@ -587,7 +587,7 @@ void main() {
       final ArchivedAnalysesScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      expect(presenter.formatCreatedAt('invalid'), 'Data indisponivel');
+      expect(presenter.formatCreatedAt('invalid'), 'Data indisponível');
     });
   });
 }

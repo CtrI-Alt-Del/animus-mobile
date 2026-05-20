@@ -73,7 +73,7 @@ class ArchivedAnalysesListView extends StatelessWidget {
                   final AnalysisDto analysis = analyses[index];
                   final String analysisId = (analysis.id ?? '').trim();
                   final String title = analysis.name.trim().isEmpty
-                      ? 'Analise sem nome'
+                      ? 'Análise sem nome'
                       : analysis.name;
 
                   return ArchivedAnalysisCard(

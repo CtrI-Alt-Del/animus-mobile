@@ -53,7 +53,7 @@ class ProfileSettingsGroupView extends StatelessWidget {
           ),
           const ProfileDivider(color: _profileSettingsDividerColor),
           ProfileSettingsTile(
-            title: 'Analises arquivadas',
+            title: 'Análises arquivadas',
             icon: Icons.inventory_2_outlined,
             iconColor: tokens.accent,
             onTap: onArchivedAnalysesTap,

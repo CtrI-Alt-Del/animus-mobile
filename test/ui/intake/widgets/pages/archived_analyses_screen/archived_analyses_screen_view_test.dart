@@ -111,7 +111,7 @@ void main() {
     await tester.pump();
 
     expect(find.byType(ArchivedAnalysesLoadingState), findsOneWidget);
-    expect(find.text('Analises arquivadas'), findsOneWidget);
+    expect(find.text('Análises arquivadas'), findsOneWidget);
   });
 
   testWidgets('renderiza estado de erro e dispara refresh', (
@@ -138,7 +138,7 @@ void main() {
 
     expect(find.byType(ArchivedAnalysesEmptyState), findsOneWidget);
     expect(
-      find.text('Voce ainda nao tem analises arquivadas.'),
+      find.text('Você ainda não tem análises arquivadas.'),
       findsOneWidget,
     );
   });
@@ -188,7 +188,7 @@ void main() {
 
     expect(find.byType(ArchivedAnalysesEmptyState), findsOneWidget);
     expect(
-      find.text('Nenhuma analise encontrada para "inexistente".'),
+      find.text('Nenhuma análise encontrada para "inexistente".'),
       findsOneWidget,
     );
   });

@@ -75,7 +75,7 @@ void main() {
     expect(find.text('ada@example.com'), findsOneWidget);
     expect(find.text('Editar Nome'), findsOneWidget);
     expect(find.text('Alterar Senha'), findsOneWidget);
-    expect(find.text('Analises arquivadas'), findsOneWidget);
+    expect(find.text('Análises arquivadas'), findsOneWidget);
     expect(find.text('Tema'), findsOneWidget);
     expect(find.text('Sobre o App'), findsOneWidget);
     expect(find.text('v1.0.0'), findsOneWidget);
@@ -93,8 +93,8 @@ void main() {
       await tester.pump();
       clearInteractions(presenter);
 
-      await tester.ensureVisible(find.text('Analises arquivadas'));
-      await tester.tap(find.text('Analises arquivadas'));
+      await tester.ensureVisible(find.text('Análises arquivadas'));
+      await tester.tap(find.text('Análises arquivadas'));
       await tester.pump();
 
       verify(() => presenter.goToArchivedAnalyses()).called(1);

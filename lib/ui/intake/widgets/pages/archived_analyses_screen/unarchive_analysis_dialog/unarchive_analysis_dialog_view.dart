@@ -10,9 +10,9 @@ class UnarchiveAnalysisDialogView extends StatelessWidget {
   String _bodyText() {
     final String trimmed = (analysisName ?? '').trim();
     if (trimmed.isEmpty) {
-      return 'Ela voltara a aparecer na sua lista de analises ativas.';
+      return 'Ela voltará a aparecer na sua lista de análises ativas.';
     }
-    return '"$trimmed" voltara a aparecer na sua lista de analises ativas.';
+    return '"$trimmed" voltará a aparecer na sua lista de análises ativas.';
   }
 
   @override
@@ -37,7 +37,7 @@ class UnarchiveAnalysisDialogView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Text(
-              'Desarquivar analise',
+              'Desarquivar análise',
               style: textTheme.titleMedium?.copyWith(
                 color: tokens.textPrimary,
                 fontWeight: FontWeight.w700,

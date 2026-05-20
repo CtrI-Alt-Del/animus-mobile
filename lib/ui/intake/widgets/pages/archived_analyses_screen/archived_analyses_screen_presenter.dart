@@ -102,7 +102,7 @@ class ArchivedAnalysesScreenPresenter {
       paginationError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel carregar mais analises arquivadas agora. Role para tentar novamente.',
+            'Não foi possível carregar mais análises arquivadas agora. Role para tentar novamente.',
       );
       isLoadingMore.value = false;
       return;
@@ -181,7 +181,7 @@ class ArchivedAnalysesScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel carregar as analises arquivadas agora. Tente novamente.',
+            'Não foi possível carregar as análises arquivadas agora. Tente novamente.',
       );
       archivedAnalyses.value = const <AnalysisDto>[];
       nextCursor.value = null;
@@ -253,7 +253,7 @@ class ArchivedAnalysesScreenPresenter {
   String formatCreatedAt(String value) {
     final DateTime? parsedDate = DateTime.tryParse(value);
     if (parsedDate == null) {
-      return 'Data indisponivel';
+      return 'Data indisponível';
     }
 
     final String day = parsedDate.day.toString().padLeft(2, '0');
