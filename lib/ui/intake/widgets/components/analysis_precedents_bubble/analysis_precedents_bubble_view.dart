@@ -7,7 +7,9 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/chosen_precedents_summary/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/content_state/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/empty_state/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/error_state/index.dart';
@@ -49,6 +51,9 @@ class AnalysisPrecedentsBubbleView extends ConsumerWidget {
       final int totalCount = presenter.totalCount.watch(context);
       final String loadingMessage = presenter.loadingMessage.watch(context);
       final bool showEmptyState = presenter.showEmptyState.watch(context);
+      final List<AnalysisPrecedentDto> chosenPrecedents = presenter
+          .chosenPrecedents
+          .watch(context);
 
       if (!isLoading &&
           generalError == null &&
@@ -116,6 +121,26 @@ class AnalysisPrecedentsBubbleView extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          TextButton.icon(
+                            onPressed: () async {
+                              final bool? didAddPrecedent =
+                                  await showDialog<bool>(
+                                    context: context,
+                                    builder: (_) => AddPrecedentDialog(
+                                      analysisId: analysisId,
+                                    ),
+                                  );
+
+                              if (didAddPrecedent != true) {
+                                return;
+                              }
+
+                              await presenter.reloadPrecedents();
+                            },
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('Adicionar precedente'),
+                          ),
+                          const SizedBox(width: 8),
                           if (!isLoading && generalError == null)
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -153,9 +178,23 @@ class AnalysisPrecedentsBubbleView extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
+                          if (chosenPrecedents.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                              child: ChosenPrecedentsSummary(
+                                analysisId: analysisId,
+                                precedents: chosenPrecedents,
+                                onPrecedentTap:
+                                    (AnalysisPrecedentDto precedent) {
+                                      presenter.focusPrecedent(precedent);
+                                      onPrecedentTap?.call(precedent);
+                                    },
+                              ),
+                            ),
                           ContentState(
                             precedents: precedents,
                             onTap: (AnalysisPrecedentDto precedent) {
+                              presenter.focusPrecedent(precedent);
                               onPrecedentTap?.call(precedent);
                             },
                           ),

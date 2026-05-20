@@ -6,6 +6,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
@@ -48,6 +49,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   final Signal<String> analysisName = signal<String>('Nova Análise');
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
   final Signal<bool> precedentsReady = signal<bool>(false);
+  final Signal<bool> hasChosenPrecedents = signal<bool>(false);
 
   late final ReadonlySignal<bool> canPickDocument = computed(() {
     final AnalysisStatusDto currentStatus = status.value;
@@ -88,6 +90,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
         precedentsReady.value &&
+        hasChosenPrecedents.value &&
         status.value != AnalysisStatusDto.generatingJudgmentDraft &&
         status.value != AnalysisStatusDto.generatingSynthesis;
   });
@@ -374,6 +377,10 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     precedentsReady.value = true;
   }
 
+  void syncChosenPrecedents(List<AnalysisPrecedentDto> precedents) {
+    hasChosenPrecedents.value = precedents.isNotEmpty;
+  }
+
   String fileName(File file) {
     if (file.uri.pathSegments.isNotEmpty) {
       return file.uri.pathSegments.last;
@@ -408,6 +415,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     analysisName.dispose();
     isManagingAnalysis.dispose();
     precedentsReady.dispose();
+    hasChosenPrecedents.dispose();
     canPickDocument.dispose();
     canAnalyzeCase.dispose();
     canRegenerateSummary.dispose();

@@ -9,6 +9,7 @@ import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/judgment_draft_dto.dart';
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
@@ -112,8 +113,17 @@ abstract class IntakeService {
     required PrecedentIdentifierDto identifier,
   });
 
+  Future<RestResponse<PrecedentDto>> getPrecedent({
+    required PrecedentIdentifierDto identifier,
+  });
+
+  Future<RestResponse<AnalysisPrecedentDto>> addAnalysisPrecedent({
+    required String analysisId,
+    required PrecedentIdentifierDto identifier,
+  });
+
   Future<RestResponse<AnalysisStatusDto>> unchooseAnalysisPrecedent({
     required String analysisId,
     required PrecedentIdentifierDto identifier,
-  }) => throw UnimplementedError();
+  });
 }

@@ -118,6 +118,8 @@ class _SecondInstanceAnalysisScreenViewState
             widget.analysisId,
           ),
         );
+    final AnalysisPrecedentsBubblePresenter precedentsBubblePresenter = ref
+        .watch(analysisPrecedentsBubblePresenterProvider(widget.analysisId));
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
@@ -356,6 +358,26 @@ class _SecondInstanceAnalysisScreenViewState
                               ],
                               if (showPrecedents) ...<Widget>[
                                 const SizedBox(height: 12),
+                                Watch((BuildContext context) {
+                                  final List<AnalysisPrecedentDto>
+                                  chosenPrecedents = precedentsBubblePresenter
+                                      .chosenPrecedents
+                                      .watch(context);
+
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) {
+                                    if (!mounted) {
+                                      return;
+                                    }
+
+                                    presenter.syncChosenPrecedents(
+                                      chosenPrecedents,
+                                    );
+                                  });
+
+                                  return const SizedBox.shrink();
+                                }),
                                 _animatedEntry(
                                   AnalysisPrecedentsBubble(
                                     analysisId: widget.analysisId,
@@ -438,7 +460,8 @@ class _SecondInstanceAnalysisScreenViewState
                           canSearch ||
                           canAnalyze ||
                           canPick;
-                      final precedentsPresenter = ref.read(
+                      final AnalysisPrecedentsBubblePresenter
+                      precedentsPresenter = ref.read(
                         analysisPrecedentsBubblePresenterProvider(
                           widget.analysisId,
                         ),
@@ -473,12 +496,6 @@ class _SecondInstanceAnalysisScreenViewState
                                 }
 
                                 if (status == AnalysisStatusDto.failed) {
-                                  if (presenter.precedentsReady.value) {
-                                    unawaited(presenter.requestJudgmentDraft());
-                                    _scheduleJumpToBottom();
-                                    return;
-                                  }
-
                                   if (summary != null) {
                                     presenter.markPrecedentsReady();
                                     presenter.status.value =
