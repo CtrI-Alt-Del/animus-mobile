@@ -38,6 +38,10 @@ class HomeScreenView extends ConsumerWidget {
         return;
       }
 
+      if (!dialogContext.mounted) {
+        return;
+      }
+
       await presenter.createAnalysis(type: selectedType);
     }
 
@@ -56,7 +60,9 @@ class HomeScreenView extends ConsumerWidget {
           isLoading: isCreatingAnalysis,
           onPressed: isLoadingInitialData
               ? null
-              : () => handleCreateAnalysis(context),
+              : () {
+                  unawaited(handleCreateAnalysis(context));
+                },
         );
       }),
       body: SafeArea(
