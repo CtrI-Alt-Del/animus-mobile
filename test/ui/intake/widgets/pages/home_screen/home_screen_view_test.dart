@@ -68,7 +68,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
 
-      expect(find.text('Nova analise'), findsOneWidget);
+      expect(find.text('Nova análise'), findsOneWidget);
       expect(find.text('Cancelar'), findsOneWidget);
       expect(find.text('Criar'), findsOneWidget);
 

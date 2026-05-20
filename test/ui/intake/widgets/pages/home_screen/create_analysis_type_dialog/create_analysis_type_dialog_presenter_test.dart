@@ -94,15 +94,15 @@ void main() {
 
       expect(
         presenter.titleFor(AnalysisTypeDto.caseAssessment),
-        'Avaliacao de caso',
+        'Avaliação de caso',
       );
       expect(
         presenter.titleFor(AnalysisTypeDto.firstInstance),
-        'Primeira instancia',
+        'Primeira instância',
       );
       expect(
         presenter.titleFor(AnalysisTypeDto.secondInstance),
-        'Segunda instancia',
+        'Segunda instância',
       );
     });
 
@@ -113,15 +113,15 @@ void main() {
 
       expect(
         presenter.descriptionFor(AnalysisTypeDto.caseAssessment),
-        'Diagnostico inicial do caso',
+        'Diagnóstico inicial do caso',
       );
       expect(
         presenter.descriptionFor(AnalysisTypeDto.firstInstance),
-        'Resposta a peticao inicial',
+        'Resposta à petição inicial',
       );
       expect(
         presenter.descriptionFor(AnalysisTypeDto.secondInstance),
-        'Revisao de decisao em grau de recurso',
+        'Revisão de decisão em grau de recurso',
       );
     });
 

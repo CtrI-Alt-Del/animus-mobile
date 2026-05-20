@@ -9,8 +9,8 @@ void main() {
     (WidgetTester tester) async {
       await tester.pumpWidget(_createWidget(isSelected: false, onTap: () {}));
 
-      expect(find.text('Primeira instancia'), findsOneWidget);
-      expect(find.text('Resposta a peticao inicial'), findsOneWidget);
+      expect(find.text('Primeira instância'), findsOneWidget);
+      expect(find.text('Resposta à petição inicial'), findsOneWidget);
       expect(find.byIcon(Icons.gavel_outlined), findsOneWidget);
       expect(find.byIcon(Icons.radio_button_unchecked), findsOneWidget);
       expect(find.byIcon(Icons.radio_button_checked), findsNothing);
@@ -47,19 +47,19 @@ void main() {
     final Iterable<Semantics> semanticsWidgets = tester
         .widgetList<Semantics>(
           find.ancestor(
-            of: find.text('Primeira instancia'),
+            of: find.text('Primeira instância'),
             matching: find.byType(Semantics),
           ),
         )
         .where(
-          (Semantics widget) => widget.properties.label == 'Primeira instancia',
+          (Semantics widget) => widget.properties.label == 'Primeira instância',
         );
 
     expect(semanticsWidgets, isNotEmpty);
     final Semantics semantics = semanticsWidgets.first;
     expect(semantics.properties.selected, isTrue);
     expect(semantics.properties.button, isTrue);
-    expect(semantics.properties.label, 'Primeira instancia');
+    expect(semantics.properties.label, 'Primeira instância');
   });
 }
 
@@ -68,8 +68,8 @@ Widget _createWidget({required bool isSelected, required VoidCallback onTap}) {
     theme: AppTheme.dark,
     home: Scaffold(
       body: CreateAnalysisTypeOptionView(
-        title: 'Primeira instancia',
-        description: 'Resposta a peticao inicial',
+        title: 'Primeira instância',
+        description: 'Resposta à petição inicial',
         icon: Icons.gavel_outlined,
         isSelected: isSelected,
         onTap: onTap,

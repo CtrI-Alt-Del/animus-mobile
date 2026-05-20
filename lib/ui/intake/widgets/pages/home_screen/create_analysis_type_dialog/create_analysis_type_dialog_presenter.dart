@@ -34,22 +34,22 @@ final class CreateAnalysisTypeDialogPresenter {
   String titleFor(AnalysisTypeDto type) {
     switch (type) {
       case AnalysisTypeDto.caseAssessment:
-        return 'Avaliacao de caso';
+        return 'Avaliação de caso';
       case AnalysisTypeDto.firstInstance:
-        return 'Primeira instancia';
+        return 'Primeira instância';
       case AnalysisTypeDto.secondInstance:
-        return 'Segunda instancia';
+        return 'Segunda instância';
     }
   }
 
   String descriptionFor(AnalysisTypeDto type) {
     switch (type) {
       case AnalysisTypeDto.caseAssessment:
-        return 'Diagnostico inicial do caso';
+        return 'Diagnóstico inicial do caso';
       case AnalysisTypeDto.firstInstance:
-        return 'Resposta a peticao inicial';
+        return 'Resposta à petição inicial';
       case AnalysisTypeDto.secondInstance:
-        return 'Revisao de decisao em grau de recurso';
+        return 'Revisão de decisão em grau de recurso';
     }
   }
 

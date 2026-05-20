@@ -59,7 +59,7 @@ class _CreateAnalysisTypeDialogViewState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Text(
-              'Nova analise',
+              'Nova análise',
               style: textTheme.titleMedium?.copyWith(
                 color: tokens.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -67,7 +67,7 @@ class _CreateAnalysisTypeDialogViewState
             ),
             const SizedBox(height: 8),
             Text(
-              'Escolha o tipo da analise.',
+              'Escolha o tipo da análise.',
               style: textTheme.bodySmall?.copyWith(
                 color: tokens.textMuted,
                 height: 1.4,

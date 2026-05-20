@@ -16,12 +16,12 @@ void main() {
     await tester.tap(find.text('Abrir dialog'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Nova analise'), findsOneWidget);
-    expect(find.text('Escolha o tipo da analise.'), findsOneWidget);
+    expect(find.text('Nova análise'), findsOneWidget);
+    expect(find.text('Escolha o tipo da análise.'), findsOneWidget);
 
-    expect(find.text('Avaliacao de caso'), findsOneWidget);
-    expect(find.text('Primeira instancia'), findsOneWidget);
-    expect(find.text('Segunda instancia'), findsOneWidget);
+    expect(find.text('Avaliação de caso'), findsOneWidget);
+    expect(find.text('Primeira instância'), findsOneWidget);
+    expect(find.text('Segunda instância'), findsOneWidget);
 
     expect(find.byType(CreateAnalysisTypeOptionView), findsNWidgets(3));
 
@@ -45,7 +45,7 @@ void main() {
       final CreateAnalysisTypeOptionView firstInstanceOption = tester
           .widget<CreateAnalysisTypeOptionView>(
             find.ancestor(
-              of: find.text('Primeira instancia'),
+              of: find.text('Primeira instância'),
               matching: find.byType(CreateAnalysisTypeOptionView),
             ),
           );
@@ -70,7 +70,7 @@ void main() {
     final CreateAnalysisTypeOptionView secondInstanceOption = tester
         .widget<CreateAnalysisTypeOptionView>(
           find.ancestor(
-            of: find.text('Segunda instancia'),
+            of: find.text('Segunda instância'),
             matching: find.byType(CreateAnalysisTypeOptionView),
           ),
         );
@@ -87,13 +87,13 @@ void main() {
     await tester.tap(find.text('Abrir dialog'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Avaliacao de caso'));
+    await tester.tap(find.text('Avaliação de caso'));
     await tester.pumpAndSettle();
 
     final CreateAnalysisTypeOptionView caseAssessmentOption = tester
         .widget<CreateAnalysisTypeOptionView>(
           find.ancestor(
-            of: find.text('Avaliacao de caso'),
+            of: find.text('Avaliação de caso'),
             matching: find.byType(CreateAnalysisTypeOptionView),
           ),
         );
@@ -102,7 +102,7 @@ void main() {
     final CreateAnalysisTypeOptionView firstInstanceOption = tester
         .widget<CreateAnalysisTypeOptionView>(
           find.ancestor(
-            of: find.text('Primeira instancia'),
+            of: find.text('Primeira instância'),
             matching: find.byType(CreateAnalysisTypeOptionView),
           ),
         );
@@ -154,7 +154,7 @@ void main() {
     await tester.tap(find.text('Abrir dialog'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Segunda instancia'));
+    await tester.tap(find.text('Segunda instância'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Criar'));
