@@ -91,9 +91,6 @@ class ArchivedAnalysesScreenView extends ConsumerWidget {
                       final List<AnalysisDto> analyses = presenter
                           .archivedAnalyses
                           .watch(context);
-                      final List<AnalysisDto> filtered = presenter
-                          .filteredAnalyses
-                          .watch(context);
                       final bool showEmpty = presenter.showEmptyState.watch(
                         context,
                       );
@@ -130,7 +127,7 @@ class ArchivedAnalysesScreenView extends ConsumerWidget {
                       }
 
                       return ArchivedAnalysesList(
-                        analyses: filtered,
+                        analyses: analyses,
                         isLoading: isLoading,
                         isLoadingMore: isLoadingMore,
                         hasMore: hasMore,

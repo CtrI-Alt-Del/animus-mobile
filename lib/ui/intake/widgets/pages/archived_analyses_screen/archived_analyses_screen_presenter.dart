@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,9 +15,14 @@ import 'package:animus/rest/services/index.dart';
 
 class ArchivedAnalysesScreenPresenter {
   static const int _pageSize = 10;
+  static const Duration _defaultSearchDebounce = Duration(milliseconds: 300);
 
   final IntakeService _intakeService;
   final NavigationDriver _navigationDriver;
+  final Duration _searchDebounce;
+
+  Timer? _searchDebounceTimer;
+  int _activeSearchToken = 0;
 
   final Signal<bool> isLoadingInitialData = signal<bool>(false);
   final Signal<bool> isLoadingMore = signal<bool>(false);
@@ -37,66 +43,33 @@ class ArchivedAnalysesScreenPresenter {
     return cursor != null && cursor.trim().isNotEmpty;
   });
 
-  late final ReadonlySignal<List<AnalysisDto>> filteredAnalyses = computed(() {
-    final String query = searchQuery.value.trim().toLowerCase();
-    final List<AnalysisDto> source = archivedAnalyses.value;
-    if (query.isEmpty) {
-      return source;
-    }
-
-    return source
-        .where(
-          (AnalysisDto analysis) => analysis.name.toLowerCase().contains(query),
-        )
-        .toList(growable: false);
-  });
-
   late final ReadonlySignal<bool> showEmptyState = computed(() {
     return !isLoadingInitialData.value &&
         generalError.value == null &&
+        searchQuery.value.trim().isEmpty &&
         archivedAnalyses.value.isEmpty;
   });
 
   late final ReadonlySignal<bool> showSearchEmptyState = computed(() {
-    return searchQuery.value.trim().isNotEmpty &&
-        filteredAnalyses.value.isEmpty &&
-        archivedAnalyses.value.isNotEmpty;
+    return !isLoadingInitialData.value &&
+        generalError.value == null &&
+        searchQuery.value.trim().isNotEmpty &&
+        archivedAnalyses.value.isEmpty;
   });
 
   ArchivedAnalysesScreenPresenter({
     required IntakeService intakeService,
     required NavigationDriver navigationDriver,
+    Duration? searchDebounce,
   }) : _intakeService = intakeService,
-       _navigationDriver = navigationDriver;
+       _navigationDriver = navigationDriver,
+       _searchDebounce = searchDebounce ?? _defaultSearchDebounce;
 
   Future<void> initialize() async {
     if (isLoadingInitialData.value || _didCompleteInitialLoad) {
       return;
     }
-
-    isLoadingInitialData.value = true;
-    generalError.value = null;
-    paginationError.value = null;
-
-    final RestResponse<CursorPaginationResponse<AnalysisDto>> response =
-        await _intakeService.listAnalyses(limit: _pageSize, isArchived: true);
-
-    if (response.isFailure) {
-      generalError.value = _resolveErrorMessage(
-        response,
-        fallback:
-            'Nao foi possivel carregar as analises arquivadas agora. Tente novamente.',
-      );
-      isLoadingInitialData.value = false;
-      return;
-    }
-
-    final CursorPaginationResponse<AnalysisDto> pagination = response.body;
-    archivedAnalyses.value = List<AnalysisDto>.unmodifiable(pagination.items);
-    nextCursor.value = pagination.nextCursor;
-    generalError.value = null;
-    _didCompleteInitialLoad = true;
-    isLoadingInitialData.value = false;
+    await _fetchFirstPage();
   }
 
   Future<void> loadNextPage() async {
@@ -109,6 +82,7 @@ class ArchivedAnalysesScreenPresenter {
       return;
     }
 
+    final int token = ++_activeSearchToken;
     isLoadingMore.value = true;
     paginationError.value = null;
 
@@ -117,7 +91,12 @@ class ArchivedAnalysesScreenPresenter {
           cursor: cursor,
           limit: _pageSize,
           isArchived: true,
+          search: searchQuery.value.trim(),
         );
+
+    if (token != _activeSearchToken) {
+      return;
+    }
 
     if (response.isFailure) {
       paginationError.value = _resolveErrorMessage(
@@ -130,10 +109,16 @@ class ArchivedAnalysesScreenPresenter {
     }
 
     final CursorPaginationResponse<AnalysisDto> pagination = response.body;
-    archivedAnalyses.value = List<AnalysisDto>.unmodifiable(<AnalysisDto>[
+    final Set<String> existingIds = <String>{
+      for (final AnalysisDto current in archivedAnalyses.value)
+        (current.id ?? '').trim(),
+    };
+    final List<AnalysisDto> deduped = <AnalysisDto>[
       ...archivedAnalyses.value,
-      ...pagination.items,
-    ]);
+      for (final AnalysisDto item in pagination.items)
+        if (!existingIds.contains((item.id ?? '').trim())) item,
+    ];
+    archivedAnalyses.value = List<AnalysisDto>.unmodifiable(deduped);
     nextCursor.value = pagination.nextCursor;
     paginationError.value = null;
     isLoadingMore.value = false;
@@ -143,17 +128,17 @@ class ArchivedAnalysesScreenPresenter {
     if (isLoadingInitialData.value || isLoadingMore.value) {
       return;
     }
-
+    _searchDebounceTimer?.cancel();
     _didCompleteInitialLoad = false;
-    archivedAnalyses.value = const <AnalysisDto>[];
-    nextCursor.value = null;
-    generalError.value = null;
-    paginationError.value = null;
-    await initialize();
+    await _fetchFirstPage();
   }
 
   void updateSearchQuery(String value) {
+    if (searchQuery.value == value) {
+      return;
+    }
     searchQuery.value = value;
+    _scheduleSearchFetch();
   }
 
   void clearSearch() {
@@ -161,6 +146,55 @@ class ArchivedAnalysesScreenPresenter {
       return;
     }
     searchQuery.value = '';
+    _scheduleSearchFetch();
+  }
+
+  void _scheduleSearchFetch() {
+    _searchDebounceTimer?.cancel();
+    if (_searchDebounce == Duration.zero) {
+      unawaited(_fetchFirstPage());
+      return;
+    }
+    _searchDebounceTimer = Timer(_searchDebounce, () {
+      unawaited(_fetchFirstPage());
+    });
+  }
+
+  Future<void> _fetchFirstPage() async {
+    final int token = ++_activeSearchToken;
+    isLoadingInitialData.value = true;
+    generalError.value = null;
+    paginationError.value = null;
+
+    final RestResponse<CursorPaginationResponse<AnalysisDto>> response =
+        await _intakeService.listAnalyses(
+          limit: _pageSize,
+          isArchived: true,
+          search: searchQuery.value.trim(),
+        );
+
+    if (token != _activeSearchToken) {
+      return;
+    }
+
+    if (response.isFailure) {
+      generalError.value = _resolveErrorMessage(
+        response,
+        fallback:
+            'Nao foi possivel carregar as analises arquivadas agora. Tente novamente.',
+      );
+      archivedAnalyses.value = const <AnalysisDto>[];
+      nextCursor.value = null;
+      isLoadingInitialData.value = false;
+      return;
+    }
+
+    final CursorPaginationResponse<AnalysisDto> pagination = response.body;
+    archivedAnalyses.value = List<AnalysisDto>.unmodifiable(pagination.items);
+    nextCursor.value = pagination.nextCursor;
+    generalError.value = null;
+    _didCompleteInitialLoad = true;
+    isLoadingInitialData.value = false;
   }
 
   Future<bool> unarchive(AnalysisDto analysis) async {
@@ -229,6 +263,7 @@ class ArchivedAnalysesScreenPresenter {
   }
 
   void dispose() {
+    _searchDebounceTimer?.cancel();
     isLoadingInitialData.dispose();
     isLoadingMore.dispose();
     isUnarchiving.dispose();
@@ -239,7 +274,6 @@ class ArchivedAnalysesScreenPresenter {
     nextCursor.dispose();
     searchQuery.dispose();
     hasMore.dispose();
-    filteredAnalyses.dispose();
     showEmptyState.dispose();
     showSearchEmptyState.dispose();
   }
