@@ -3,7 +3,7 @@ import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
-import 'package:animus/core/intake/dtos/judgment_draft_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_judgment_draft_dto.dart';
 
 import 'analysis_dto_faker.dart';
 import 'analysis_precedent_dto_faker.dart';
@@ -30,8 +30,10 @@ final class AnalysisDocumentDtoFaker {
 final class JudgmentDraftDtoFaker {
   const JudgmentDraftDtoFaker._();
 
-  static JudgmentDraftDto fake({String content = 'Minuta de julgamento'}) {
-    return JudgmentDraftDto(content: content);
+  static FirstInstanceJudgmentDraftDto fake({
+    String content = 'Minuta de julgamento',
+  }) {
+    return FirstInstanceJudgmentDraftDto(content: content);
   }
 }
 
@@ -43,7 +45,7 @@ final class FirstInstanceAnalysisReportDtoFaker {
     AnalysisDocumentDto? document,
     CaseSummaryDto? caseSummary,
     List<AnalysisPrecedentDto>? precedents,
-    JudgmentDraftDto? judgmentDraft,
+    FirstInstanceJudgmentDraftDto? judgmentDraft,
   }) {
     final AnalysisDto resolvedAnalysis = analysis ?? AnalysisDtoFaker.fake();
     final AnalysisPrecedentDto chosenPrecedent = AnalysisPrecedentDtoFaker.fake(

@@ -22,7 +22,6 @@ import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_presenter.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_action_bar/analysis_action_bar_view.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/analysis_header_view.dart';
-import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/chosen_precedent_summary/chosen_precedent_summary_view.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_view.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_view.dart';
@@ -33,7 +32,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import '../../../../../fakers/intake/petition_summary_dto_faker.dart';
-import '../../../../../fakers/intake/analysis_precedent_dto_faker.dart';
 
 class _MockIntakeService extends Mock implements IntakeService {}
 
@@ -173,7 +171,7 @@ void main() {
     late Signal<bool> isExportingReport;
     late ReadonlySignal<bool> canExportReport;
     late _MockRelevantPrecedentsBubblePresenter relevantPrecedentsPresenter;
-    late Signal<AnalysisPrecedentDto?> selectedPrecedent;
+    late ReadonlySignal<List<AnalysisPrecedentDto>> chosenPrecedents;
     late Signal<List<AnalysisPrecedentDto>> precedents;
     late Signal<bool> precedentsIsLoading;
     late Signal<String?> precedentsError;
@@ -205,7 +203,11 @@ void main() {
             status.value == AnalysisStatusDto.precedentChosen &&
             !isExportingReport.value,
       );
-      selectedPrecedent = signal<AnalysisPrecedentDto?>(null);
+      chosenPrecedents = computed(
+        () => precedents.value
+            .where((AnalysisPrecedentDto item) => item.isChosen)
+            .toList(growable: false),
+      );
       precedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
       precedentsIsLoading = signal<bool>(false);
       precedentsError = signal<String?>(null);
@@ -260,8 +262,8 @@ void main() {
       when(() => presenter.formatFileSize(any())).thenReturn('1.0 KB');
 
       when(
-        () => relevantPrecedentsPresenter.selectedPrecedent,
-      ).thenReturn(selectedPrecedent);
+        () => relevantPrecedentsPresenter.chosenPrecedents,
+      ).thenReturn(chosenPrecedents);
       when(() => relevantPrecedentsPresenter.precedents).thenReturn(precedents);
       when(
         () => relevantPrecedentsPresenter.isLoading,
@@ -311,7 +313,7 @@ void main() {
       appliedPrecedentFiltersCount.dispose();
       isExportingReport.dispose();
       canExportReport.dispose();
-      selectedPrecedent.dispose();
+      chosenPrecedents.dispose();
       precedents.dispose();
       precedentsIsLoading.dispose();
       precedentsError.dispose();
@@ -582,31 +584,6 @@ void main() {
 
         expect(find.byType(RelevantPrecedentsBubbleView), findsOneWidget);
         expect(find.byType(AnalysisActionBarView), findsNothing);
-      },
-    );
-
-    testWidgets(
-      'exibe resumo de precedente escolhido somente quando existe precedente escolhido',
-      (WidgetTester tester) async {
-        analysisDocument.value = createDocument();
-        summary.value = CaseSummaryDtoFaker.fake();
-        status.value = AnalysisStatusDto.precedentChosen;
-
-        selectedPrecedent.value = AnalysisPrecedentDtoFaker.fake(
-          isChosen: false,
-        );
-        await tester.pumpWidget(createWidgetWithPrecedentsPresenter());
-        await tester.pump(const Duration(milliseconds: 400));
-
-        expect(find.byType(ChosenPrecedentSummaryView), findsNothing);
-
-        selectedPrecedent.value = AnalysisPrecedentDtoFaker.fake(
-          isChosen: true,
-        );
-        await tester.pump();
-
-        expect(find.byType(ChosenPrecedentSummaryView), findsOneWidget);
-        expect(find.text('Precedente escolhido'), findsOneWidget);
       },
     );
   });
