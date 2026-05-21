@@ -159,7 +159,7 @@ class SignInScreenPresenter {
       generalError.value = _resolveGeneralError(response);
     } catch (_) {
       generalError.value =
-          'Nao foi possivel continuar com Google agora. Tente novamente.';
+          'Não foi possivel continuar com Google agora. Tente novamente.';
     }
 
     isGoogleSubmitting.value = false;
@@ -189,7 +189,7 @@ class SignInScreenPresenter {
     try {
       return response.errorMessage;
     } catch (_) {
-      return 'Nao foi possivel entrar agora. Tente novamente.';
+      return 'Não foi possivel entrar agora. Tente novamente.';
     }
   }
 

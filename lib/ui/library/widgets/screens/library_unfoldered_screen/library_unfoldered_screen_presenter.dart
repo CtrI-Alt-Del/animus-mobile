@@ -81,7 +81,7 @@ class LibraryUnfolderedScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel carregar as analises sem pasta.',
+        fallback: 'Não foi possivel carregar as analises sem pasta.',
       );
       isLoadingInitialData.value = false;
       return;
@@ -133,7 +133,7 @@ class LibraryUnfolderedScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel carregar mais analises. Role novamente para tentar de novo.',
+            'Não foi possivel carregar mais analises. Role novamente para tentar de novo.',
       );
       isLoadingMore.value = false;
       return;
@@ -207,7 +207,7 @@ class LibraryUnfolderedScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel mover as analises selecionadas.',
+        fallback: 'Não foi possivel mover as analises selecionadas.',
       );
       isMovingAnalyses.value = false;
       return;
@@ -238,7 +238,7 @@ class LibraryUnfolderedScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel arquivar as analises selecionadas.',
+        fallback: 'Não foi possivel arquivar as analises selecionadas.',
       );
       isArchivingAnalyses.value = false;
       return;

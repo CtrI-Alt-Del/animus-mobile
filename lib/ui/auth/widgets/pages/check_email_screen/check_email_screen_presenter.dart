@@ -110,7 +110,7 @@ class CheckEmailScreenPresenter {
     } else {
       generalError.value = _resolveGeneralError(
         response,
-        fallback: 'Nao foi possivel validar o codigo agora. Tente novamente.',
+        fallback: 'Não foi possivel validar o codigo agora. Tente novamente.',
       );
     }
 
@@ -138,7 +138,7 @@ class CheckEmailScreenPresenter {
 
     generalError.value = _resolveGeneralError(
       response,
-      fallback: 'Nao foi possivel reenviar o codigo agora. Tente novamente.',
+      fallback: 'Não foi possivel reenviar o codigo agora. Tente novamente.',
     );
     isResending.value = false;
   }

@@ -54,7 +54,7 @@ class _MoveAnalysesModalViewState extends ConsumerState<MoveAnalysesModalView> {
 
     setState(() {
       _submitError =
-          'Nao foi possivel mover as analises selecionadas agora. Tente novamente.';
+          'Não foi possivel mover as analises selecionadas agora. Tente novamente.';
       _isSubmitting = false;
     });
   }

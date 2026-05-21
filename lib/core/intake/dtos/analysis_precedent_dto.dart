@@ -9,6 +9,7 @@ class AnalysisPrecedentDto {
   final double similarityScore;
   final int finalRank;
   final AnalysisPrecedentApplicabilityLevelDto applicabilityLevel;
+  final bool isManuallyAdded;
 
   const AnalysisPrecedentDto({
     required this.analysisId,
@@ -18,5 +19,6 @@ class AnalysisPrecedentDto {
     required this.similarityScore,
     required this.finalRank,
     required this.applicabilityLevel,
+    required this.isManuallyAdded,
   });
 }

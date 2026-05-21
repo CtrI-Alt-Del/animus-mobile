@@ -51,7 +51,7 @@ class MoveAnalysesModalPresenter {
 
       if (response.isFailure) {
         generalError.value =
-            'Nao foi possivel carregar as pastas de destino agora.';
+            'Não foi possivel carregar as pastas de destino agora.';
         isLoading.value = false;
         return;
       }

@@ -10,12 +10,16 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/court_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/components/ai_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_action_bar/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/archive_analysis_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/rename_analysis_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/components/case_summary_card/index.dart';
@@ -42,6 +46,7 @@ class SecondInstanceAnalysisScreenView extends ConsumerStatefulWidget {
 class _SecondInstanceAnalysisScreenViewState
     extends ConsumerState<SecondInstanceAnalysisScreenView> {
   final ScrollController _scrollController = ScrollController();
+  List<String> _lastChosenPrecedentKeys = <String>[];
 
   Widget _animatedEntry(
     Widget child, {
@@ -104,6 +109,165 @@ class _SecondInstanceAnalysisScreenViewState
     });
   }
 
+  void _syncChosenPrecedentsIfNeeded(
+    SecondInstanceFirstInstanceAnalysisScreenPresenter presenter,
+    List<AnalysisPrecedentDto> chosenPrecedents,
+  ) {
+    final List<String> currentKeys = chosenPrecedents
+        .map(
+          (AnalysisPrecedentDto precedent) =>
+              '${precedent.precedent.identifier.court.name}:${precedent.precedent.identifier.kind.name}:${precedent.precedent.identifier.number}',
+        )
+        .toList(growable: false);
+
+    final bool didChange =
+        currentKeys.length != _lastChosenPrecedentKeys.length ||
+        !currentKeys.asMap().entries.every(
+          (MapEntry<int, String> entry) =>
+              _lastChosenPrecedentKeys[entry.key] == entry.value,
+        );
+
+    if (!didChange) {
+      return;
+    }
+
+    _lastChosenPrecedentKeys = currentKeys;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      presenter.syncChosenPrecedents(chosenPrecedents);
+    });
+  }
+
+  bool _isPrecedentsFlow(AnalysisStatusDto status) {
+    return status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.precedentsSearched ||
+        status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        status == AnalysisStatusDto.generatingSynthesis ||
+        status == AnalysisStatusDto.waitingPrecedentChoice ||
+        status == AnalysisStatusDto.precedentChosen ||
+        status == AnalysisStatusDto.generatingJudgmentDraft ||
+        status == AnalysisStatusDto.done;
+  }
+
+  Future<void> _showPrecedentsLimitDialog(
+    BuildContext context,
+    AnalysisPrecedentsBubblePresenter presenter,
+  ) async {
+    int selectedLimit = presenter.selectedLimit.value;
+
+    final int? newLimit = await showDialog<int>(
+      context: context,
+      barrierColor: const Color(0x99000000),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return PrecedentsLimitDialog(
+              currentValue: selectedLimit,
+              minValue: AnalysisPrecedentsBubblePresenter.minLimit,
+              maxValue: AnalysisPrecedentsBubblePresenter.maxLimit,
+              onChanged: (int value) {
+                setState(() {
+                  selectedLimit = value;
+                });
+              },
+              onCancel: () => Navigator.of(context).pop(),
+              onApply: () => Navigator.of(context).pop(selectedLimit),
+            );
+          },
+        );
+      },
+    );
+
+    if (newLimit == null || newLimit == presenter.selectedLimit.value) {
+      return;
+    }
+
+    presenter.syncSelectedLimit(newLimit);
+    await presenter.retry();
+  }
+
+  Future<void> _showPrecedentsFiltersDialog(
+    BuildContext context,
+    AnalysisPrecedentsBubblePresenter presenter,
+  ) async {
+    List<CourtDto> selectedCourts = List<CourtDto>.from(
+      presenter.selectedCourts.value,
+    );
+    List<PrecedentKindDto> selectedKinds = List<PrecedentKindDto>.from(
+      presenter.selectedKinds.value,
+    );
+
+    final ({List<CourtDto> courts, List<PrecedentKindDto> kinds})? result =
+        await showDialog<
+          ({List<CourtDto> courts, List<PrecedentKindDto> kinds})
+        >(
+          context: context,
+          barrierColor: const Color(0x99000000),
+          builder: (BuildContext context) {
+            return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return PrecedentsFiltersDialog(
+                  selectedCourts: selectedCourts,
+                  selectedKinds: selectedKinds,
+                  onToggleCourt: (CourtDto court) {
+                    setState(() {
+                      if (selectedCourts.contains(court)) {
+                        selectedCourts.remove(court);
+                      } else {
+                        selectedCourts.add(court);
+                      }
+                    });
+                  },
+                  onToggleKind: (PrecedentKindDto kind) {
+                    setState(() {
+                      if (selectedKinds.contains(kind)) {
+                        selectedKinds.remove(kind);
+                      } else {
+                        selectedKinds.add(kind);
+                      }
+                    });
+                  },
+                  onClear: () {
+                    setState(() {
+                      selectedCourts = <CourtDto>[];
+                      selectedKinds = <PrecedentKindDto>[];
+                    });
+                  },
+                  onApply: () {
+                    Navigator.of(context).pop((
+                      courts: List<CourtDto>.from(selectedCourts),
+                      kinds: List<PrecedentKindDto>.from(selectedKinds),
+                    ));
+                  },
+                );
+              },
+            );
+          },
+        );
+
+    if (result == null) {
+      return;
+    }
+
+    final bool didChangeCourts =
+        result.courts.length != presenter.selectedCourts.value.length ||
+        !result.courts.every(presenter.selectedCourts.value.contains);
+    final bool didChangeKinds =
+        result.kinds.length != presenter.selectedKinds.value.length ||
+        !result.kinds.every(presenter.selectedKinds.value.contains);
+
+    if (!didChangeCourts && !didChangeKinds) {
+      return;
+    }
+
+    presenter.syncSelectedFilters(courts: result.courts, kinds: result.kinds);
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -118,6 +282,8 @@ class _SecondInstanceAnalysisScreenViewState
             widget.analysisId,
           ),
         );
+    final AnalysisPrecedentsBubblePresenter precedentsBubblePresenter = ref
+        .watch(analysisPrecedentsBubblePresenterProvider(widget.analysisId));
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
@@ -139,6 +305,19 @@ class _SecondInstanceAnalysisScreenViewState
                       );
                       final bool isManaging = presenter.isManagingAnalysis
                           .watch(context);
+                      final AnalysisStatusDto status = presenter.status.watch(
+                        context,
+                      );
+                      final bool showPrecedentsActions = _isPrecedentsFlow(
+                        status,
+                      );
+                      final int appliedFiltersCount =
+                          precedentsBubblePresenter.selectedCourts
+                              .watch(context)
+                              .length +
+                          precedentsBubblePresenter.selectedKinds
+                              .watch(context)
+                              .length;
 
                       return AnalysisHeader(
                         onBack: () {
@@ -151,8 +330,26 @@ class _SecondInstanceAnalysisScreenViewState
                         },
                         onExportReport: null,
                         title: analysisName,
-                        onPrecedentsCount: null,
-                        onFilters: null,
+                        onPrecedentsCount: isManaging || !showPrecedentsActions
+                            ? null
+                            : () {
+                                unawaited(
+                                  _showPrecedentsLimitDialog(
+                                    context,
+                                    precedentsBubblePresenter,
+                                  ),
+                                );
+                              },
+                        onFilters: isManaging || !showPrecedentsActions
+                            ? null
+                            : () {
+                                unawaited(
+                                  _showPrecedentsFiltersDialog(
+                                    context,
+                                    precedentsBubblePresenter,
+                                  ),
+                                );
+                              },
                         onRename: isManaging
                             ? null
                             : () async {
@@ -195,7 +392,7 @@ class _SecondInstanceAnalysisScreenViewState
                                   await presenter.archiveAnalysis();
                                 }
                               },
-                        appliedFiltersCount: 0,
+                        appliedFiltersCount: appliedFiltersCount,
                         isMenuEnabled: !isManaging,
                         showExportReport: false,
                         isExportingReport: false,
@@ -356,6 +553,19 @@ class _SecondInstanceAnalysisScreenViewState
                               ],
                               if (showPrecedents) ...<Widget>[
                                 const SizedBox(height: 12),
+                                Watch((BuildContext context) {
+                                  final List<AnalysisPrecedentDto>
+                                  chosenPrecedents = precedentsBubblePresenter
+                                      .chosenPrecedents
+                                      .watch(context);
+
+                                  _syncChosenPrecedentsIfNeeded(
+                                    presenter,
+                                    chosenPrecedents,
+                                  );
+
+                                  return const SizedBox.shrink();
+                                }),
                                 _animatedEntry(
                                   AnalysisPrecedentsBubble(
                                     analysisId: widget.analysisId,
@@ -438,7 +648,8 @@ class _SecondInstanceAnalysisScreenViewState
                           canSearch ||
                           canAnalyze ||
                           canPick;
-                      final precedentsPresenter = ref.read(
+                      final AnalysisPrecedentsBubblePresenter
+                      precedentsPresenter = ref.read(
                         analysisPrecedentsBubblePresenterProvider(
                           widget.analysisId,
                         ),
@@ -473,12 +684,6 @@ class _SecondInstanceAnalysisScreenViewState
                                 }
 
                                 if (status == AnalysisStatusDto.failed) {
-                                  if (presenter.precedentsReady.value) {
-                                    unawaited(presenter.requestJudgmentDraft());
-                                    _scheduleJumpToBottom();
-                                    return;
-                                  }
-
                                   if (summary != null) {
                                     presenter.markPrecedentsReady();
                                     presenter.status.value =
