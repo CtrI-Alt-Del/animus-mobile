@@ -1,6 +1,10 @@
 import 'package:animus/constants/cache_keys.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
+import 'package:animus/core/intake/dtos/court_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
@@ -106,21 +110,26 @@ void main() {
     ).called(1);
   });
 
-  test('getJudgmentDraft usa endpoint novo e mapeia draft', () async {
-    when(() => restClient.get(any())).thenAnswer(
-      (_) async => RestResponse<Json>(
-        body: <String, dynamic>{'content': 'Minuta do julgamento'},
-      ),
-    );
+  test(
+    'getFirstInstanceJudgmentDraft usa endpoint novo e mapeia draft',
+    () async {
+      when(() => restClient.get(any())).thenAnswer(
+        (_) async => RestResponse<Json>(
+          body: <String, dynamic>{'content': 'Minuta do julgamento'},
+        ),
+      );
 
-    final response = await service.getJudgmentDraft(analysisId: 'analysis-1');
+      final response = await service.getFirstInstanceJudgmentDraft(
+        analysisId: 'analysis-1',
+      );
 
-    expect(response.isSuccessful, isTrue);
-    expect(response.body.content, 'Minuta do julgamento');
-    verify(
-      () => restClient.get('/intake/analyses/analysis-1/judgment-draft'),
-    ).called(1);
-  });
+      expect(response.isSuccessful, isTrue);
+      expect(response.body.content, 'Minuta do julgamento');
+      verify(
+        () => restClient.get('/intake/analyses/analysis-1/judgment-draft'),
+      ).called(1);
+    },
+  );
 
   test(
     'getFirstInstanceAnalysisReport usa endpoint e mapper corretos',
@@ -248,6 +257,87 @@ void main() {
   );
 
   test(
+    'getPrecedent usa endpoint por identificador e mapeia preview',
+    () async {
+      const identifier = PrecedentIdentifierDto(
+        court: CourtDto.trt7,
+        kind: PrecedentKindDto.nt,
+        number: 987,
+      );
+      when(
+        () => restClient.get(any(), queryParams: any(named: 'queryParams')),
+      ).thenAnswer(
+        (_) async => RestResponse<Json>(body: _precedentJson(number: 987)),
+      );
+
+      final response = await service.getPrecedent(identifier: identifier);
+
+      expect(response.isSuccessful, isTrue);
+      expect(response.body.identifier.number, 987);
+      expect(response.body.enunciation, 'Enunciado');
+      verify(
+        () => restClient.get(
+          '/precedents/identifier',
+          queryParams: <String, dynamic>{
+            'court': 'TRT7',
+            'kind': 'NT',
+            'number': 987,
+          },
+        ),
+      ).called(1);
+    },
+  );
+
+  test(
+    'addAnalysisPrecedent usa endpoint novo e body com identifier',
+    () async {
+      const identifier = PrecedentIdentifierDto(
+        court: CourtDto.trt7,
+        kind: PrecedentKindDto.nt,
+        number: 432,
+      );
+      when(() => restClient.post(any(), body: any(named: 'body'))).thenAnswer(
+        (_) async => RestResponse<Json>(
+          body: <String, dynamic>{
+            'analysis_id': 'analysis-1',
+            'is_chosen': false,
+            'is_manually_added': true,
+            'synthesis': 'Sintese do precedente',
+            'similarity_score': 88,
+            'final_rank': 1,
+            'applicability_level':
+                AnalysisPrecedentApplicabilityLevelDto.applicable.value,
+            'precedent': _precedentJson(number: 432),
+          },
+        ),
+      );
+
+      final response = await service.addAnalysisPrecedent(
+        analysisId: 'analysis-1',
+        identifier: identifier,
+      );
+
+      expect(response.isSuccessful, isTrue);
+      expect(response.body.analysisId, 'analysis-1');
+      expect(response.body.isManuallyAdded, isTrue);
+      expect(response.body.precedent.identifier.number, 432);
+      verify(
+        () => restClient.post(
+          '/analyses/precedents',
+          body: <String, dynamic>{
+            'analysis_id': 'analysis-1',
+            'identifier': <String, dynamic>{
+              'court': 'TRT7',
+              'kind': 'NT',
+              'number': 432,
+            },
+          },
+        ),
+      ).called(1);
+    },
+  );
+
+  test(
     'unarchiveAnalysis usa endpoint novo e retorna analysis atualizada',
     () async {
       when(() => restClient.patch(any())).thenAnswer(
@@ -334,5 +424,21 @@ Map<String, dynamic> _reportJson({
       },
     ],
     ...extra,
+  };
+}
+
+Map<String, dynamic> _precedentJson({int number = 123}) {
+  return <String, dynamic>{
+    'id': 'precedent-1',
+    'identifier': <String, dynamic>{
+      'court': 'TRT7',
+      'kind': 'NT',
+      'number': number,
+    },
+    'synthesis': 'Sintese',
+    'status': 'AVAILABLE',
+    'enunciation': 'Enunciado',
+    'thesis': 'Tese',
+    'last_updated_in_pangea_at': '2026-05-12T10:00:00.000Z',
   };
 }
