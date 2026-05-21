@@ -281,7 +281,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart`
 - **Mudanca:** nao aplicavel alem da compatibilidade automatica provida pelo mapeamento do `AnalysisStatusDto` legado.
-- **Justificativa:** o componente continua dependente do fluxo atual de precedentes e Não foi reestruturado nesta task.
+- **Justificativa:** o componente continua dependente do fluxo atual de precedentes e não foi reestruturado nesta task.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/analysis_screen/petition_summary_card/petition_summary_card_view.dart`
 - **Mudanca:** trocar o tipo recebido para `CaseSummaryDto`, mantendo o widget e a estrutura visual atuais.
