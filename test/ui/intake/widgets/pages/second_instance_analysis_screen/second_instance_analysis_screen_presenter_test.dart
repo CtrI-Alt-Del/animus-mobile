@@ -68,6 +68,23 @@ void main() {
     });
 
     test(
+      'should not suggest generating draft again without chosen precedents',
+      () {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        presenter.status.value = AnalysisStatusDto.failed;
+        presenter.precedentsReady.value = true;
+        presenter.caseSummary.value = CaseSummaryDtoFaker.fake();
+
+        expect(
+          presenter.primaryActionLabel.value,
+          'Tentar buscar precedentes novamente',
+        );
+      },
+    );
+
+    test(
       'should keep precedents ready when chosen precedents become empty',
       () {
         final presenter = createPresenter();

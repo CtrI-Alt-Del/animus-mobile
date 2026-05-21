@@ -152,19 +152,12 @@ class AnalysisPrecedentsBubbleView extends ConsumerWidget {
                           if (!isLoading)
                             TextButton.icon(
                               onPressed: () async {
-                                final bool? didAddPrecedent =
-                                    await showDialog<bool>(
-                                      context: context,
-                                      builder: (_) => AddPrecedentDialog(
-                                        analysisId: analysisId,
-                                      ),
-                                    );
-
-                                if (didAddPrecedent != true) {
-                                  return;
-                                }
-
-                                await presenter.reloadPrecedents();
+                                await showDialog<bool>(
+                                  context: context,
+                                  builder: (_) => AddPrecedentDialog(
+                                    analysisId: analysisId,
+                                  ),
+                                );
                               },
                               icon: const Icon(Icons.add, size: 16),
                               label: const Text('Adicionar precedente'),

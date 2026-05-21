@@ -123,11 +123,12 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                                   const SizedBox(height: 6),
                                   Align(
                                     alignment: Alignment.centerRight,
-                                    child: precedent.isManuallyAdded
+                                    child: currentPrecedent.isManuallyAdded
                                         ? _ManuallyAddedBadge()
                                         : ApplicabilityBadge(
                                             classificationLevel:
-                                                precedent.applicabilityLevel,
+                                                currentPrecedent
+                                                    .applicabilityLevel,
                                             showScore: false,
                                             showBorder: false,
                                             overflow: TextOverflow.ellipsis,

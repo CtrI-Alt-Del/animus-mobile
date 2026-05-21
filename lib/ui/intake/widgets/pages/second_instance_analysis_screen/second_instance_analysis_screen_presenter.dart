@@ -26,7 +26,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   static const Duration pollingInterval = Duration(seconds: 3);
   static const Duration requestTimeout = Duration(seconds: 10);
   static const String failedMessage =
-      'Não foi possivel concluir esta etapa agora. Tente novamente.';
+      'Não foi possível concluir esta etapa agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
@@ -119,7 +119,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
   late final ReadonlySignal<String> primaryActionLabel = computed(() {
     if (status.value == AnalysisStatusDto.failed) {
-      if (precedentsReady.value) {
+      if (precedentsReady.value && hasChosenPrecedents.value) {
         return 'Tentar gerar minuta novamente';
       }
 
@@ -218,7 +218,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
     final int fileSize = await file.length();
     if (fileSize > maxFileSizeInBytes) {
-      generalError.value = 'O arquivo deve ter no maximo 50MB.';
+      generalError.value = 'O arquivo deve ter no máximo 50MB.';
       return;
     }
 
