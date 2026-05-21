@@ -1,4 +1,5 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_screen_view.dart';
@@ -17,13 +18,16 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(AnalysisDtoFaker.fake());
+    registerFallbackValue(AnalysisTypeDto.firstInstance);
   });
 
   setUp(() {
     presenter = _MockHomeScreenPresenter();
     when(() => presenter.initialize()).thenAnswer((_) async {});
     when(() => presenter.loadNextPage()).thenAnswer((_) async {});
-    when(() => presenter.createAnalysis()).thenAnswer((_) async {});
+    when(
+      () => presenter.createAnalysis(type: any(named: 'type')),
+    ).thenAnswer((_) async {});
     when(() => presenter.refresh()).thenAnswer((_) async {});
     when(() => presenter.openAnalysis(any())).thenAnswer((_) async {});
     when(() => presenter.dispose()).thenReturn(null);
@@ -45,7 +49,7 @@ void main() {
   });
 
   testWidgets(
-    'renderiza a estrutura principal e delega o CTA de criar analise',
+    'renderiza a estrutura principal e abre o dialog de criar analise ao tocar no FAB',
     (WidgetTester tester) async {
       await tester.pumpWidget(_createWidget(presenter));
       await tester.pump();
@@ -62,11 +66,52 @@ void main() {
       clearInteractions(presenter);
 
       await tester.tap(find.byIcon(Icons.add));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      verify(() => presenter.createAnalysis()).called(1);
+      expect(find.text('Nova análise'), findsOneWidget);
+      expect(find.text('Cancelar'), findsOneWidget);
+      expect(find.text('Criar'), findsOneWidget);
+
+      verifyNever(() => presenter.createAnalysis(type: any(named: 'type')));
     },
   );
+
+  testWidgets(
+    'ao confirmar o dialog, delega createAnalysis com o tipo selecionado',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(_createWidget(presenter));
+      await tester.pump();
+
+      clearInteractions(presenter);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Criar'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => presenter.createAnalysis(type: AnalysisTypeDto.firstInstance),
+      ).called(1);
+    },
+  );
+
+  testWidgets('ao cancelar o dialog, nao chama createAnalysis', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_createWidget(presenter));
+    await tester.pump();
+
+    clearInteractions(presenter);
+
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+
+    verifyNever(() => presenter.createAnalysis(type: any(named: 'type')));
+  });
 
   testWidgets('ao tocar no card, delega abertura da analise', (
     WidgetTester tester,
