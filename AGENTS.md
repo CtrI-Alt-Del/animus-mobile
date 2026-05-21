@@ -19,4 +19,4 @@ Leia os seguintes documentos quando não for apenas pedido criar commits, PR's o
 
 ORIENTAÇÕES:
 
-- Resonda sempre em PT-BR, porém sempre aplique acentuação e pontuação correta nos textos gerados.
+- Responda sempre em PT-BR, porém sempre aplique acentuação e pontuação correta nos textos gerados.
