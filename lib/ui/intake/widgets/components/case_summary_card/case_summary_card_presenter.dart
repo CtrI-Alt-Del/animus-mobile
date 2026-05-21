@@ -54,7 +54,7 @@ class CaseSummaryCardPresenter {
       '',
       buildList('Pedidos', summary.requestedRelief),
       '',
-      buildList('Questoes processuais', summary.proceduralIssues),
+      buildList('Questões processuais', summary.proceduralIssues),
       '',
       buildList(
         'Topicos excluidos ou acessorios',

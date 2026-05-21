@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_loading_state/archived_analyses_loading_state_view.dart';
+
+typedef ArchivedAnalysesLoadingState = ArchivedAnalysesLoadingStateView;

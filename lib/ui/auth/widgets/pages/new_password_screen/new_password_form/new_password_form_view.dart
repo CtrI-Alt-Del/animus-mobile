@@ -95,11 +95,11 @@ class NewPasswordFormView extends ConsumerWidget {
                 PasswordRuleRow(label: '8 caracteres', isMet: hasMinLength),
                 const SizedBox(height: 8),
                 PasswordRuleRow(
-                  label: 'Letra maiuscula',
+                  label: 'Letra maiúscula',
                   isMet: hasUppercaseLetter,
                 ),
                 const SizedBox(height: 8),
-                PasswordRuleRow(label: 'Numero', isMet: hasNumber),
+                PasswordRuleRow(label: 'Número', isMet: hasNumber),
               ],
             );
           }),

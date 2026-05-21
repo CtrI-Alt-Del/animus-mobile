@@ -56,17 +56,17 @@ class CheckEmailScreenPresenter {
       return '${otpControl.getError('server')}';
     }
     if (otpControl.hasError(ValidationMessage.required)) {
-      return 'Informe o codigo OTP.';
+      return 'Informe o código OTP.';
     }
     if (otpControl.hasError(ValidationMessage.number)) {
-      return 'O codigo OTP deve conter apenas numeros.';
+      return 'O código OTP deve conter apenas números.';
     }
     if (otpControl.hasError(ValidationMessage.minLength) ||
         otpControl.hasError(ValidationMessage.maxLength)) {
-      return 'O codigo OTP deve ter 6 digitos.';
+      return 'O código OTP deve ter 6 dígitos.';
     }
 
-    return 'Codigo OTP invalido ou expirado.';
+    return 'Código OTP inválido ou expirado.';
   }
 
   Future<void> verifyOtp() async {
@@ -104,13 +104,13 @@ class CheckEmailScreenPresenter {
         response.statusCode == 422) {
       final String? serverMessage = response.errorBody?['message'] as String?;
       otpControl.setErrors(<String, Object>{
-        'server': serverMessage ?? 'Codigo OTP invalido ou expirado.',
+        'server': serverMessage ?? 'Código OTP inválido ou expirado.',
       });
       otpControl.markAsTouched();
     } else {
       generalError.value = _resolveGeneralError(
         response,
-        fallback: 'Não foi possivel validar o codigo agora. Tente novamente.',
+        fallback: 'Não foi possível validar o código agora. Tente novamente.',
       );
     }
 
@@ -130,7 +130,7 @@ class CheckEmailScreenPresenter {
         .resendResetPasswordOtp(email: email);
 
     if (response.isSuccessful) {
-      feedbackMessage.value = 'Enviamos um novo codigo OTP para $email.';
+      feedbackMessage.value = 'Enviamos um novo código OTP para $email.';
       _startResendCountdown();
       isResending.value = false;
       return;
@@ -138,7 +138,7 @@ class CheckEmailScreenPresenter {
 
     generalError.value = _resolveGeneralError(
       response,
-      fallback: 'Não foi possivel reenviar o codigo agora. Tente novamente.',
+      fallback: 'Não foi possível reenviar o código agora. Tente novamente.',
     );
     isResending.value = false;
   }

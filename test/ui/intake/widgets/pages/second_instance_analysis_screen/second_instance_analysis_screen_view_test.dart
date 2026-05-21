@@ -39,6 +39,7 @@ void main() {
   late Signal<String?> generalError;
   late Signal<String> analysisName;
   late Signal<bool> isManagingAnalysis;
+  late Signal<bool> isArchived;
   late Signal<bool> canPickDocument;
   late Signal<bool> canAnalyzeCase;
   late Signal<bool> canSearchPrecedents;
@@ -80,6 +81,7 @@ void main() {
     generalError = signal<String?>(null);
     analysisName = signal<String>('Análise de segunda instância');
     isManagingAnalysis = signal<bool>(false);
+    isArchived = signal<bool>(false);
     canPickDocument = signal<bool>(false);
     canAnalyzeCase = signal<bool>(false);
     canSearchPrecedents = signal<bool>(false);
@@ -90,7 +92,9 @@ void main() {
     showPetitionNotFound = signal<bool>(false);
     primaryActionLabel = signal<String>('Gerar minuta');
     precedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
-    chosenPrecedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
+    chosenPrecedents = signal<List<AnalysisPrecedentDto>>(
+      <AnalysisPrecedentDto>[],
+    );
     selectedCourts = signal<List<CourtDto>>(<CourtDto>[]);
     selectedKinds = signal<List<PrecedentKindDto>>(<PrecedentKindDto>[]);
     bubbleIsLoading = signal<bool>(false);
@@ -114,17 +118,22 @@ void main() {
     when(() => presenter.generalError).thenReturn(generalError);
     when(() => presenter.analysisName).thenReturn(analysisName);
     when(() => presenter.isManagingAnalysis).thenReturn(isManagingAnalysis);
+    when(() => presenter.isArchived).thenReturn(isArchived);
     when(() => presenter.canPickDocument).thenReturn(canPickDocument);
     when(() => presenter.canAnalyzeCase).thenReturn(canAnalyzeCase);
     when(() => presenter.canSearchPrecedents).thenReturn(canSearchPrecedents);
-    when(() => presenter.canGenerateJudgmentDraft)
-        .thenReturn(canGenerateJudgmentDraft);
-    when(() => presenter.canRegenerateJudgmentDraft)
-        .thenReturn(canRegenerateJudgmentDraft);
-    when(() => presenter.showCaseProcessingBubble)
-        .thenReturn(showCaseProcessingBubble);
-    when(() => presenter.showJudgmentDraftProcessingBubble)
-        .thenReturn(showJudgmentDraftProcessingBubble);
+    when(
+      () => presenter.canGenerateJudgmentDraft,
+    ).thenReturn(canGenerateJudgmentDraft);
+    when(
+      () => presenter.canRegenerateJudgmentDraft,
+    ).thenReturn(canRegenerateJudgmentDraft);
+    when(
+      () => presenter.showCaseProcessingBubble,
+    ).thenReturn(showCaseProcessingBubble);
+    when(
+      () => presenter.showJudgmentDraftProcessingBubble,
+    ).thenReturn(showJudgmentDraftProcessingBubble);
     when(() => presenter.showPetitionNotFound).thenReturn(showPetitionNotFound);
     when(() => presenter.primaryActionLabel).thenReturn(primaryActionLabel);
     when(() => presenter.syncChosenPrecedents(any())).thenReturn(null);
@@ -173,6 +182,7 @@ void main() {
     generalError.dispose();
     analysisName.dispose();
     isManagingAnalysis.dispose();
+    isArchived.dispose();
     canPickDocument.dispose();
     canAnalyzeCase.dispose();
     canSearchPrecedents.dispose();
@@ -233,38 +243,37 @@ void main() {
     },
   );
 
-  testWidgets(
-    'sincroniza chosenPrecedents do bubble com o presenter da tela',
-    (WidgetTester tester) async {
-      final initialChosen = <AnalysisPrecedentDto>[
-        AnalysisPrecedentDtoFaker.fake(isChosen: true),
-      ];
-      final updatedChosen = <AnalysisPrecedentDto>[
-        AnalysisPrecedentDtoFaker.fake(
-          isChosen: true,
-          precedent: PrecedentDtoFaker.fake(
-            identifier: PrecedentIdentifierDtoFaker.fake(number: 2),
-          ),
+  testWidgets('sincroniza chosenPrecedents do bubble com o presenter da tela', (
+    WidgetTester tester,
+  ) async {
+    final initialChosen = <AnalysisPrecedentDto>[
+      AnalysisPrecedentDtoFaker.fake(isChosen: true),
+    ];
+    final updatedChosen = <AnalysisPrecedentDto>[
+      AnalysisPrecedentDtoFaker.fake(
+        isChosen: true,
+        precedent: PrecedentDtoFaker.fake(
+          identifier: PrecedentIdentifierDtoFaker.fake(number: 2),
         ),
-        AnalysisPrecedentDtoFaker.fake(
-          isChosen: true,
-          precedent: PrecedentDtoFaker.fake(
-            identifier: PrecedentIdentifierDtoFaker.fake(number: 3),
-          ),
+      ),
+      AnalysisPrecedentDtoFaker.fake(
+        isChosen: true,
+        precedent: PrecedentDtoFaker.fake(
+          identifier: PrecedentIdentifierDtoFaker.fake(number: 3),
         ),
-      ];
-      chosenPrecedents.value = initialChosen;
+      ),
+    ];
+    chosenPrecedents.value = initialChosen;
 
-      await tester.pumpWidget(createWidget());
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(createWidget());
+    await tester.pumpAndSettle();
 
-      verify(() => presenter.syncChosenPrecedents(initialChosen)).called(1);
+    verify(() => presenter.syncChosenPrecedents(initialChosen)).called(1);
 
-      chosenPrecedents.value = updatedChosen;
-      await tester.pump();
-      await tester.pumpAndSettle();
+    chosenPrecedents.value = updatedChosen;
+    await tester.pump();
+    await tester.pumpAndSettle();
 
-      verify(() => presenter.syncChosenPrecedents(updatedChosen)).called(1);
-    },
-  );
+    verify(() => presenter.syncChosenPrecedents(updatedChosen)).called(1);
+  });
 }

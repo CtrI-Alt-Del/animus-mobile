@@ -137,7 +137,7 @@ class LibraryFolderScreenPresenter {
       if (folderResponse.isFailure) {
         generalError.value = _resolveErrorMessage(
           folderResponse,
-          fallback: 'Não foi possivel carregar esta pasta agora.',
+          fallback: 'Não foi possível carregar esta pasta agora.',
         );
         isLoadingInitialData.value = false;
         return;
@@ -146,7 +146,7 @@ class LibraryFolderScreenPresenter {
       if (analysesResponse.isFailure) {
         generalError.value = _resolveErrorMessage(
           analysesResponse,
-          fallback: 'Não foi possivel carregar as analises da pasta.',
+          fallback: 'Não foi possível carregar as análises da pasta.',
         );
         isLoadingInitialData.value = false;
         return;
@@ -169,7 +169,7 @@ class LibraryFolderScreenPresenter {
         return;
       }
 
-      generalError.value = 'Não foi possivel carregar esta pasta agora.';
+      generalError.value = 'Não foi possível carregar esta pasta agora.';
       isLoadingInitialData.value = false;
     }
   }
@@ -215,7 +215,7 @@ class LibraryFolderScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Não foi possivel carregar mais analises. Role novamente para tentar de novo.',
+            'Não foi possível carregar mais análises. Role novamente para tentar de novo.',
       );
       isLoadingMore.value = false;
       return;
@@ -251,7 +251,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel carregar analises disponiveis.',
+        fallback: 'Não foi possível carregar análises disponíveis.',
       );
       isLoadingAvailableAnalyses.value = false;
       return;
@@ -314,7 +314,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel adicionar as analises nesta pasta.',
+        fallback: 'Não foi possível adicionar as análises nesta pasta.',
       );
       isAddingAvailableAnalyses.value = false;
       return;
@@ -403,7 +403,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel mover as analises selecionadas.',
+        fallback: 'Não foi possível mover as análises selecionadas.',
       );
       isMovingAnalyses.value = false;
       return;
@@ -435,7 +435,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel arquivar as analises selecionadas.',
+        fallback: 'Não foi possível arquivar as análises selecionadas.',
       );
       isArchivingAnalyses.value = false;
       return;
@@ -513,7 +513,7 @@ class LibraryFolderScreenPresenter {
   String formatCreatedAt(String value) {
     final DateTime? parsedDate = DateTime.tryParse(value);
     if (parsedDate == null) {
-      return 'Data indisponivel';
+      return 'Data indisponível';
     }
 
     final String day = parsedDate.day.toString().padLeft(2, '0');

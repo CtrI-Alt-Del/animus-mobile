@@ -84,16 +84,16 @@ final Map<String, String Function(Object)> _nameValidationMessages =
 final Map<String, String Function(Object)> _emailValidationMessages =
     <String, String Function(Object)>{
       ValidationMessage.required: (_) => 'Informe seu e-mail.',
-      ValidationMessage.email: (_) => 'Informe um e-mail valido.',
+      ValidationMessage.email: (_) => 'Informe um e-mail válido.',
       'server': (Object error) => error.toString(),
     };
 
 final Map<String, String Function(Object)> _passwordValidationMessages =
     <String, String Function(Object)>{
       ValidationMessage.required: (_) => 'Informe sua senha.',
-      'minLength': (_) => 'A senha precisa ter no minimo 8 caracteres.',
-      'uppercase': (_) => 'A senha precisa ter pelo menos 1 letra maiuscula.',
-      'number': (_) => 'A senha precisa ter pelo menos 1 numero.',
+      'minLength': (_) => 'A senha precisa ter no mínimo 8 caracteres.',
+      'uppercase': (_) => 'A senha precisa ter pelo menos 1 letra maiúscula.',
+      'number': (_) => 'A senha precisa ter pelo menos 1 número.',
       'server': (Object error) => error.toString(),
     };
 

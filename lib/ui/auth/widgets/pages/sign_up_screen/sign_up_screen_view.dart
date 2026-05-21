@@ -36,7 +36,7 @@ class SignUpScreenView extends StatelessWidget {
                           const SizedBox(height: 24),
                           const AuthHeader(
                             title: 'Criar Conta',
-                            subtitle: 'Preencha seus dados para comecar',
+                            subtitle: 'Preencha seus dados para começar',
                           ),
                           const SizedBox(height: 24),
                           const SignUpForm(),

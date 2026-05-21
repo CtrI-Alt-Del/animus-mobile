@@ -266,7 +266,7 @@ class _FirstInstanceAnalysisScreenViewState
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
-          content: Text('Relatorio exportado com sucesso.'),
+          content: Text('Relatório exportado com sucesso.'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -295,6 +295,9 @@ class _FirstInstanceAnalysisScreenViewState
                   children: <Widget>[
                     Watch((BuildContext context) {
                       final String analysisName = presenter.analysisName.watch(
+                        context,
+                      );
+                      final bool isArchived = presenter.isArchived.watch(
                         context,
                       );
                       final bool isManagingAnalysis = presenter
@@ -346,6 +349,7 @@ class _FirstInstanceAnalysisScreenViewState
                               }
                             : null,
                         title: analysisName,
+                        isArchived: isArchived,
                         onPrecedentsCount: isManagingAnalysis
                             ? null
                             : () {

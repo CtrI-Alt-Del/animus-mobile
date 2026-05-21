@@ -113,6 +113,8 @@ class ProfileScreenView extends ConsumerWidget {
                                 await presenter.updateDisplayName(updatedName);
                               },
                               onChangePasswordTap: presenter.goToForgotPassword,
+                              onArchivedAnalysesTap:
+                                  presenter.goToArchivedAnalyses,
                             );
                           }),
                           const SizedBox(height: 24),

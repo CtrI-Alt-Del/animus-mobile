@@ -303,6 +303,9 @@ class _SecondInstanceAnalysisScreenViewState
                       final String analysisName = presenter.analysisName.watch(
                         context,
                       );
+                      final bool isArchived = presenter.isArchived.watch(
+                        context,
+                      );
                       final bool isManaging = presenter.isManagingAnalysis
                           .watch(context);
                       final AnalysisStatusDto status = presenter.status.watch(
@@ -330,6 +333,7 @@ class _SecondInstanceAnalysisScreenViewState
                         },
                         onExportReport: null,
                         title: analysisName,
+                        isArchived: isArchived,
                         onPrecedentsCount: isManaging || !showPrecedentsActions
                             ? null
                             : () {
@@ -452,7 +456,7 @@ class _SecondInstanceAnalysisScreenViewState
                                 _animatedEntry(
                                   const AiBubble(
                                     message:
-                                        'Envie os autos em PDF para iniciar a analise de segunda instancia.',
+                                        'Envie os autos em PDF para iniciar a análise de segunda instância.',
                                     isTyping: false,
                                   ),
                                 ),
@@ -497,8 +501,8 @@ class _SecondInstanceAnalysisScreenViewState
                                     message:
                                         status ==
                                             AnalysisStatusDto.extractingPetition
-                                        ? 'Extraindo a peticao inicial dos autos enviados.'
-                                        : 'Analisando o caso e estruturando a sintese juridica.',
+                                        ? 'Extraindo a petição inicial dos autos enviados.'
+                                        : 'Analisando o caso e estruturando a síntese jurídica.',
                                     footerText:
                                         'Isso pode levar alguns instantes.',
                                   ),
@@ -722,7 +726,7 @@ class _SecondInstanceAnalysisScreenViewState
                             : null,
                         isPrimaryBusy: isUploading || isManaging,
                         helperText: showFileAction
-                            ? 'Somente PDF com ate 50MB. O processamento pode levar alguns minutos.'
+                            ? 'Somente PDF com até 50MB. O processamento pode levar alguns minutos.'
                             : null,
                       );
                     }),

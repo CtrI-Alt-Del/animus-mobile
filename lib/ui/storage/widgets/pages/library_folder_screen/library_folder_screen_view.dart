@@ -237,14 +237,14 @@ class LibraryFolderScreenView extends ConsumerWidget {
         return AlertDialog(
           backgroundColor: tokens.surfaceElevated,
           title: Text(
-            'Arquivar analises',
+            'Arquivar análises',
             style: textTheme.titleSmall?.copyWith(
               color: tokens.textPrimary,
               fontWeight: FontWeight.w800,
             ),
           ),
           content: Text(
-            'As analises selecionadas serao arquivadas e removidas desta pasta.',
+            'As análises selecionadas serão arquivadas e removidas desta pasta.',
             style: textTheme.bodySmall?.copyWith(
               color: tokens.textMuted,
               height: 1.35,
@@ -299,7 +299,7 @@ class _FolderArchiveNotice extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Ao arquivar esta pasta, as analises serao movidas para Sem pasta.',
+                'Ao arquivar esta pasta, as análises serão movidas para Sem pasta.',
                 style: textTheme.bodySmall?.copyWith(
                   color: tokens.textMuted,
                   height: 1.35,

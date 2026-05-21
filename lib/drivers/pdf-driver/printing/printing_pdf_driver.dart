@@ -81,7 +81,7 @@ class PrintingPdfDriver implements PdfDriver {
   ) {
     final String analysisName = _nonEmpty(
       report.analysis.name,
-      fallback: 'Analise sem nome',
+      fallback: 'Análise sem nome',
     );
 
     return pw.Page(
@@ -336,19 +336,19 @@ class PrintingPdfDriver implements PdfDriver {
     switch (level) {
       case AnalysisPrecedentApplicabilityLevelDto.applicable:
         return _BadgeData(
-          label: 'Aplicavel',
+          label: 'Aplicável',
           background: const PdfColor(0.91, 0.98, 0.95),
           text: _theme.success,
         );
       case AnalysisPrecedentApplicabilityLevelDto.possiblyApplicable:
         return _BadgeData(
-          label: 'Possivelmente aplicavel',
+          label: 'Possivelmente aplicável',
           background: _theme.pageBadgeFill,
           text: _theme.accentStrong,
         );
       case AnalysisPrecedentApplicabilityLevelDto.notApplicable:
         return _BadgeData(
-          label: 'Nao aplicavel',
+          label: 'Não aplicável',
           background: const PdfColor(0.99, 0.93, 0.92),
           text: _theme.danger,
         );

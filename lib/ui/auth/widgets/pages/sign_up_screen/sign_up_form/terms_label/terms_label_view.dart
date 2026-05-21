@@ -37,7 +37,7 @@ class TermsLabelView extends StatelessWidget {
                 fontWeight: FontWeight.w400,
               ),
               children: <TextSpan>[
-                const TextSpan(text: 'Ao continuar, voce concorda com os '),
+                const TextSpan(text: 'Ao continuar, você concorda com os '),
                 TextSpan(
                   text: 'Termos de Uso',
                   style: textTheme.labelSmall?.copyWith(

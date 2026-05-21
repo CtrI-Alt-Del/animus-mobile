@@ -34,7 +34,7 @@ void main() {
     expect(find.text('ou'), findsOneWidget);
     expect(find.byType(GoogleAuthButtonView), findsOneWidget);
     expect(find.text('Continuar com Google'), findsOneWidget);
-    expect(find.text('Ja tem conta? '), findsOneWidget);
+    expect(find.text('Já tem conta? '), findsOneWidget);
     expect(find.text('Entrar'), findsOneWidget);
   });
 

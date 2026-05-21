@@ -47,7 +47,7 @@ class FolderSettingsModalPresenter {
     isSavingName.value = false;
 
     if (!renamed) {
-      generalError.value = 'Não foi possivel atualizar o nome da pasta agora.';
+      generalError.value = 'Não foi possível atualizar o nome da pasta agora.';
       return false;
     }
 
@@ -62,7 +62,7 @@ class FolderSettingsModalPresenter {
     isArchivingFolder.value = false;
 
     if (!archived) {
-      generalError.value = 'Não foi possivel arquivar esta pasta agora.';
+      generalError.value = 'Não foi possível arquivar esta pasta agora.';
       return false;
     }
 

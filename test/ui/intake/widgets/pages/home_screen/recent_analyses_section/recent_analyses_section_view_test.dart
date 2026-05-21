@@ -34,7 +34,7 @@ void main() {
     expect(find.byType(RecentAnalysesLoadingState), findsOneWidget);
     expect(find.byType(ListView), findsOneWidget);
     expect(find.text('Tentar novamente'), findsNothing);
-    expect(find.text('Iniciar primeira analise'), findsNothing);
+    expect(find.text('Iniciar primeira análise'), findsNothing);
   });
 
   testWidgets('renderiza erro inicial e executa retry', (
@@ -99,12 +99,12 @@ void main() {
     );
 
     expect(
-      find.text('Nenhuma analise ainda. Que tal comecar agora?'),
+      find.text('Nenhuma análise ainda. Que tal começar agora?'),
       findsOneWidget,
     );
-    expect(find.text('Iniciar primeira analise'), findsOneWidget);
+    expect(find.text('Iniciar primeira análise'), findsOneWidget);
 
-    await tester.tap(find.text('Iniciar primeira analise'));
+    await tester.tap(find.text('Iniciar primeira análise'));
     await tester.pump();
 
     expect(createCount, 1);

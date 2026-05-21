@@ -49,7 +49,7 @@ class _RenameAnalysisDialogViewState extends State<RenameAnalysisDialogView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Text(
-              'Renomear analise',
+              'Renomear análise',
               style: textTheme.titleMedium?.copyWith(
                 color: tokens.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -62,7 +62,7 @@ class _RenameAnalysisDialogViewState extends State<RenameAnalysisDialogView> {
               textInputAction: TextInputAction.done,
               style: textTheme.bodyMedium?.copyWith(color: tokens.textPrimary),
               decoration: InputDecoration(
-                hintText: 'minha analise',
+                hintText: 'minha análise',
                 hintStyle: textTheme.bodyMedium?.copyWith(
                   color: tokens.textMuted,
                 ),

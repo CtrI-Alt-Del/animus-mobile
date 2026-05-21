@@ -47,6 +47,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
       signal<SecondInstanceJudgmentDraftDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
+  final Signal<bool> isArchived = signal<bool>(false);
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
   final Signal<bool> precedentsReady = signal<bool>(false);
   final Signal<bool> hasChosenPrecedents = signal<bool>(false);
@@ -171,6 +172,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
     final AnalysisDto analysis = analysisResponse.body;
     analysisName.value = analysis.name;
+    isArchived.value = analysis.isArchived;
     status.value = analysis.status;
     precedentsReady.value = _isPrecedentsReadyStatus(analysis.status);
 
@@ -406,6 +408,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     judgmentDraft.dispose();
     generalError.dispose();
     analysisName.dispose();
+    isArchived.dispose();
     isManagingAnalysis.dispose();
     precedentsReady.dispose();
     hasChosenPrecedents.dispose();
@@ -657,7 +660,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 
   String _buildTimeoutMessage() {
-    return '$failedMessage A requisicao excedeu o tempo limite de ${requestTimeout.inSeconds} segundos.';
+    return '$failedMessage A requisição excedeu o tempo limite de ${requestTimeout.inSeconds} segundos.';
   }
 
   String _getExtension(String path) {

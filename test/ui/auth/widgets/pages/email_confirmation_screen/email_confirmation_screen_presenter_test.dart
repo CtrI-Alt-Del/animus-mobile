@@ -126,7 +126,7 @@ void main() {
 
       expect(
         presenter.feedbackMessage.value,
-        'Enviamos um novo codigo OTP para ada@example.com.',
+        'Enviamos um novo código OTP para ada@example.com.',
       );
       expect(presenter.generalError.value, isNull);
       expect(presenter.resendCountdown.value, 30);

@@ -53,11 +53,11 @@ class EmailConfirmationScreenPresenter {
 
   Map<String, ValidationMessageFunction> get otpValidationMessages =>
       <String, ValidationMessageFunction>{
-        ValidationMessage.required: (_) => 'Informe o codigo OTP.',
+        ValidationMessage.required: (_) => 'Informe o código OTP.',
         ValidationMessage.number: (_) =>
-            'O codigo OTP deve conter apenas numeros.',
-        ValidationMessage.minLength: (_) => 'O codigo OTP deve ter 6 digitos.',
-        ValidationMessage.maxLength: (_) => 'O codigo OTP deve ter 6 digitos.',
+            'O código OTP deve conter apenas números.',
+        ValidationMessage.minLength: (_) => 'O código OTP deve ter 6 dígitos.',
+        ValidationMessage.maxLength: (_) => 'O código OTP deve ter 6 dígitos.',
         'server': (Object error) => error.toString(),
       };
 
@@ -70,17 +70,17 @@ class EmailConfirmationScreenPresenter {
       return '${otpControl.getError('server')}';
     }
     if (otpControl.hasError(ValidationMessage.required)) {
-      return 'Informe o codigo OTP.';
+      return 'Informe o código OTP.';
     }
     if (otpControl.hasError(ValidationMessage.number)) {
-      return 'O codigo OTP deve conter apenas numeros.';
+      return 'O código OTP deve conter apenas números.';
     }
     if (otpControl.hasError(ValidationMessage.minLength) ||
         otpControl.hasError(ValidationMessage.maxLength)) {
-      return 'O codigo OTP deve ter 6 digitos.';
+      return 'O código OTP deve ter 6 dígitos.';
     }
 
-    return 'Codigo OTP invalido ou expirado.';
+    return 'Código OTP inválido ou expirado.';
   }
 
   Future<void> verifyOtp() async {
@@ -119,7 +119,7 @@ class EmailConfirmationScreenPresenter {
     if (response.statusCode == 400 || response.statusCode == 422) {
       final String? serverMessage = response.errorBody?['message'] as String?;
       otpControl.setErrors(<String, Object>{
-        'server': serverMessage ?? 'Codigo OTP invalido ou expirado.',
+        'server': serverMessage ?? 'Código OTP inválido ou expirado.',
       });
       otpControl.markAsTouched();
     } else {
@@ -142,7 +142,7 @@ class EmailConfirmationScreenPresenter {
         .resendVerificationEmail(email: email);
 
     if (response.isSuccessful) {
-      feedbackMessage.value = 'Enviamos um novo codigo OTP para $email.';
+      feedbackMessage.value = 'Enviamos um novo código OTP para $email.';
       _startResendCountdown();
     } else {
       generalError.value = _resolveErrorMessage(response);
@@ -160,7 +160,7 @@ class EmailConfirmationScreenPresenter {
     try {
       return response.errorMessage;
     } catch (_) {
-      return 'Não foi possivel confirmar o e-mail agora. Tente novamente.';
+      return 'Não foi possível confirmar o e-mail agora. Tente novamente.';
     }
   }
 

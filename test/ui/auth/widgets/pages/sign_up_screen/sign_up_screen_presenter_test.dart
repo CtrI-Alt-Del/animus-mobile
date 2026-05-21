@@ -75,7 +75,7 @@ void main() {
 
       expect(
         presenter.fieldErrorMessage(presenter.passwordControl),
-        'A senha precisa ter no minimo 8 caracteres.',
+        'A senha precisa ter no mínimo 8 caracteres.',
       );
       expect(presenter.hasMinLength.value, isFalse);
       expect(presenter.hasUppercaseLetter.value, isFalse);
@@ -93,7 +93,7 @@ void main() {
       presenter.passwordControl.updateValueAndValidity();
       expect(
         presenter.fieldErrorMessage(presenter.passwordControl),
-        'A senha precisa ter pelo menos 1 letra maiuscula.',
+        'A senha precisa ter pelo menos 1 letra maiúscula.',
       );
 
       presenter.passwordControl.value = 'Password';
@@ -102,7 +102,7 @@ void main() {
       presenter.passwordControl.updateValueAndValidity();
       expect(
         presenter.fieldErrorMessage(presenter.passwordControl),
-        'A senha precisa ter pelo menos 1 numero.',
+        'A senha precisa ter pelo menos 1 número.',
       );
     });
   });
@@ -196,7 +196,7 @@ void main() {
       expect(presenter.emailControl.hasError('server'), isTrue);
       expect(
         presenter.fieldErrorMessage(presenter.emailControl),
-        'Este e-mail ja esta em uso.',
+        'Este e-mail já está em uso.',
       );
       expect(presenter.generalError.value, isNull);
     });
@@ -372,7 +372,7 @@ void main() {
       verifyNever(() => navigationDriver.goTo(any()));
       expect(
         presenter.generalError.value,
-        'Não foi possivel continuar com Google agora. Tente novamente.',
+        'Não foi possível continuar com Google agora. Tente novamente.',
       );
       expect(presenter.isGoogleSubmitting.value, isFalse);
     });

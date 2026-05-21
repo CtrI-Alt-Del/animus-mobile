@@ -48,7 +48,7 @@ class FolderDestinationPickerPresenter {
     if (response.isFailure) {
       errorMessage.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel carregar as pastas.',
+        fallback: 'Não foi possível carregar as pastas.',
       );
       isLoading.value = false;
       return;

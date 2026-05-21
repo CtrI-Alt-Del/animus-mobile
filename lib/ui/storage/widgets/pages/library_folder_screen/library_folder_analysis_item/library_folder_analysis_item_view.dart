@@ -25,7 +25,7 @@ class LibraryFolderAnalysisItemView extends StatelessWidget {
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final String title = analysis.name.trim().isEmpty
-        ? 'Analise sem nome'
+        ? 'Análise sem nome'
         : analysis.name.trim();
 
     return Material(
@@ -78,8 +78,8 @@ class LibraryFolderAnalysisItemView extends StatelessWidget {
               const SizedBox(width: 8),
               Semantics(
                 label: isSelected
-                    ? 'Remover analise da selecao'
-                    : 'Selecionar analise',
+                    ? 'Remover análise da seleção'
+                    : 'Selecionar análise',
                 button: true,
                 child: Checkbox(
                   value: isSelected,

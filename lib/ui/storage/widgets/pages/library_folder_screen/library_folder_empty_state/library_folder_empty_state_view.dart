@@ -10,7 +10,7 @@ class LibraryFolderEmptyStateView extends StatelessWidget {
   const LibraryFolderEmptyStateView({
     this.icon = Icons.folder_open_outlined,
     this.title = 'Pasta vazia',
-    this.description = 'Nao ha analises disponiveis para adicionar agora.',
+    this.description = 'Não há análises disponíveis para adicionar agora.',
     super.key,
   });
 
