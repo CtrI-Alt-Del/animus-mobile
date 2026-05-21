@@ -348,7 +348,7 @@ void main() {
       expect(presenter.isCreatingAnalysis.value, isFalse);
       expect(
         presenter.generalError.value,
-        'Nao foi possivel abrir a analise criada.',
+        'Não foi possivel abrir a analise criada.',
       );
       verifyNever(() => navigationDriver.pushTo(any()));
     });
@@ -421,7 +421,7 @@ void main() {
 
       expect(
         presenter.generalError.value,
-        'Nao foi possivel carregar as analises agora. Tente novamente.',
+        'Não foi possivel carregar as analises agora. Tente novamente.',
       );
     },
   );

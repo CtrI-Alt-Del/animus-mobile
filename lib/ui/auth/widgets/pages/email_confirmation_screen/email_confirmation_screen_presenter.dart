@@ -160,7 +160,7 @@ class EmailConfirmationScreenPresenter {
     try {
       return response.errorMessage;
     } catch (_) {
-      return 'Nao foi possivel confirmar o e-mail agora. Tente novamente.';
+      return 'Não foi possivel confirmar o e-mail agora. Tente novamente.';
     }
   }
 

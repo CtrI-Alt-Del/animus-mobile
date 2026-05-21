@@ -104,7 +104,7 @@ class ProfileScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel carregar o seu perfil agora. Tente novamente.',
+            'Não foi possivel carregar o seu perfil agora. Tente novamente.',
       );
       isLoadingInitialData.value = false;
       return;

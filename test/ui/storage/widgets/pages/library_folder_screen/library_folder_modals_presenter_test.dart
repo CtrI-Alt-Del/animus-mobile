@@ -227,7 +227,7 @@ void main() {
       await pumpModal(tester, onMove: (_) async => true);
 
       expect(
-        find.text('Nao foi possivel carregar as pastas de destino agora.'),
+        find.text('Não foi possivel carregar as pastas de destino agora.'),
         findsOneWidget,
       );
       expect(find.text('Sem pasta'), findsNothing);
