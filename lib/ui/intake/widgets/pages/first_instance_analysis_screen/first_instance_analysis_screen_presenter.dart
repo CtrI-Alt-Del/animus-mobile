@@ -36,9 +36,9 @@ class FirstInstanceAnalysisScreenPresenter {
   static const Duration summaryPollingInterval = Duration(seconds: 3);
   static const Duration summaryRequestTimeout = Duration(seconds: 10);
   static const String failedMessage =
-      'Nao foi possivel analisar o documento agora. Tente novamente.';
+      'Não foi possivel analisar o documento agora. Tente novamente.';
   static const String exportFailedMessage =
-      'Nao foi possivel exportar o relatorio agora. Tente novamente.';
+      'Não foi possivel exportar o relatorio agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;

@@ -14,7 +14,7 @@ class UrlLauncherExternalLinkDriver implements ExternalLinkDriver {
     );
 
     if (!opened) {
-      throw Exception('Nao foi possivel abrir o link externo informado.');
+      throw Exception('Não foi possivel abrir o link externo informado.');
     }
   }
 }

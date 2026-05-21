@@ -34,6 +34,7 @@ class ContentStateView extends StatelessWidget {
                 '${precedent.precedent.identifier.court.value} ${precedent.precedent.identifier.kind.value} ${precedent.precedent.identifier.number}',
             similarityScore: precedent.similarityScore,
             applicabilityLevel: precedent.applicabilityLevel,
+            isManuallyAdded: precedent.isManuallyAdded,
             isChosen: precedent.isChosen,
             onTap: () {
               onTap(precedent);

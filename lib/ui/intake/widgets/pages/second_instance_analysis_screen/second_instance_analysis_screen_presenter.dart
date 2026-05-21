@@ -26,7 +26,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   static const Duration pollingInterval = Duration(seconds: 3);
   static const Duration requestTimeout = Duration(seconds: 10);
   static const String failedMessage =
-      'Nao foi possivel concluir esta etapa agora. Tente novamente.';
+      'Não foi possivel concluir esta etapa agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
@@ -191,14 +191,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     }
 
     if (_shouldLoadJudgmentDraft(analysis.status)) {
-      final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
-          await _intakeService.getSecondInstanceJudgmentDraft(
-            analysisId: analysisId,
-          );
-
-      if (draftResponse.isSuccessful) {
-        judgmentDraft.value = draftResponse.body;
-      }
+      await _tryLoadJudgmentDraft();
     }
   }
 
@@ -573,18 +566,22 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
       final AnalysisStatusDto currentStatus = analysisResponse.body.status;
       status.value = currentStatus;
 
-      if (currentStatus == AnalysisStatusDto.done) {
-        final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
-            await _intakeService.getSecondInstanceJudgmentDraft(
-              analysisId: analysisId,
-            );
+      if (_shouldLoadJudgmentDraft(currentStatus)) {
+        await _tryLoadJudgmentDraft();
+      }
 
-        if (draftResponse.isFailure) {
-          await _applyFailure(draftResponse.errorMessage);
+      if (currentStatus == AnalysisStatusDto.done) {
+        if (judgmentDraft.value != null) {
+          generalError.value = null;
           return;
         }
 
-        judgmentDraft.value = draftResponse.body;
+        final bool didLoadDraft = await _tryLoadJudgmentDraft();
+        if (!didLoadDraft) {
+          await _applyFailure();
+          return;
+        }
+
         generalError.value = null;
         return;
       }
@@ -622,7 +619,31 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 
   bool _shouldLoadJudgmentDraft(AnalysisStatusDto value) {
-    return value == AnalysisStatusDto.done;
+    return value == AnalysisStatusDto.searchingPrecedents ||
+        value == AnalysisStatusDto.precedentsSearched ||
+        value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        value == AnalysisStatusDto.generatingJudgmentDraft ||
+        value == AnalysisStatusDto.generatingSynthesis ||
+        value == AnalysisStatusDto.done;
+  }
+
+  Future<bool> _tryLoadJudgmentDraft() async {
+    final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
+        await _intakeService.getSecondInstanceJudgmentDraft(
+          analysisId: analysisId,
+        );
+
+    if (draftResponse.isFailure) {
+      if (draftResponse.statusCode == HttpStatus.notFound) {
+        return false;
+      }
+
+      return false;
+    }
+
+    judgmentDraft.value = draftResponse.body;
+    return true;
   }
 
   bool _isPrecedentsReadyStatus(AnalysisStatusDto value) {

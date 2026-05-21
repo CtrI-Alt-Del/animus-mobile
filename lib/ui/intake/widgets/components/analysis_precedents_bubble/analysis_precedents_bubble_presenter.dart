@@ -223,7 +223,7 @@ class AnalysisPrecedentsBubblePresenter {
   Future<void> openPangea(AnalysisPrecedentDto precedent) async {
     if (_externalLinkDriver == null) {
       generalError.value =
-          'Nao foi possivel abrir o Pangea agora. Tente novamente.';
+          'Não foi possivel abrir o Pangea agora. Tente novamente.';
       return;
     }
 
@@ -232,7 +232,7 @@ class AnalysisPrecedentsBubblePresenter {
       await _externalLinkDriver.openUrl(uri.toString());
     } catch (_) {
       generalError.value =
-          'Nao foi possivel abrir o Pangea agora. Tente novamente.';
+          'Não foi possivel abrir o Pangea agora. Tente novamente.';
     }
   }
 
@@ -257,7 +257,7 @@ class AnalysisPrecedentsBubblePresenter {
     if (response.isFailure) {
       isLoading.value = false;
       generalError.value =
-          'Nao foi possivel escolher o precedente agora. Tente novamente.';
+          'Não foi possivel escolher o precedente agora. Tente novamente.';
       return false;
     }
 
@@ -270,6 +270,7 @@ class AnalysisPrecedentsBubblePresenter {
       similarityScore: precedent.similarityScore,
       finalRank: precedent.finalRank,
       applicabilityLevel: precedent.applicabilityLevel,
+      isManuallyAdded: precedent.isManuallyAdded,
     );
     precedents.value = List<AnalysisPrecedentDto>.unmodifiable(
       precedents.value.map((AnalysisPrecedentDto item) {
@@ -283,6 +284,7 @@ class AnalysisPrecedentsBubblePresenter {
           similarityScore: item.similarityScore,
           finalRank: item.finalRank,
           applicabilityLevel: item.applicabilityLevel,
+          isManuallyAdded: item.isManuallyAdded,
         );
       }),
     );
@@ -305,7 +307,7 @@ class AnalysisPrecedentsBubblePresenter {
     if (response.isFailure) {
       isLoading.value = false;
       generalError.value =
-          'Nao foi possivel desfazer a escolha do precedente agora. Tente novamente.';
+          'Não foi possivel desfazer a escolha do precedente agora. Tente novamente.';
       return false;
     }
 
@@ -323,6 +325,7 @@ class AnalysisPrecedentsBubblePresenter {
           similarityScore: item.similarityScore,
           finalRank: item.finalRank,
           applicabilityLevel: item.applicabilityLevel,
+          isManuallyAdded: item.isManuallyAdded,
         );
       }),
     );
@@ -337,6 +340,7 @@ class AnalysisPrecedentsBubblePresenter {
         similarityScore: focused.similarityScore,
         finalRank: focused.finalRank,
         applicabilityLevel: focused.applicabilityLevel,
+        isManuallyAdded: focused.isManuallyAdded,
       );
     }
 
@@ -391,7 +395,7 @@ class AnalysisPrecedentsBubblePresenter {
 
     if (analysisResponse.isFailure) {
       _applyError(
-        'Nao foi possivel carregar o status da analise. Tente novamente.',
+        'Não foi possivel carregar o status da analise. Tente novamente.',
       );
       return;
     }
@@ -444,7 +448,7 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     if (searchResponse.isFailure) {
-      _applyError('Nao foi possivel iniciar a busca de precedentes.');
+      _applyError('Não foi possivel iniciar a busca de precedentes.');
       return;
     }
 
@@ -474,7 +478,7 @@ class AnalysisPrecedentsBubblePresenter {
       }
 
       if (analysisResponse.isFailure) {
-        _applyError('Nao foi possivel atualizar o status dos precedentes.');
+        _applyError('Não foi possivel atualizar o status dos precedentes.');
         return;
       }
 
@@ -498,7 +502,7 @@ class AnalysisPrecedentsBubblePresenter {
         return;
       }
 
-      _applyError('Nao foi possivel interpretar o status atual da analise.');
+      _applyError('Não foi possivel interpretar o status atual da analise.');
     } finally {
       _isPollingRequestInFlight = false;
     }
@@ -525,7 +529,7 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     if (response.isFailure) {
-      _applyError('Nao foi possivel carregar os precedentes agora.');
+      _applyError('Não foi possivel carregar os precedentes agora.');
       return;
     }
 

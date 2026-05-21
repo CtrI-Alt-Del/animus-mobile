@@ -8,6 +8,7 @@ class PrecedentListItemView extends StatelessWidget {
   final String title;
   final double similarityScore;
   final AnalysisPrecedentApplicabilityLevelDto applicabilityLevel;
+  final bool isManuallyAdded;
   final bool isChosen;
   final VoidCallback? onTap;
 
@@ -15,6 +16,7 @@ class PrecedentListItemView extends StatelessWidget {
     required this.title,
     required this.similarityScore,
     required this.applicabilityLevel,
+    required this.isManuallyAdded,
     required this.isChosen,
     this.onTap,
     super.key,
@@ -34,26 +36,16 @@ class PrecedentListItemView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: <Widget>[
-              if (isChosen)
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: Container(
-                    width: 6,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: tokens.successDark,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    ApplicabilityBadge(
-                      classificationLevel: applicabilityLevel,
-                      showScore: false,
-                    ),
+                    isManuallyAdded
+                        ? _ManuallyAddedBadge()
+                        : ApplicabilityBadge(
+                            classificationLevel: applicabilityLevel,
+                            showScore: false,
+                          ),
                     const SizedBox(height: 10),
                     Text(
                       title,
@@ -90,6 +82,31 @@ class PrecedentListItemView extends StatelessWidget {
               Icon(Icons.chevron_right, size: 20, color: tokens.textTertiary),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ManuallyAddedBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: tokens.textMuted.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: tokens.textMuted.withValues(alpha: 0.28)),
+      ),
+      child: Text(
+        'Manualmente adicionado',
+        style: textTheme.labelSmall?.copyWith(
+          color: tokens.textMuted,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

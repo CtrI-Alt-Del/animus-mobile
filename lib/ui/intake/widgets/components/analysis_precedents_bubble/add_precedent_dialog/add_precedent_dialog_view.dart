@@ -5,9 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/add_precedent_dialog_presenter.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/preview_card/index.dart';
 
 class AddPrecedentDialogView extends ConsumerWidget {
   final String analysisId;
@@ -55,24 +58,58 @@ class AddPrecedentDialogView extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ReactiveTextField<String>(
+                ReactiveDropdownField<CourtDto>(
                   formControlName: 'court',
-                  textInputAction: TextInputAction.next,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: _inputDecoration(
+                  decoration: _selectDecoration(
                     context: context,
-                    label: 'Court',
+                    label: 'Tribunal',
                   ),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: tokens.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  dropdownColor: tokens.surfaceElevated,
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: tokens.textSecondary,
+                  ),
+                  items: AddPrecedentDialogPresenter.supportedCourts
+                      .map(
+                        (CourtDto court) => DropdownMenuItem<CourtDto>(
+                          value: court,
+                          child: Text(court.value),
+                        ),
+                      )
+                      .toList(growable: false),
                   validationMessages: <String, ValidationMessageFunction>{
                     ValidationMessage.required: (_) => 'Campo obrigatorio.',
                   },
                 ),
                 const SizedBox(height: 12),
-                ReactiveTextField<String>(
+                ReactiveDropdownField<PrecedentKindDto>(
                   formControlName: 'kind',
-                  textInputAction: TextInputAction.next,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: _inputDecoration(context: context, label: 'Kind'),
+                  decoration: _selectDecoration(
+                    context: context,
+                    label: 'Espécie',
+                  ),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: tokens.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  dropdownColor: tokens.surfaceElevated,
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: tokens.textSecondary,
+                  ),
+                  items: AddPrecedentDialogPresenter.supportedKinds
+                      .map(
+                        (PrecedentKindDto kind) =>
+                            DropdownMenuItem<PrecedentKindDto>(
+                              value: kind,
+                              child: Text(kind.value),
+                            ),
+                      )
+                      .toList(growable: false),
                   validationMessages: <String, ValidationMessageFunction>{
                     ValidationMessage.required: (_) => 'Campo obrigatorio.',
                   },
@@ -85,7 +122,7 @@ class AddPrecedentDialogView extends ConsumerWidget {
                   onSubmitted: (_) => unawaited(presenter.fetchPreview()),
                   decoration: _inputDecoration(
                     context: context,
-                    label: 'Number',
+                    label: 'Número',
                   ),
                   validationMessages: <String, ValidationMessageFunction>{
                     ValidationMessage.required: (_) => 'Campo obrigatorio.',
@@ -167,19 +204,21 @@ class AddPrecedentDialogView extends ConsumerWidget {
                     return const SizedBox.shrink();
                   }
 
-                  return _PreviewCard(precedent: precedent);
+                  return PreviewCard(precedent: precedent);
                 }),
                 const SizedBox(height: 20),
                 Row(
                   children: <Widget>[
-                    Expanded(
+                    Flexible(
+                      flex: 4,
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(context).pop(false),
                         child: const Text('Cancelar'),
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Expanded(
+                    Flexible(
+                      flex: 5,
                       child: Watch((BuildContext context) {
                         final bool isSubmitting = presenter.isSubmitting.watch(
                           context,
@@ -189,6 +228,10 @@ class AddPrecedentDialogView extends ConsumerWidget {
                         );
 
                         return FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
                           onPressed: canSubmit
                               ? () {
                                   unawaited(
@@ -215,9 +258,9 @@ class AddPrecedentDialogView extends ConsumerWidget {
                                 )
                               : const Icon(Icons.add, size: 18),
                           label: Text(
-                            isSubmitting
-                                ? 'Adicionando...'
-                                : 'Adicionar precedente',
+                            isSubmitting ? 'Adicionando...' : 'Adicionar',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         );
                       }),
@@ -263,115 +306,20 @@ class AddPrecedentDialogView extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: tokens.danger),
       ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
-}
 
-class _PreviewCard extends StatelessWidget {
-  final PrecedentDto precedent;
-
-  const _PreviewCard({required this.precedent});
-
-  @override
-  Widget build(BuildContext context) {
+  InputDecoration _selectDecoration({
+    required BuildContext context,
+    required String label,
+  }) {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
-    final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final String identifier =
-        '${precedent.identifier.court.value} ${precedent.identifier.kind.value} ${precedent.identifier.number}';
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: tokens.surfaceElevated,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: tokens.borderSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Icon(Icons.balance_outlined, size: 16, color: tokens.accent),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  identifier,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: tokens.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _PreviewTextBlock(label: 'Status', value: precedent.status),
-          const SizedBox(height: 8),
-          _PreviewTextBlock(label: 'Enunciado', value: precedent.enunciation),
-          const SizedBox(height: 8),
-          _PreviewTextBlock(label: 'Tese', value: precedent.thesis),
-        ],
-      ),
-    );
-  }
-}
-
-class _PreviewTextBlock extends StatefulWidget {
-  final String label;
-  final String value;
-
-  const _PreviewTextBlock({required this.label, required this.value});
-
-  @override
-  State<_PreviewTextBlock> createState() => _PreviewTextBlockState();
-}
-
-class _PreviewTextBlockState extends State<_PreviewTextBlock> {
-  bool _isExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppThemeTokens tokens =
-        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    final String resolvedValue = widget.value.trim().isEmpty
-        ? 'Nao informado.'
-        : widget.value.trim();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          widget.label,
-          style: textTheme.labelSmall?.copyWith(
-            color: tokens.textMuted,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          resolvedValue,
-          maxLines: _isExpanded ? null : 2,
-          overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-          style: textTheme.bodySmall?.copyWith(color: tokens.textSecondary),
-        ),
-        if (resolvedValue.length > 120)
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
-            },
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(0, 28),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(_isExpanded ? 'Mostrar menos' : 'Expandir'),
-          ),
-      ],
+    return _inputDecoration(context: context, label: label).copyWith(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      suffixIconColor: tokens.textSecondary,
     );
   }
 }

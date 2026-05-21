@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,28 +22,38 @@ class AddPrecedentDialogPresenter {
   final String analysisId;
 
   StreamSubscription<Object?>? _identifierChangeSubscription;
+  StreamSubscription<ControlStatus>? _formStatusSubscription;
 
   final Signal<bool> isFetchingPreview = signal<bool>(false);
   final Signal<bool> isSubmitting = signal<bool>(false);
   final Signal<PrecedentDto?> previewPrecedent = signal<PrecedentDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
+  final Signal<bool> hasValidIdentifier = signal<bool>(false);
+
+  static final List<CourtDto> supportedCourts = List<CourtDto>.unmodifiable(
+    CourtDto.values,
+  );
+  static final List<PrecedentKindDto> supportedKinds =
+      List<PrecedentKindDto>.unmodifiable(PrecedentKindDto.values);
 
   final FormGroup form = FormGroup(<String, AbstractControl<Object>>{
-    'court': FormControl<String>(validators: [Validators.required]),
-    'kind': FormControl<String>(validators: [Validators.required]),
+    'court': FormControl<CourtDto>(validators: [Validators.required]),
+    'kind': FormControl<PrecedentKindDto>(validators: [Validators.required]),
     'number': FormControl<String>(
       validators: [Validators.required, Validators.number()],
     ),
   });
 
   late final ReadonlySignal<bool> canFetchPreview = computed(() {
-    return !isFetchingPreview.value && !isSubmitting.value && form.valid;
+    return !isFetchingPreview.value &&
+        !isSubmitting.value &&
+        hasValidIdentifier.value;
   });
 
   late final ReadonlySignal<bool> canSubmit = computed(() {
     return !isFetchingPreview.value &&
         !isSubmitting.value &&
-        form.valid &&
+        hasValidIdentifier.value &&
         previewPrecedent.value != null;
   });
 
@@ -51,14 +63,15 @@ class AddPrecedentDialogPresenter {
     required this.analysisId,
   }) : _intakeService = intakeService,
        _bubblePresenter = bubblePresenter {
+    _syncFormState();
     clearPreviewOnIdentifierChange();
   }
 
-  FormControl<String> get courtControl =>
-      form.control('court') as FormControl<String>;
+  FormControl<CourtDto> get courtControl =>
+      form.control('court') as FormControl<CourtDto>;
 
-  FormControl<String> get kindControl =>
-      form.control('kind') as FormControl<String>;
+  FormControl<PrecedentKindDto> get kindControl =>
+      form.control('kind') as FormControl<PrecedentKindDto>;
 
   FormControl<String> get numberControl =>
       form.control('number') as FormControl<String>;
@@ -83,8 +96,9 @@ class AddPrecedentDialogPresenter {
 
     if (response.isFailure) {
       previewPrecedent.value = null;
-      generalError.value =
-          'Nao foi possivel buscar o precedente agora. Verifique o identificador e tente novamente.';
+      generalError.value = response.statusCode == HttpStatus.notFound
+          ? 'Precedente não encontrado.'
+          : 'Não foi possivel buscar o precedente agora. Verifique o identificador e tente novamente.';
       isFetchingPreview.value = false;
       return;
     }
@@ -114,7 +128,7 @@ class AddPrecedentDialogPresenter {
 
     if (response.isFailure) {
       generalError.value =
-          'Nao foi possivel adicionar o precedente agora. Tente novamente.';
+          'Não foi possivel adicionar o precedente agora. Tente novamente.';
       isSubmitting.value = false;
       return false;
     }
@@ -127,8 +141,14 @@ class AddPrecedentDialogPresenter {
   void clearPreviewOnIdentifierChange() {
     _identifierChangeSubscription?.cancel();
     _identifierChangeSubscription = form.valueChanges.listen((_) {
+      _syncFormState();
       previewPrecedent.value = null;
       generalError.value = null;
+    });
+
+    _formStatusSubscription?.cancel();
+    _formStatusSubscription = form.statusChanged.listen((_) {
+      _syncFormState();
     });
   }
 
@@ -148,8 +168,8 @@ class AddPrecedentDialogPresenter {
   }
 
   PrecedentIdentifierDto? _buildIdentifier() {
-    final CourtDto? court = _parseCourt(courtControl.value);
-    final PrecedentKindDto? kind = _parseKind(kindControl.value);
+    final CourtDto? court = courtControl.value;
+    final PrecedentKindDto? kind = kindControl.value;
     final int? number = int.tryParse((numberControl.value ?? '').trim());
 
     if (court == null || kind == null || number == null) {
@@ -159,42 +179,22 @@ class AddPrecedentDialogPresenter {
     return PrecedentIdentifierDto(court: court, kind: kind, number: number);
   }
 
-  CourtDto? _parseCourt(String? value) {
-    if (value == null) {
-      return null;
-    }
+  void _syncFormState() {
+    final bool hasValidCourt = courtControl.valid && courtControl.value != null;
+    final bool hasValidKind = kindControl.valid && kindControl.value != null;
+    final bool hasValidNumber = numberControl.valid;
 
-    final String normalized = value.trim().toUpperCase();
-    for (final CourtDto item in CourtDto.values) {
-      if (item.value == normalized) {
-        return item;
-      }
-    }
-
-    return null;
-  }
-
-  PrecedentKindDto? _parseKind(String? value) {
-    if (value == null) {
-      return null;
-    }
-
-    final String normalized = value.trim().toUpperCase();
-    for (final PrecedentKindDto item in PrecedentKindDto.values) {
-      if (item.value == normalized) {
-        return item;
-      }
-    }
-
-    return null;
+    hasValidIdentifier.value = hasValidCourt && hasValidKind && hasValidNumber;
   }
 
   void dispose() {
     _identifierChangeSubscription?.cancel();
+    _formStatusSubscription?.cancel();
     isFetchingPreview.dispose();
     isSubmitting.dispose();
     previewPrecedent.dispose();
     generalError.dispose();
+    hasValidIdentifier.dispose();
     canFetchPreview.dispose();
     canSubmit.dispose();
     form.dispose();

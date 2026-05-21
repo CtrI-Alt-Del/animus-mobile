@@ -9,7 +9,7 @@ import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
-import 'package:animus/core/intake/dtos/judgment_draft_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_judgment_draft_dto.dart';
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
@@ -389,11 +389,10 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
-  Future<RestResponse<JudgmentDraftDto>> getJudgmentDraft({
-    required String analysisId,
-  }) async {
-    final RestResponse<JudgmentDraftDto>? authFailure =
-        requireAuth<JudgmentDraftDto>();
+  Future<RestResponse<FirstInstanceJudgmentDraftDto>>
+  getFirstInstanceJudgmentDraft({required String analysisId}) async {
+    final RestResponse<FirstInstanceJudgmentDraftDto>? authFailure =
+        requireAuth<FirstInstanceJudgmentDraftDto>();
     if (authFailure != null) {
       return authFailure;
     }
@@ -402,7 +401,9 @@ class IntakeRestService extends Service implements IntakeService {
       '/intake/analyses/$analysisId/judgment-draft',
     );
 
-    return response.mapBody<JudgmentDraftDto>(JudgmentDraftMapper.toDto);
+    return response.mapBody<FirstInstanceJudgmentDraftDto>(
+      JudgmentDraftMapper.toDto,
+    );
   }
 
   @override
