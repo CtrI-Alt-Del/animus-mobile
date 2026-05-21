@@ -7,7 +7,7 @@ import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
-import 'package:animus/core/intake/dtos/judgment_draft_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_judgment_draft_dto.dart';
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
@@ -81,9 +81,8 @@ abstract class IntakeService {
     required String analysisId,
   });
 
-  Future<RestResponse<JudgmentDraftDto>> getJudgmentDraft({
-    required String analysisId,
-  });
+  Future<RestResponse<FirstInstanceJudgmentDraftDto>>
+  getFirstInstanceJudgmentDraft({required String analysisId});
 
   Future<RestResponse<void>> triggerFirstInstanceCaseSummarization({
     required String analysisId,

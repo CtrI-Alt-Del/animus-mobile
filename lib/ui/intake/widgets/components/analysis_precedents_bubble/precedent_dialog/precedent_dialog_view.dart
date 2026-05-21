@@ -123,13 +123,15 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                                   const SizedBox(height: 6),
                                   Align(
                                     alignment: Alignment.centerRight,
-                                    child: ApplicabilityBadge(
-                                      classificationLevel:
-                                          precedent.applicabilityLevel,
-                                      showScore: false,
-                                      showBorder: false,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                    child: precedent.isManuallyAdded
+                                        ? _ManuallyAddedBadge()
+                                        : ApplicabilityBadge(
+                                            classificationLevel:
+                                                precedent.applicabilityLevel,
+                                            showScore: false,
+                                            showBorder: false,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                   ),
                                 ],
                               ),
@@ -360,5 +362,30 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
   }) async {
     presenter.focusPrecedent(precedent);
     return presenter.confirmPrecedentChoice();
+  }
+}
+
+class _ManuallyAddedBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: tokens.textMuted.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: tokens.textMuted.withValues(alpha: 0.28)),
+      ),
+      child: Text(
+        'Manualmente adicionado',
+        style: textTheme.labelSmall?.copyWith(
+          color: tokens.textMuted,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
   }
 }

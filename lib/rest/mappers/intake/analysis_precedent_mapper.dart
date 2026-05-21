@@ -29,6 +29,7 @@ final class AnalysisPrecedentMapper {
         value: json['applicability_level'] ?? json['classification_level'],
         similarityScore: similarityScore,
       ),
+      isManuallyAdded: (json['is_manually_added'] as bool?) ?? false,
     );
   }
 
