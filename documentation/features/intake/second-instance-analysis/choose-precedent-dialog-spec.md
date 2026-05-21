@@ -2,12 +2,13 @@
 title: Escolha, desescolha e adição manual de precedentes no AnalysisPrecedentsBubble
 prd: https://joaogoliveiragarcia.atlassian.net/wiki/spaces/ANM/pages/16351240
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-117
-last_updated_at: 2026-05-19
+status: closed
+last_updated_at: 2026-05-20
 ---
 
 # 1. Objetivo
 
-Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a experiência completa de visualizar, escolher, adicionar manualmente por identificador, destacar, resumir e desescolher múltiplos precedentes escolhidos em telas de análise. A implementação deve remover a semântica pública singular de `selectedPrecedent`, expor um contrato público de seleção múltipla baseado em `chosenPrecedents`, sincronizar esse estado a partir de `AnalysisPrecedentDto.isChosen` retornado pela API e incluir um dialog próprio para consulta prévia e inclusão manual de precedente por `court`, `kind` e `number`.
+Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a experiência completa de visualizar, escolher, adicionar manualmente por identificador, destacar e desescolher precedentes em telas de análise. A implementação deve remover a semântica pública singular de `selectedPrecedent`, expor um contrato público de seleção múltipla baseado em `chosenPrecedents`, sincronizar esse estado a partir de `AnalysisPrecedentDto.isChosen` retornado pela API, propagar a origem manual do precedente via `AnalysisPrecedentDto.isManuallyAdded` e incluir um dialog próprio para consulta prévia e inclusão manual com `court` e `kind` selecionados a partir de enums tipados.
 
 ---
 
@@ -23,9 +24,12 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
 - Consultar `PrecedentDto` por identificador antes de confirmar a inclusão manual.
 - Persistir a inclusão manual via `POST /analyses/precedents`.
 - Destacar visualmente precedentes escolhidos na lista do `AnalysisPrecedentsBubble`.
-- Exibir resumo persistente dos precedentes escolhidos dentro do próprio `AnalysisPrecedentsBubble`.
+- Exibir badge `Manualmente adicionado` no lugar do badge de aplicabilidade quando `AnalysisPrecedentDto.isManuallyAdded == true`.
+- Reutilizar dialogs compartilhados de filtros e quantidade de precedentes como `components`, servidos pelo header das telas de análise em vez do corpo do bubble.
+- Trocar os campos livres de `court` e `kind` por selects tipados com `CourtDto` e `PrecedentKindDto` no dialog de adição manual.
 - Ajustar `SecondInstanceAnalysisScreenPresenter` para liberar `Gerar minuta` apenas quando existir ao menos um precedente escolhido.
 - Ajustar `FirstInstanceAnalysisScreenView` para parar de observar `selectedPrecedent` diretamente.
+- Ajustar a 2ª instância para tentar carregar `SecondInstanceJudgmentDraftDto` também durante estados intermediários do fluxo de precedentes e exibir o card imediatamente quando o draft já existir.
 
 ## 2.2 Out-of-scope
 
@@ -44,10 +48,10 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
 
 - Ao carregar/reentrar na tela, o app deve reconstruir visualmente os precedentes escolhidos a partir de `AnalysisPrecedentDto.isChosen` retornado por `listAnalysisPrecedents`.
 - O `AnalysisPrecedentsBubble` deve destacar todos os itens com `isChosen == true` na lista.
-- O `AnalysisPrecedentsBubble` deve exibir um resumo persistente com todos os precedentes escolhidos, sem exigir abertura do dialog para identificar a escolha atual.
+- Quando `AnalysisPrecedentDto.isManuallyAdded == true`, o badge visual do precedente deve exibir `Manualmente adicionado` no lugar do badge baseado em `applicabilityLevel`.
 - Ao tocar em um precedente da lista, o usuário deve continuar abrindo o dialog fullscreen de detalhes.
-- O `AnalysisPrecedentsBubble` deve expor CTA para abrir um dialog de adição manual por identificador.
-- No dialog de adição manual, o usuário deve informar `court`, `kind` e `number`.
+- O `AnalysisPrecedentsBubble` deve expor CTA para abrir um dialog de adição manual por identificador apenas quando o componente não estiver em estado de loading.
+- No dialog de adição manual, o usuário deve selecionar `court` e `kind` a partir de `CourtDto` e `PrecedentKindDto`, e informar `number` manualmente.
 - Antes da confirmação da inclusão, o app deve consultar `GET /precedents/identifier?court={court}&kind={kind}&number={number}`.
 - O dialog deve exibir preview do `PrecedentDto` retornado antes de habilitar a confirmação, limitado a `status`, `enunciation` e `thesis`.
 - `enunciation` deve aparecer truncado por padrão, com CTA local `Mostrar mais` para expandir o texto completo.
@@ -59,17 +63,20 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
 - Escolher um novo precedente não deve limpar automaticamente escolhas anteriores no estado local, salvo se a resposta/listagem posterior da API vier com outro conjunto de `isChosen`.
 - Desescolher um precedente deve atualizar apenas o item afetado e recalcular `chosenPrecedents`.
 - Em falha de rede, o app deve preservar o estado anterior e exibir erro recuperável, sem aplicar escolha/desescolha otimista definitiva.
-- Em falha de consulta por identificador ou inclusão manual, o dialog deve preservar os campos preenchidos e impedir confirmação inválida.
+- Em falha `404` na consulta por identificador, o dialog deve exibir a mensagem `Precedente não encontrado.`.
+- Em falha diferente de `404` na consulta por identificador ou inclusão manual, o dialog deve preservar os campos preenchidos e impedir confirmação inválida.
 - A 2ª instância só deve habilitar `Gerar minuta` quando existir ao menos um item em `chosenPrecedents`.
-- A 1ª instância deve manter compatibilidade visual com o resumo de precedente escolhido, agora renderizado pelo componente compartilhado.
+- A aplicação de filtros no header da 2ª instância deve atualizar apenas o estado selecionado do `AnalysisPrecedentsBubblePresenter`, sem disparar nova busca imediatamente.
+- Mesmo durante `SEARCHING_PRECEDENTS`, `PRECEDENTS_SEARCHED`, `ANALYZING_PRECEDENTS_SIMILARITY`, `ANALYZING_PRECEDENTS_APPLICABILITY`, `GENERATING_JUDGMENT_DRAFT` e `GENERATING_SYNTHESIS`, a 2ª instância deve tentar carregar `SecondInstanceJudgmentDraftDto` e exibir o card assim que ele já existir.
 
 ## 3.2 Não funcionais
 
 - **Performance:** `chosenPrecedents` deve ser um `computed<List<AnalysisPrecedentDto>>` derivado de `precedents`, evitando estado duplicado manual.
-- **Acessibilidade:** itens escolhidos devem expor indicação textual além de cor, como label `Escolhido`, ícone e texto no resumo.
+- **Acessibilidade:** itens escolhidos devem expor indicação textual além de cor, como label `Escolhido` e ícone inline na lista.
 - **Conectividade:** falhas de `choose`/`unchoose` devem manter a lista anterior e permitir nova tentativa sem recarregar a tela inteira.
 - **Conectividade:** falhas de `getPrecedent`/`addAnalysisPrecedent` devem preservar os campos digitados no dialog para nova tentativa.
 - **Arquitetura:** `View` não deve acessar `RestClient`; escolha, desescolha, preview e inclusão manual devem passar por presenters e `IntakeService`.
+- **Arquitetura:** os dialogs de filtros e quantidade devem existir como `components` compartilhados do `AnalysisPrecedentsBubble`, mesmo quando forem servidos pelo header das telas consumidoras.
 
 ---
 
@@ -77,7 +84,7 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
 
 ## Core
 
-- **`AnalysisPrecedentDto`** (`lib/core/intake/dtos/analysis_precedent_dto.dart`) - DTO da relação análise/precedente, já contém `isChosen`, `synthesis`, `similarityScore`, `finalRank` e `applicabilityLevel`.
+- **`AnalysisPrecedentDto`** (`lib/core/intake/dtos/analysis_precedent_dto.dart`) - DTO da relação análise/precedente, já contém `isChosen`, `synthesis`, `similarityScore`, `finalRank`, `applicabilityLevel` e `isManuallyAdded`.
 - **`PrecedentIdentifierDto`** (`lib/core/intake/dtos/precedent_identifier_dto.dart`) - identificador usado para enviar `court`, `kind` e `number` nos endpoints de escolha/desescolha.
 - **`PrecedentDto`** (`lib/core/intake/dtos/precedent_dto.dart`) - DTO base do precedente, com `identifier`, `status`, `enunciation`, `thesis`, `synthesis` e `lastUpdatedInPangeaAt`; no preview da inclusão manual serão usados apenas `status`, `enunciation` e `thesis`.
 - **`AnalysisStatusDto`** (`lib/core/intake/dtos/analysis_status_dto.dart`) - enum de status da análise usado para sincronizar o estado visual do fluxo de precedentes.
@@ -86,22 +93,22 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
 ## REST
 
 - **`IntakeRestService`** (`lib/rest/services/intake_rest_service.dart`) - já implementa `PATCH /intake/analyses/{analysisId}/precedents/choose`, `PATCH /intake/analyses/{analysisId}/precedents/unchoose` e `GET /intake/analyses/{analysisId}/precedents`.
-- **`AnalysisPrecedentMapper`** (`lib/rest/mappers/intake/analysis_precedent_mapper.dart`) - já mapeia `is_chosen` para `AnalysisPrecedentDto.isChosen`.
+- **`AnalysisPrecedentMapper`** (`lib/rest/mappers/intake/analysis_precedent_mapper.dart`) - já mapeia `is_chosen` para `AnalysisPrecedentDto.isChosen` e `is_manually_added` para `AnalysisPrecedentDto.isManuallyAdded`.
 - **`PrecedentMapper`** (`lib/rest/mappers/intake/precedent_mapper.dart`) - mapper já existente para `PrecedentDto`, reutilizável no preview remoto do precedente por identificador.
 
 ## UI
 
-- **`AnalysisPrecedentsBubblePresenter`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart`) - presenter compartilhado da lista; hoje mantém `selectedPrecedent` singular e atualiza apenas um item como escolhido em `confirmPrecedentChoice()`.
-- **`AnalysisPrecedentsBubbleView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_view.dart`) - componente pai da lista de precedentes; hoje renderiza loading/error/empty/content e callback externo de item.
+- **`AnalysisPrecedentsBubblePresenter`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart`) - presenter compartilhado da lista; já expõe `focusedPrecedent`, `chosenPrecedents`, `hasChosenPrecedents`, `reloadPrecedents()` e preserva `isManuallyAdded` ao recriar itens localmente.
+- **`AnalysisPrecedentsBubbleView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_view.dart`) - componente pai da lista de precedentes; hoje renderiza loading/error/empty/content, CTA de adição manual fora do loading e callback externo de item, sem card resumo interno de escolhidos.
 - **`ContentStateView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/content_state/content_state_view.dart`) - renderiza a lista de precedentes e delega tap do item.
-- **`PrecedentListItemView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/precedent_list_item/precedent_list_item_view.dart`) - item visual da lista; hoje não recebe estado de escolhido.
-- **`AnalysisPrecedentDialogView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/precedent_dialog/precedent_dialog_view.dart`) - dialog fullscreen; hoje usa `precedent.isChosen` para texto visual, mas quando já escolhido apenas fecha o dialog, sem desescolher.
-- **`PrecedentsFiltersDialogView`** (`lib/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_filters_dialog/precedents_filters_dialog_view.dart`) - referência de dialog com controles locais para filtros.
-- **`PrecedentsLimitDialogView`** (`lib/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_limit_dialog/precedents_limit_dialog_view.dart`) - referência de dialog simples com confirmação explícita dentro do fluxo de precedentes.
-- **`FirstInstanceAnalysisScreenView`** (`lib/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_view.dart`) - consumidora atual que lê `precedentsPresenter.selectedPrecedent` e renderiza resumo singular fora do componente.
-- **`ChosenPrecedentSummaryView`** (`lib/ui/intake/widgets/pages/first_instance_analysis_screen/chosen_precedent_summary/chosen_precedent_summary_view.dart`) - referência visual existente para resumo persistente de precedente escolhido singular.
-- **`SecondInstanceAnalysisScreenView`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_view.dart`) - renderiza `AnalysisPrecedentsBubble` e usa `onPrecedentsReady`, mas não observa se há precedente efetivamente escolhido.
-- **`SecondInstanceFirstInstanceAnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`) - `canGenerateJudgmentDraft` hoje depende de `precedentsReady`, sem checar item escolhido.
+- **`PrecedentListItemView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/precedent_list_item/precedent_list_item_view.dart`) - item visual da lista; já recebe estado de escolhido e origem manual para trocar o badge exibido.
+- **`AnalysisPrecedentDialogView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/precedent_dialog/precedent_dialog_view.dart`) - dialog fullscreen que já alterna entre escolher e desescolher, refletindo o estado atual local do precedente e trocando o badge quando `isManuallyAdded == true`.
+- **`PrecedentsFiltersDialogView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/precedents_filters_dialog_view.dart`) - dialog compartilhado de filtros, servido pelos headers das telas de análise; os arquivos de `pages/first_instance_analysis_screen/...` atuam apenas como aliases para compatibilidade de import.
+- **`PrecedentsLimitDialogView`** (`lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/precedents_limit_dialog_view.dart`) - dialog compartilhado de quantidade de precedentes, servido pelos headers das telas de análise; os arquivos de `pages/first_instance_analysis_screen/...` atuam apenas como aliases para compatibilidade de import.
+- **`FirstInstanceAnalysisScreenView`** (`lib/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_view.dart`) - consumidora que já usa o contrato público atualizado do bubble, sem renderizar resumo externo singular.
+- **`ChosenPrecedentSummaryView`** - **Não aplicável** neste recorte; a implementação atual não usa card resumo persistente de escolhidos no bubble nem na 1ª instância.
+- **`SecondInstanceAnalysisScreenView`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_view.dart`) - renderiza `AnalysisPrecedentsBubble`, observa `chosenPrecedents` e serve os dialogs de filtros/quantidade no header da tela.
+- **`SecondInstanceFirstInstanceAnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`) - `canGenerateJudgmentDraft` já depende de `precedentsReady` e de ao menos um precedente escolhido, e tenta carregar `SecondInstanceJudgmentDraftDto` também durante estados intermediários do fluxo de precedentes.
 
 ---
 
@@ -119,8 +126,8 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
 - **Provider Riverpod:** `addPrecedentDialogPresenterProvider`
 - **Form (`reactive_forms`):**
   - `final FormGroup form`
-  - `FormControl<String> get courtControl`
-  - `FormControl<String> get kindControl`
+  - `FormControl<CourtDto> get courtControl`
+  - `FormControl<PrecedentKindDto> get kindControl`
   - `FormControl<String> get numberControl`
 - **Computeds:**
   - `computed<bool> canFetchPreview` - habilita consulta quando o identificador estiver válido e não houver request em andamento.
@@ -131,12 +138,11 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
   - `void clearPreviewOnIdentifierChange()` - invalida o preview atual quando algum campo do identificador mudar.
   - `String? fieldErrorMessage(FormControl<Object?> control)` - devolve mensagem de validação para a View.
 
-- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/chosen_precedents_summary/chosen_precedents_summary_presenter.dart` (**novo arquivo**)
-- **Dependências injetadas:** `AnalysisPrecedentsBubblePresenter`
-- **Provider Riverpod:** `chosenPrecedentsSummaryPresenterProvider`
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/court_filter_section/court_filter_section_presenter.dart` (**novo arquivo**)
+- **Dependências injetadas:** não aplicável
+- **Provider Riverpod:** `courtFilterSectionPresenterProvider`
 - **Métodos:**
-  - `Future<bool> unchoosePrecedent(AnalysisPrecedentDto precedent)` - delega a desescolha ao presenter pai do bubble.
-  - `String buildIdentifierLabel(AnalysisPrecedentDto precedent)` - monta o identificador textual do card.
+  - `void toggleGroup(String title)` - expande/recolhe grupos de tribunais no dialog de filtros.
 
 ## Camada UI (Views)
 
@@ -152,13 +158,27 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
   - Preview do `PrecedentDto` com `status`, `enunciation` truncado/expansível e `thesis` truncado/expansível
   - Submit em andamento
 
-- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/chosen_precedents_summary/chosen_precedents_summary_view.dart` (**novo arquivo**)
-- **Base class:** `ConsumerWidget`
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/precedents_filters_dialog_view.dart` (**novo arquivo**)
+- **Base class:** `StatelessWidget`
 - **Props:**
-  - `final String analysisId`
-  - `final List<AnalysisPrecedentDto> precedents`
-  - `final ValueChanged<AnalysisPrecedentDto> onPrecedentTap`
-- **Estados visuais:** Content apenas; não aplicável loading/error isolado.
+  - `final List<CourtDto> selectedCourts`
+  - `final List<PrecedentKindDto> selectedKinds`
+  - `final ValueChanged<CourtDto> onToggleCourt`
+  - `final ValueChanged<PrecedentKindDto> onToggleKind`
+  - `final VoidCallback onClear`
+  - `final VoidCallback onApply`
+- **Estados visuais:** content apenas; o estado expansível dos grupos de tribunais fica delegado ao widget interno `CourtFilterSection`.
+
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/precedents_limit_dialog_view.dart` (**novo arquivo**)
+- **Base class:** `StatelessWidget`
+- **Props:**
+  - `final int currentValue`
+  - `final int minValue`
+  - `final int maxValue`
+  - `final ValueChanged<int> onChanged`
+  - `final VoidCallback onCancel`
+  - `final VoidCallback onApply`
+- **Estados visuais:** content apenas.
 
 ## Camada UI (Widgets Internos)
 
@@ -166,9 +186,29 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
 - **Tipo:** `View + Presenter`
 - **Responsabilidade:** capturar identificador, buscar preview do precedente e confirmar a inclusão manual na análise.
 
-- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/chosen_precedents_summary/` (**novo arquivo**)
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/preview_card/` (**novo arquivo**)
+- **Tipo:** `View`
+- **Responsabilidade:** renderizar o card de preview do precedente retornado antes da confirmação.
+
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/preview_text_block/` (**novo arquivo**)
+- **Tipo:** `View` com estado local encapsulado no próprio `StatefulWidget`
+- **Responsabilidade:** renderizar blocos de texto truncáveis/expansíveis para `status`, `enunciation` e `thesis`.
+
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/court_filter_section/` (**novo arquivo**)
 - **Tipo:** `View + Presenter`
-- **Responsabilidade:** renderizar resumo persistente dos precedentes escolhidos, com ação explícita de desescolha por item e reabertura do dialog de detalhe.
+- **Responsabilidade:** manter estado local dos grupos expandidos de tribunais no dialog de filtros.
+
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/filter_section/` (**novo arquivo**)
+- **Tipo:** `View`
+- **Responsabilidade:** renderizar seções genéricas de filtros em lista de chips.
+
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/filter_chip/` (**novo arquivo**)
+- **Tipo:** `View`
+- **Responsabilidade:** renderizar chip selecionável de filtro.
+
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/section_header/` (**novo arquivo**)
+- **Tipo:** `View`
+- **Responsabilidade:** renderizar o cabeçalho reutilizável das seções de filtro.
 
 ## Camada UI (Barrel Files / `index.dart`)
 
@@ -176,8 +216,12 @@ Evoluir o componente compartilhado `AnalysisPrecedentsBubble` para encapsular a 
 - **`typedef` exportado:** `typedef AddPrecedentDialog = AddPrecedentDialogView`
 - **Widgets internos exportados:** não aplicável.
 
-- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/chosen_precedents_summary/index.dart` (**novo arquivo**)
-- **`typedef` exportado:** `typedef ChosenPrecedentsSummary = ChosenPrecedentsSummaryView`
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/index.dart` (**novo arquivo**)
+- **`typedef` exportado:** `typedef PrecedentsFiltersDialog = AnalysisPrecedentsBubblePrecedentsFiltersDialogView`
+- **Widgets internos exportados:** `court_filter_section`, `filter_section`, `filter_chip`, `section_header`.
+
+- **Localização:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/index.dart` (**novo arquivo**)
+- **`typedef` exportado:** `typedef PrecedentsLimitDialog = AnalysisPrecedentsBubblePrecedentsLimitDialogView`
 - **Widgets internos exportados:** não aplicável.
 
 ## Estrutura de Pastas
@@ -191,10 +235,12 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
     index.dart
     add_precedent_dialog_view.dart
     add_precedent_dialog_presenter.dart
-  chosen_precedents_summary/
-    index.dart
-    chosen_precedents_summary_view.dart
-    chosen_precedents_summary_presenter.dart
+    preview_card/
+      index.dart
+      preview_card_view.dart
+    preview_text_block/
+      index.dart
+      preview_text_block_view.dart
   content_state/
     index.dart
     content_state_view.dart
@@ -210,6 +256,26 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
   precedent_dialog/
     index.dart
     precedent_dialog_view.dart
+  precedents_filters_dialog/
+    index.dart
+    precedents_filters_dialog_view.dart
+    court_group.dart
+    court_filter_section/
+      index.dart
+      court_filter_section_view.dart
+      court_filter_section_presenter.dart
+    filter_section/
+      index.dart
+      filter_section_view.dart
+    filter_chip/
+      index.dart
+      filter_chip_view.dart
+    section_header/
+      index.dart
+      section_header_view.dart
+  precedents_limit_dialog/
+    index.dart
+    precedents_limit_dialog_view.dart
   precedent_list_item/
     index.dart
     precedent_list_item_view.dart
@@ -239,6 +305,10 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
 - **Mudança:** implementar `addAnalysisPrecedent(...)` usando `POST /analyses/precedents` com body `{ "analysis_id": analysisId, "identifier": { ... } }` e mapear a resposta com `AnalysisPrecedentMapper.toDto`.
 - **Justificativa:** o item precisa ser persistido na análise antes de poder ser escolhido/desescolhido no fluxo normal.
 
+- **Arquivo:** `lib/rest/mappers/intake/analysis_precedent_mapper.dart`
+- **Mudança:** mapear `is_manually_added` para `AnalysisPrecedentDto.isManuallyAdded`.
+- **Justificativa:** a UI precisa distinguir precedentes adicionados manualmente para trocar o badge exibido.
+
 ## UI
 
 - **Arquivo:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart`
@@ -262,22 +332,26 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
 - **Justificativa:** manter ciclo de vida dos `signals`/`computed` consistente.
 
 - **Arquivo:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_view.dart`
-- **Mudança:** observar `chosenPrecedents` e renderizar `ChosenPrecedentsSummary` dentro do bubble quando a lista não estiver vazia.
-- **Justificativa:** o resumo persistente deve pertencer ao componente reutilizável, não às telas consumidoras.
 - **Mudança:** ajustar `onPrecedentTap` para chamar `presenter.focusPrecedent(precedent)` antes de delegar a abertura do dialog.
 - **Justificativa:** manter o item em foco sincronizado para o dialog sem expor semântica de escolha.
 - **Mudança:** adicionar CTA `Adicionar precedente` no cabeçalho ou rodapé do bubble para abrir `AddPrecedentDialog`.
 - **Justificativa:** a inclusão manual deve nascer dentro do mesmo componente compartilhado de precedentes.
+- **Mudança:** omitir o CTA `Adicionar precedente` quando o bubble estiver em estado de loading.
+- **Justificativa:** evita concorrência com o fluxo assíncrono principal do componente.
+- **Mudança:** remover os CTAs de filtros e quantidade do corpo do bubble.
+- **Justificativa:** essas ações passaram a ser servidas pelos headers das telas consumidoras.
 
 - **Arquivo:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/content_state/content_state_view.dart`
-- **Mudança:** repassar `precedent.isChosen` para `PrecedentListItem`.
-- **Justificativa:** a lista precisa refletir visualmente todos os itens escolhidos.
+- **Mudança:** repassar `precedent.isChosen` e `precedent.isManuallyAdded` para `PrecedentListItem`.
+- **Justificativa:** a lista precisa refletir visualmente tanto a escolha quanto a origem manual do precedente.
 
 - **Arquivo:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedent_list_item/precedent_list_item_view.dart`
 - **Mudança:** adicionar prop `final bool isChosen`.
 - **Justificativa:** permitir destaque visual reutilizável no item.
 - **Mudança:** quando `isChosen == true`, exibir label/ícone `Escolhido`, borda ou fundo com `tokens.accent` e sem depender apenas de cor.
 - **Justificativa:** atender ao requisito visual e de acessibilidade.
+- **Mudança:** quando `isManuallyAdded == true`, exibir badge cinza `Manualmente adicionado` no lugar do badge de `applicabilityLevel`.
+- **Justificativa:** diferenciar precedentes adicionados manualmente dos precedentes classificados automaticamente.
 
 - **Arquivo:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedent_dialog/precedent_dialog_view.dart`
 - **Mudança:** derivar o estado atual do precedente a partir de `presenter.precedents` ou `focusedPrecedent`, não apenas da prop recebida inicialmente.
@@ -286,13 +360,15 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
 - **Justificativa:** implementar desescolha explícita sem deixar a UI inconsistente.
 - **Mudança:** se o item não estiver escolhido, o CTA deve executar `presenter.focusPrecedent(currentPrecedent)` e `presenter.confirmPrecedentChoice()`.
 - **Justificativa:** manter escolha persistida pelo presenter compartilhado.
+- **Mudança:** quando `precedent.isManuallyAdded == true`, exibir badge cinza `Manualmente adicionado` no lugar do badge de aplicabilidade.
+- **Justificativa:** manter consistência visual entre a lista e o dialog de detalhe.
 
 - **Arquivo:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/add_precedent_dialog_presenter.dart` (**novo arquivo**)
-- **Mudança:** criar presenter com `FormGroup`, preview remoto, submit e invalidação do preview ao editar o identificador.
+- **Mudança:** criar presenter com `FormGroup`, preview remoto, submit, invalidação do preview ao editar o identificador, sincronização reativa da validade do formulário via `signals` e tratamento específico de `404` para `Precedente não encontrado.`.
 - **Justificativa:** o dialog possui estado próprio, validação, handlers e integração assíncrona; não deve sobrecarregar o presenter pai.
 
 - **Arquivo:** `lib/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/add_precedent_dialog_view.dart` (**novo arquivo**)
-- **Mudança:** criar dialog com campos `court`, `kind`, `number`, CTA `Buscar precedente`, card de preview com `status`, `enunciation` truncado/expansível, `thesis` truncado/expansível e CTA `Adicionar precedente`.
+- **Mudança:** criar dialog com selects tipados para `court` e `kind`, campo de `number`, CTA `Buscar precedente`, card de preview com `status`, `enunciation` truncado/expansível, `thesis` truncado/expansível e CTA `Adicionar precedente`.
 - **Justificativa:** o fluxo exige confirmação visual do precedente antes da inclusão.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
@@ -304,26 +380,36 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
 - **Justificativa:** receber do componente compartilhado o estado público de escolhidos e atualizar `hasChosenPrecedents`.
 - **Mudança:** quando `hasChosenPrecedents` mudar para `false`, manter `precedentsReady` se a lista existir, mas impedir `requestJudgmentDraft()`.
 - **Justificativa:** desescolher o último precedente não deve esconder a lista nem permitir minuta sem precedente.
+- **Mudança:** tentar carregar `SecondInstanceJudgmentDraftDto` também durante estados intermediários do fluxo de precedentes, sem tratar `404` como falha fatal.
+- **Justificativa:** permitir exibir o card da minuta assim que o backend já tiver gerado o draft, mesmo antes do status final `DONE`.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_view.dart`
 - **Mudança:** observar `analysisPrecedentsBubblePresenterProvider(widget.analysisId).chosenPrecedents` em um `Watch` próximo ao bubble e chamar `presenter.syncChosenPrecedents(chosenPrecedents)` por `addPostFrameCallback` quando houver alteração.
 - **Justificativa:** a tela consome apenas o contrato público do componente, sem recalcular `isChosen` por conta própria.
 - **Mudança:** remover dependência de `precedentsReady` como fallback para `Gerar minuta` no handler de status `failed` quando não houver escolhido.
 - **Justificativa:** retry de geração da minuta também precisa respeitar a existência de precedente escolhido.
+- **Mudança:** servir os dialogs de filtros e quantidade no `AnalysisHeader`, consumindo o estado do `AnalysisPrecedentsBubblePresenter`.
+- **Justificativa:** essas ações pertencem ao header das telas de análise, não ao corpo do bubble.
+- **Mudança:** ao aplicar filtros na 2ª instância, atualizar apenas o estado selecionado sem disparar nova busca automaticamente.
+- **Justificativa:** evita reexecução implícita do fluxo de precedentes no momento do ajuste de filtros.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_view.dart`
 - **Mudança:** substituir leituras de `precedentsPresenter.selectedPrecedent` por `precedentsPresenter.chosenPrecedents`.
 - **Justificativa:** remover consumo do contrato singular descontinuado.
-- **Mudança:** remover a renderização externa de `ChosenPrecedentSummary` abaixo do bubble, deixando o resumo persistente no `AnalysisPrecedentsBubble`.
-- **Justificativa:** centralizar a experiência reutilizável e evitar duplicidade entre telas.
+- **Mudança:** remover a renderização externa de `ChosenPrecedentSummary` abaixo do bubble, deixando a identificação de escolha inline na própria lista.
+- **Justificativa:** evitar duplicidade entre telas e reduzir ruído visual no fluxo de precedentes.
 - **Mudança:** em `_showPrecedentDialog(...)`, detectar transição de zero para um ou mais escolhidos via `chosenPrecedents.value.isEmpty` antes/depois do dialog para chamar `presenter.markPrecedentChosen()`.
 - **Justificativa:** manter compatibilidade do status da 1ª instância sem depender de estado singular.
 - **Mudança:** não adicionar lógica própria para inclusão manual; apenas consumir o bubble compartilhado evoluído.
 - **Justificativa:** a responsabilidade do novo fluxo continua centralizada no componente reutilizável.
 
-- **Arquivo:** `lib/ui/intake/widgets/pages/first_instance_analysis_screen/chosen_precedent_summary/chosen_precedent_summary_view.dart`
-- **Mudança:** manter como referência legado apenas se ainda houver uso; caso fique sem referências após mover o resumo para o componente compartilhado, remover em uma limpeza separada ou nesta implementação se o grep confirmar ausência total.
-- **Justificativa:** evitar código morto, mas sem remover antes de validar todos os imports.
+- **Arquivo:** `lib/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_filters_dialog/precedents_filters_dialog_view.dart`
+- **Mudança:** manter apenas como alias para `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/precedents_filters_dialog_view.dart`.
+- **Justificativa:** preservar compatibilidade de imports enquanto o dialog passa a existir como component compartilhado.
+
+- **Arquivo:** `lib/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_limit_dialog/precedents_limit_dialog_view.dart`
+- **Mudança:** manter apenas como alias para `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/precedents_limit_dialog_view.dart`.
+- **Justificativa:** preservar compatibilidade de imports enquanto o dialog passa a existir como component compartilhado.
 
 ---
 
@@ -337,7 +423,7 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_view.dart`
 - **Motivo da remoção:** remover renderização externa de `ChosenPrecedentSummary` para evitar duplicar o resumo agora encapsulado no `AnalysisPrecedentsBubble`.
-- **Impacto esperado:** o resumo aparece no mesmo ponto visual do bubble em todas as telas consumidoras.
+- **Impacto esperado:** a identificação de escolhidos permanece inline na lista, sem card resumo dedicado nas telas consumidoras.
 
 ---
 
@@ -353,10 +439,10 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
 - **Motivo da escolha:** separa foco transiente de escolha persistida e reduz ambiguidade nos consumidores.
 - **Impactos / trade-offs:** requer renomear chamadas atuais de `choosePrecedent(...)` para `focusPrecedent(...)`.
 
-- **Decisão:** o resumo persistente de escolhidos nasce dentro de `AnalysisPrecedentsBubble`.
-- **Alternativas consideradas:** cada tela renderizar seu próprio resumo; reutilizar `ChosenPrecedentSummary` da 1ª instância fora do bubble.
-- **Motivo da escolha:** o comportamento deve ser reutilizável em todas as telas de análise e centralizado no componente compartilhado.
-- **Impactos / trade-offs:** a 1ª instância perde customização local do resumo singular, mas ganha compatibilidade com seleção múltipla.
+- **Decisão:** a lista de precedentes exibe o estado escolhido inline e não renderiza card resumo persistente no bubble.
+- **Alternativas consideradas:** manter um card resumo interno; renderizar resumo por tela consumidora.
+- **Motivo da escolha:** reduz ruído visual no bubble e mantém a identificação de estado diretamente onde o usuário interage.
+- **Impactos / trade-offs:** a identificação de escolhidos depende da leitura dos próprios itens da lista e de seus labels auxiliares.
 
 - **Decisão:** escolha e desescolha não serão otimistas definitivas.
 - **Alternativas consideradas:** atualizar UI antes da resposta e reverter em erro.
@@ -377,6 +463,21 @@ lib/ui/intake/widgets/components/analysis_precedents_bubble/
 - **Alternativas consideradas:** `TextEditingController` puro dentro da View; validação manual no presenter pai.
 - **Motivo da escolha:** o projeto já usa `reactive_forms` para fluxos com validação de campos, e o dialog tem estado próprio suficiente para justificar presenter dedicado.
 - **Impactos / trade-offs:** adiciona boilerplate de form, mas mantém validação, mensagens e habilitação de CTAs centralizadas.
+
+- **Decisão:** `court` e `kind` do dialog de inclusão manual serão selects tipados a partir de `CourtDto` e `PrecedentKindDto`.
+- **Alternativas consideradas:** manter inputs textuais livres; converter `String` em enum manualmente no presenter.
+- **Motivo da escolha:** reduz erros de digitação e garante que apenas identificadores suportados pela API sejam enviados.
+- **Impactos / trade-offs:** o dialog perde flexibilidade para valores arbitrários, mas ganha consistência e previsibilidade de validação.
+
+- **Decisão:** os dialogs de filtros e quantidade existem como `components` compartilhados, mas são servidos pelo header das telas de análise.
+- **Alternativas consideradas:** manter dialogs acoplados à 1ª instância; acionar os dialogs a partir do corpo do bubble.
+- **Motivo da escolha:** preserva reuso real entre 1ª e 2ª instância e mantém as ações de configuração no header, onde já existem affordances para esse tipo de ajuste.
+- **Impactos / trade-offs:** exige pequenos aliases de compatibilidade na 1ª instância e sincronização explícita com o presenter compartilhado.
+
+- **Decisão:** a 2ª instância tenta carregar `SecondInstanceJudgmentDraftDto` também durante estados intermediários do fluxo de precedentes.
+- **Alternativas consideradas:** carregar o draft apenas em `DONE`.
+- **Motivo da escolha:** permite exibir o card imediatamente quando o backend já tiver material pronto, reduzindo latência percebida.
+- **Impactos / trade-offs:** o presenter precisa tolerar `404` como ausência temporária do draft, sem transformar isso em erro fatal.
 
 - **Decisão:** a 2ª instância mantém `precedentsReady` e adiciona `hasChosenPrecedents`.
 - **Alternativas consideradas:** substituir `precedentsReady` por `hasChosenPrecedents`; fazer a View chamar diretamente `requestJudgmentDraft` conforme o estado do bubble.
@@ -407,14 +508,18 @@ focusedPrecedent -> PrecedentDialog
 - **Fluxo de adição manual por identificador:**
 
 ```text
+AnalysisHeader
+  -> PrecedentsFiltersDialog | PrecedentsLimitDialog
+      -> state local da tela consumidora / AnalysisPrecedentsBubblePresenter
+
 AnalysisPrecedentsBubbleView
-  -> CTA "Adicionar precedente"
+  -> CTA "Adicionar precedente" (apenas fora de loading)
       -> AddPrecedentDialogView
           -> AddPrecedentDialogPresenter
-              -> form(court, kind, number)
+              -> form(court: CourtDto, kind: PrecedentKindDto, number)
               -> fetchPreview()
                   -> IntakeService.getPrecedent(...)
-                      -> IntakeRestService GET /precedents/identifier
+                       -> IntakeRestService GET /precedents/identifier
               -> submit()
                   -> IntakeService.addAnalysisPrecedent(...)
                       -> IntakeRestService POST /analyses/precedents
@@ -430,6 +535,10 @@ AnalysisPrecedentsBubblePresenter.chosenPrecedents
           -> hasChosenPrecedents
               -> canGenerateJudgmentDraft
                   -> AnalysisActionBar CTA "Gerar minuta"
+
+SecondInstanceFirstInstanceAnalysisScreenPresenter
+  -> IntakeService.getSecondInstanceJudgmentDraft(...)
+      -> card da minuta exibido assim que houver payload disponível
 ```
 
 - **Hierarquia de widgets:**
@@ -440,23 +549,26 @@ AnalysisPrecedentsBubbleView
     Avatar IA
     Card
       Header "Precedentes Relevantes"
-      CTA "Adicionar precedente"
+      CTA "Adicionar precedente" (oculto durante loading)
       LoadingState | ErrorState | EmptyState | Content
-        ChosenPrecedentsSummary
-          ChosenPrecedentSummaryItem(s)
         ContentState
-          PrecedentListItem(isChosen)
+          PrecedentListItem(isChosen, isManuallyAdded)
         Refazer busca
+
+AnalysisHeader
+  CTA quantidade de precedentes
+  CTA filtros
 
 PrecedentDialog
   Header
   Card do precedente em foco
+  Badge de aplicabilidade | Badge "Manualmente adicionado"
   Síntese explicativa
   CTA Escolher Precedente | Desescolher Precedente
 
 AddPrecedentDialog
   Header
-  Form(court, kind, number)
+  Form(select court, select kind, number)
   CTA Buscar precedente
   Preview
     Status
@@ -468,15 +580,15 @@ AddPrecedentDialog
 - **Referências:**
   - `lib/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart`
   - `lib/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_view.dart`
+  - `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/precedents_filters_dialog_view.dart`
+  - `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/precedents_limit_dialog_view.dart`
   - `lib/ui/intake/widgets/components/analysis_precedents_bubble/content_state/content_state_view.dart`
   - `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedent_list_item/precedent_list_item_view.dart`
   - `lib/ui/intake/widgets/components/analysis_precedents_bubble/precedent_dialog/precedent_dialog_view.dart`
-  - `lib/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_filters_dialog/precedents_filters_dialog_view.dart`
-  - `lib/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_limit_dialog/precedents_limit_dialog_view.dart`
-  - `lib/ui/intake/widgets/pages/first_instance_analysis_screen/chosen_precedent_summary/chosen_precedent_summary_view.dart`
   - `lib/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_view.dart`
   - `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
   - `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_view.dart`
+  - `lib/core/intake/dtos/analysis_precedent_dto.dart`
   - `lib/core/intake/interfaces/intake_service.dart`
   - `lib/core/intake/dtos/precedent_dto.dart`
   - `lib/rest/services/intake_rest_service.dart`

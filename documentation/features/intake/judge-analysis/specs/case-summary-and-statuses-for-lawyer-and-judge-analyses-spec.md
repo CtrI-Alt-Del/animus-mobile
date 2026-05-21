@@ -22,7 +22,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - Introduzir `AnalysisTypeDto` com os tipos `caseAssessment`, `firstInstance` e `secondInstance`.
 - Criar `CaseAssessmentAnalysisStatusDto`, `FirstInstanceAnalysisStatusDto` e `SecondInstanceAnalysisStatusDto` no `core` para refletir a taxonomia do server.
 - Manter `AnalysisDto.type` e `AnalysisDto.status` alinhados ao payload remoto, com mapeamento do status para o `AnalysisStatusDto` legado apenas como camada de compatibilidade para a UI atual.
-- Atualizar `IntakeService` e `IntakeRestService` com `createAnalysis(type: ...)`, `getCaseSummary(...)`, `getPetitionDraft(...)`, `getJudgmentDraft(...)` e `unarchiveAnalysis(...)`.
+- Atualizar `IntakeService` e `IntakeRestService` com `createAnalysis(type: ...)`, `getCaseSummary(...)`, `getPetitionDraft(...)`, `getFirstInstanceJudgmentDraft(...)` e `unarchiveAnalysis(...)`.
 - Criar os mappers REST necessarios para `CaseSummaryDto`, `PetitionDraftDto`, `JudgmentDraftDto` e para os reports `CaseAssessmentAnalysisReportDto`, `FirstInstanceAnalysisReportDto` e `SecondInstanceAnalysisReportDto`.
 - Ajustar os consumidores atuais do app que dependem diretamente de `PetitionSummaryDto`, `getPetitionSummary(...)` ou dos nomes antigos de status, limitando a mudanca a compatibilidade de compilacao e leitura de dados.
 - Manter a criacao atual de analise da Home apontando para `AnalysisTypeDto.firstInstance` ate a entrega do dialog de selecao por tipo em `ANI-101`.
@@ -49,7 +49,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - `IntakeService.createAnalysis({required AnalysisTypeDto type, String? folderId})` deve se tornar obrigatoriamente tipado por analise.
 - `IntakeService.getCaseSummary({required String analysisId})` deve substituir `getPetitionSummary({required String petitionId})`, eliminando a dependencia da UI de conhecer o `petitionId` para carregar o resumo.
 - `IntakeService.getPetitionDraft({required String analysisId})` deve retornar `PetitionDraftDto`.
-- `IntakeService.getJudgmentDraft({required String analysisId})` deve retornar `JudgmentDraftDto`.
+- `IntakeService.getFirstInstanceJudgmentDraft({required String analysisId})` deve retornar `JudgmentDraftDto`.
 - `IntakeService.unarchiveAnalysis({required String analysisId})` deve retornar `AnalysisDto` com o estado atualizado.
 - `IntakeRestService` deve mapear `type` e os novos status ao desserializar `AnalysisDto`.
 - `IntakeRestService` deve enviar `type` no `POST` de criacao de analise.
@@ -218,7 +218,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - **Justificativa:** o app passa a distinguir explicitamente `caseAssessment`, `firstInstance` e `secondInstance`, mas a UI atual ainda depende do `AnalysisStatusDto` legado para preservar o fluxo existente com a menor mudanca correta.
 
 - **Arquivo:** `lib/core/intake/interfaces/intake_service.dart`
-- **Mudanca:** adicionar `getCaseAssessmentAnalysisReport(...)`, `getFirstInstanceAnalysisReport(...)` e `getSecondInstanceAnalysisReport(...)`, mantendo `createAnalysis(type: ...)`, `getCaseSummary(...)`, `getPetitionDraft(...)`, `getJudgmentDraft(...)` e `unarchiveAnalysis(...)`.
+- **Mudanca:** adicionar `getCaseAssessmentAnalysisReport(...)`, `getFirstInstanceAnalysisReport(...)` e `getSecondInstanceAnalysisReport(...)`, mantendo `createAnalysis(type: ...)`, `getCaseSummary(...)`, `getPetitionDraft(...)`, `getFirstInstanceJudgmentDraft(...)` e `unarchiveAnalysis(...)`.
 - **Justificativa:** o `core` precisa refletir os novos contratos agregados de report por tipo e os endpoints separados expostos pelo server.
 
 - **Arquivo:** `lib/core/intake/dtos/analysis_petition_dto.dart`
@@ -244,7 +244,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 - enviar `type.value` no body de `createAnalysis(...)`.
 - substituir `getPetitionSummary(petitionId)` por `getCaseSummary(analysisId)` no endpoint de resumo do caso indexado por analise.
 - implementar `getPetitionDraft(...)` usando `PetitionDraftMapper`.
-- implementar `getJudgmentDraft(...)` usando `JudgmentDraftMapper` e o endpoint `GET /intake/analyses/{analysis_id}/judgment-draft` ja especificado em `ANI-114`.
+- implementar `getFirstInstanceJudgmentDraft(...)` usando `JudgmentDraftMapper` e o endpoint `GET /intake/analyses/{analysis_id}/judgment-draft` ja especificado em `ANI-114`.
 - implementar `getCaseAssessmentAnalysisReport(...)` usando `GET /intake/analyses/{analysis_id}/case-assessment-analysis-report`.
 - implementar `getFirstInstanceAnalysisReport(...)` usando `GET /intake/analyses/{analysis_id}/first-instance-analysis-report`.
 - implementar `getSecondInstanceAnalysisReport(...)` usando `GET /intake/analyses/{analysis_id}/second-instance-analysis-report`.
@@ -281,7 +281,7 @@ Alinhar o dominio mobile de `intake` ao contrato introduzido por `ANI-92`, prepa
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/analysis_screen/relevant_precedents_bubble/relevant_precedents_bubble_presenter.dart`
 - **Mudanca:** nao aplicavel alem da compatibilidade automatica provida pelo mapeamento do `AnalysisStatusDto` legado.
-- **Justificativa:** o componente continua dependente do fluxo atual de precedentes e nao foi reestruturado nesta task.
+- **Justificativa:** o componente continua dependente do fluxo atual de precedentes e Não foi reestruturado nesta task.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/analysis_screen/petition_summary_card/petition_summary_card_view.dart`
 - **Mudanca:** trocar o tipo recebido para `CaseSummaryDto`, mantendo o widget e a estrutura visual atuais.
