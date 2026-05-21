@@ -46,6 +46,7 @@ class SecondInstanceAnalysisScreenView extends ConsumerStatefulWidget {
 class _SecondInstanceAnalysisScreenViewState
     extends ConsumerState<SecondInstanceAnalysisScreenView> {
   final ScrollController _scrollController = ScrollController();
+  List<String> _lastChosenPrecedentKeys = <String>[];
 
   Widget _animatedEntry(
     Widget child, {
@@ -105,6 +106,39 @@ class _SecondInstanceAnalysisScreenViewState
 
         _jumpToBottom();
       });
+    });
+  }
+
+  void _syncChosenPrecedentsIfNeeded(
+    SecondInstanceFirstInstanceAnalysisScreenPresenter presenter,
+    List<AnalysisPrecedentDto> chosenPrecedents,
+  ) {
+    final List<String> currentKeys = chosenPrecedents
+        .map(
+          (AnalysisPrecedentDto precedent) =>
+              '${precedent.precedent.identifier.court.name}:${precedent.precedent.identifier.kind.name}:${precedent.precedent.identifier.number}',
+        )
+        .toList(growable: false);
+
+    final bool didChange =
+        currentKeys.length != _lastChosenPrecedentKeys.length ||
+        !currentKeys.asMap().entries.every(
+          (MapEntry<int, String> entry) =>
+              _lastChosenPrecedentKeys[entry.key] == entry.value,
+        );
+
+    if (!didChange) {
+      return;
+    }
+
+    _lastChosenPrecedentKeys = currentKeys;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      presenter.syncChosenPrecedents(chosenPrecedents);
     });
   }
 
@@ -525,17 +559,10 @@ class _SecondInstanceAnalysisScreenViewState
                                       .chosenPrecedents
                                       .watch(context);
 
-                                  WidgetsBinding.instance.addPostFrameCallback((
-                                    _,
-                                  ) {
-                                    if (!mounted) {
-                                      return;
-                                    }
-
-                                    presenter.syncChosenPrecedents(
-                                      chosenPrecedents,
-                                    );
-                                  });
+                                  _syncChosenPrecedentsIfNeeded(
+                                    presenter,
+                                    chosenPrecedents,
+                                  );
 
                                   return const SizedBox.shrink();
                                 }),

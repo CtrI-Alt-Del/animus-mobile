@@ -52,7 +52,7 @@ class AddPrecedentDialogView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Informe tribunal, tipo e numero para buscar o precedente na base nacional.',
+                  'Informe tribunal, espécie e número para buscar o precedente na base nacional.',
                   style: textTheme.bodySmall?.copyWith(
                     color: tokens.textSecondary,
                   ),

@@ -25,7 +25,7 @@ class _PreviewTextBlockViewState extends State<PreviewTextBlockView> {
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final String resolvedValue = widget.value.trim().isEmpty
-        ? 'Nao informado.'
+        ? 'Não informado.'
         : widget.value.trim();
 
     return Column(

@@ -115,7 +115,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
             ),
             const SizedBox(height: 8),
             Text(
-              'Refine tribunais e tipos para a proxima busca manual de precedentes.',
+              'Refine tribunais e espécies para a próxima busca manual de precedentes.',
               style: textTheme.bodyMedium?.copyWith(
                 color: const Color(0xFF8E8E93),
                 height: 1.4,
@@ -197,7 +197,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Os filtros refinam apenas a proxima busca manual, sem afetar a analise atual ate voce refazer a busca.',
+                      'Os filtros refinam apenas a próxima busca manual, sem afetar a análise atual até você refazer a busca.',
                       style: textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF8E8E93),
                         height: 1.4,
