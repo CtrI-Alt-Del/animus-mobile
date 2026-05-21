@@ -120,12 +120,12 @@ O fluxo padrao da aplicacao segue esta direcao:
 
 O fluxo de precedentes do modulo `intake` segue a mesma separacao arquitetural e acontece sem abrir nova rota:
 
-1. `FirstInstanceAnalysisScreenPresenter` carrega `analysis`, `petition` e `caseSummary`, inclusive em reentrada nos estados de precedentes.
-2. `RelevantPrecedentsBubblePresenter` orquestra o fluxo assíncrono de precedentes na UI: dispara a busca, faz polling do status da analise, carrega a lista final e confirma a escolha.
-3. `IntakeService` define os contratos tipados de busca, listagem e escolha de precedentes no `core`.
-4. `IntakeRestService` encapsula `POST /precedents/search`, `GET /precedents` e `PATCH /precedents/choose`, devolvendo `RestResponse` e `ListResponse` tipados para a UI.
-5. `CacheDriver` persiste a quantidade de precedentes configurada para reutilizacao no fluxo.
-6. `ExternalLinkDriver` encapsula a abertura externa do Pangea, evitando acoplamento da UI a plugins concretos.
+1. `AnalysisPrecedentsBubblePresenter` orquestra o fluxo compartilhado de precedentes na UI: dispara a busca, faz polling do status da analise, carrega a lista final, reconstrói escolhas a partir de `isChosen`, confirma escolhas múltiplas, desfaz escolhas e recarrega a lista após inclusão manual.
+2. `FirstInstanceAnalysisScreenPresenter` e `SecondInstanceFirstInstanceAnalysisScreenPresenter` consomem apenas o contrato público do bubble; a 2ª instância sincroniza `chosenPrecedents` para bloquear a geração da minuta sem precedente escolhido.
+3. `IntakeService` define no `core` os contratos tipados de busca, listagem, escolha, desescolha, preview por identificador e inclusão manual de precedentes.
+4. `IntakeRestService` encapsula `POST /intake/analyses/{analysisId}/precedents/search`, `GET /intake/analyses/{analysisId}/precedents`, `PATCH /intake/analyses/{analysisId}/precedents/choose`, `PATCH /intake/analyses/{analysisId}/precedents/unchoose`, `GET /precedents/identifier` e `POST /analyses/precedents`, devolvendo `RestResponse` e `ListResponse` tipados para a UI.
+5. `AddPrecedentDialogPresenter` valida `court`, `kind` e `number`, consulta o precedente por identificador, exibe preview antes da confirmação e delega a persistência da inclusão manual ao `IntakeService`.
+6. `CacheDriver` persiste a quantidade de precedentes configurada para reutilizacao no fluxo, e `ExternalLinkDriver` encapsula a abertura externa do Pangea sem acoplar a UI a plugins concretos.
 
 ## Fluxo de Exportacao de Relatorio na Analysis Screen
 

@@ -48,6 +48,7 @@ final class AnalysisPrecedentDtoFaker {
     String analysisId = 'analysis-1',
     PrecedentDto? precedent,
     bool isChosen = false,
+    bool isManuallyAdded = false,
     double similarityScore = 80,
     String synthesis = 'Sintese explicativa do precedente.',
     int? finalRank,
@@ -64,6 +65,7 @@ final class AnalysisPrecedentDtoFaker {
       similarityScore: similarityScore,
       finalRank: finalRank ?? 1,
       applicabilityLevel: resolvedApplicabilityLevel,
+      isManuallyAdded: isManuallyAdded,
     );
   }
 

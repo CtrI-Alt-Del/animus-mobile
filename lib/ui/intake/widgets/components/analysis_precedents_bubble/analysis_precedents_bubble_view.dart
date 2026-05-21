@@ -7,6 +7,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/content_state/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/empty_state/index.dart';
@@ -95,7 +96,7 @@ class AnalysisPrecedentsBubbleView extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 14,
+                        vertical: 10,
                       ),
                       decoration: BoxDecoration(
                         color: tokens.surfaceElevated,
@@ -103,39 +104,63 @@ class AnalysisPrecedentsBubbleView extends ConsumerWidget {
                           bottom: BorderSide(color: tokens.borderSubtle),
                         ),
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Icon(Icons.scale, size: 16, color: tokens.accent),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Precedentes Relevantes',
-                              style: textTheme.titleSmall?.copyWith(
-                                color: tokens.textPrimary,
-                                fontWeight: FontWeight.w700,
+                          Row(
+                            children: <Widget>[
+                              Icon(Icons.scale, size: 16, color: tokens.accent),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Precedentes Relevantes',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.titleSmall?.copyWith(
+                                    color: tokens.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
-                            ),
+                              if (!isLoading && generalError == null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: tokens.warning.withValues(
+                                      alpha: 0.14,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: tokens.warning.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    totalCount.toString(),
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: tokens.warning,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                          if (!isLoading && generalError == null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: tokens.warning.withValues(alpha: 0.14),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: tokens.warning.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Text(
-                                totalCount.toString(),
-                                style: textTheme.labelSmall?.copyWith(
-                                  color: tokens.warning,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                          if (!isLoading)
+                            TextButton.icon(
+                              onPressed: () async {
+                                await showDialog<bool>(
+                                  context: context,
+                                  builder: (_) => AddPrecedentDialog(
+                                    analysisId: analysisId,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.add, size: 16),
+                              label: const Text('Adicionar precedente'),
                             ),
                         ],
                       ),
@@ -156,13 +181,14 @@ class AnalysisPrecedentsBubbleView extends ConsumerWidget {
                           ContentState(
                             precedents: precedents,
                             onTap: (AnalysisPrecedentDto precedent) {
+                              presenter.focusPrecedent(precedent);
                               onPrecedentTap?.call(precedent);
                             },
                           ),
                           Align(
                             alignment: Alignment.centerRight,
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                              padding: const EdgeInsets.all(8),
                               child: TextButton.icon(
                                 onPressed: () {
                                   unawaited(presenter.retry());

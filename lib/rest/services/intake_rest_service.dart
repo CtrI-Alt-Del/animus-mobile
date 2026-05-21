@@ -9,8 +9,9 @@ import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
-import 'package:animus/core/intake/dtos/judgment_draft_dto.dart';
+import 'package:animus/core/intake/dtos/first_instance_analysis_judgment_draft_dto.dart';
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
@@ -30,6 +31,7 @@ import 'package:animus/rest/mappers/intake/case_summary_mapper.dart';
 import 'package:animus/rest/mappers/intake/first_instance_analysis_report_mapper.dart';
 import 'package:animus/rest/mappers/intake/judgment_draft_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_draft_mapper.dart';
+import 'package:animus/rest/mappers/intake/precedent_mapper.dart';
 import 'package:animus/rest/mappers/intake/second_instance_analysis_report_mapper.dart';
 import 'package:animus/rest/mappers/intake/second_instance_judgment_draft_mapper.dart';
 import 'package:animus/rest/mappers/shared/cursor_pagination_mapper.dart';
@@ -393,11 +395,10 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
-  Future<RestResponse<JudgmentDraftDto>> getJudgmentDraft({
-    required String analysisId,
-  }) async {
-    final RestResponse<JudgmentDraftDto>? authFailure =
-        requireAuth<JudgmentDraftDto>();
+  Future<RestResponse<FirstInstanceJudgmentDraftDto>>
+  getFirstInstanceJudgmentDraft({required String analysisId}) async {
+    final RestResponse<FirstInstanceJudgmentDraftDto>? authFailure =
+        requireAuth<FirstInstanceJudgmentDraftDto>();
     if (authFailure != null) {
       return authFailure;
     }
@@ -406,7 +407,9 @@ class IntakeRestService extends Service implements IntakeService {
       '/intake/analyses/$analysisId/judgment-draft',
     );
 
-    return response.mapBody<JudgmentDraftDto>(JudgmentDraftMapper.toDto);
+    return response.mapBody<FirstInstanceJudgmentDraftDto>(
+      JudgmentDraftMapper.toDto,
+    );
   }
 
   @override
@@ -558,6 +561,55 @@ class IntakeRestService extends Service implements IntakeService {
     );
 
     return response.mapBody<AnalysisStatusDto>(_mapAnalysisStatus);
+  }
+
+  @override
+  Future<RestResponse<PrecedentDto>> getPrecedent({
+    required PrecedentIdentifierDto identifier,
+  }) async {
+    final RestResponse<PrecedentDto>? authFailure = requireAuth<PrecedentDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/precedents/identifier',
+      queryParams: <String, dynamic>{
+        'court': identifier.court.value,
+        'kind': identifier.kind.value,
+        'number': identifier.number,
+      },
+    );
+
+    return response.mapBody<PrecedentDto>(PrecedentMapper.toDto);
+  }
+
+  @override
+  Future<RestResponse<AnalysisPrecedentDto>> addAnalysisPrecedent({
+    required String analysisId,
+    required PrecedentIdentifierDto identifier,
+  }) async {
+    final RestResponse<AnalysisPrecedentDto>? authFailure =
+        requireAuth<AnalysisPrecedentDto>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/analyses/precedents',
+      body: <String, dynamic>{
+        'analysis_id': analysisId,
+        'identifier': <String, dynamic>{
+          'court': identifier.court.value,
+          'kind': identifier.kind.value,
+          'number': identifier.number,
+        },
+      },
+    );
+
+    return response.mapBody<AnalysisPrecedentDto>(
+      AnalysisPrecedentMapper.toDto,
+    );
   }
 
   @override

@@ -6,6 +6,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
@@ -49,6 +50,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   final Signal<bool> isArchived = signal<bool>(false);
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
   final Signal<bool> precedentsReady = signal<bool>(false);
+  final Signal<bool> hasChosenPrecedents = signal<bool>(false);
 
   late final ReadonlySignal<bool> canPickDocument = computed(() {
     final AnalysisStatusDto currentStatus = status.value;
@@ -89,6 +91,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
         precedentsReady.value &&
+        hasChosenPrecedents.value &&
         status.value != AnalysisStatusDto.generatingJudgmentDraft &&
         status.value != AnalysisStatusDto.generatingSynthesis;
   });
@@ -117,7 +120,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
   late final ReadonlySignal<String> primaryActionLabel = computed(() {
     if (status.value == AnalysisStatusDto.failed) {
-      if (precedentsReady.value) {
+      if (precedentsReady.value && hasChosenPrecedents.value) {
         return 'Tentar gerar minuta novamente';
       }
 
@@ -190,14 +193,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     }
 
     if (_shouldLoadJudgmentDraft(analysis.status)) {
-      final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
-          await _intakeService.getSecondInstanceJudgmentDraft(
-            analysisId: analysisId,
-          );
-
-      if (draftResponse.isSuccessful) {
-        judgmentDraft.value = draftResponse.body;
-      }
+      await _tryLoadJudgmentDraft();
     }
   }
 
@@ -376,6 +372,10 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     precedentsReady.value = true;
   }
 
+  void syncChosenPrecedents(List<AnalysisPrecedentDto> precedents) {
+    hasChosenPrecedents.value = precedents.isNotEmpty;
+  }
+
   String fileName(File file) {
     if (file.uri.pathSegments.isNotEmpty) {
       return file.uri.pathSegments.last;
@@ -411,6 +411,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     isArchived.dispose();
     isManagingAnalysis.dispose();
     precedentsReady.dispose();
+    hasChosenPrecedents.dispose();
     canPickDocument.dispose();
     canAnalyzeCase.dispose();
     canRegenerateSummary.dispose();
@@ -568,18 +569,22 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
       final AnalysisStatusDto currentStatus = analysisResponse.body.status;
       status.value = currentStatus;
 
-      if (currentStatus == AnalysisStatusDto.done) {
-        final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
-            await _intakeService.getSecondInstanceJudgmentDraft(
-              analysisId: analysisId,
-            );
+      if (_shouldLoadJudgmentDraft(currentStatus)) {
+        await _tryLoadJudgmentDraft();
+      }
 
-        if (draftResponse.isFailure) {
-          await _applyFailure(draftResponse.errorMessage);
+      if (currentStatus == AnalysisStatusDto.done) {
+        if (judgmentDraft.value != null) {
+          generalError.value = null;
           return;
         }
 
-        judgmentDraft.value = draftResponse.body;
+        final bool didLoadDraft = await _tryLoadJudgmentDraft();
+        if (!didLoadDraft) {
+          await _applyFailure();
+          return;
+        }
+
         generalError.value = null;
         return;
       }
@@ -617,7 +622,31 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 
   bool _shouldLoadJudgmentDraft(AnalysisStatusDto value) {
-    return value == AnalysisStatusDto.done;
+    return value == AnalysisStatusDto.searchingPrecedents ||
+        value == AnalysisStatusDto.precedentsSearched ||
+        value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        value == AnalysisStatusDto.generatingJudgmentDraft ||
+        value == AnalysisStatusDto.generatingSynthesis ||
+        value == AnalysisStatusDto.done;
+  }
+
+  Future<bool> _tryLoadJudgmentDraft() async {
+    final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
+        await _intakeService.getSecondInstanceJudgmentDraft(
+          analysisId: analysisId,
+        );
+
+    if (draftResponse.isFailure) {
+      if (draftResponse.statusCode == HttpStatus.notFound) {
+        return false;
+      }
+
+      return false;
+    }
+
+    judgmentDraft.value = draftResponse.body;
+    return true;
   }
 
   bool _isPrecedentsReadyStatus(AnalysisStatusDto value) {

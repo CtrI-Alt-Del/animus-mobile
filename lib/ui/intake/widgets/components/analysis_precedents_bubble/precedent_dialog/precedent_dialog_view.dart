@@ -29,18 +29,23 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final String synthesis = precedent.synthesis.trim();
+    final AnalysisPrecedentDto currentPrecedent = _resolveCurrentPrecedent(
+      presenter: presenter,
+    );
+    final String synthesis = currentPrecedent.synthesis.trim();
     final String synthesisText = synthesis.isEmpty
         ? 'Síntese não disponibilizada para este precedente.'
         : synthesis;
-    final bool isChosen = precedent.isChosen;
-    final String status = formatPrecedentStatus(precedent.precedent.status);
+    final bool isChosen = currentPrecedent.isChosen;
+    final String status = formatPrecedentStatus(
+      currentPrecedent.precedent.status,
+    );
     final String identifier =
-        '${precedent.precedent.identifier.court.value} ${precedent.precedent.identifier.kind.value} ${precedent.precedent.identifier.number}';
+        '${currentPrecedent.precedent.identifier.court.value} ${currentPrecedent.precedent.identifier.kind.value} ${currentPrecedent.precedent.identifier.number}';
     final String precedentDescription =
-        precedent.precedent.enunciation.trim().isEmpty
+        currentPrecedent.precedent.enunciation.trim().isEmpty
         ? 'Selecione o precedente mais aderente ao caso para liberar a síntese explicativa final e a confirmação da análise.'
-        : precedent.precedent.enunciation.trim();
+        : currentPrecedent.precedent.enunciation.trim();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B0B0E),
@@ -118,13 +123,16 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                                   const SizedBox(height: 6),
                                   Align(
                                     alignment: Alignment.centerRight,
-                                    child: ApplicabilityBadge(
-                                      classificationLevel:
-                                          precedent.applicabilityLevel,
-                                      showScore: false,
-                                      showBorder: false,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                    child: currentPrecedent.isManuallyAdded
+                                        ? _ManuallyAddedBadge()
+                                        : ApplicabilityBadge(
+                                            classificationLevel:
+                                                currentPrecedent
+                                                    .applicabilityLevel,
+                                            showScore: false,
+                                            showBorder: false,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                   ),
                                 ],
                               ),
@@ -188,7 +196,9 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 onPressed: () {
-                                  unawaited(presenter.openPangea(precedent));
+                                  unawaited(
+                                    presenter.openPangea(currentPrecedent),
+                                  );
                                 },
                                 icon: const Icon(Icons.open_in_new, size: 16),
                                 label: const Text('Acessar Pangea'),
@@ -271,24 +281,19 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                     ),
                     child: FilledButton.icon(
                       onPressed: () {
-                        if (isChosen) {
-                          Navigator.of(context).pop();
-                          return;
-                        }
-
                         unawaited(
                           Future<void>(() async {
-                            presenter.choosePrecedent(precedent);
-                            final bool didConfirm = await presenter
-                                .confirmPrecedentChoice();
-                            if (!didConfirm) {
+                            final bool didUpdate = isChosen
+                                ? await presenter.unchoosePrecedent(
+                                    currentPrecedent,
+                                  )
+                                : await _confirmPrecedentChoice(
+                                    presenter: presenter,
+                                    precedent: currentPrecedent,
+                                  );
+                            if (!didUpdate || !context.mounted) {
                               return;
                             }
-
-                            if (!context.mounted) {
-                              return;
-                            }
-
                             Navigator.of(context).pop();
                           }),
                         );
@@ -302,13 +307,13 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                       ),
                       icon: Icon(
                         isChosen
-                            ? Icons.check_circle_outline
+                            ? Icons.remove_done_outlined
                             : Icons.balance_outlined,
                         color: const Color(0xFF0B0B0E),
                       ),
                       label: Text(
                         isChosen
-                            ? 'Precedente escolhido'
+                            ? 'Desescolher precedente'
                             : 'Escolher Precedente',
                         style: textTheme.labelLarge?.copyWith(
                           color: const Color(0xFF0B0B0E),
@@ -321,6 +326,65 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  AnalysisPrecedentDto _resolveCurrentPrecedent({
+    required AnalysisPrecedentsBubblePresenter presenter,
+  }) {
+    final AnalysisPrecedentDto? focused = presenter.focusedPrecedent.value;
+    if (focused != null && _isSamePrecedent(focused, precedent)) {
+      return focused;
+    }
+
+    for (final AnalysisPrecedentDto item in presenter.precedents.value) {
+      if (_isSamePrecedent(item, precedent)) {
+        return item;
+      }
+    }
+
+    return precedent;
+  }
+
+  bool _isSamePrecedent(AnalysisPrecedentDto left, AnalysisPrecedentDto right) {
+    final leftIdentifier = left.precedent.identifier;
+    final rightIdentifier = right.precedent.identifier;
+
+    return leftIdentifier.court == rightIdentifier.court &&
+        leftIdentifier.kind == rightIdentifier.kind &&
+        leftIdentifier.number == rightIdentifier.number;
+  }
+
+  Future<bool> _confirmPrecedentChoice({
+    required AnalysisPrecedentsBubblePresenter presenter,
+    required AnalysisPrecedentDto precedent,
+  }) async {
+    presenter.focusPrecedent(precedent);
+    return presenter.confirmPrecedentChoice();
+  }
+}
+
+class _ManuallyAddedBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: tokens.textMuted.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: tokens.textMuted.withValues(alpha: 0.28)),
+      ),
+      child: Text(
+        'Manualmente adicionado',
+        style: textTheme.labelSmall?.copyWith(
+          color: tokens.textMuted,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

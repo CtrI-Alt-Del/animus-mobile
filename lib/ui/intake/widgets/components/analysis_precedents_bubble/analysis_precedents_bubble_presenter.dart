@@ -48,7 +48,7 @@ class AnalysisPrecedentsBubblePresenter {
       signal<List<PrecedentKindDto>>(const <PrecedentKindDto>[]);
   final Signal<int> draftLimit = signal<int>(defaultLimit);
   final Signal<bool> isLimitDialogOpen = signal<bool>(false);
-  final Signal<AnalysisPrecedentDto?> selectedPrecedent =
+  final Signal<AnalysisPrecedentDto?> focusedPrecedent =
       signal<AnalysisPrecedentDto?>(null);
 
   late final ReadonlySignal<String> loadingMessage = computed(() {
@@ -83,6 +83,19 @@ class AnalysisPrecedentsBubblePresenter {
     return processingStatus.value != AnalysisStatusDto.precedentChosen;
   });
 
+  late final ReadonlySignal<List<AnalysisPrecedentDto>> chosenPrecedents =
+      computed(
+        () => List<AnalysisPrecedentDto>.unmodifiable(
+          precedents.value.where(
+            (AnalysisPrecedentDto precedent) => precedent.isChosen,
+          ),
+        ),
+      );
+
+  late final ReadonlySignal<bool> hasChosenPrecedents = computed(
+    () => chosenPrecedents.value.isNotEmpty,
+  );
+
   AnalysisPrecedentsBubblePresenter({
     required IntakeService intakeService,
     required this.analysisId,
@@ -110,7 +123,7 @@ class AnalysisPrecedentsBubblePresenter {
     _stopPolling();
     _isPollingRequestInFlight = false;
     precedents.value = const <AnalysisPrecedentDto>[];
-    selectedPrecedent.value = null;
+    focusedPrecedent.value = null;
     processingStatus.value = AnalysisStatusDto.searchingPrecedents;
     generalError.value = null;
     isLoading.value = true;
@@ -183,8 +196,7 @@ class AnalysisPrecedentsBubblePresenter {
 
     if (_isProcessingStatus(status) ||
         (status == AnalysisStatusDto.caseAnalyzed &&
-            precedents.value.isEmpty &&
-            selectedPrecedent.value == null)) {
+            precedents.value.isEmpty)) {
       isLoading.value = true;
       return;
     }
@@ -192,8 +204,8 @@ class AnalysisPrecedentsBubblePresenter {
     isLoading.value = false;
   }
 
-  void choosePrecedent(AnalysisPrecedentDto precedent) {
-    selectedPrecedent.value = precedent;
+  void focusPrecedent(AnalysisPrecedentDto precedent) {
+    focusedPrecedent.value = precedent;
   }
 
   Uri buildPangeaUri(PrecedentIdentifierDto identifier) {
@@ -225,7 +237,7 @@ class AnalysisPrecedentsBubblePresenter {
   }
 
   Future<bool> confirmPrecedentChoice() async {
-    final AnalysisPrecedentDto? precedent = selectedPrecedent.value;
+    final AnalysisPrecedentDto? precedent = focusedPrecedent.value;
     if (precedent == null) {
       generalError.value =
           'Selecione um precedente antes de confirmar a escolha.';
@@ -250,7 +262,7 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     processingStatus.value = AnalysisStatusDto.precedentChosen;
-    selectedPrecedent.value = AnalysisPrecedentDto(
+    focusedPrecedent.value = AnalysisPrecedentDto(
       analysisId: precedent.analysisId,
       precedent: precedent.precedent,
       isChosen: true,
@@ -258,31 +270,87 @@ class AnalysisPrecedentsBubblePresenter {
       similarityScore: precedent.similarityScore,
       finalRank: precedent.finalRank,
       applicabilityLevel: precedent.applicabilityLevel,
+      isManuallyAdded: precedent.isManuallyAdded,
     );
     precedents.value = List<AnalysisPrecedentDto>.unmodifiable(
       precedents.value.map((AnalysisPrecedentDto item) {
-        final bool isSelected =
-            item.precedent.identifier.court ==
-                precedent.precedent.identifier.court &&
-            item.precedent.identifier.kind ==
-                precedent.precedent.identifier.kind &&
-            item.precedent.identifier.number ==
-                precedent.precedent.identifier.number;
+        final bool isSelected = _isSamePrecedent(item, precedent);
 
         return AnalysisPrecedentDto(
           analysisId: item.analysisId,
           precedent: item.precedent,
-          isChosen: isSelected,
+          isChosen: isSelected ? true : item.isChosen,
           synthesis: item.synthesis,
           similarityScore: item.similarityScore,
           finalRank: item.finalRank,
           applicabilityLevel: item.applicabilityLevel,
+          isManuallyAdded: item.isManuallyAdded,
         );
       }),
     );
     isLoading.value = false;
     generalError.value = null;
     return true;
+  }
+
+  Future<bool> unchoosePrecedent(AnalysisPrecedentDto precedent) async {
+    isLoading.value = true;
+
+    final RestResponse<AnalysisStatusDto> response =
+        await _requestWithRetry<AnalysisStatusDto>(
+          request: () => _intakeService.unchooseAnalysisPrecedent(
+            analysisId: analysisId,
+            identifier: precedent.precedent.identifier,
+          ),
+        );
+
+    if (response.isFailure) {
+      isLoading.value = false;
+      generalError.value =
+          'Não foi possível desfazer a escolha do precedente agora. Tente novamente.';
+      return false;
+    }
+
+    precedents.value = List<AnalysisPrecedentDto>.unmodifiable(
+      precedents.value.map((AnalysisPrecedentDto item) {
+        if (!_isSamePrecedent(item, precedent)) {
+          return item;
+        }
+
+        return AnalysisPrecedentDto(
+          analysisId: item.analysisId,
+          precedent: item.precedent,
+          isChosen: false,
+          synthesis: item.synthesis,
+          similarityScore: item.similarityScore,
+          finalRank: item.finalRank,
+          applicabilityLevel: item.applicabilityLevel,
+          isManuallyAdded: item.isManuallyAdded,
+        );
+      }),
+    );
+
+    final AnalysisPrecedentDto? focused = focusedPrecedent.value;
+    if (focused != null && _isSamePrecedent(focused, precedent)) {
+      focusedPrecedent.value = AnalysisPrecedentDto(
+        analysisId: focused.analysisId,
+        precedent: focused.precedent,
+        isChosen: false,
+        synthesis: focused.synthesis,
+        similarityScore: focused.similarityScore,
+        finalRank: focused.finalRank,
+        applicabilityLevel: focused.applicabilityLevel,
+        isManuallyAdded: focused.isManuallyAdded,
+      );
+    }
+
+    isLoading.value = false;
+    generalError.value = null;
+    return true;
+  }
+
+  Future<void> reloadPrecedents() async {
+    await _loadPrecedents(currentFlowId: _flowId);
   }
 
   void dispose() {
@@ -296,11 +364,13 @@ class AnalysisPrecedentsBubblePresenter {
     selectedKinds.dispose();
     draftLimit.dispose();
     isLimitDialogOpen.dispose();
-    selectedPrecedent.dispose();
+    focusedPrecedent.dispose();
     loadingMessage.dispose();
     totalCount.dispose();
     showEmptyState.dispose();
     isPendingSelection.dispose();
+    chosenPrecedents.dispose();
+    hasChosenPrecedents.dispose();
   }
 
   Future<void> _startFlow({
@@ -472,17 +542,12 @@ class AnalysisPrecedentsBubblePresenter {
     );
     processingStatus.value = status ?? processingStatus.value;
 
-    AnalysisPrecedentDto? chosenFromApi;
-    for (final AnalysisPrecedentDto precedent in sortedPrecedents) {
-      if (precedent.isChosen) {
-        chosenFromApi = precedent;
-        break;
-      }
-    }
-
-    if (chosenFromApi != null) {
-      selectedPrecedent.value = chosenFromApi;
-      processingStatus.value = AnalysisStatusDto.precedentChosen;
+    final AnalysisPrecedentDto? focused = focusedPrecedent.value;
+    if (focused != null) {
+      focusedPrecedent.value = _findMatchingPrecedent(
+        source: sortedPrecedents,
+        target: focused,
+      );
     }
 
     isLoading.value = false;
@@ -537,6 +602,26 @@ class AnalysisPrecedentsBubblePresenter {
 
     return _legacyFinalRankBase -
         precedent.similarityScore.clamp(0, 100).round();
+  }
+
+  bool _isSamePrecedent(AnalysisPrecedentDto left, AnalysisPrecedentDto right) {
+    return left.precedent.identifier.court ==
+            right.precedent.identifier.court &&
+        left.precedent.identifier.kind == right.precedent.identifier.kind &&
+        left.precedent.identifier.number == right.precedent.identifier.number;
+  }
+
+  AnalysisPrecedentDto? _findMatchingPrecedent({
+    required List<AnalysisPrecedentDto> source,
+    required AnalysisPrecedentDto target,
+  }) {
+    for (final AnalysisPrecedentDto item in source) {
+      if (_isSamePrecedent(item, target)) {
+        return item;
+      }
+    }
+
+    return null;
   }
 
   bool _isPrecedentsOrchestrationStatus(AnalysisStatusDto status) {

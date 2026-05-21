@@ -25,7 +25,6 @@ import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/i
 import 'package:animus/ui/intake/widgets/components/case_summary_card/index.dart';
 import 'package:animus/ui/intake/widgets/components/document_file_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
-import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/chosen_precedent_summary/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/dot_grid_background/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/first_instance_analysis_screen_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedent_dialog/index.dart';
@@ -229,7 +228,7 @@ class _FirstInstanceAnalysisScreenViewState
       analysisPrecedentsBubblePresenterProvider(widget.analysisId),
     );
     final bool hadChosenPrecedentBefore =
-        precedentsPresenter.selectedPrecedent.value?.isChosen ?? false;
+        precedentsPresenter.chosenPrecedents.value.isNotEmpty;
 
     await Navigator.of(context, rootNavigator: true).push<void>(
       MaterialPageRoute<void>(
@@ -244,7 +243,7 @@ class _FirstInstanceAnalysisScreenViewState
     );
 
     final bool hasChosenPrecedentNow =
-        precedentsPresenter.selectedPrecedent.value?.isChosen ?? false;
+        precedentsPresenter.chosenPrecedents.value.isNotEmpty;
     if (hadChosenPrecedentBefore || !hasChosenPrecedentNow) {
       return;
     }
@@ -644,11 +643,6 @@ class _FirstInstanceAnalysisScreenViewState
                                 kinds: presenter.precedentsKinds.value,
                               );
 
-                              final AnalysisPrecedentDto? selectedPrecedent =
-                                  precedentsPresenter.selectedPrecedent.watch(
-                                    context,
-                                  );
-
                               return Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
@@ -671,19 +665,6 @@ class _FirstInstanceAnalysisScreenViewState
                                                 );
                                               },
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 16,
-                                        ),
-                                        child:
-                                            selectedPrecedent == null ||
-                                                !selectedPrecedent.isChosen
-                                            ? const SizedBox.shrink()
-                                            : ChosenPrecedentSummary(
-                                                selectedPrecedent:
-                                                    selectedPrecedent,
-                                              ),
                                       ),
                                     ],
                                   )

@@ -3,6 +3,7 @@ import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedents_filters_dialog/precedents_filters_dialog_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -12,19 +13,21 @@ void main() {
     required VoidCallback onClear,
     required VoidCallback onApply,
   }) {
-    return MaterialApp(
-      theme: AppTheme.dark,
-      home: Scaffold(
-        body: Center(
-          child: SizedBox(
-            width: 600,
-            child: PrecedentsFiltersDialogView(
-              selectedCourts: const <CourtDto>[CourtDto.stf],
-              selectedKinds: const <PrecedentKindDto>[PrecedentKindDto.sum],
-              onToggleCourt: onToggleCourt,
-              onToggleKind: onToggleKind,
-              onClear: onClear,
-              onApply: onApply,
+    return ProviderScope(
+      child: MaterialApp(
+        theme: AppTheme.dark,
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 600,
+              child: PrecedentsFiltersDialogView(
+                selectedCourts: const <CourtDto>[CourtDto.stf],
+                selectedKinds: const <PrecedentKindDto>[PrecedentKindDto.sum],
+                onToggleCourt: onToggleCourt,
+                onToggleKind: onToggleKind,
+                onClear: onClear,
+                onApply: onApply,
+              ),
             ),
           ),
         ),
@@ -54,7 +57,7 @@ void main() {
 
     expect(find.text('Filtros de precedentes'), findsOneWidget);
     expect(find.text('Tribunais'), findsOneWidget);
-    expect(find.text('Tipos'), findsOneWidget);
+    expect(find.text('Espécies'), findsOneWidget);
     expect(find.text('Superiores'), findsOneWidget);
     expect(find.text('TRFs'), findsOneWidget);
     expect(find.text('STF'), findsOneWidget);

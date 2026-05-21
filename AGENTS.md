@@ -16,3 +16,7 @@ Leia os seguintes documentos quando não for apenas pedido criar commits, PR's o
 - documentation/architecture.md Para entender a arquitetura da aplicação
 - documentation/rules/rules.md Para entender as regras e diretrizes de desenvolvimento da aplicação
 - documentation/tooling.md Para entender os principais comandos via terminal
+
+ORIENTAÇÕES:
+
+- Responda sempre em PT-BR, porém sempre aplique acentuação e pontuação correta nos textos gerados.
