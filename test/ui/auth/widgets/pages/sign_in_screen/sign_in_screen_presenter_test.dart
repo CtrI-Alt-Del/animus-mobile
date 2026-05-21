@@ -294,7 +294,7 @@ void main() {
       verifyNever(() => navigationDriver.goTo(any()));
       expect(
         presenter.generalError.value,
-        'Nao foi possivel continuar com Google agora. Tente novamente.',
+        'Não foi possivel continuar com Google agora. Tente novamente.',
       );
       expect(presenter.isGoogleSubmitting.value, isFalse);
     });

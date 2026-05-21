@@ -123,7 +123,7 @@ class LibraryScreenPresenter {
       return;
     }
 
-    throw Exception('Nao foi possivel criar a pasta.');
+    throw Exception('Não foi possivel criar a pasta.');
   }
 
   Future<void> openFolder(String folderId) async {
@@ -209,7 +209,7 @@ class LibraryScreenPresenter {
       operationError.value = _resolveOperationErrorMessage(
         response,
         fallback:
-            'Nao foi possivel mover as analises selecionadas agora. Tente novamente.',
+            'Não foi possivel mover as analises selecionadas agora. Tente novamente.',
       );
       isOperatingOnUnfolderedAnalyses.value = false;
       return false;
@@ -253,7 +253,7 @@ class LibraryScreenPresenter {
       operationError.value = _resolveOperationErrorMessage(
         response,
         fallback:
-            'Nao foi possivel arquivar as analises selecionadas agora. Tente novamente.',
+            'Não foi possivel arquivar as analises selecionadas agora. Tente novamente.',
       );
       isOperatingOnUnfolderedAnalyses.value = false;
       return false;

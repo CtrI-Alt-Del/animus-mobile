@@ -147,7 +147,7 @@ class LibraryFolderScreenPresenter {
       }
 
       generalError.value =
-          'Nao foi possivel carregar esta pasta agora. Tente novamente.';
+          'Não foi possivel carregar esta pasta agora. Tente novamente.';
       isLoading.value = false;
     }
   }
@@ -196,7 +196,7 @@ class LibraryFolderScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel carregar mais analises agora. Role novamente para tentar de novo.',
+            'Não foi possivel carregar mais analises agora. Role novamente para tentar de novo.',
       );
       isLoadingMore.value = false;
       return;
@@ -232,7 +232,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel carregar analises disponiveis agora.',
+        fallback: 'Não foi possivel carregar analises disponiveis agora.',
       );
       isLoadingAvailableAnalyses.value = false;
       return;
@@ -305,7 +305,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel adicionar as analises nesta pasta.',
+        fallback: 'Não foi possivel adicionar as analises nesta pasta.',
       );
       isAddingAvailableAnalyses.value = false;
       return;
@@ -397,7 +397,7 @@ class LibraryFolderScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel mover as analises selecionadas agora. Tente novamente.',
+            'Não foi possivel mover as analises selecionadas agora. Tente novamente.',
       );
       isOperating.value = false;
       return false;
@@ -438,7 +438,7 @@ class LibraryFolderScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel arquivar as analises selecionadas agora. Tente novamente.',
+            'Não foi possivel arquivar as analises selecionadas agora. Tente novamente.',
       );
       isOperating.value = false;
       return false;
@@ -482,7 +482,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel atualizar o nome da pasta agora.',
+        fallback: 'Não foi possivel atualizar o nome da pasta agora.',
       );
       isOperating.value = false;
       return false;
@@ -512,7 +512,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel arquivar esta pasta agora.',
+        fallback: 'Não foi possivel arquivar esta pasta agora.',
       );
       isOperating.value = false;
       return false;
@@ -627,12 +627,12 @@ class LibraryFolderScreenPresenter {
   String _resolveLoadErrorMessage(RestResponse<dynamic> response) {
     if (response.statusCode == HttpStatus.notFound ||
         response.statusCode == HttpStatus.forbidden) {
-      return 'Nao foi possivel carregar esta pasta.';
+      return 'Não foi possivel carregar esta pasta.';
     }
 
     return _resolveErrorMessage(
       response,
-      fallback: 'Nao foi possivel carregar esta pasta agora. Tente novamente.',
+      fallback: 'Não foi possivel carregar esta pasta agora. Tente novamente.',
     );
   }
 

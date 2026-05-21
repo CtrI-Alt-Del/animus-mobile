@@ -101,7 +101,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         accountResponse,
         fallback:
-            'Nao foi possivel carregar a sua conta agora. Tente novamente.',
+            'Não foi possivel carregar a sua conta agora. Tente novamente.',
       );
       isLoadingInitialData.value = false;
       return;
@@ -129,7 +129,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         analysesResponse,
         fallback:
-            'Nao foi possivel carregar as analises agora. Tente novamente.',
+            'Não foi possivel carregar as analises agora. Tente novamente.',
       );
       isLoadingInitialData.value = false;
       return;
@@ -171,7 +171,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel carregar mais analises agora. Role novamente para tentar de novo.',
+            'Não foi possivel carregar mais analises agora. Role novamente para tentar de novo.',
       );
       isLoadingMore.value = false;
       return;
@@ -203,7 +203,7 @@ class HomeScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel iniciar uma nova analise agora.',
+        fallback: 'Não foi possivel iniciar uma nova analise agora.',
       );
       isCreatingAnalysis.value = false;
       return;
@@ -211,7 +211,7 @@ class HomeScreenPresenter {
 
     final String analysisId = (response.body.id ?? '').trim();
     if (analysisId.isEmpty) {
-      generalError.value = 'Nao foi possivel abrir a analise criada.';
+      generalError.value = 'Não foi possivel abrir a analise criada.';
       isCreatingAnalysis.value = false;
       return;
     }
