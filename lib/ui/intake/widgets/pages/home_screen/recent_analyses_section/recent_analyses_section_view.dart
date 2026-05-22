@@ -194,6 +194,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                     return ProcessingAnalysisCard(
                       title: title,
                       dateLabel: formatCreatedAt(analysis.createdAt),
+                      type: analysis.type,
                       statusLabel: _resolveStatusLabel(analysis.status),
                       onTap: () {
                         unawaited(onTapAnalysis(analysis));
@@ -229,6 +230,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                     return RecentAnalysisCard(
                       title: title,
                       dateLabel: formatCreatedAt(analysis.createdAt),
+                      type: analysis.type,
                       statusLabel: _resolveStatusLabel(analysis.status),
                       onTap: () {
                         unawaited(onTapAnalysis(analysis));

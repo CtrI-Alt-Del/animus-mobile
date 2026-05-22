@@ -1,4 +1,6 @@
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart';
+export 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart';
+export 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_presentation/index.dart';
 export 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_empty_state/index.dart';
 export 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_error_state/index.dart';
 export 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_inline_error/index.dart';

@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart';
 
 class RecentAnalysisCardView extends StatelessWidget {
   final String title;
   final String dateLabel;
+  final AnalysisTypeDto type;
   final String? statusLabel;
   final VoidCallback onTap;
 
   const RecentAnalysisCardView({
     required this.title,
     required this.dateLabel,
+    required this.type,
     this.statusLabel,
     required this.onTap,
     super.key,
@@ -54,6 +58,7 @@ class RecentAnalysisCardView extends StatelessWidget {
                             color: tokens.textMuted,
                           ),
                         ),
+                        AnalysisTypeBadge(type: type),
                         if (statusLabel != null &&
                             statusLabel!.trim().isNotEmpty)
                           Container(
