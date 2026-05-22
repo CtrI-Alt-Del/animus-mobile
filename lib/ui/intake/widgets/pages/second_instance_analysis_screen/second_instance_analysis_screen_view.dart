@@ -110,7 +110,7 @@ class _SecondInstanceAnalysisScreenViewState
   }
 
   void _syncChosenPrecedentsIfNeeded(
-    SecondInstanceFirstInstanceAnalysisScreenPresenter presenter,
+    SecondInstanceAnalysisScreenPresenter presenter,
     List<AnalysisPrecedentDto> chosenPrecedents,
   ) {
     final List<String> currentKeys = chosenPrecedents
@@ -276,12 +276,9 @@ class _SecondInstanceAnalysisScreenViewState
 
   @override
   Widget build(BuildContext context) {
-    final SecondInstanceFirstInstanceAnalysisScreenPresenter presenter = ref
-        .watch(
-          secondInstanceFirstInstanceAnalysisScreenPresenterProvider(
-            widget.analysisId,
-          ),
-        );
+    final SecondInstanceAnalysisScreenPresenter presenter = ref.watch(
+      secondInstanceAnalysisScreenPresenterProvider(widget.analysisId),
+    );
     final AnalysisPrecedentsBubblePresenter precedentsBubblePresenter = ref
         .watch(analysisPrecedentsBubblePresenterProvider(widget.analysisId));
     final AppThemeTokens tokens =
@@ -305,12 +302,20 @@ class _SecondInstanceAnalysisScreenViewState
                       );
                       final bool isManaging = presenter.isManagingAnalysis
                           .watch(context);
+                      final bool isExportingReport = presenter.isExportingReport
+                          .watch(context);
                       final AnalysisStatusDto status = presenter.status.watch(
                         context,
                       );
+                      final bool hasJudgmentDraft =
+                          presenter.judgmentDraft.watch(context) != null;
                       final bool showPrecedentsActions = _isPrecedentsFlow(
                         status,
                       );
+                      final bool showExportReport =
+                          status == AnalysisStatusDto.done && hasJudgmentDraft;
+                      final bool canExportReport = presenter.canExportReport
+                          .watch(context);
                       final int appliedFiltersCount =
                           precedentsBubblePresenter.selectedCourts
                               .watch(context)
@@ -328,7 +333,14 @@ class _SecondInstanceAnalysisScreenViewState
 
                           context.go(Routes.home);
                         },
-                        onExportReport: null,
+                        onExportReport: canExportReport
+                            ? () {
+                                unawaited(
+                                  presenter
+                                      .exportSecondInstanceAnalysisReport(),
+                                );
+                              }
+                            : null,
                         title: analysisName,
                         onPrecedentsCount: isManaging || !showPrecedentsActions
                             ? null
@@ -393,9 +405,9 @@ class _SecondInstanceAnalysisScreenViewState
                                 }
                               },
                         appliedFiltersCount: appliedFiltersCount,
-                        isMenuEnabled: !isManaging,
-                        showExportReport: false,
-                        isExportingReport: false,
+                        isMenuEnabled: !isManaging || isExportingReport,
+                        showExportReport: showExportReport,
+                        isExportingReport: isExportingReport,
                       );
                     }),
                     Expanded(

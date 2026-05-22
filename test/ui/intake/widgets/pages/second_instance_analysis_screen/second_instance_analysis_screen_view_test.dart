@@ -21,7 +21,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 import '../../../../../fakers/intake/analysis_precedent_dto_faker.dart';
 
 class _MockSecondInstanceAnalysisScreenPresenter extends Mock
-    implements SecondInstanceFirstInstanceAnalysisScreenPresenter {}
+    implements SecondInstanceAnalysisScreenPresenter {}
 
 class _MockAnalysisPrecedentsBubblePresenter extends Mock
     implements AnalysisPrecedentsBubblePresenter {}
@@ -39,11 +39,13 @@ void main() {
   late Signal<String?> generalError;
   late Signal<String> analysisName;
   late Signal<bool> isManagingAnalysis;
+  late Signal<bool> isExportingReport;
   late Signal<bool> canPickDocument;
   late Signal<bool> canAnalyzeCase;
   late Signal<bool> canSearchPrecedents;
   late Signal<bool> canGenerateJudgmentDraft;
   late Signal<bool> canRegenerateJudgmentDraft;
+  late Signal<bool> canExportReport;
   late Signal<bool> showCaseProcessingBubble;
   late Signal<bool> showJudgmentDraftProcessingBubble;
   late Signal<bool> showPetitionNotFound;
@@ -80,17 +82,21 @@ void main() {
     generalError = signal<String?>(null);
     analysisName = signal<String>('Análise de segunda instância');
     isManagingAnalysis = signal<bool>(false);
+    isExportingReport = signal<bool>(false);
     canPickDocument = signal<bool>(false);
     canAnalyzeCase = signal<bool>(false);
     canSearchPrecedents = signal<bool>(false);
     canGenerateJudgmentDraft = signal<bool>(false);
     canRegenerateJudgmentDraft = signal<bool>(false);
+    canExportReport = signal<bool>(false);
     showCaseProcessingBubble = signal<bool>(false);
     showJudgmentDraftProcessingBubble = signal<bool>(false);
     showPetitionNotFound = signal<bool>(false);
     primaryActionLabel = signal<String>('Gerar minuta');
     precedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
-    chosenPrecedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
+    chosenPrecedents = signal<List<AnalysisPrecedentDto>>(
+      <AnalysisPrecedentDto>[],
+    );
     selectedCourts = signal<List<CourtDto>>(<CourtDto>[]);
     selectedKinds = signal<List<PrecedentKindDto>>(<PrecedentKindDto>[]);
     bubbleIsLoading = signal<bool>(false);
@@ -114,17 +120,23 @@ void main() {
     when(() => presenter.generalError).thenReturn(generalError);
     when(() => presenter.analysisName).thenReturn(analysisName);
     when(() => presenter.isManagingAnalysis).thenReturn(isManagingAnalysis);
+    when(() => presenter.isExportingReport).thenReturn(isExportingReport);
     when(() => presenter.canPickDocument).thenReturn(canPickDocument);
     when(() => presenter.canAnalyzeCase).thenReturn(canAnalyzeCase);
     when(() => presenter.canSearchPrecedents).thenReturn(canSearchPrecedents);
-    when(() => presenter.canGenerateJudgmentDraft)
-        .thenReturn(canGenerateJudgmentDraft);
-    when(() => presenter.canRegenerateJudgmentDraft)
-        .thenReturn(canRegenerateJudgmentDraft);
-    when(() => presenter.showCaseProcessingBubble)
-        .thenReturn(showCaseProcessingBubble);
-    when(() => presenter.showJudgmentDraftProcessingBubble)
-        .thenReturn(showJudgmentDraftProcessingBubble);
+    when(
+      () => presenter.canGenerateJudgmentDraft,
+    ).thenReturn(canGenerateJudgmentDraft);
+    when(
+      () => presenter.canRegenerateJudgmentDraft,
+    ).thenReturn(canRegenerateJudgmentDraft);
+    when(() => presenter.canExportReport).thenReturn(canExportReport);
+    when(
+      () => presenter.showCaseProcessingBubble,
+    ).thenReturn(showCaseProcessingBubble);
+    when(
+      () => presenter.showJudgmentDraftProcessingBubble,
+    ).thenReturn(showJudgmentDraftProcessingBubble);
     when(() => presenter.showPetitionNotFound).thenReturn(showPetitionNotFound);
     when(() => presenter.primaryActionLabel).thenReturn(primaryActionLabel);
     when(() => presenter.syncChosenPrecedents(any())).thenReturn(null);
@@ -137,6 +149,9 @@ void main() {
     when(() => presenter.analyzeCase()).thenAnswer((_) async {});
     when(() => presenter.resendDocument()).thenAnswer((_) async {});
     when(() => presenter.reanalyzeCase()).thenAnswer((_) async {});
+    when(
+      () => presenter.exportSecondInstanceAnalysisReport(),
+    ).thenAnswer((_) async => true);
     when(() => presenter.fileName(any())).thenReturn('processo.pdf');
     when(() => presenter.formatFileSize(any())).thenReturn('1.0 KB');
 
@@ -173,11 +188,13 @@ void main() {
     generalError.dispose();
     analysisName.dispose();
     isManagingAnalysis.dispose();
+    isExportingReport.dispose();
     canPickDocument.dispose();
     canAnalyzeCase.dispose();
     canSearchPrecedents.dispose();
     canGenerateJudgmentDraft.dispose();
     canRegenerateJudgmentDraft.dispose();
+    canExportReport.dispose();
     showCaseProcessingBubble.dispose();
     showJudgmentDraftProcessingBubble.dispose();
     showPetitionNotFound.dispose();
@@ -199,7 +216,7 @@ void main() {
       height: 900,
       child: ProviderScope(
         overrides: [
-          secondInstanceFirstInstanceAnalysisScreenPresenterProvider(
+          secondInstanceAnalysisScreenPresenterProvider(
             'analysis-123',
           ).overrideWithValue(presenter),
           analysisPrecedentsBubblePresenterProvider(
@@ -213,6 +230,16 @@ void main() {
           ),
         ),
       ),
+    );
+  }
+
+  SecondInstanceJudgmentDraftDto createJudgmentDraft() {
+    return const SecondInstanceJudgmentDraftDto(
+      analysisId: 'analysis-123',
+      report: 'Minuta pronta',
+      meritAnalysis: 'Fundamentação do mérito.',
+      precedentAdherenceAnalysis: 'Aderência aos precedentes.',
+      ruling: <String>['Dispositivo.'],
     );
   }
 
@@ -233,38 +260,123 @@ void main() {
     },
   );
 
+  testWidgets('oculta Exportar PDF quando a análise ainda não pode exportar', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(createWidget());
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final AnalysisHeaderView header = tester.widget<AnalysisHeaderView>(
+      find.byType(AnalysisHeaderView),
+    );
+
+    expect(header.showExportReport, isFalse);
+    expect(header.onExportReport, isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('exibe Exportar PDF quando status done e houver judgmentDraft', (
+    WidgetTester tester,
+  ) async {
+    status.value = AnalysisStatusDto.done;
+    judgmentDraft.value = createJudgmentDraft();
+    canExportReport.value = true;
+
+    await tester.pumpWidget(createWidget());
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final AnalysisHeaderView header = tester.widget<AnalysisHeaderView>(
+      find.byType(AnalysisHeaderView),
+    );
+
+    expect(header.showExportReport, isTrue);
+    expect(header.onExportReport, isNotNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('delega exportação de PDF para o presenter', (
+    WidgetTester tester,
+  ) async {
+    status.value = AnalysisStatusDto.done;
+    judgmentDraft.value = createJudgmentDraft();
+    canExportReport.value = true;
+
+    await tester.pumpWidget(createWidget());
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final AnalysisHeaderView header = tester.widget<AnalysisHeaderView>(
+      find.byType(AnalysisHeaderView),
+    );
+
+    header.onExportReport!.call();
+    await tester.pump();
+
+    verify(() => presenter.exportSecondInstanceAnalysisReport()).called(1);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets(
-    'sincroniza chosenPrecedents do bubble com o presenter da tela',
+    'mantém item de exportação visível durante exportação e reflete loading',
     (WidgetTester tester) async {
-      final initialChosen = <AnalysisPrecedentDto>[
-        AnalysisPrecedentDtoFaker.fake(isChosen: true),
-      ];
-      final updatedChosen = <AnalysisPrecedentDto>[
-        AnalysisPrecedentDtoFaker.fake(
-          isChosen: true,
-          precedent: PrecedentDtoFaker.fake(
-            identifier: PrecedentIdentifierDtoFaker.fake(number: 2),
-          ),
-        ),
-        AnalysisPrecedentDtoFaker.fake(
-          isChosen: true,
-          precedent: PrecedentDtoFaker.fake(
-            identifier: PrecedentIdentifierDtoFaker.fake(number: 3),
-          ),
-        ),
-      ];
-      chosenPrecedents.value = initialChosen;
+      status.value = AnalysisStatusDto.done;
+      judgmentDraft.value = createJudgmentDraft();
+      isManagingAnalysis.value = true;
+      isExportingReport.value = true;
 
       await tester.pumpWidget(createWidget());
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 400));
 
-      verify(() => presenter.syncChosenPrecedents(initialChosen)).called(1);
+      final AnalysisHeaderView header = tester.widget<AnalysisHeaderView>(
+        find.byType(AnalysisHeaderView),
+      );
 
-      chosenPrecedents.value = updatedChosen;
+      expect(header.showExportReport, isTrue);
+      expect(header.isExportingReport, isTrue);
+      expect(header.isMenuEnabled, isTrue);
+      expect(header.onExportReport, isNull);
+
+      await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
-      await tester.pumpAndSettle();
-
-      verify(() => presenter.syncChosenPrecedents(updatedChosen)).called(1);
     },
   );
+
+  testWidgets('sincroniza chosenPrecedents do bubble com o presenter da tela', (
+    WidgetTester tester,
+  ) async {
+    final initialChosen = <AnalysisPrecedentDto>[
+      AnalysisPrecedentDtoFaker.fake(isChosen: true),
+    ];
+    final updatedChosen = <AnalysisPrecedentDto>[
+      AnalysisPrecedentDtoFaker.fake(
+        isChosen: true,
+        precedent: PrecedentDtoFaker.fake(
+          identifier: PrecedentIdentifierDtoFaker.fake(number: 2),
+        ),
+      ),
+      AnalysisPrecedentDtoFaker.fake(
+        isChosen: true,
+        precedent: PrecedentDtoFaker.fake(
+          identifier: PrecedentIdentifierDtoFaker.fake(number: 3),
+        ),
+      ),
+    ];
+    chosenPrecedents.value = initialChosen;
+
+    await tester.pumpWidget(createWidget());
+    await tester.pumpAndSettle();
+
+    verify(() => presenter.syncChosenPrecedents(initialChosen)).called(1);
+
+    chosenPrecedents.value = updatedChosen;
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    verify(() => presenter.syncChosenPrecedents(updatedChosen)).called(1);
+  });
 }

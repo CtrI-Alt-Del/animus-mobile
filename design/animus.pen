@@ -64388,7 +64388,7 @@
                           "id": "t5pS5",
                           "name": "c8",
                           "fill": "#6B6B70",
-                          "content": "Upload / filtros",
+                          "content": "Filtros",
                           "fontFamily": "Inter",
                           "fontSize": 12,
                           "fontWeight": "normal"
@@ -64400,7 +64400,7 @@
                           "fill": "#0B0B0E",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "04/04/2026 as 09:12 | STJ, TJSP | sumula, tema repetitivo",
+                          "content": "STJ, TJSP | sumula, tema repetitivo",
                           "fontFamily": "Inter",
                           "fontSize": 13,
                           "fontWeight": "500"
@@ -65200,28 +65200,6 @@
                   "width": "fill_container",
                   "height": 1,
                   "fill": "#FEF9E2"
-                },
-                {
-                  "type": "text",
-                  "id": "lzyk7",
-                  "name": "f5",
-                  "fill": "#C4A535",
-                  "content": "IDENTIFICACAO ",
-                  "lineHeight": 1.2,
-                  "fontFamily": "Inter",
-                  "fontSize": 11,
-                  "fontWeight": "600"
-                },
-                {
-                  "type": "text",
-                  "id": "cEC2v",
-                  "name": "f5",
-                  "fill": "#0B0B0E",
-                  "content": "Vincula a minuta ao relatorio exportado\ne a analise original.",
-                  "lineHeight": 1.35,
-                  "fontFamily": "Inter",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
                 },
                 {
                   "type": "frame",
