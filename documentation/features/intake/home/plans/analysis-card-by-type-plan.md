@@ -2,7 +2,7 @@
 title: Plano de Implementação — Card de análise na Home adaptado por tipo de análise
 spec: ../specs/analysis-card-by-type-spec.md
 created_at: 2026-05-20
-status: open
+status: closed
 ---
 
 ---
@@ -51,7 +51,7 @@ status: open
 
 ### F1 — Criar artefatos novos (helper de apresentação e badge)
 
-- [ ] **F1-T1** — Criar `AnalysisTypePresentation` (helper estático puro de UI)
+- [x] **F1-T1** — Criar `AnalysisTypePresentation` (helper estático puro de UI)
   - Camada: `ui`
   - Artefatos:
     - `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_presentation/analysis_type_presentation.dart` *(novo)*
@@ -59,8 +59,9 @@ status: open
   - Depende de: —
   - Desbloqueia: F1-T2
   - Detalhe: classe `final AnalysisTypePresentation { const AnalysisTypePresentation._(); }` com `static String shortLabelFor(AnalysisTypeDto type)` e `static IconData iconFor(AnalysisTypeDto type)`. Valores espelham `CreateAnalysisTypeDialogPresenter.titleFor` e `.iconFor` (mesmas strings PT-BR acentuadas: "Avaliação de caso", "Primeira instância", "Segunda instância"; mesmos `Icons.fact_check_outlined`, `Icons.gavel_outlined`, `Icons.account_balance_outlined`). O `index.dart` faz `export` do arquivo principal (sem typedef — não é widget).
+  - Concluído em: 2026-05-20
 
-- [ ] **F1-T2** — Criar widget `AnalysisTypeBadge` (View only)
+- [x] **F1-T2** — Criar widget `AnalysisTypeBadge` (View only)
   - Camada: `ui`
   - Artefatos:
     - `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/analysis_type_badge_view.dart` *(novo)*
@@ -68,35 +69,39 @@ status: open
   - Depende de: F1-T1
   - Desbloqueia: F2-T1, F2-T2
   - Detalhe: `class AnalysisTypeBadgeView extends StatelessWidget` com prop obrigatória `final AnalysisTypeDto type`. Resolve `label = AnalysisTypePresentation.shortLabelFor(type)` e `icon = AnalysisTypePresentation.iconFor(type)` na `build`. Renderiza `Semantics(label: 'Tipo: $label', container: true)` envolvendo `Container` com `borderRadius: 999`, `padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3)`, `color: tokens.surfaceElevated`, `border: tokens.borderSubtle`, contendo um `Row(mainAxisSize: MainAxisSize.min)` com `Icon(icon, size: 14, color: tokens.textSecondary)`, `SizedBox(width: 4)` e `Text(label, style: textTheme.labelSmall?.copyWith(color: tokens.textSecondary, fontWeight: FontWeight.w600))`. O `index.dart` exporta `typedef AnalysisTypeBadge = AnalysisTypeBadgeView;`.
+  - Concluído em: 2026-05-20
 
 ### F2 — Adaptar os dois cards existentes para receber `type` e renderizar o badge
 
 > Tarefas F2-T1 e F2-T2 são independentes entre si — podem ser executadas em paralelo por dois desenvolvedores distintos.
 
-- [ ] **F2-T1** — Adaptar `RecentAnalysisCardView` para receber `type` e renderizar `AnalysisTypeBadge`
+- [x] **F2-T1** — Adaptar `RecentAnalysisCardView` para receber `type` e renderizar `AnalysisTypeBadge`
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/recent_analysis_card_view.dart` *(modificado)*
   - Depende de: F1-T2
   - Desbloqueia: F3-T1
   - Detalhe: adicionar prop obrigatória `final AnalysisTypeDto type` no construtor; importar `AnalysisTypeDto` (de `package:animus/core/intake/dtos/analysis_type_dto.dart`) e `AnalysisTypeBadge` (de `package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart`). Inserir `AnalysisTypeBadge(type: type)` no `Wrap` (linha ~47-77) entre o `Text(dateLabel)` e o badge de status atual.
+  - Concluído em: 2026-05-20
 
-- [ ] **F2-T2** — Adaptar `ProcessingAnalysisCardView` para receber `type` e renderizar `AnalysisTypeBadge`
+- [x] **F2-T2** — Adaptar `ProcessingAnalysisCardView` para receber `type` e renderizar `AnalysisTypeBadge`
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/processing_analysis_card/processing_analysis_card_view.dart` *(modificado)*
   - Depende de: F1-T2
   - Desbloqueia: F3-T1
   - Detalhe: adicionar prop obrigatória `final AnalysisTypeDto type` no construtor; importar `AnalysisTypeDto` e `AnalysisTypeBadge`. Inserir `AnalysisTypeBadge(type: type)` no `Wrap` (linha ~52-87) entre o `Text(dateLabel)` e o badge de status atual. Preservar gradient + spinner sem alteração.
+  - Concluído em: 2026-05-20
 
 ### F3 — Propagar `analysis.type` na seção e atualizar barrel
 
-- [ ] **F3-T1** — Propagar `analysis.type` aos cards em `RecentAnalysesSectionView`
+- [x] **F3-T1** — Propagar `analysis.type` aos cards em `RecentAnalysesSectionView`
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart` *(modificado)*
   - Depende de: F2-T1, F2-T2
   - Desbloqueia: F3-T2 (pelo ciclo de qualidade — analyze precisa passar antes do barrel)
   - Detalhe: ao construir `ProcessingAnalysisCard(...)` (linha ~194) passar `type: analysis.type`; ao construir `RecentAnalysisCard(...)` (linha ~229) passar `type: analysis.type`. Importar `AnalysisTypeDto` se ainda não estiver disponível pela árvore de imports atual (já está, via `analysis_dto.dart` → `analysis_type_dto.dart`, mas verificar `dart analyze`).
+  - Concluído em: 2026-05-20
 
-- [ ] **F3-T2** — Atualizar barrel `recent_analyses_section/index.dart`
+- [x] **F3-T2** — Atualizar barrel `recent_analyses_section/index.dart`
   - Camada: `ui`
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/index.dart` *(modificado)*
   - Depende de: F1-T1, F1-T2 (artefatos a serem reexportados precisam existir)
@@ -104,6 +109,7 @@ status: open
   - Detalhe: adicionar duas linhas de `export`:
     - `export 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart';`
     - `export 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_presentation/index.dart';`
+  - Concluído em: 2026-05-20
 
 ---
 
