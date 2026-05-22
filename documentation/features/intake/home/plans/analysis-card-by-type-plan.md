@@ -58,7 +58,7 @@ status: closed
     - `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_presentation/index.dart` *(novo)*
   - Depende de: —
   - Desbloqueia: F1-T2
-  - Detalhe: classe `final AnalysisTypePresentation { const AnalysisTypePresentation._(); }` com `static String shortLabelFor(AnalysisTypeDto type)` e `static IconData iconFor(AnalysisTypeDto type)`. Valores espelham `CreateAnalysisTypeDialogPresenter.titleFor` e `.iconFor` (mesmas strings PT-BR acentuadas: "Avaliação de caso", "Primeira instância", "Segunda instância"; mesmos `Icons.fact_check_outlined`, `Icons.gavel_outlined`, `Icons.account_balance_outlined`). O `index.dart` faz `export` do arquivo principal (sem typedef — não é widget).
+  - Detalhe: classe `final AnalysisTypePresentation { const AnalysisTypePresentation._(); }` com `static String shortLabelFor(AnalysisTypeDto type)`, `static IconData iconFor(AnalysisTypeDto type)` e `static Color colorFor(AnalysisTypeDto type)`. Valores de texto/ícone espelham `CreateAnalysisTypeDialogPresenter.titleFor` e `.iconFor` (mesmas strings PT-BR acentuadas: "Avaliação de caso", "Primeira instância", "Segunda instância"; mesmos `Icons.fact_check_outlined`, `Icons.gavel_outlined`, `Icons.account_balance_outlined`). `colorFor` define a cor de identidade de cada tipo (lavanda `#B48BE6` para `caseAssessment`, gold `#FBE26D` para `firstInstance`, ciano `#7BC4E3` para `secondInstance`). O `index.dart` faz `export` do arquivo principal (sem typedef — não é widget).
   - Concluído em: 2026-05-20
 
 - [x] **F1-T2** — Criar widget `AnalysisTypeBadge` (View only)
@@ -68,7 +68,7 @@ status: closed
     - `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart` *(novo)*
   - Depende de: F1-T1
   - Desbloqueia: F2-T1, F2-T2
-  - Detalhe: `class AnalysisTypeBadgeView extends StatelessWidget` com prop obrigatória `final AnalysisTypeDto type`. Resolve `label = AnalysisTypePresentation.shortLabelFor(type)` e `icon = AnalysisTypePresentation.iconFor(type)` na `build`. Renderiza `Semantics(label: 'Tipo: $label', container: true)` envolvendo `Container` com `borderRadius: 999`, `padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3)`, `color: tokens.surfaceElevated`, `border: tokens.borderSubtle`, contendo um `Row(mainAxisSize: MainAxisSize.min)` com `Icon(icon, size: 14, color: tokens.textSecondary)`, `SizedBox(width: 4)` e `Text(label, style: textTheme.labelSmall?.copyWith(color: tokens.textSecondary, fontWeight: FontWeight.w600))`. O `index.dart` exporta `typedef AnalysisTypeBadge = AnalysisTypeBadgeView;`.
+  - Detalhe: `class AnalysisTypeBadgeView extends StatelessWidget` com prop obrigatória `final AnalysisTypeDto type`. Resolve `label = AnalysisTypePresentation.shortLabelFor(type)`, `icon = AnalysisTypePresentation.iconFor(type)` e `color = AnalysisTypePresentation.colorFor(type)` na `build`. Renderiza `Semantics(label: 'Tipo: $label', container: true)` envolvendo `Container` com `borderRadius: 999`, `padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5)`, `color` e `border` derivados da cor base com tints via `color.withValues(alpha: 0.14)` no fundo e `alpha: 0.42` na borda, contendo um `Row(mainAxisSize: MainAxisSize.min)` com `Icon(icon, size: 14, color: color)`, `SizedBox(width: 5)` e `Text(label, style: textTheme.labelSmall?.copyWith(color: color, fontWeight: FontWeight.w700, letterSpacing: 0.1))`. O `index.dart` exporta `typedef AnalysisTypeBadge = AnalysisTypeBadgeView;`.
   - Concluído em: 2026-05-20
 
 ### F2 — Adaptar os dois cards existentes para receber `type` e renderizar o badge
@@ -80,7 +80,7 @@ status: closed
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/recent_analysis_card_view.dart` *(modificado)*
   - Depende de: F1-T2
   - Desbloqueia: F3-T1
-  - Detalhe: adicionar prop obrigatória `final AnalysisTypeDto type` no construtor; importar `AnalysisTypeDto` (de `package:animus/core/intake/dtos/analysis_type_dto.dart`) e `AnalysisTypeBadge` (de `package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart`). Inserir `AnalysisTypeBadge(type: type)` no `Wrap` (linha ~47-77) entre o `Text(dateLabel)` e o badge de status atual.
+  - Detalhe: adicionar prop obrigatória `final AnalysisTypeDto type` no construtor; importar `AnalysisTypeDto` (de `package:animus/core/intake/dtos/analysis_type_dto.dart`) e `AnalysisTypeBadge` (de `package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart`). Reorganizar o layout: título no topo (`titleSmall` weight 700) e, abaixo, um `Wrap(spacing: 10, runSpacing: 8)` com a linha de data (`📅 calendar_today_outlined` + `dateLabel`) seguida do `AnalysisTypeBadge(type: type)`. Quando houver `statusLabel`, renderizá-lo em **linha separada** abaixo como pill próprio (com ícone `schedule_outlined`), em vez de mantê-lo no mesmo `Wrap`.
   - Concluído em: 2026-05-20
 
 - [x] **F2-T2** — Adaptar `ProcessingAnalysisCardView` para receber `type` e renderizar `AnalysisTypeBadge`
@@ -88,7 +88,7 @@ status: closed
   - Artefato: `lib/ui/intake/widgets/pages/home_screen/recent_analyses_section/processing_analysis_card/processing_analysis_card_view.dart` *(modificado)*
   - Depende de: F1-T2
   - Desbloqueia: F3-T1
-  - Detalhe: adicionar prop obrigatória `final AnalysisTypeDto type` no construtor; importar `AnalysisTypeDto` e `AnalysisTypeBadge`. Inserir `AnalysisTypeBadge(type: type)` no `Wrap` (linha ~52-87) entre o `Text(dateLabel)` e o badge de status atual. Preservar gradient + spinner sem alteração.
+  - Detalhe: adicionar prop obrigatória `final AnalysisTypeDto type` no construtor; importar `AnalysisTypeDto` e `AnalysisTypeBadge`. Reorganizar o layout: linha do topo com `ProcessingSpinner` + título (`titleSmall` weight 700) e, abaixo, um `Wrap(spacing: 10, runSpacing: 8)` com a linha de data (`📅 calendar_today_outlined` + `dateLabel`) seguida do `AnalysisTypeBadge(type: type)`. Quando houver `statusLabel`, renderizá-lo em **linha separada** abaixo como pill próprio com ícone `autorenew` (cor accent), em vez de mantê-lo no mesmo `Wrap`. Preservar gradient e spinner sem alteração.
   - Concluído em: 2026-05-20
 
 ### F3 — Propagar `analysis.type` na seção e atualizar barrel

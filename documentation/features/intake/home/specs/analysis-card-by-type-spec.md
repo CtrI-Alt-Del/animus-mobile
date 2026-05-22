@@ -47,16 +47,17 @@ Adaptar a apresentação do card de análise na lista da `Home` (`RecentAnalyses
   - `caseAssessment` → `Icons.fact_check_outlined` + "Avaliação de caso"
   - `firstInstance` → `Icons.gavel_outlined` + "Primeira instância"
   - `secondInstance` → `Icons.account_balance_outlined` + "Segunda instância"
-- O badge de tipo deve aparecer no `Wrap` existente, ao lado do `dateLabel`, preservando o `statusLabel` (quando houver) e respeitando o `runSpacing` atual.
-- O comportamento de tap, navegação e renderização do título/data/status atual deve permanecer inalterado.
+- O layout textual/visual do card passa a ser organizado com o título em uma linha superior e, abaixo, uma linha contendo a data e o badge de tipo (via `Wrap` para quebrar gracioso em telas estreitas).
+- Quando houver `statusLabel`, ele continua sendo exibido no card como pill/indicador visual em **linha separada** com ícone próprio, sem a exigência de permanecer no mesmo `Wrap` da data e do badge de tipo.
+- O comportamento de tap e navegação do card deve permanecer inalterado apesar da reorganização visual do conteúdo.
 - O badge não deve ser opcional na API do card — `type` é parâmetro obrigatório, garantindo que toda análise listada tenha tipo explícito (refletindo o domínio que já é obrigatoriamente tipado em `AnalysisDto.type`).
 - Se a análise vier do backend com payload legado (`LAWYER` / `JUDGE`), o card deve renderizar corretamente como "Primeira instância" / "Segunda instância", já que a normalização ocorre em `AnalysisMapper._toType` antes da UI receber o DTO. **Nenhuma lógica de fallback adicional deve viver na camada UI.**
 
 ## 3.2 Não funcionais
 
-- **Acessibilidade:** o badge deve envolver ícone + rótulo em um `Semantics(label: 'Tipo: <shortLabel>')` para que leitores de tela anunciem o tipo da análise; o contraste do badge deve usar `tokens.textSecondary` sobre `tokens.surfaceElevated` (padrão já estabelecido pelo `statusLabel`).
-- **Arquitetura:** nenhuma lógica de mapeamento `string → tipo` deve vazar para a UI; o ícone/texto por tipo deve ser obtido via `AnalysisTypePresentation` (helper puro de UI, sem dependência de service ou driver).
-- **Visual:** o badge deve reutilizar `AppThemeTokens` (`surfaceElevated`, `borderSubtle`, `textSecondary`) e usar `borderRadius: 999` (mesmo padrão do badge de status atual em `RecentAnalysisCardView`), mantendo coerência com os pills já presentes no card.
+- **Acessibilidade:** o badge deve envolver ícone + rótulo em um `Semantics(label: 'Tipo: <shortLabel>')` para que leitores de tela anunciem o tipo da análise; o conteúdo do badge deve manter contraste legível em relação ao fundo com tint aplicado para cada tipo.
+- **Arquitetura:** nenhuma lógica de mapeamento `string → tipo` deve vazar para a UI; o ícone/texto/cor por tipo deve ser obtido via `AnalysisTypePresentation` (helper puro de UI, sem dependência de service ou driver).
+- **Visual:** o badge deve usar a cor semântica de cada tipo de análise (a mesma usada para definir ícone e rótulo), aplicando variações com transparência/tint dessa cor no fundo e na borda, e usar `borderRadius: 999` (mesmo padrão de pill do badge de status atual em `RecentAnalysisCardView`).
 - **Compatibilidade visual:** a altura visual do card não deve aumentar significativamente em telas estreitas — o `Wrap` existente garante quebra de linha quando data + tipo + status não couberem na mesma linha.
 
 ---
