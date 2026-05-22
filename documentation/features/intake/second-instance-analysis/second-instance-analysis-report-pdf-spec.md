@@ -7,7 +7,7 @@ last_updated_at: 2026-05-20
 
 # 1. Objetivo
 
-Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da analise de segunda instancia do perfil Juiz**, reaproveitando a `SecondInstanceAnalysisScreenView`, consumindo o endpoint dedicado `GET /intake/analyses/{analysis_id}/judge-analysis-report`, mapeando o payload agregado para um DTO tipado, gerando o PDF em memoria com `PdfDriver` e acionando o compartilhamento nativo do dispositivo com feedback de loading e erro no header da tela.
+Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da analise de segunda instancia do perfil Juiz**, reaproveitando a `SecondInstanceAnalysisScreenView`, consumindo o endpoint dedicado `GET /intake/analyses/{analysis_id}/second-instance-analysis-report`, mapeando o payload agregado para um DTO tipado, gerando o PDF em memoria com `PdfDriver` e acionando o compartilhamento nativo do dispositivo com feedback de loading e erro no header da tela.
 
 ---
 
@@ -16,21 +16,20 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 ## 2.1 In-scope
 
 - Expor a acao **Exportar PDF** no `AnalysisHeader` da `SecondInstanceAnalysisScreenView` somente quando a analise estiver em `DONE` e houver minuta carregada.
-- Criar o contrato mobile `JudgeAnalysisReportDto` alinhado ao endpoint server `judge-analysis-report`.
+- Criar o contrato mobile `SecondInstanceAnalysisReportDto` alinhado ao endpoint server `second-instance-analysis-report`.
 - Criar mapper REST para o payload agregado do relatorio do Juiz.
-- Adicionar `IntakeService.getJudgeAnalysisReport(...)` e sua implementacao em `IntakeRestService`.
-- Adicionar capacidade em `PdfDriver` para gerar PDF a partir de `JudgeAnalysisReportDto`.
+- Adicionar `IntakeService.getSecondInstanceAnalysisReport(...)` e sua implementacao em `IntakeRestService`.
+- Adicionar capacidade em `PdfDriver` para gerar PDF a partir de `SecondInstanceAnalysisReportDto`.
 - Montar PDF com cabecalho, dados da analise, dados do documento, resumo do caso, minuta estruturada e precedentes associados.
 - Incluir aviso de ausencia de precedentes fortes no PDF quando `judgmentDraft.noApplicablePrecedentNotice` estiver preenchido.
 - Compartilhar o PDF por `Printing.sharePdf` via `PdfDriver.sharePdf(...)` ja existente.
 - Controlar concorrencia de exportacao no presenter da tela.
 - Exibir estado visual `Exportando PDF...` e indicador no item do menu ja existente em `AnalysisHeaderActionsView`.
 - Exibir erro amigavel no fluxo da tela quando a busca do relatorio, geracao ou compartilhamento falhar.
-- Remover o contrato mobile legado `SecondInstanceAnalysisReportDto`, que nao contempla a minuta e nao esta alinhado ao endpoint server `ANI-100`.
 
 ## 2.2 Out-of-scope
 
-- Criar uma nova `JudgeAnalysisScreenView`; a tela existente de 2ª instancia sera reutilizada.
+- Criar uma nova `SecondInstanceAnalysisScreenView`; a tela existente de 2ª instancia sera reutilizada.
 - Alterar o fluxo de upload, analise, busca de precedentes ou geracao da minuta.
 - Editar a minuta dentro do app.
 - Exportar em formatos diferentes de PDF.
@@ -47,8 +46,8 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 
 - A tela deve exibir **Exportar PDF** apenas quando `status == AnalysisStatusDto.done`, `judgmentDraft != null` e nao houver operacao concorrente.
 - Ao tocar em **Exportar PDF**, a `View` deve delegar para o `Presenter` sem acessar service, driver ou regra de negocio.
-- O presenter deve buscar o relatorio agregado por `IntakeService.getJudgeAnalysisReport(analysisId: analysisId)`.
-- O service REST deve consumir `GET /intake/analyses/{analysis_id}/judge-analysis-report`.
+- O presenter deve buscar o relatorio agregado por `IntakeService.getSecondInstanceAnalysisReport(analysisId: analysisId)`.
+- O service REST deve consumir `GET /intake/analyses/{analysis_id}/second-instance-analysis-report`.
 - O mapper deve converter `analysis`, `document`, `case_summary`, `precedents` e `judgment_draft` para DTOs do `core`.
 - O PDF deve conter, nesta ordem: cabecalho, dados da analise/documento, resumo do caso, minuta estruturada e precedentes associados.
 - A minuta no PDF deve conter `report`, `preliminaryIssues` quando existir, `meritAnalysis`, `precedentAdherenceAnalysis`, `ruling` e `noApplicablePrecedentNotice` quando existir.
@@ -107,10 +106,10 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 
 ## Lacunas identificadas
 
-- Nao existe `lib/ui/intake/widgets/pages/judge_analysis_screen/`; a codebase materializou o fluxo do Juiz em `second_instance_analysis_screen`.
-- Nao existe `JudgeAnalysisReportDto` no mobile, apesar de `ANI-100` definir este contrato no server.
+- Nao existe `lib/ui/intake/widgets/pages/second_instance_screen/`; a codebase materializou o fluxo do Juiz em `second_instance_analysis_screen`.
+- Nao existe `SecondInstanceAnalysisReportDto` no mobile, apesar de `ANI-100` definir este contrato no server.
 - O contrato mobile atual `SecondInstanceAnalysisReportDto` nao inclui `judgmentDraft`, portanto nao atende a exportacao da minuta.
-- O endpoint mobile atual `/second-instance-analysis-report` diverge do endpoint server esperado `/judge-analysis-report`.
+- O endpoint mobile atual `/second-instance-analysis-report` diverge do endpoint server esperado `/second-instance-analysis-report`.
 
 ---
 
@@ -118,8 +117,8 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 
 ## Camada Core (DTOs)
 
-- **Localização:** `lib/core/intake/dtos/judge_analysis_report_dto.dart` (**novo arquivo**)
-- **Classe:** `JudgeAnalysisReportDto`
+- **Localização:** `lib/core/intake/dtos/second_instance_analysis_report_dto.dart` (**novo arquivo**)
+- **Classe:** `SecondInstanceAnalysisReportDto`
 - **Atributos:**
   - `final AnalysisDto analysis`
   - `final AnalysisDocumentDto document`
@@ -130,9 +129,9 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 
 ## Camada REST (Mappers)
 
-- **Localização:** `lib/rest/mappers/intake/judge_analysis_report_mapper.dart` (**novo arquivo**)
+- **Localização:** `lib/rest/mappers/intake/second_instance_report_mapper.dart` (**novo arquivo**)
 - **Métodos:**
-  - `static JudgeAnalysisReportDto toDto(Json json)` — mapeia `analysis`, `document`, `case_summary`, `precedents` e `judgment_draft` usando mappers existentes.
+  - `static SecondInstanceAnalysisReportDto toDto(Json json)` — mapeia `analysis`, `document`, `case_summary`, `precedents` e `judgment_draft` usando mappers existentes.
   - `static List<AnalysisPrecedentDto> _toPrecedents(dynamic value)` — converte lista remota em `List<AnalysisPrecedentDto>`; retorna lista vazia quando o campo vier ausente ou invalido.
   - `static Json _toJsonField(dynamic value)` — normaliza campos agregados para `Json`, evitando cast inseguro.
 - **Método `toJson`:** Não aplicável; o fluxo consome apenas resposta da API.
@@ -144,17 +143,17 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 ## Core
 
 - **Arquivo:** `lib/core/intake/interfaces/intake_service.dart`
-- **Mudança:** importar `judge_analysis_report_dto.dart` e adicionar `Future<RestResponse<JudgeAnalysisReportDto>> getJudgeAnalysisReport({required String analysisId});`.
+- **Mudança:** importar `second_instance_report_dto.dart` e adicionar `Future<RestResponse<SecondInstanceAnalysisReportDto>> getSecondInstanceAnalysisReport({required String analysisId});`.
 - **Justificativa:** publicar contrato tipado do relatorio do Juiz para a UI sem acoplamento a HTTP.
 
 - **Arquivo:** `lib/core/shared/interfaces/pdf_driver.dart`
-- **Mudança:** importar `judge_analysis_report_dto.dart` e adicionar `Future<Uint8List> generateJudgeAnalysisReport({required JudgeAnalysisReportDto report});`.
+- **Mudança:** importar `second_instance_report_dto.dart` e adicionar `Future<Uint8List> generateSecondInstanceAnalysisReport({required SecondInstanceAnalysisReportDto report});`.
 - **Justificativa:** expor capacidade especifica de gerar PDF da minuta do Juiz sem vazar `pdf`/`printing` para UI.
 
 ## REST
 
 - **Arquivo:** `lib/rest/services/intake_rest_service.dart`
-- **Mudança:** substituir o fluxo `getSecondInstanceAnalysisReport(...)` por `Future<RestResponse<JudgeAnalysisReportDto>> getJudgeAnalysisReport({required String analysisId})`, chamando `GET /intake/analyses/$analysisId/judge-analysis-report` e mapeando com `JudgeAnalysisReportMapper.toDto`.
+- **Mudança:** substituir o fluxo `getSecondInstanceAnalysisReport(...)` por `Future<RestResponse<SecondInstanceAnalysisReportDto>> getSecondInstanceAnalysisReport({required String analysisId})`, chamando `GET /intake/analyses/$analysisId/second-instance-analysis-report` e mapeando com `SecondInstanceAnalysisReportMapper.toDto`.
 - **Justificativa:** alinhar o mobile ao contrato server `ANI-100` e garantir que a resposta inclua a minuta persistida.
 
 - **Arquivo:** `lib/rest/services/intake_rest_service.dart`
@@ -164,15 +163,15 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 ## Drivers
 
 - **Arquivo:** `lib/drivers/pdf-driver/printing/printing_pdf_driver.dart`
-- **Mudança:** implementar `Future<Uint8List> generateJudgeAnalysisReport({required JudgeAnalysisReportDto report})`.
+- **Mudança:** implementar `Future<Uint8List> generateSecondInstanceAnalysisReport({required SecondInstanceAnalysisReportDto report})`.
 - **Justificativa:** gerar o documento PDF em memoria usando os dados agregados do fluxo do Juiz.
 
 - **Arquivo:** `lib/drivers/pdf-driver/printing/printing_pdf_driver.dart`
 - **Mudança:** adicionar helpers privados para o PDF do Juiz, reaproveitando os estilos existentes quando possivel:
-  - `pw.Page _buildJudgeHeaderPage(JudgeAnalysisReportDto report, DateTime generatedAt)` — monta cabecalho, nome da analise, data, documento e metadados.
-  - `pw.Page _buildJudgeCaseSummaryPage(JudgeAnalysisReportDto report, DateTime generatedAt)` — monta resumo do caso com `CaseSummaryDto`.
-  - `pw.Page _buildJudgeDraftPage(JudgeAnalysisReportDto report, DateTime generatedAt)` — monta minuta estruturada com relatorio, preliminares, merito, aderencia, aviso e dispositivo.
-  - `pw.Page _buildJudgePrecedentsPage({required List<AnalysisPrecedentDto> precedents, required DateTime generatedAt})` — monta precedentes ordenados por `finalRank`.
+  - `pw.Page _buildSecondInstanceHeaderPage(SecondInstanceAnalysisReportDto report, DateTime generatedAt)` — monta cabecalho, nome da analise, data, documento e metadados.
+  - `pw.Page _buildSecondInstanceCaseSummaryPage(SecondInstanceAnalysisReportDto report, DateTime generatedAt)` — monta resumo do caso com `CaseSummaryDto`.
+  - `pw.Page _buildSecondInstanceDraftPage(SecondInstanceAnalysisReportDto report, DateTime generatedAt)` — monta minuta estruturada com relatorio, preliminares, merito, aderencia, aviso e dispositivo.
+  - `pw.Page _buildSecondInstancePrecedentsPage({required List<AnalysisPrecedentDto> precedents, required DateTime generatedAt})` — monta precedentes ordenados por `finalRank`.
   - `pw.Widget _buildJudgmentDraftSection({required String title, required String content})` — renderiza uma secao textual da minuta.
   - `pw.Widget _buildRulingSection(List<String> ruling)` — renderiza os itens do dispositivo.
   - `String _buildApplicabilityPercent(AnalysisPrecedentDto precedent)` — formata `similarityScore` em percentual para exibicao no PDF.
@@ -181,7 +180,7 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 ## UI
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
-- **Mudança:** importar `dart:typed_data`, `JudgeAnalysisReportDto`, `PdfDriver` e `pdfDriverProvider`.
+- **Mudança:** importar `dart:typed_data`, `SecondInstanceAnalysisReportDto`, `PdfDriver` e `pdfDriverProvider`.
 - **Justificativa:** permitir orquestracao da exportacao sem acoplamento ao driver concreto.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
@@ -195,11 +194,11 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 - **Justificativa:** controlar elegibilidade e feedback visual sem regra na `View`.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
-- **Mudança:** adicionar metodo `Future<bool> exportJudgeAnalysisReport()` — valida `canExportReport`, ativa `isExportingReport` e `isManagingAnalysis`, busca `IntakeService.getJudgeAnalysisReport`, gera bytes por `PdfDriver.generateJudgeAnalysisReport`, compartilha via `PdfDriver.sharePdf`, trata falhas em `generalError` e limpa flags no `finally`.
+- **Mudança:** adicionar metodo `Future<bool> exportSecondInstanceAnalysisReport()` — valida `canExportReport`, ativa `isExportingReport` e `isManagingAnalysis`, busca `IntakeService.getSecondInstanceAnalysisReport`, gera bytes por `PdfDriver.generateSecondInstanceAnalysisReport`, compartilha via `PdfDriver.sharePdf`, trata falhas em `generalError` e limpa flags no `finally`.
 - **Justificativa:** centralizar o fluxo ponta a ponta no presenter, preservando `View` fina.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
-- **Mudança:** adicionar metodo privado `String _buildJudgeReportFilename(String rawAnalysisName)` — sanitiza nome da analise e retorna `$safeName - Minuta de Sentenca.pdf`.
+- **Mudança:** adicionar metodo privado `String _buildSecondInstanceReportFilename(String rawAnalysisName)` — sanitiza nome da analise e retorna `$safeName - Minuta de Sentenca.pdf`.
 - **Justificativa:** manter regra de nome de arquivo no presenter, como no fluxo existente da 1ª instancia.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
@@ -212,7 +211,7 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_view.dart`
 - **Mudança:** no `AnalysisHeader`, substituir `onExportReport: null`, `showExportReport: false` e `isExportingReport: false` por valores observados do presenter:
-  - `onExportReport: canExportReport ? () => unawaited(presenter.exportJudgeAnalysisReport()) : null`
+  - `onExportReport: canExportReport ? () => unawaited(presenter.exportSecondInstanceAnalysisReport()) : null`
   - `showExportReport: status == AnalysisStatusDto.done && presenter.judgmentDraft.value != null`
   - `isExportingReport: presenter.isExportingReport.watch(context)`
   - `isMenuEnabled: !isManaging || isExportingReport`, mantendo o item visivel enquanto exporta.
@@ -229,34 +228,34 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 ## Core
 
 - **Arquivo:** `lib/core/intake/dtos/second_instance_analysis_report_dto.dart`
-- **Motivo da remoção:** contrato legado nao contempla `judgmentDraft` e diverge do contrato server `JudgeAnalysisReportDto` definido por `ANI-100`.
-- **Impacto esperado:** remover import e metodo `getSecondInstanceAnalysisReport(...)` de `IntakeService`; consumidores devem usar `getJudgeAnalysisReport(...)`.
+- **Motivo da remoção:** contrato legado nao contempla `judgmentDraft` e diverge do contrato server `SecondInstanceAnalysisReportDto` definido por `ANI-100`.
+- **Impacto esperado:** remover import e metodo `getSecondInstanceAnalysisReport(...)` de `IntakeService`; consumidores devem usar `getSecondInstanceAnalysisReport(...)`.
 
 ## REST
 
 - **Arquivo:** `lib/rest/mappers/intake/second_instance_analysis_report_mapper.dart`
-- **Motivo da remoção:** mapper legado sem `judgment_draft`, substituido por `JudgeAnalysisReportMapper`.
+- **Motivo da remoção:** mapper legado sem `judgment_draft`, substituido por `SecondInstanceAnalysisReportMapper`.
 - **Impacto esperado:** atualizar imports em `IntakeRestService` para o novo mapper.
 
 - **Arquivo:** `lib/rest/services/intake_rest_service.dart`
 - **Motivo da remoção:** remover metodo `getSecondInstanceAnalysisReport(...)` e endpoint `/second-instance-analysis-report`.
-- **Impacto esperado:** evitar dois contratos para a mesma exportacao e alinhar o mobile ao endpoint `/judge-analysis-report`.
+- **Impacto esperado:** evitar dois contratos para a mesma exportacao e alinhar o mobile ao endpoint `/second-instance-analysis-report`.
 
 ---
 
 # 8. Decisões Técnicas e Trade-offs
 
-- **Decisão:** reutilizar `SecondInstanceAnalysisScreenView` em vez de criar `JudgeAnalysisScreenView`.
-- **Alternativas consideradas:** criar uma nova tela `lib/ui/intake/widgets/pages/judge_analysis_screen/` conforme texto do ticket; duplicar a tela existente.
+- **Decisão:** reutilizar `SecondInstanceAnalysisScreenView` em vez de criar `SecondInstanceAnalysisScreenView`.
+- **Alternativas consideradas:** criar uma nova tela `lib/ui/intake/widgets/pages/second_instance_screen/` conforme texto do ticket; duplicar a tela existente.
 - **Motivo da escolha:** a codebase ja materializou o fluxo do Juiz em `second_instance_analysis_screen`, e a spec base `second-instance-analysis-screen-spec.md` define essa pasta como destino da tela.
 - **Impactos / trade-offs:** evita duplicidade de tela, mas mantem o nome historico `SecondInstanceFirstInstanceAnalysisScreenPresenter`, que e inconsistente e deve ser tratado fora desta spec se houver refatoracao de nomenclatura.
 
-- **Decisão:** criar `JudgeAnalysisReportDto` e remover `SecondInstanceAnalysisReportDto`.
+- **Decisão:** criar `SecondInstanceAnalysisReportDto` e remover `SecondInstanceAnalysisReportDto`.
 - **Alternativas consideradas:** evoluir `SecondInstanceAnalysisReportDto` adicionando `judgmentDraft`; manter ambos os contratos.
-- **Motivo da escolha:** `ANI-100` define `JudgeAnalysisReportDto` e endpoint `/judge-analysis-report`; manter dois DTOs para o mesmo relatorio criaria duplicidade e risco de consumo do endpoint errado.
+- **Motivo da escolha:** `ANI-100` define `SecondInstanceAnalysisReportDto` e endpoint `/second-instance-analysis-report`; manter dois DTOs para o mesmo relatorio criaria duplicidade e risco de consumo do endpoint errado.
 - **Impactos / trade-offs:** exige ajuste de imports que mencionam `SecondInstanceAnalysisReportDto`, mas reduz ambiguidade futura.
 
-- **Decisão:** adicionar `PdfDriver.generateJudgeAnalysisReport(...)` sem renomear `generateAnalysisReport(...)`.
+- **Decisão:** adicionar `PdfDriver.generateSecondInstanceAnalysisReport(...)` sem renomear `generateAnalysisReport(...)`.
 - **Alternativas consideradas:** renomear o metodo atual para `generateFirstInstanceAnalysisReport(...)`; criar driver separado para juiz.
 - **Motivo da escolha:** menor alteracao no fluxo ja existente de exportacao da 1ª instancia e sem necessidade de novo provider.
 - **Impactos / trade-offs:** `PdfDriver` fica com dois metodos especificos de relatorio; a nomenclatura antiga `generateAnalysisReport` permanece menos explicita por compatibilidade interna.
@@ -279,14 +278,14 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 
 ```text
 SecondInstanceAnalysisScreenView
-  -> SecondInstanceFirstInstanceAnalysisScreenPresenter.exportJudgeAnalysisReport()
+  -> SecondInstanceFirstInstanceAnalysisScreenPresenter.exportSecondInstanceAnalysisReport()
       -> secondInstanceFirstInstanceAnalysisScreenPresenterProvider
-          -> IntakeService.getJudgeAnalysisReport(...)
-              -> IntakeRestService.getJudgeAnalysisReport(...)
+          -> IntakeService.getSecondInstanceAnalysisReport(...)
+              -> IntakeRestService.getSecondInstanceAnalysisReport(...)
                   -> RestClient (Dio)
-                      -> GET /intake/analyses/{analysis_id}/judge-analysis-report
-                  -> JudgeAnalysisReportMapper.toDto(...)
-          -> PdfDriver.generateJudgeAnalysisReport(...)
+                      -> GET /intake/analyses/{analysis_id}/second-instance-analysis-report
+                  -> SecondInstanceAnalysisReportMapper.toDto(...)
+          -> PdfDriver.generateSecondInstanceAnalysisReport(...)
               -> PrintingPdfDriver (pdf)
           -> PdfDriver.sharePdf(...)
               -> Printing.sharePdf(...)
@@ -373,13 +372,13 @@ PDF - Minuta de Sentenca
 - **Impacto na implementação:** nao afeta diretamente a exportacao PDF, mas indica divergencia de produto na tela base.
 - **Ação sugerida:** tratar em task/spec da tela de 2ª instancia, nao nesta spec de exportacao.
 
-- **Descrição da pendência:** o ticket `ANI-106` cita `JudgeAnalysisScreenView`, mas a codebase e a spec base usam `SecondInstanceAnalysisScreenView`.
+- **Descrição da pendência:** o ticket `ANI-106` cita `SecondInstanceAnalysisScreenView`, mas a codebase e a spec base usam `SecondInstanceAnalysisScreenView`.
 - **Impacto na implementação:** criar uma nova tela duplicaria fluxo e presenter.
-- **Ação sugerida:** implementar na tela existente e, se produto exigir renomeacao para `judge`, abrir refatoracao separada.
+- **Ação sugerida:** implementar na tela existente e, se produto exigir renomeacao para `secondInstance`, abrir refatoracao separada.
 
-- **Descrição da pendência:** o ticket server `ANI-100` define endpoint `/judge-analysis-report`, mas a codebase mobile possui endpoint legado `/second-instance-analysis-report`.
+- **Descrição da pendência:** o ticket server `ANI-100` define endpoint `/second-instance-analysis-report`, mas a codebase mobile possui endpoint legado `/second-instance-analysis-report`.
 - **Impacto na implementação:** consumo do endpoint legado nao entregaria `judgment_draft` conforme contrato esperado.
-- **Ação sugerida:** migrar mobile para `/judge-analysis-report` nesta spec e remover contrato legado.
+- **Ação sugerida:** migrar mobile para `/second-instance-analysis-report` nesta spec e remover contrato legado.
 
 ---
 
@@ -390,7 +389,7 @@ PDF - Minuta de Sentenca
 - Presenters não fazem chamadas diretas a `RestClient`; devem consumir `IntakeService`.
 - `PdfDriver` deve esconder `pdf`, `printing` e `Uint8List` gerado da camada visual, exceto pelo contrato do `core`.
 - Todos os caminhos citados existem no projeto ou estao marcados como **novo arquivo**.
-- Não criar `JudgeAnalysisScreenView` nesta spec.
+- Não criar `SecondInstanceAnalysisScreenView` nesta spec.
 - Não manter dois contratos de relatorio do Juiz/2ª instancia para a mesma exportacao.
 - O PDF deve ser gerado a partir de DTO tipado, sem `Map<String, dynamic>` na UI.
 - O item **Exportar PDF** deve ficar indisponivel durante exportacao concorrente.
