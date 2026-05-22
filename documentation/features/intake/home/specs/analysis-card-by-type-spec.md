@@ -2,7 +2,7 @@
 title: Card de análise na Home adaptado por tipo de análise
 prd: ../prd.md
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-102
-status: open
+status: closed
 last_updated_at: 2026-05-20
 ---
 
