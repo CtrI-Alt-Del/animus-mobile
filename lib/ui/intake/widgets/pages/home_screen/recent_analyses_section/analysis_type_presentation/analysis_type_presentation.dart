@@ -26,4 +26,19 @@ final class AnalysisTypePresentation {
         return Icons.account_balance_outlined;
     }
   }
+
+  /// Cor de identidade visual do tipo de análise.
+  ///
+  /// Usada como base para tints de fundo/borda em badges, mantendo
+  /// distinção visual rápida entre os 3 tipos no dark theme do app.
+  static Color colorFor(AnalysisTypeDto type) {
+    switch (type) {
+      case AnalysisTypeDto.caseAssessment:
+        return const Color(0xFFB48BE6);
+      case AnalysisTypeDto.firstInstance:
+        return const Color(0xFFFBE26D);
+      case AnalysisTypeDto.secondInstance:
+        return const Color(0xFF7BC4E3);
+    }
+  }
 }

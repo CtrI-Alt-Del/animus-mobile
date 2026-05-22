@@ -33,71 +33,114 @@ class RecentAnalysisCardView extends StatelessWidget {
       border: Border.all(color: tokens.borderSubtle),
     );
 
+    final bool hasStatus =
+        statusLabel != null && statusLabel!.trim().isNotEmpty;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: borderRadius,
         child: Ink(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
           decoration: decoration,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          dateLabel,
-                          style: textTheme.labelSmall?.copyWith(
-                            color: tokens.textMuted,
-                          ),
-                        ),
-                        AnalysisTypeBadge(type: type),
-                        if (statusLabel != null &&
-                            statusLabel!.trim().isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: tokens.surfaceElevated,
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: tokens.borderSubtle),
-                            ),
-                            child: Text(
-                              statusLabel!,
-                              style: textTheme.labelSmall?.copyWith(
-                                color: tokens.textSecondary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
                     Text(
                       title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelMedium?.copyWith(
+                      style: textTheme.titleSmall?.copyWith(
                         color: tokens.textPrimary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: <Widget>[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              size: 13,
+                              color: tokens.textMuted,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              dateLabel,
+                              style: textTheme.labelSmall?.copyWith(
+                                color: tokens.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                        AnalysisTypeBadge(type: type),
+                      ],
+                    ),
+                    if (hasStatus) ...<Widget>[
+                      const SizedBox(height: 8),
+                      _StatusPill(
+                        label: statusLabel!,
+                        tokens: tokens,
+                        textTheme: textTheme,
+                      ),
+                    ],
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Icon(Icons.chevron_right, color: tokens.textMuted),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, color: tokens.textMuted, size: 22),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+  final AppThemeTokens tokens;
+  final TextTheme textTheme;
+
+  const _StatusPill({
+    required this.label,
+    required this.tokens,
+    required this.textTheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: tokens.surfaceElevated,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: tokens.borderSubtle),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(Icons.schedule_outlined, size: 12, color: tokens.textSecondary),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: textTheme.labelSmall?.copyWith(
+              color: tokens.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
