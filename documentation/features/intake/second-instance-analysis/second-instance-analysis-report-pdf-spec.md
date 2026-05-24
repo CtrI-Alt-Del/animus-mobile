@@ -100,8 +100,8 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 ## UI
 
 - **`SecondInstanceAnalysisScreenView`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_view.dart`) — tela alvo; hoje passa `showExportReport: false` para `AnalysisHeader`.
-- **`SecondInstanceFirstInstanceAnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`) — presenter da tela de 2ª instancia; ja controla `status`, `judgmentDraft`, `generalError` e `isManagingAnalysis`.
-- **`secondInstanceFirstInstanceAnalysisScreenPresenterProvider`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`) — provider do presenter da tela.
+- **`SecondInstanceAnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`) — presenter da tela de 2ª instancia; ja controla `status`, `judgmentDraft`, `generalError` e `isManagingAnalysis`.
+- **`secondInstanceAnalysisScreenPresenterProvider`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`) — provider do presenter da tela.
 - **`AnalysisHeader`** (`lib/ui/intake/widgets/components/analysis_header/analysis_header_view.dart`) — header compartilhado que ja recebe `onExportReport`, `showExportReport` e `isExportingReport`.
 - **`AnalysisHeaderActions`** (`lib/ui/intake/widgets/components/analysis_header/analysis_header_actions/analysis_header_actions_view.dart`) — menu que ja renderiza `Exportar PDF` e `Exportando PDF...`.
 - **`JudgmentDraftCard`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/judgment_draft_card/judgment_draft_card_view.dart`) — card da minuta na tela, referencia visual do conteudo a ser exportado.
@@ -187,7 +187,7 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 - **Justificativa:** permitir orquestracao da exportacao sem acoplamento ao driver concreto.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
-- **Mudança:** injetar `PdfDriver pdfDriver` no construtor e no provider `secondInstanceFirstInstanceAnalysisScreenPresenterProvider` via `ref.watch(pdfDriverProvider)`.
+- **Mudança:** injetar `PdfDriver pdfDriver` no construtor e no provider `secondInstanceAnalysisScreenPresenterProvider` via `ref.watch(pdfDriverProvider)`.
 - **Justificativa:** seguir o padrao de injecao por `Riverpod` ja usado na tela.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
@@ -259,7 +259,7 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 - **Decisão:** reutilizar `SecondInstanceAnalysisScreenView` em vez de criar `SecondInstanceAnalysisScreenView`.
 - **Alternativas consideradas:** criar uma nova tela `lib/ui/intake/widgets/pages/second_instance_screen/` conforme texto do ticket; duplicar a tela existente.
 - **Motivo da escolha:** a codebase ja materializou o fluxo do Juiz em `second_instance_analysis_screen`, e a spec base `second-instance-analysis-screen-spec.md` define essa pasta como destino da tela.
-- **Impactos / trade-offs:** evita duplicidade de tela, mas mantem o nome historico `SecondInstanceFirstInstanceAnalysisScreenPresenter`, que e inconsistente e deve ser tratado fora desta spec se houver refatoracao de nomenclatura.
+- **Impactos / trade-offs:** evita duplicidade de tela e mantem a nomenclatura do presenter alinhada ao modulo `second_instance_analysis_screen`.
 
 - **Decisão:** criar `SecondInstanceAnalysisReportDto` e remover `SecondInstanceAnalysisReportDto`.
 - **Alternativas consideradas:** evoluir `SecondInstanceAnalysisReportDto` adicionando `judgmentDraft`; manter ambos os contratos.
@@ -289,8 +289,8 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 
 ```text
 SecondInstanceAnalysisScreenView
-  -> SecondInstanceFirstInstanceAnalysisScreenPresenter.exportSecondInstanceAnalysisReport()
-      -> secondInstanceFirstInstanceAnalysisScreenPresenterProvider
+  -> SecondInstanceAnalysisScreenPresenter.exportSecondInstanceAnalysisReport()
+      -> secondInstanceAnalysisScreenPresenterProvider
           -> IntakeService.getSecondInstanceAnalysisReport(...)
               -> IntakeRestService.getSecondInstanceAnalysisReport(...)
                   -> RestClient (Dio)
