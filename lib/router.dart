@@ -13,6 +13,7 @@ import 'package:animus/ui/auth/widgets/pages/profile_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/index.dart';
+import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/index.dart';
@@ -185,6 +186,21 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final String analysisId = state.pathParameters['analysisId'] ?? '';
         return SecondInstanceAnalysisScreen(analysisId: analysisId);
+      },
+    ),
+    GoRoute(
+      path: Routes.caseAssessmentAnalysis,
+      redirect: (context, state) {
+        final String? analysisId = state.pathParameters['analysisId'];
+        if (analysisId == null || analysisId.trim().isEmpty) {
+          return Routes.home;
+        }
+
+        return null;
+      },
+      builder: (context, state) {
+        final String analysisId = state.pathParameters['analysisId'] ?? '';
+        return CaseAssessmentAnalysisScreen(analysisId: analysisId);
       },
     ),
     GoRoute(
