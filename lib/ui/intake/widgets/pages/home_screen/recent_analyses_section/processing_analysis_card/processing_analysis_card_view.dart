@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/processing_analysis_card/processing_status_pill/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/processing_spinner/index.dart';
 
 class ProcessingAnalysisCardView extends StatelessWidget {
@@ -104,11 +105,7 @@ class ProcessingAnalysisCardView extends StatelessWidget {
                     ),
                     if (hasStatus) ...<Widget>[
                       const SizedBox(height: 8),
-                      _ProcessingStatusPill(
-                        label: statusLabel!,
-                        accent: tokens.accent,
-                        textTheme: textTheme,
-                      ),
+                      ProcessingStatusPill(label: statusLabel!),
                     ],
                   ],
                 ),
@@ -118,44 +115,6 @@ class ProcessingAnalysisCardView extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ProcessingStatusPill extends StatelessWidget {
-  final String label;
-  final Color accent;
-  final TextTheme textTheme;
-
-  const _ProcessingStatusPill({
-    required this.label,
-    required this.accent,
-    required this.textTheme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: accent.withValues(alpha: 0.32)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(Icons.autorenew, size: 12, color: accent),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: textTheme.labelSmall?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
       ),
     );
   }
