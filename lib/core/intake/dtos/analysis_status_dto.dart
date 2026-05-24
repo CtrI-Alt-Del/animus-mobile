@@ -36,10 +36,10 @@ class AnalysisStatusDto {
     'GENERATING_SYNTHESIS',
   );
   static const AnalysisStatusDto waitingPrecedentChoice = AnalysisStatusDto(
-    'WAITING_PRECEDENT_CHOISE',
+    'WAITING_PRECEDENT_CHOICE',
   );
   static const AnalysisStatusDto precedentChosen = AnalysisStatusDto(
-    'PRECEDENT_CHOSED',
+    'PRECEDENT_CHOSEN',
   );
   static const AnalysisStatusDto failed = AnalysisStatusDto('FAILED');
   static const AnalysisStatusDto done = AnalysisStatusDto('DONE');
@@ -126,6 +126,8 @@ class AnalysisStatusDto {
         return caseAnalyzed;
       case FirstInstanceAnalysisStatusDto.searchingPrecedents:
         return searchingPrecedents;
+      case FirstInstanceAnalysisStatusDto.precedentsSearched:
+        return precedentsSearched;
       case FirstInstanceAnalysisStatusDto.analyzingPrecedentsSimilarity:
         return analyzingPrecedentsSimilarity;
       case FirstInstanceAnalysisStatusDto.analyzingPrecedentsApplicability:
