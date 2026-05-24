@@ -734,7 +734,7 @@ class _SecondInstanceAnalysisScreenViewState
                             : null,
                         isPrimaryBusy: isUploading || isManaging,
                         helperText: showFileAction
-                            ? 'Somente PDF com ate 50MB. O processamento pode levar alguns minutos.'
+                            ? 'Somente PDF com ate 100MB. O processamento pode levar alguns minutos.'
                             : null,
                       );
                     }),

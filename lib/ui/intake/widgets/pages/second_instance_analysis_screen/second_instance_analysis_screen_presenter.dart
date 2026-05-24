@@ -26,7 +26,7 @@ import 'package:animus/rest/services/index.dart';
 
 class SecondInstanceAnalysisScreenPresenter {
   static const List<String> allowedExtensions = <String>['pdf'];
-  static const int maxFileSizeInBytes = 50 * 1024 * 1024;
+  static const int maxFileSizeInBytes = 100 * 1024 * 1024;
   static const Duration pollingInterval = Duration(seconds: 3);
   static const Duration requestTimeout = Duration(seconds: 10);
   static const String failedMessage =
@@ -241,7 +241,7 @@ class SecondInstanceAnalysisScreenPresenter {
 
     final int fileSize = await file.length();
     if (fileSize > maxFileSizeInBytes) {
-      generalError.value = 'O arquivo deve ter no máximo 50MB.';
+      generalError.value = 'O arquivo deve ter no máximo 100MB.';
       return;
     }
 

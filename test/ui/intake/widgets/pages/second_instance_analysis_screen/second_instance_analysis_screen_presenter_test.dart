@@ -34,12 +34,15 @@ class _MockFileStorageDriver extends Mock implements FileStorageDriver {}
 
 class _MockDocumentPickerDriver extends Mock implements DocumentPickerDriver {}
 
+class _MockFile extends Mock implements File {}
+
 void main() {
   late _MockIntakeService intakeService;
   late _MockStorageService storageService;
   late _MockPdfDriver pdfDriver;
   late _MockFileStorageDriver fileStorageDriver;
   late _MockDocumentPickerDriver documentPickerDriver;
+  late _MockFile file;
 
   setUpAll(() {
     registerFallbackValue(
@@ -59,6 +62,7 @@ void main() {
     pdfDriver = _MockPdfDriver();
     fileStorageDriver = _MockFileStorageDriver();
     documentPickerDriver = _MockDocumentPickerDriver();
+    file = _MockFile();
   });
 
   SecondInstanceAnalysisScreenPresenter createPresenter() {
@@ -126,6 +130,36 @@ void main() {
         expect(presenter.canGenerateJudgmentDraft.value, isFalse);
       },
     );
+
+    test('should reject files larger than 100MB before upload', () async {
+      final presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(
+        () => documentPickerDriver.pickDocument(
+          allowedExtensions:
+              SecondInstanceAnalysisScreenPresenter.allowedExtensions,
+        ),
+      ).thenAnswer((_) async => file);
+      when(() => file.path).thenReturn('processo.pdf');
+      when(() => file.length()).thenAnswer(
+        (_) async =>
+            SecondInstanceAnalysisScreenPresenter.maxFileSizeInBytes + 1,
+      );
+
+      await presenter.pickDocument();
+
+      expect(
+        presenter.generalError.value,
+        'O arquivo deve ter no máximo 100MB.',
+      );
+      verifyNever(
+        () => storageService.generateAnalysisDocumentUploadUrl(
+          analysisId: any(named: 'analysisId'),
+          documentType: any(named: 'documentType'),
+        ),
+      );
+    });
 
     test(
       'should eagerly load judgment draft during intermediate precedent states',
@@ -359,6 +393,83 @@ void main() {
             loadedDraft.meritAnalysis,
           );
           expect(capturedReport.judgmentDraft.ruling, loadedDraft.ruling);
+        },
+      );
+
+      test(
+        'should preserve adherence analysis when merging loaded draft into empty report payload',
+        () async {
+          final presenter = createPresenter();
+          addTearDown(presenter.dispose);
+          final SecondInstanceJudgmentDraftDto loadedDraft =
+              SecondInstanceJudgmentDraftDtoFaker.fake(
+                report: 'Relatorio carregado',
+                meritAnalysis: 'Merito carregado',
+                precedentAdherenceAnalysis: 'Aderencia carregada',
+                ruling: <String>['Dar provimento'],
+              );
+          final SecondInstanceAnalysisReportDto emptyDraftReport =
+              SecondInstanceAnalysisReportDto(
+                analysis: AnalysisDtoFaker.fake(
+                  id: 'analysis-1',
+                  name: 'Analise',
+                  type: AnalysisTypeDto.secondInstance,
+                  status: AnalysisStatusDto.done,
+                ),
+                document: AnalysisDocumentDtoFaker.fake(),
+                caseSummary: CaseSummaryDtoFaker.fake(),
+                precedents: <AnalysisPrecedentDto>[
+                  AnalysisPrecedentDtoFaker.fake(isChosen: true),
+                ],
+                judgmentDraft: const SecondInstanceJudgmentDraftDto(
+                  analysisId: 'analysis-1',
+                  report: '',
+                  meritAnalysis: '',
+                  precedentAdherenceAnalysis: '',
+                  ruling: <String>[],
+                ),
+              );
+          final Uint8List bytes = Uint8List.fromList(<int>[1, 2, 3]);
+
+          presenter.status.value = AnalysisStatusDto.done;
+          presenter.judgmentDraft.value = loadedDraft;
+
+          when(
+            () => intakeService.getSecondInstanceAnalysisReport(
+              analysisId: 'analysis-1',
+            ),
+          ).thenAnswer(
+            (_) async => RestResponse<SecondInstanceAnalysisReportDto>(
+              statusCode: 200,
+              body: emptyDraftReport,
+            ),
+          );
+          when(
+            () => pdfDriver.generateSecondInstanceAnalysisReport(
+              report: any(named: 'report'),
+            ),
+          ).thenAnswer((_) async => bytes);
+          when(
+            () => pdfDriver.sharePdf(
+              bytes: bytes,
+              filename: 'Analise - Minuta de Sentenca.pdf',
+            ),
+          ).thenAnswer((_) async {});
+
+          expect(await presenter.exportSecondInstanceAnalysisReport(), isTrue);
+
+          final SecondInstanceAnalysisReportDto capturedReport =
+              verify(
+                    () => pdfDriver.generateSecondInstanceAnalysisReport(
+                      report: captureAny(named: 'report'),
+                    ),
+                  ).captured.single
+                  as SecondInstanceAnalysisReportDto;
+
+          expect(
+            capturedReport.judgmentDraft.precedentAdherenceAnalysis,
+            loadedDraft.precedentAdherenceAnalysis,
+          );
         },
       );
 

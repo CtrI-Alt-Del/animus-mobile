@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/drivers/pdf-driver/printing/animus_pdf_theme.dart';
@@ -37,13 +38,13 @@ class SecondInstancePdfGenerator {
 
     doc.addPage(_buildHeaderPage(report, generatedAt));
     doc.addPage(_buildCaseSummaryPage(report, generatedAt));
+    doc.addPage(_buildJudgmentDraftPage(report, generatedAt));
     doc.addPage(
       _buildPrecedentsPage(
         precedents: precedentsForReport,
         generatedAt: generatedAt,
       ),
     );
-    doc.addPage(_buildJudgmentDraftPage(report, generatedAt));
 
     return doc.save();
   }
@@ -204,6 +205,10 @@ class SecondInstancePdfGenerator {
                 title: 'MÉRITO',
                 content: report.judgmentDraft.meritAnalysis,
               ),
+              _buildDraftSection(
+                title: 'ADERÊNCIA AOS PRECEDENTES',
+                content: report.judgmentDraft.precedentAdherenceAnalysis,
+              ),
               _buildDraftListSection(
                 title: 'DISPOSITIVO',
                 values: report.judgmentDraft.ruling,
@@ -256,6 +261,34 @@ class SecondInstancePdfGenerator {
             ],
           ),
           pw.SizedBox(height: 14),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: <pw.Widget>[
+              pw.Expanded(
+                child: pw.Text(
+                  'Similaridade ${_buildSimilarityPercent(precedent)}',
+                  style: pw.TextStyle(
+                    color: _theme.textMuted,
+                    fontSize: 11,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(width: 12),
+              _buildApplicabilityBadge(precedent.applicabilityLevel),
+            ],
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            'Nivel de aplicabilidade: ${_buildApplicabilityLabel(precedent.applicabilityLevel)}',
+            style: pw.TextStyle(
+              color: _theme.textMuted,
+              fontSize: 11,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.SizedBox(height: 12),
           _buildField(
             title: 'ENUNCIADO',
             content: _truncateForPdf(
@@ -286,6 +319,66 @@ class SecondInstancePdfGenerator {
         ],
       ),
     );
+  }
+
+  pw.Widget _buildApplicabilityBadge(
+    AnalysisPrecedentApplicabilityLevelDto level,
+  ) {
+    final ({String label, PdfColor background, PdfColor text}) badge =
+        _buildApplicabilityBadgeData(level);
+
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: pw.BoxDecoration(
+        color: badge.background,
+        border: pw.Border.all(color: badge.text, width: 0.6),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+      ),
+      child: pw.Text(
+        badge.label,
+        style: pw.TextStyle(
+          color: badge.text,
+          fontSize: 10,
+          fontWeight: pw.FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  ({String label, PdfColor background, PdfColor text})
+  _buildApplicabilityBadgeData(AnalysisPrecedentApplicabilityLevelDto level) {
+    switch (level) {
+      case AnalysisPrecedentApplicabilityLevelDto.applicable:
+        return (
+          label: 'Aplicavel',
+          background: const PdfColor(0.91, 0.98, 0.95),
+          text: _theme.success,
+        );
+      case AnalysisPrecedentApplicabilityLevelDto.possiblyApplicable:
+        return (
+          label: 'Possivelmente aplicavel',
+          background: _theme.pageBadgeFill,
+          text: _theme.accentStrong,
+        );
+      case AnalysisPrecedentApplicabilityLevelDto.notApplicable:
+        return (
+          label: 'Nao aplicavel',
+          background: const PdfColor(0.99, 0.93, 0.92),
+          text: _theme.danger,
+        );
+    }
+  }
+
+  String _buildApplicabilityLabel(
+    AnalysisPrecedentApplicabilityLevelDto level,
+  ) {
+    return _buildApplicabilityBadgeData(level).label;
+  }
+
+  String _buildSimilarityPercent(AnalysisPrecedentDto precedent) {
+    final int similarity = precedent.similarityScore.clamp(0, 100).round();
+
+    return '$similarity%';
   }
 
   pw.Widget _buildPrecedentChip(String label) {

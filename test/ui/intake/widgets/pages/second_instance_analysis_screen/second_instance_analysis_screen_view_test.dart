@@ -277,6 +277,26 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('exibe helper text com limite de 100MB no estado de upload', (
+    WidgetTester tester,
+  ) async {
+    status.value = AnalysisStatusDto.waitingDocumentUpload;
+    canPickDocument.value = true;
+
+    await tester.pumpWidget(createWidget());
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      find.text(
+        'Somente PDF com ate 100MB. O processamento pode levar alguns minutos.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets('exibe Exportar PDF quando status done e houver judgmentDraft', (
     WidgetTester tester,
   ) async {
