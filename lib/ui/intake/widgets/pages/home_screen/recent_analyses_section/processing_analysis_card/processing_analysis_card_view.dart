@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/analysis_type_badge/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/processing_analysis_card/processing_status_pill/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analysis_card/processing_spinner/index.dart';
 
 class ProcessingAnalysisCardView extends StatelessWidget {
   final String title;
   final String dateLabel;
+  final AnalysisTypeDto type;
   final String? statusLabel;
   final VoidCallback onTap;
 
   const ProcessingAnalysisCardView({
     required this.title,
     required this.dateLabel,
+    required this.type,
     this.statusLabel,
     required this.onTap,
     super.key,
@@ -24,13 +29,16 @@ class ProcessingAnalysisCardView extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final BorderRadius borderRadius = BorderRadius.circular(18);
 
+    final bool hasStatus =
+        statusLabel != null && statusLabel!.trim().isNotEmpty;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: borderRadius,
         child: Ink(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
           decoration: BoxDecoration(
             borderRadius: borderRadius,
             gradient: LinearGradient(
@@ -45,68 +53,65 @@ class ProcessingAnalysisCardView extends StatelessWidget {
             border: Border.all(color: tokens.accent.withValues(alpha: 0.32)),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          dateLabel,
-                          style: textTheme.labelSmall?.copyWith(
-                            color: tokens.textMuted,
-                          ),
-                        ),
-                        if (statusLabel != null &&
-                            statusLabel!.trim().isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: tokens.accent.withValues(alpha: 0.18),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: tokens.accent.withValues(alpha: 0.28),
-                              ),
-                            ),
-                            child: Text(
-                              statusLabel!,
-                              style: textTheme.labelSmall?.copyWith(
-                                color: tokens.accent,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
                     Row(
                       children: <Widget>[
                         ProcessingSpinner(color: tokens.accent),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: textTheme.labelMedium?.copyWith(
+                            style: textTheme.titleSmall?.copyWith(
                               color: tokens.textPrimary,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: <Widget>[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              size: 13,
+                              color: tokens.textMuted,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              dateLabel,
+                              style: textTheme.labelSmall?.copyWith(
+                                color: tokens.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                        AnalysisTypeBadge(type: type),
+                      ],
+                    ),
+                    if (hasStatus) ...<Widget>[
+                      const SizedBox(height: 8),
+                      ProcessingStatusPill(label: statusLabel!),
+                    ],
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Icon(Icons.chevron_right, color: tokens.textMuted),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, color: tokens.textMuted, size: 22),
             ],
           ),
         ),

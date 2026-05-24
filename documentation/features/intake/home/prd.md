@@ -9,6 +9,7 @@ Concentrar nesta pasta o contexto de produto da tela `Home` do `intake` no mobil
 - [x] Estrutura inicial da `Home` com header, saudação dinâmica, listagem paginada e `FAB` de criação de análise (ANI-60)
 - [x] Polling de análises em processamento na seção `Em andamento` (ANI-104)
 - [x] Dialog de criação de análise por tipo acionado pelo `FAB`, com seleção explícita entre `CaseAssessmentAnalysis`, `FirstInstanceAnalysis` e `SecondInstanceAnalysis` (ANI-101)
+- [x] Card de análise na `Home` adaptado por tipo de análise, com ícone e rótulo curto exibidos no card de "Em andamento" e no card de "Recentes" (ANI-102)
 
 ## Impacto da entrega
 

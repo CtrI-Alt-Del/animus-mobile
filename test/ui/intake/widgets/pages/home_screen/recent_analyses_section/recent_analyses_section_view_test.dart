@@ -1,5 +1,6 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_loading_state/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_section_view.dart';
@@ -165,6 +166,48 @@ void main() {
 
     expect(loadMoreCount, greaterThan(0));
   });
+
+  testWidgets(
+    'renderiza badge de tipo por analise refletindo o AnalysisTypeDto',
+    (WidgetTester tester) async {
+      final List<AnalysisDto> analyses = <AnalysisDto>[
+        AnalysisDtoFaker.fake(
+          id: 'processing-case-assessment',
+          name: 'Analise avaliacao de caso em andamento',
+          type: AnalysisTypeDto.caseAssessment,
+          status: AnalysisStatusDto.generatingSynthesis,
+        ),
+        AnalysisDtoFaker.fake(
+          id: 'done-second-instance',
+          name: 'Analise segunda instancia concluida',
+          type: AnalysisTypeDto.secondInstance,
+          status: AnalysisStatusDto.done,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _createWidget(
+          RecentAnalysesSectionView(
+            analyses: analyses,
+            isLoading: false,
+            isLoadingMore: false,
+            hasMore: false,
+            showEmptyState: false,
+            errorMessage: null,
+            formatCreatedAt: (_) => '31/03/2026',
+            onRefresh: () async {},
+            onTapAnalysis: (_) async {},
+            onRetry: () {},
+            onLoadMore: () async {},
+            onCreateFirstAnalysis: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('Avaliação de caso'), findsOneWidget);
+      expect(find.text('Segunda instância'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'separa analises em andamento e concluidas com labels esperadas',
