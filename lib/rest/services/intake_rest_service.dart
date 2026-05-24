@@ -213,7 +213,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
-      '/intake/analyses/$analysisId/second-instance-analysis-report',
+      '/intake/analyses/$analysisId/reports/second-instance',
     );
 
     if (response.isFailure) {
@@ -248,7 +248,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
-      '/intake/analyses/$analysisId/case-assessment-analysis-report',
+      '/intake/analyses/$analysisId/reports/case-assessment',
     );
 
     if (response.isFailure) {
@@ -283,7 +283,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
-      '/intake/analyses/$analysisId/first-instance-analysis-report',
+      '/intake/analyses/$analysisId/reports/first-instance',
     );
 
     if (response.isFailure) {
@@ -422,7 +422,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/intake/analyses/$analysisId/case-summaries',
+      '/intake/analyses/$analysisId/case-summaries/first-instance',
     );
 
     return toVoidResponse(response);
@@ -438,7 +438,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/intake/analyses/$analysisId/petition-extraction',
+      '/intake/analyses/$analysisId/case-summaries/second-instance',
     );
 
     return toVoidResponse(response);
@@ -470,7 +470,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/intake/analyses/$analysisId/case-summaries',
+      '/intake/analyses/$analysisId/case-summaries/case-assessment',
     );
 
     return toVoidResponse(response);
