@@ -103,8 +103,7 @@ class SecondInstancePdfGenerator {
       pageTheme: _buildPageTheme(),
       header: (pw.Context context) =>
           _buildPageChrome(context: context, stripeWidth: 176),
-      footer: (pw.Context context) =>
-          _buildFooter(context: context, generatedAt: generatedAt),
+      footer: (pw.Context context) => _buildFooter(context: context),
       build: (pw.Context context) {
         return <pw.Widget>[
           _buildSectionTitle('Resumo do caso', fontSize: 22),
@@ -144,8 +143,7 @@ class SecondInstancePdfGenerator {
       pageTheme: _buildPageTheme(),
       header: (pw.Context context) =>
           _buildPageChrome(context: context, stripeWidth: 190),
-      footer: (pw.Context context) =>
-          _buildFooter(context: context, generatedAt: generatedAt),
+      footer: (pw.Context context) => _buildFooter(context: context),
       build: (pw.Context context) {
         return <pw.Widget>[
           _buildSectionTitle('Precedentes escolhidos', fontSize: 22),
@@ -175,8 +173,7 @@ class SecondInstancePdfGenerator {
       pageTheme: _buildPageTheme(),
       header: (pw.Context context) =>
           _buildPageChrome(context: context, stripeWidth: 164),
-      footer: (pw.Context context) =>
-          _buildFooter(context: context, generatedAt: generatedAt),
+      footer: (pw.Context context) => _buildFooter(context: context),
       build: (pw.Context context) {
         return <pw.Widget>[
           _buildSectionTitle('Minuta do julgamento', fontSize: 22),
@@ -710,7 +707,7 @@ class SecondInstancePdfGenerator {
         _buildPageChrome(context: context, stripeWidth: stripeWidth),
         ...content,
         pw.Spacer(),
-        _buildFooter(context: context, generatedAt: generatedAt),
+        _buildFooter(context: context),
       ],
     );
   }
@@ -739,10 +736,7 @@ class SecondInstancePdfGenerator {
     );
   }
 
-  pw.Widget _buildFooter({
-    required pw.Context context,
-    required DateTime generatedAt,
-  }) {
+  pw.Widget _buildFooter({required pw.Context context}) {
     return pw.Column(
       children: <pw.Widget>[
         _buildDivider(),
