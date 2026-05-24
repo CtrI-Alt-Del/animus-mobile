@@ -159,6 +159,7 @@ void main() {
     late Signal<double?> uploadProgress;
     late Signal<String?> generalError;
     late Signal<String> analysisName;
+    late Signal<bool> isArchived;
     late Signal<bool> isManagingAnalysis;
     late Signal<AnalysisDocumentDto?> analysisDocument;
     late Signal<CaseSummaryDto?> summary;
@@ -188,6 +189,7 @@ void main() {
       uploadProgress = signal<double?>(null);
       generalError = signal<String?>(null);
       analysisName = signal<String>('Analise de precedente');
+      isArchived = signal<bool>(false);
       isManagingAnalysis = signal<bool>(false);
       analysisDocument = signal<AnalysisDocumentDto?>(null);
       summary = signal<CaseSummaryDto?>(null);
@@ -198,6 +200,7 @@ void main() {
       fileActionLabel = signal<String>('Selecionar petição');
       appliedPrecedentFiltersCount = signal<int>(0);
       isExportingReport = signal<bool>(false);
+      precedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
       canExportReport = computed(
         () =>
             status.value == AnalysisStatusDto.precedentChosen &&
@@ -208,7 +211,6 @@ void main() {
             .where((AnalysisPrecedentDto item) => item.isChosen)
             .toList(growable: false),
       );
-      precedents = signal<List<AnalysisPrecedentDto>>(<AnalysisPrecedentDto>[]);
       precedentsIsLoading = signal<bool>(false);
       precedentsError = signal<String?>(null);
       precedentsTotalCount = computed(() => precedents.value.length);
@@ -226,6 +228,7 @@ void main() {
       when(() => presenter.uploadProgress).thenReturn(uploadProgress);
       when(() => presenter.generalError).thenReturn(generalError);
       when(() => presenter.analysisName).thenReturn(analysisName);
+      when(() => presenter.isArchived).thenReturn(isArchived);
       when(() => presenter.isManagingAnalysis).thenReturn(isManagingAnalysis);
       when(() => presenter.analysisDocument).thenReturn(analysisDocument);
       when(() => presenter.summary).thenReturn(summary);
@@ -302,6 +305,7 @@ void main() {
       uploadProgress.dispose();
       generalError.dispose();
       analysisName.dispose();
+      isArchived.dispose();
       isManagingAnalysis.dispose();
       analysisDocument.dispose();
       summary.dispose();
@@ -549,7 +553,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Relatorio exportado com sucesso.'), findsOneWidget);
+        expect(find.text('Relatório exportado com sucesso.'), findsOneWidget);
       },
     );
 
