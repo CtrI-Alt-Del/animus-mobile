@@ -256,7 +256,7 @@ class HomeScreenPresenter {
         break;
       case AnalysisTypeDto.caseAssessment:
         await _navigationDriver.pushTo(
-          Routes.getSecondInstanceAnalysis(analysisId: analysisId),
+          Routes.getCaseAssessmentAnalysis(analysisId: analysisId),
         );
     }
 

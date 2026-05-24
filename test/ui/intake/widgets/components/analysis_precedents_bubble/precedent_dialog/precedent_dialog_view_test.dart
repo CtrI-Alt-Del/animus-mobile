@@ -92,7 +92,8 @@ void main() {
     await openDialog(tester);
 
     expect(find.text('Acessar Pangea'), findsOneWidget);
-    expect(find.text('Síntese Explicativa'), findsOneWidget);
+    expect(find.text('Trecho em Destaque'), findsOneWidget);
+    expect(find.text('Justificativa (Síntese)'), findsOneWidget);
     expect(find.text('Manualmente adicionado'), findsOneWidget);
     expect(find.text('Desescolher precedente'), findsOneWidget);
   });

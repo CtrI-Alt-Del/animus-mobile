@@ -33,6 +33,8 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
       presenter: presenter,
     );
     final String synthesis = currentPrecedent.synthesis.trim();
+    final String highlightedExcerpt = currentPrecedent.highlightedExcerpt
+        .trim();
     final String synthesisText = synthesis.isEmpty
         ? 'Síntese não disponibilizada para este precedente.'
         : synthesis;
@@ -209,8 +211,60 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                         const SizedBox(height: 20),
                         Container(height: 1, color: const Color(0xFF2A2A2E)),
                         const SizedBox(height: 16),
+                        if (highlightedExcerpt.isNotEmpty) ...<Widget>[
+                          Text(
+                            'Trecho em Destaque',
+                            style: textTheme.titleMedium?.copyWith(
+                              color: const Color(0xFFFAFAF9),
+                              fontFamily: 'Fraunces',
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: <Widget>[
+                              const Icon(
+                                Icons.format_quote,
+                                size: 16,
+                                color: Color(0xFFFBE26D),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Trecho original destacado para fundamentar a escolha',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: const Color(0xFF8E8E93),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E1E24),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFF2A2A2E),
+                              ),
+                            ),
+                            child: Text(
+                              highlightedExcerpt,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: const Color(0xFFD6D6D8),
+                                height: 1.45,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Container(height: 1, color: const Color(0xFF2A2A2E)),
+                          const SizedBox(height: 16),
+                        ],
                         Text(
-                          'Síntese Explicativa',
+                          'Justificativa (Síntese)',
                           style: textTheme.titleMedium?.copyWith(
                             color: const Color(0xFFFAFAF9),
                             fontFamily: 'Fraunces',

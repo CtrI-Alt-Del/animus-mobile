@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/generate_petition_draft_card/generate_petition_draft_card_view.dart';
+
+typedef GeneratePetitionDraftCard = GeneratePetitionDraftCardView;
