@@ -310,6 +310,7 @@ class _FirstInstanceAnalysisScreenViewState
                         context,
                       );
                       final bool showExportReport =
+                          status == AnalysisStatusDto.precedentsSearched ||
                           status == AnalysisStatusDto.precedentChosen;
                       bool canExportReport = false;
                       bool isExportingReport = false;

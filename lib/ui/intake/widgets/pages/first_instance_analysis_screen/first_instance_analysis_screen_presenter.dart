@@ -110,6 +110,7 @@ class FirstInstanceAnalysisScreenPresenter {
     final AnalysisStatusDto currentStatus = status.value;
 
     return currentStatus == AnalysisStatusDto.searchingPrecedents ||
+        currentStatus == AnalysisStatusDto.precedentsSearched ||
         currentStatus == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         currentStatus == AnalysisStatusDto.generatingSynthesis ||
         currentStatus == AnalysisStatusDto.waitingPrecedentChoice ||
@@ -117,7 +118,8 @@ class FirstInstanceAnalysisScreenPresenter {
   });
 
   late final ReadonlySignal<bool> canExportReport = computed(() {
-    return status.value == AnalysisStatusDto.precedentChosen &&
+    return (status.value == AnalysisStatusDto.precedentsSearched ||
+            status.value == AnalysisStatusDto.precedentChosen) &&
         !isExportingReport.value;
   });
 
@@ -225,6 +227,7 @@ class FirstInstanceAnalysisScreenPresenter {
         status == AnalysisStatusDto.analyzingPetition ||
         status == AnalysisStatusDto.caseAnalyzed ||
         status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.precedentsSearched ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         status == AnalysisStatusDto.generatingSynthesis ||
         status == AnalysisStatusDto.waitingPrecedentChoice ||
@@ -234,6 +237,7 @@ class FirstInstanceAnalysisScreenPresenter {
   bool _shouldLoadSummary(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.caseAnalyzed ||
         status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.precedentsSearched ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         status == AnalysisStatusDto.generatingSynthesis ||
         status == AnalysisStatusDto.waitingPrecedentChoice ||
