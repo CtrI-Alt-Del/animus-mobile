@@ -461,6 +461,38 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
+  Future<RestResponse<void>> triggerCaseAssessmentCaseSummarization({
+    required String analysisId,
+  }) async {
+    final RestResponse<void>? authFailure = requireAuth<void>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/analyses/$analysisId/case-summaries',
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<void>> triggerPetitionDraftGeneration({
+    required String analysisId,
+  }) async {
+    final RestResponse<void>? authFailure = requireAuth<void>();
+    if (authFailure != null) {
+      return authFailure;
+    }
+
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/analyses/$analysisId/petition-drafts',
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
   Future<RestResponse<SecondInstanceJudgmentDraftDto>>
   getSecondInstanceJudgmentDraft({required String analysisId}) async {
     final RestResponse<SecondInstanceJudgmentDraftDto>? authFailure =

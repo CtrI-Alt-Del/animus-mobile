@@ -6,6 +6,7 @@ class AnalysisPrecedentDto {
   final PrecedentDto precedent;
   final bool isChosen;
   final String synthesis;
+  final String highlightedExcerpt;
   final double similarityScore;
   final int finalRank;
   final AnalysisPrecedentApplicabilityLevelDto applicabilityLevel;
@@ -16,6 +17,7 @@ class AnalysisPrecedentDto {
     required this.precedent,
     required this.isChosen,
     required this.synthesis,
+    required this.highlightedExcerpt,
     required this.similarityScore,
     required this.finalRank,
     required this.applicabilityLevel,

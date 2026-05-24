@@ -20,6 +20,9 @@ final class AnalysisPrecedentMapper {
       precedent: PrecedentMapper.toDto(precedentJson),
       isChosen: (json['is_chosen'] as bool?) ?? false,
       synthesis: (json['synthesis'] as String?) ?? '',
+      highlightedExcerpt:
+          (json['highlighted_excerpt'] ?? json['highlightedExcerpt'] ?? '')
+              .toString(),
       similarityScore: similarityScore,
       finalRank: _toFinalRank(
         json['final_rank'],

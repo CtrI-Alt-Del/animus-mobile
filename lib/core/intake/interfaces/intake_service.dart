@@ -98,6 +98,14 @@ abstract class IntakeService {
     required String analysisId,
   });
 
+  Future<RestResponse<void>> triggerCaseAssessmentCaseSummarization({
+    required String analysisId,
+  });
+
+  Future<RestResponse<void>> triggerPetitionDraftGeneration({
+    required String analysisId,
+  });
+
   Future<RestResponse<SecondInstanceJudgmentDraftDto>>
   getSecondInstanceJudgmentDraft({required String analysisId});
 
