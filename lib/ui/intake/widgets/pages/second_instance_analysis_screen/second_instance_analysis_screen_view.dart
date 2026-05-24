@@ -110,7 +110,7 @@ class _SecondInstanceAnalysisScreenViewState
   }
 
   void _syncChosenPrecedentsIfNeeded(
-    SecondInstanceFirstInstanceAnalysisScreenPresenter presenter,
+    SecondInstanceAnalysisScreenPresenter presenter,
     List<AnalysisPrecedentDto> chosenPrecedents,
   ) {
     final List<String> currentKeys = chosenPrecedents
@@ -276,12 +276,9 @@ class _SecondInstanceAnalysisScreenViewState
 
   @override
   Widget build(BuildContext context) {
-    final SecondInstanceFirstInstanceAnalysisScreenPresenter presenter = ref
-        .watch(
-          secondInstanceFirstInstanceAnalysisScreenPresenterProvider(
-            widget.analysisId,
-          ),
-        );
+    final SecondInstanceAnalysisScreenPresenter presenter = ref.watch(
+      secondInstanceAnalysisScreenPresenterProvider(widget.analysisId),
+    );
     final AnalysisPrecedentsBubblePresenter precedentsBubblePresenter = ref
         .watch(analysisPrecedentsBubblePresenterProvider(widget.analysisId));
     final AppThemeTokens tokens =
@@ -303,17 +300,22 @@ class _SecondInstanceAnalysisScreenViewState
                       final String analysisName = presenter.analysisName.watch(
                         context,
                       );
-                      final bool isArchived = presenter.isArchived.watch(
-                        context,
-                      );
                       final bool isManaging = presenter.isManagingAnalysis
+                          .watch(context);
+                      final bool isExportingReport = presenter.isExportingReport
                           .watch(context);
                       final AnalysisStatusDto status = presenter.status.watch(
                         context,
                       );
+                      final bool hasJudgmentDraft =
+                          presenter.judgmentDraft.watch(context) != null;
                       final bool showPrecedentsActions = _isPrecedentsFlow(
                         status,
                       );
+                      final bool showExportReport =
+                          status == AnalysisStatusDto.done && hasJudgmentDraft;
+                      final bool canExportReport = presenter.canExportReport
+                          .watch(context);
                       final int appliedFiltersCount =
                           precedentsBubblePresenter.selectedCourts
                               .watch(context)
@@ -331,9 +333,15 @@ class _SecondInstanceAnalysisScreenViewState
 
                           context.go(Routes.home);
                         },
-                        onExportReport: null,
+                        onExportReport: canExportReport
+                            ? () {
+                                unawaited(
+                                  presenter
+                                      .exportSecondInstanceAnalysisReport(),
+                                );
+                              }
+                            : null,
                         title: analysisName,
-                        isArchived: isArchived,
                         onPrecedentsCount: isManaging || !showPrecedentsActions
                             ? null
                             : () {
@@ -397,9 +405,9 @@ class _SecondInstanceAnalysisScreenViewState
                                 }
                               },
                         appliedFiltersCount: appliedFiltersCount,
-                        isMenuEnabled: !isManaging,
-                        showExportReport: false,
-                        isExportingReport: false,
+                        isMenuEnabled: !isManaging || isExportingReport,
+                        showExportReport: showExportReport,
+                        isExportingReport: isExportingReport,
                       );
                     }),
                     Expanded(
@@ -456,7 +464,7 @@ class _SecondInstanceAnalysisScreenViewState
                                 _animatedEntry(
                                   const AiBubble(
                                     message:
-                                        'Envie os autos em PDF para iniciar a análise de segunda instância.',
+                                        'Envie os autos em PDF para iniciar a analise de segunda instancia.',
                                     isTyping: false,
                                   ),
                                 ),
@@ -501,8 +509,8 @@ class _SecondInstanceAnalysisScreenViewState
                                     message:
                                         status ==
                                             AnalysisStatusDto.extractingPetition
-                                        ? 'Extraindo a petição inicial dos autos enviados.'
-                                        : 'Analisando o caso e estruturando a síntese jurídica.',
+                                        ? 'Extraindo a peticao inicial dos autos enviados.'
+                                        : 'Analisando o caso e estruturando a sintese juridica.',
                                     footerText:
                                         'Isso pode levar alguns instantes.',
                                   ),
@@ -726,7 +734,7 @@ class _SecondInstanceAnalysisScreenViewState
                             : null,
                         isPrimaryBusy: isUploading || isManaging,
                         helperText: showFileAction
-                            ? 'Somente PDF com até 50MB. O processamento pode levar alguns minutos.'
+                            ? 'Somente PDF com ate 100MB. O processamento pode levar alguns minutos.'
                             : null,
                       );
                     }),
