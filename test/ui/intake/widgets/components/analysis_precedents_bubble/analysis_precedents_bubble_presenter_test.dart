@@ -230,7 +230,7 @@ void main() {
       expect(presenter.focusedPrecedent.value?.precedent.identifier.number, 2);
       expect(
         presenter.generalError.value,
-        'Não foi possivel escolher o precedente agora. Tente novamente.',
+        'Não foi possível escolher o precedente agora. Tente novamente.',
       );
     });
 
@@ -303,7 +303,7 @@ void main() {
       expect(presenter.focusedPrecedent.value?.isChosen, isTrue);
       expect(
         presenter.generalError.value,
-        'Não foi possivel desfazer a escolha do precedente agora. Tente novamente.',
+        'Não foi possível desfazer a escolha do precedente agora. Tente novamente.',
       );
     });
 

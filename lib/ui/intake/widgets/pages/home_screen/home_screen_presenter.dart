@@ -101,7 +101,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         accountResponse,
         fallback:
-            'Não foi possivel carregar a sua conta agora. Tente novamente.',
+            'Não foi possível carregar a sua conta agora. Tente novamente.',
       );
       isLoadingInitialData.value = false;
       return;
@@ -129,7 +129,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         analysesResponse,
         fallback:
-            'Não foi possivel carregar as analises agora. Tente novamente.',
+            'Não foi possível carregar as análises agora. Tente novamente.',
       );
       isLoadingInitialData.value = false;
       return;
@@ -171,7 +171,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Não foi possivel carregar mais analises agora. Role novamente para tentar de novo.',
+            'Não foi possível carregar mais análises agora. Role novamente para tentar de novo.',
       );
       isLoadingMore.value = false;
       return;
@@ -205,7 +205,7 @@ class HomeScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel iniciar uma nova analise agora.',
+        fallback: 'Não foi possível iniciar uma nova análise agora.',
       );
       isCreatingAnalysis.value = false;
       return;
@@ -213,7 +213,7 @@ class HomeScreenPresenter {
 
     final String analysisId = (response.body.id ?? '').trim();
     if (analysisId.isEmpty) {
-      generalError.value = 'Não foi possivel abrir a analise criada.';
+      generalError.value = 'Não foi possível abrir a análise criada.';
       isCreatingAnalysis.value = false;
       return;
     }
@@ -270,7 +270,7 @@ class HomeScreenPresenter {
   String formatCreatedAt(String value) {
     final DateTime? parsedDate = DateTime.tryParse(value);
     if (parsedDate == null) {
-      return 'Data indisponivel';
+      return 'Data indisponível';
     }
 
     final String day = parsedDate.day.toString().padLeft(2, '0');

@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_inline_error/archived_analyses_inline_error_view.dart';
+
+typedef ArchivedAnalysesInlineError = ArchivedAnalysesInlineErrorView;

@@ -60,12 +60,12 @@ class PasswordStrengthIndicatorView extends StatelessWidget {
               successColor: tokens.success,
             ),
             RuleItem(
-              label: 'Maiuscula',
+              label: 'Maiúscula',
               isMet: hasUppercaseLetter,
               successColor: tokens.success,
             ),
             RuleItem(
-              label: 'Numero',
+              label: 'Número',
               isMet: hasNumber,
               successColor: tokens.success,
             ),

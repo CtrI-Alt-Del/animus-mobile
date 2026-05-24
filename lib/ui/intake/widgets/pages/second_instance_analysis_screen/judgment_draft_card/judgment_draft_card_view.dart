@@ -55,27 +55,27 @@ class JudgmentDraftCardView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           PreviewSection(
-            title: 'Relatorio',
+            title: 'Relatório',
             content: draft.report,
             emptyText: 'O relatório não foi disponibilizado.',
           ),
           const SizedBox(height: 12),
           if (_hasContent(draft.preliminaryIssues)) ...<Widget>[
             PreviewSection(
-              title: 'Questoes Preliminares',
+              title: 'Questões Preliminares',
               content: draft.preliminaryIssues!,
               emptyText: 'Sem questões preliminares registradas.',
             ),
             const SizedBox(height: 12),
           ],
           PreviewSection(
-            title: 'Analise do Merito',
+            title: 'Análise do Mérito',
             content: draft.meritAnalysis,
             emptyText: 'A análise do mérito não foi disponibilizada.',
           ),
           const SizedBox(height: 12),
           PreviewSection(
-            title: 'Aderencia aos Precedentes',
+            title: 'Aderência aos Precedentes',
             content: draft.precedentAdherenceAnalysis,
             emptyText: 'A análise de aderência não foi disponibilizada.',
           ),

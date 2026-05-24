@@ -29,7 +29,7 @@ class ProfileScreenPresenter {
   final NavigationDriver _navigationDriver;
   final PushNotificationDriver _pushNotificationDriver;
 
-  final Signal<String> appVersionLabel = signal<String>('Versao indisponivel');
+  final Signal<String> appVersionLabel = signal<String>('Versão indisponível');
   final Signal<bool> isLoadingInitialData = signal<bool>(false);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<AccountDto?> account = signal<AccountDto?>(null);
@@ -53,7 +53,7 @@ class ProfileScreenPresenter {
   late final ReadonlySignal<String> displayName = computed(() {
     final String normalizedName = account.value?.name.trim() ?? '';
     if (normalizedName.isEmpty) {
-      return 'Nome indisponivel';
+      return 'Nome indisponível';
     }
 
     return normalizedName;
@@ -62,7 +62,7 @@ class ProfileScreenPresenter {
   late final ReadonlySignal<String> displayEmail = computed(() {
     final String normalizedEmail = account.value?.email.trim() ?? '';
     if (normalizedEmail.isEmpty) {
-      return 'E-mail indisponivel';
+      return 'E-mail indisponível';
     }
 
     return normalizedEmail;
@@ -104,7 +104,7 @@ class ProfileScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Não foi possivel carregar o seu perfil agora. Tente novamente.',
+            'Não foi possível carregar o seu perfil agora. Tente novamente.',
       );
       isLoadingInitialData.value = false;
       return;
@@ -131,6 +131,10 @@ class ProfileScreenPresenter {
     _navigationDriver.goTo(
       Routes.getForgotPassword(previousRoute: Routes.profile),
     );
+  }
+
+  void goToArchivedAnalyses() {
+    unawaited(_navigationDriver.pushTo(Routes.archivedAnalyses));
   }
 
   Future<void> updateDisplayName(String updatedName) async {

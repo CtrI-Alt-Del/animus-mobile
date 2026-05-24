@@ -112,9 +112,9 @@ class LibraryUnfolderedScreenView extends ConsumerWidget {
                     if (analyses.isEmpty) {
                       return const LibraryFolderEmptyState(
                         icon: Icons.inbox_outlined,
-                        title: 'Nenhuma analise sem pasta',
+                        title: 'Nenhuma análise sem pasta',
                         description:
-                            'Todas as suas analises ja estao organizadas em pastas.',
+                            'Todas as suas análises já estão organizadas em pastas.',
                       );
                     }
 
@@ -182,14 +182,14 @@ class LibraryUnfolderedScreenView extends ConsumerWidget {
         return AlertDialog(
           backgroundColor: tokens.surfaceElevated,
           title: Text(
-            'Arquivar analises',
+            'Arquivar análises',
             style: textTheme.titleSmall?.copyWith(
               color: tokens.textPrimary,
               fontWeight: FontWeight.w800,
             ),
           ),
           content: Text(
-            'As analises selecionadas serao arquivadas e removidas de Sem pasta.',
+            'As análises selecionadas serão arquivadas e removidas de Sem pasta.',
             style: textTheme.bodySmall?.copyWith(
               color: tokens.textMuted,
               height: 1.35,

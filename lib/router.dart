@@ -12,6 +12,7 @@ import 'package:animus/ui/auth/widgets/pages/new_password_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
+import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/index.dart';
@@ -189,6 +190,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: Routes.libraryUnfoldered,
       builder: (context, state) => const LibraryUnfolderedScreen(),
+    ),
+    GoRoute(
+      path: Routes.archivedAnalyses,
+      builder: (context, state) => const ArchivedAnalysesScreen(),
     ),
   ],
 );
