@@ -3,6 +3,7 @@ title: Tela de análise de caso pelo advogado (Case Assessment)
 prd: ../prd.md
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-103
 last_updated_at: 2026-05-24
+status: closed
 ---
 
 # 1. Objetivo

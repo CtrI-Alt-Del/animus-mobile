@@ -10,15 +10,15 @@ A tela é o ponto de entrada para o tipo de análise `CaseAssessment` (`Analysis
 
 ## Entregas do fluxo
 
-- [ ] Tela dedicada `CaseAssessmentAnalysisScreenView` em `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/`, com presenter próprio e rota registrada
-- [ ] Upload de documento (PDF/DOCX, máx. 20MB) com `DocumentFileBubble` durante envio e após persistência
-- [ ] Trigger da sumarização do caso e exibição do `CaseSummaryCard` com botão de regerar
-- [ ] Trigger da busca de precedentes (lista ranqueada por aplicabilidade) reutilizando `AnalysisPrecedentsBubble` com botão de refazer busca
-- [ ] Geração e regeneração da minuta de petição (`PetitionDraftDto`) com preview no card e visualização completa em modal fullscreen (`PetitionDraftModal`)
-- [ ] Exportação do relatório completo (PDF) habilitada apenas no status `DONE`
-- [ ] Tratamento de falha (`FAILED`) com `MessageBox` inline e ação de "Tentar novamente" contextual à etapa interrompida
-- [ ] Polling de `AnalysisDto` em todos os estados de processamento até o próximo estado terminal/intermediário esperado
-- [ ] Correção do roteamento: `Routes.getAnalysis(analysisType: caseAssessment)` passa a apontar para a nova rota dedicada
+- [x] Tela dedicada `CaseAssessmentAnalysisScreenView` em `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/`, com presenter próprio e rota registrada
+- [x] Upload de documento (PDF/DOCX, máx. 20MB) com `DocumentFileBubble` durante envio e após persistência
+- [x] Trigger da sumarização do caso e exibição do `CaseSummaryCard` com botão de regerar
+- [x] Trigger da busca de precedentes (lista ranqueada por aplicabilidade) reutilizando `AnalysisPrecedentsBubble` com botão de refazer busca
+- [x] Geração e regeneração da minuta de petição (`PetitionDraftDto`) com preview no card e visualização completa em modal fullscreen (`PetitionDraftModal`)
+- [~] Exportação do relatório completo (PDF) habilitada apenas no status `DONE` — UI habilita corretamente o botão, mas a geração do PDF depende de `PdfDriver.generateCaseAssessmentReport(...)` (ainda não disponível, ver PRD §Observações de rollout)
+- [x] Tratamento de falha (`FAILED`) com `MessageBox` inline e ação de "Tentar novamente" contextual à etapa interrompida
+- [x] Polling de `AnalysisDto` em todos os estados de processamento até o próximo estado terminal/intermediário esperado
+- [x] Correção do roteamento: `Routes.getAnalysis(analysisType: caseAssessment)` passa a apontar para a nova rota dedicada
 
 ## Impacto da entrega
 
