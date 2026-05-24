@@ -129,16 +129,16 @@ O fluxo de precedentes do modulo `intake` segue a mesma separacao arquitetural e
 
 ## Fluxo de Exportacao de Relatorio na Analysis Screen
 
-Quando a analise chega ao estado `precedentChosen`, a exportacao do relatorio segue a mesma separacao arquitetural entre UI, Core, Rest e Drivers:
+Quando a analise chega ao estado final elegivel para exportacao, o relatorio segue a mesma separacao arquitetural entre UI, Core, Rest e Drivers:
 
 1. `AnalysisHeaderActionsView` exibe a acao `Exportar PDF` no menu do header.
-2. `AnalysisScreenView` apenas delega a interacao e exibe feedback visual de loading, sucesso e erro.
-3. `FirstInstanceAnalysisScreenPresenter` orquestra o fluxo e bloqueia tentativas concorrentes durante a exportacao.
-4. `IntakeService` publica contratos tipados por tipo de analise, e a tela atual consome `getFirstInstanceAnalysisReport` sem conhecimento de HTTP.
-5. `IntakeRestService` chama `GET /intake/analyses/{analysis_id}/first-instance-analysis-report` para o fluxo atual e preserva endpoints agregados separados para `caseAssessment` e `secondInstance`.
-6. Os mappers REST traduzem `type`, status especificos por tipo, `caseSummary` e drafts tipados antes de expor dados para a UI.
-7. `PdfDriver` define a capacidade de gerar e compartilhar o PDF com `FirstInstanceAnalysisReportDto`, sem expor tipos de `pdf` ou `printing` para a UI.
-8. `PrintingPdfDriver` monta o documento em memoria com `pdf`, usa `report.caseSummary` e detecta o precedente escolhido a partir de `report.precedents` antes de delegar o share sheet nativo ao pacote `printing`.
+2. `AnalysisScreenView` e `SecondInstanceAnalysisScreenView` apenas delegam a interacao e exibem feedback visual de loading e erro.
+3. `FirstInstanceAnalysisScreenPresenter` e `SecondInstanceAnalysisScreenPresenter` orquestram o fluxo e bloqueiam tentativas concorrentes durante a exportacao.
+4. `IntakeService` publica contratos tipados por tipo de analise, sem expor HTTP para a UI.
+5. `IntakeRestService` encapsula os endpoints agregados por fluxo, incluindo `GET /intake/analyses/{analysis_id}/first-instance-analysis-report` e `GET /intake/analyses/{analysis_id}/second-instance-analysis-report`.
+6. Os mappers REST traduzem `analysis`, `document`, `case_summary`, `precedents` e drafts tipados antes de expor dados para a UI.
+7. `PdfDriver` define a capacidade de gerar e compartilhar PDFs por tipo de analise, sem expor tipos de `pdf` ou `printing` para a UI.
+8. `PrintingPdfDriver` monta o documento em memoria com geradores especializados por fluxo: o relatorio de 1ª instancia destaca o precedente escolhido e o de 2ª instancia consolida resumo do caso, minuta estruturada e precedentes associados antes de delegar o share sheet nativo ao pacote `printing`.
 
 ## Fluxo da Tela de Pasta da Biblioteca
 

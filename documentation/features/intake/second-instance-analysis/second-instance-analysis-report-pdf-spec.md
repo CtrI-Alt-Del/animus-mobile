@@ -2,7 +2,8 @@
 title: Exportacao PDF da minuta da analise de segunda instancia do juiz
 prd: https://joaogoliveiragarcia.atlassian.net/wiki/x/AQDxAg
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-106
-last_updated_at: 2026-05-20
+status: closed
+last_updated_at: 2026-05-22
 ---
 
 # 1. Objetivo
@@ -21,6 +22,7 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 - Adicionar `IntakeService.getSecondInstanceAnalysisReport(...)` e sua implementacao em `IntakeRestService`.
 - Adicionar capacidade em `PdfDriver` para gerar PDF a partir de `SecondInstanceAnalysisReportDto`.
 - Montar PDF com cabecalho, dados da analise, dados do documento, resumo do caso, minuta estruturada e precedentes associados.
+- Ajustar a validacao local de upload da `SecondInstanceAnalysisScreenView` para aceitar apenas PDF com limite de **100MB**, refletindo a copia de apoio da tela.
 - Incluir aviso de ausencia de precedentes fortes no PDF quando `judgmentDraft.noApplicablePrecedentNotice` estiver preenchido.
 - Compartilhar o PDF por `Printing.sharePdf` via `PdfDriver.sharePdf(...)` ja existente.
 - Controlar concorrencia de exportacao no presenter da tela.
@@ -30,7 +32,7 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 ## 2.2 Out-of-scope
 
 - Criar uma nova `SecondInstanceAnalysisScreenView`; a tela existente de 2ª instancia sera reutilizada.
-- Alterar o fluxo de upload, analise, busca de precedentes ou geracao da minuta.
+- Alterar o fluxo de upload, analise, busca de precedentes ou geracao da minuta, exceto pelo ajuste local de validacao de PDF para **100MB** na tela de 2ª instancia.
 - Editar a minuta dentro do app.
 - Exportar em formatos diferentes de PDF.
 - Personalizar layout ou conteudo do PDF pelo usuario.
@@ -51,6 +53,7 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 - O mapper deve converter `analysis`, `document`, `case_summary`, `precedents` e `judgment_draft` para DTOs do `core`.
 - O PDF deve conter, nesta ordem: cabecalho, dados da analise/documento, resumo do caso, minuta estruturada e precedentes associados.
 - A minuta no PDF deve conter `report`, `preliminaryIssues` quando existir, `meritAnalysis`, `precedentAdherenceAnalysis`, `ruling` e `noApplicablePrecedentNotice` quando existir.
+- A tela de 2ª instancia deve bloquear localmente arquivos acima de **100MB** antes do upload e manter a orientacao visual coerente com esse limite.
 - Cada precedente no PDF deve exibir identificador, tese/enunciado quando disponiveis, percentual de similaridade, nivel de aplicabilidade e sintese explicativa.
 - O nome do arquivo deve seguir `[Nome da analise] - Minuta de Sentenca.pdf`, sanitizando caracteres invalidos para nome de arquivo.
 - Em falha, a tela deve manter o usuario na analise e preencher `generalError` com mensagem amigavel.
@@ -170,7 +173,7 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 - **Mudança:** adicionar helpers privados para o PDF do Juiz, reaproveitando os estilos existentes quando possivel:
   - `pw.Page _buildSecondInstanceHeaderPage(SecondInstanceAnalysisReportDto report, DateTime generatedAt)` — monta cabecalho, nome da analise, data, documento e metadados.
   - `pw.Page _buildSecondInstanceCaseSummaryPage(SecondInstanceAnalysisReportDto report, DateTime generatedAt)` — monta resumo do caso com `CaseSummaryDto`.
-  - `pw.Page _buildSecondInstanceDraftPage(SecondInstanceAnalysisReportDto report, DateTime generatedAt)` — monta minuta estruturada com relatorio, preliminares, merito, aderencia, aviso e dispositivo.
+  - `pw.Page _buildSecondInstanceDraftPage(SecondInstanceAnalysisReportDto report, DateTime generatedAt)` — monta minuta estruturada com relatorio, preliminares, merito, aderencia aos precedentes, aviso e dispositivo.
   - `pw.Page _buildSecondInstancePrecedentsPage({required List<AnalysisPrecedentDto> precedents, required DateTime generatedAt})` — monta precedentes ordenados por `finalRank`.
   - `pw.Widget _buildJudgmentDraftSection({required String title, required String content})` — renderiza uma secao textual da minuta.
   - `pw.Widget _buildRulingSection(List<String> ruling)` — renderiza os itens do dispositivo.
@@ -206,6 +209,10 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 - **Justificativa:** impedir conflito entre exportacao, alteracao de estado da analise e geracao/regeneracao.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
+- **Mudança:** elevar `maxFileSizeInBytes` para `100 * 1024 * 1024` e atualizar a mensagem de validacao local para `O arquivo deve ter no máximo 100MB.`.
+- **Justificativa:** alinhar a validacao client-side da tela de 2ª instancia ao novo limite operacional definido para o fluxo.
+
+- **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart`
 - **Mudança:** descartar `isExportingReport` e `canExportReport` em `dispose()`.
 - **Justificativa:** evitar vazamento de signals.
 
@@ -216,6 +223,10 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
   - `isExportingReport: presenter.isExportingReport.watch(context)`
   - `isMenuEnabled: !isManaging || isExportingReport`, mantendo o item visivel enquanto exporta.
 - **Justificativa:** habilitar a entrada visual ja existente sem duplicar componentes.
+
+- **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_view.dart`
+- **Mudança:** atualizar o `helperText` da action bar para informar `Somente PDF com ate 100MB. O processamento pode levar alguns minutos.` quando a acao principal da tela for upload de arquivo.
+- **Justificativa:** manter a orientacao visual consistente com a validacao local configurada no presenter.
 
 - **Arquivo:** `lib/ui/intake/widgets/pages/second_instance_analysis_screen/index.dart`
 - **Mudança:** manter os exports atuais; incluir novos membros apenas se o presenter expuser tipos publicos adicionais necessarios.
@@ -368,9 +379,9 @@ PDF - Minuta de Sentenca
 
 # 10. Pendências / Dúvidas
 
-- **Descrição da pendência:** o PRD RF 08 define limite de upload de **20MB**, enquanto a spec e a implementacao atual da tela usam **50MB**.
-- **Impacto na implementação:** nao afeta diretamente a exportacao PDF, mas indica divergencia de produto na tela base.
-- **Ação sugerida:** tratar em task/spec da tela de 2ª instancia, nao nesta spec de exportacao.
+- **Descrição da pendência:** o PRD RF 08 define limite de upload de **20MB**, enquanto a implementacao atual da `SecondInstanceAnalysisScreenView` e esta spec consolidam o limite local em **100MB**.
+- **Impacto na implementação:** nao afeta o fluxo de geracao do PDF, mas mantem uma divergencia formal de produto na validacao de upload da tela base.
+- **Ação sugerida:** atualizar o PRD e a spec base `documentation/features/intake/second-instance-analysis/second-instance-analysis-screen-spec.md` para refletir o novo limite de **100MB**.
 
 - **Descrição da pendência:** o ticket `ANI-106` cita `SecondInstanceAnalysisScreenView`, mas a codebase e a spec base usam `SecondInstanceAnalysisScreenView`.
 - **Impacto na implementação:** criar uma nova tela duplicaria fluxo e presenter.

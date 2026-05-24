@@ -2,7 +2,7 @@
 title: Tela de análise de segunda instância
 prd: https://joaogoliveiragarcia.atlassian.net/wiki/spaces/ANM/pages/49348609
 ticket: https://joaogoliveiragarcia.atlassian.net/browse/ANI-104
-last_updated_at: 2026-05-17
+last_updated_at: 2026-05-22
 ---
 
 # 1. Objetivo
@@ -16,7 +16,7 @@ Manter a tela mobile dedicada ao fluxo de **Análise para 2ª Instância** do pe
 ## 2.1 In-scope
 
 - Tela dedicada em `lib/ui/intake/widgets/pages/second_instance_analysis_screen/` com padrão MVP.
-- Upload de um único PDF com limite local de **50MB**.
+- Upload de um único PDF com limite local de **100MB**.
 - Criação de `AnalysisDocumentDto` após upload bem-sucedido.
 - Reentrada da tela com leitura de `AnalysisDocumentDto` quando o documento já existir.
 - Processamento do caso via trigger de sumarização de 2ª instância, com polling até `CASE_ANALYZED`, `PETITION_NOT_FOUND` ou `FAILED`.
@@ -45,7 +45,7 @@ Manter a tela mobile dedicada ao fluxo de **Análise para 2ª Instância** do pe
 
 ## 3.1 Funcionais
 
-- O app deve aceitar apenas PDF e bloquear arquivos acima de **50MB** antes do upload.
+- O app deve aceitar apenas PDF e bloquear arquivos acima de **100MB** antes do upload.
 - Após upload válido, o app deve persistir `AnalysisDocumentDto` e avançar para `DOCUMENT_UPLOADED`.
 - Ao reabrir a tela em estados posteriores, o app deve buscar `AnalysisDocumentDto` e exibir o nome do documento já salvo.
 - Ao acionar **Analisar**, o app deve disparar a sumarização de 2ª instância e refletir `EXTRACTING_PETITION` e `ANALYZING_CASE` como processamento.
