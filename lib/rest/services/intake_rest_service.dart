@@ -213,7 +213,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
-      '/intake/analyses/$analysisId/second-instance-report',
+      '/intake/analyses/$analysisId/second-instance-analysis-report',
     );
 
     if (response.isFailure) {
