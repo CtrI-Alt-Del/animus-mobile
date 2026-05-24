@@ -2,7 +2,7 @@
 title: Plano de Implementação — Tela de análise de caso pelo advogado (Case Assessment)
 spec: ../specs/case-assessment-analysis-screen-spec.md
 created_at: 2026-05-24
-status: open
+status: closed
 ---
 
 ---
@@ -65,7 +65,7 @@ Todos os widgets internos novos são **independentes entre si** e podem ser cons
 
 > Todos os widgets desta fase consomem apenas `PetitionDraftDto` ou nada. Não dependem do Presenter da Screen. Podem ser feitos em paralelo entre si.
 
-- [ ] **F1-T1** — Criar `GeneratePetitionDraftCard` (View only)
+- [x] **F1-T1** — Criar `GeneratePetitionDraftCard` (View only)
   - Camada: `ui`
   - Artefato:
     - `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/generate_petition_draft_card/generate_petition_draft_card_view.dart` *(novo)*
@@ -74,7 +74,7 @@ Todos os widgets internos novos são **independentes entre si** e podem ser cons
   - Depende de: —
   - Desbloqueia: F3-T1
 
-- [ ] **F1-T2** — Criar `PetitionDraftCard` + `PreviewSection`
+- [x] **F1-T2** — Criar `PetitionDraftCard` + `PreviewSection`
   - Camada: `ui`
   - Artefato:
     - `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_card/petition_draft_card_view.dart` *(novo)*
@@ -86,7 +86,7 @@ Todos os widgets internos novos são **independentes entre si** e podem ser cons
   - Depende de: —
   - Desbloqueia: F3-T1
 
-- [ ] **F1-T3** — Criar `PetitionDraftModal` (View only)
+- [x] **F1-T3** — Criar `PetitionDraftModal` (View only)
   - Camada: `ui`
   - Artefato:
     - `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_modal/petition_draft_modal_view.dart` *(novo)*
@@ -98,7 +98,7 @@ Todos os widgets internos novos são **independentes entre si** e podem ser cons
 
 ### F2 — Presenter da Screen
 
-- [ ] **F2-T1** — Criar `CaseAssessmentAnalysisScreenPresenter` + provider
+- [x] **F2-T1** — Criar `CaseAssessmentAnalysisScreenPresenter` + provider
   - Camada: `ui`
   - Artefato:
     - `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_presenter.dart` *(novo)*
@@ -110,7 +110,7 @@ Todos os widgets internos novos são **independentes entre si** e podem ser cons
 
 ### F3 — View da Screen
 
-- [ ] **F3-T1** — Criar `CaseAssessmentAnalysisScreenView` + `index.dart` da Screen
+- [x] **F3-T1** — Criar `CaseAssessmentAnalysisScreenView` + `index.dart` da Screen
   - Camada: `ui`
   - Artefato:
     - `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_view.dart` *(novo)*
@@ -122,7 +122,7 @@ Todos os widgets internos novos são **independentes entre si** e podem ser cons
 
 ### F4 — Roteamento
 
-- [ ] **F4-T1** — Registrar rota `Routes.caseAssessmentAnalysis` e helper `getCaseAssessmentAnalysis`
+- [x] **F4-T1** — Registrar rota `Routes.caseAssessmentAnalysis` e helper `getCaseAssessmentAnalysis`
   - Camada: `constants` + `ui` (router)
   - Artefato:
     - `lib/constants/routes.dart` *(modificado)*: adicionar `static const String caseAssessmentAnalysis = '/analyses/:analysisId/case-assessment';` e `static String getCaseAssessmentAnalysis({required String analysisId}) => ...`.
@@ -130,7 +130,7 @@ Todos os widgets internos novos são **independentes entre si** e podem ser cons
   - Depende de: F3-T1
   - Desbloqueia: F4-T2
 
-- [ ] **F4-T2** — Corrigir switch de `Routes.getAnalysis(...)` para `caseAssessment`
+- [x] **F4-T2** — Corrigir switch de `Routes.getAnalysis(...)` para `caseAssessment`
   - Camada: `constants`
   - Artefato: `lib/constants/routes.dart` *(modificado)*
   - Detalhes: o case `AnalysisTypeDto.caseAssessment` no switch de `getAnalysis(...)` passa a retornar `Routes.getCaseAssessmentAnalysis(analysisId: analysisId)` em vez de `getSecondInstanceAnalysis(...)`.
