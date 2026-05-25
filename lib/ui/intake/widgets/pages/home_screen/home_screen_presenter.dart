@@ -243,22 +243,9 @@ class HomeScreenPresenter {
       return;
     }
 
-    switch (analysis.type) {
-      case AnalysisTypeDto.firstInstance:
-        await _navigationDriver.pushTo(
-          Routes.getFirstInstanceAnalysis(analysisId: analysisId),
-        );
-        break;
-      case AnalysisTypeDto.secondInstance:
-        await _navigationDriver.pushTo(
-          Routes.getSecondInstanceAnalysis(analysisId: analysisId),
-        );
-        break;
-      case AnalysisTypeDto.caseAssessment:
-        await _navigationDriver.pushTo(
-          Routes.getSecondInstanceAnalysis(analysisId: analysisId),
-        );
-    }
+    await _navigationDriver.pushTo(
+      Routes.getAnalysis(analysisId: analysisId, analysisType: analysis.type),
+    );
 
     await refresh();
   }
