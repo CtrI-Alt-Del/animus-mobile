@@ -164,8 +164,15 @@ class AnalysisPrecedentsBubblePresenter {
     required List<CourtDto> courts,
     required List<PrecedentKindDto> kinds,
   }) {
+    final List<PrecedentKindDto> validKinds =
+        PrecedentKindDto.getValidKindsForCourts(courts);
+    final List<PrecedentKindDto> filteredKinds =
+        kinds
+            .where((PrecedentKindDto kind) => validKinds.contains(kind))
+            .toList(growable: false);
+
     selectedCourts.value = List<CourtDto>.unmodifiable(courts);
-    selectedKinds.value = List<PrecedentKindDto>.unmodifiable(kinds);
+    selectedKinds.value = List<PrecedentKindDto>.unmodifiable(filteredKinds);
   }
 
   Future<void> refreshProcessingStatus() async {
