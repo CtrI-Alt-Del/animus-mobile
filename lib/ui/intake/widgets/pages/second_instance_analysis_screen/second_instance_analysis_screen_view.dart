@@ -188,7 +188,6 @@ class _SecondInstanceAnalysisScreenViewState
     }
 
     presenter.syncSelectedLimit(newLimit);
-    await presenter.retry();
   }
 
   Future<void> _showPrecedentsFiltersDialog(
