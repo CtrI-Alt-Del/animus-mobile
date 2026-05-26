@@ -52,21 +52,22 @@ class PetitionDraftCardView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           PreviewSection(
-            title: 'Conteúdo',
-            content: draft.content,
-            emptyText: 'A minuta ainda não tem conteúdo disponível.',
+            title: 'Fatos estruturados',
+            content: draft.structuredFacts,
+            emptyText: 'Os fatos estruturados ainda não estão disponíveis.',
           ),
-          if (onRegenerate != null) ...<Widget>[
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: onRegenerate,
-                icon: const Icon(Icons.refresh, size: 16),
-                label: const Text('Regerar minuta'),
-              ),
-            ),
-          ],
+          const SizedBox(height: 10),
+          PreviewSection(
+            title: 'Tese central',
+            content: draft.centralThesis,
+            emptyText: 'A tese central ainda não está disponível.',
+          ),
+          const SizedBox(height: 10),
+          PreviewSection(
+            title: 'Pedidos',
+            items: draft.requests,
+            emptyText: 'Os pedidos ainda não estão disponíveis.',
+          ),
         ],
       ),
     );

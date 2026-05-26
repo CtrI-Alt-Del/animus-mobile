@@ -13,7 +13,6 @@ class PetitionDraftModalView extends StatelessWidget {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final String normalizedContent = draft.content.trim();
 
     return Scaffold(
       backgroundColor: tokens.surfacePage,
@@ -62,32 +61,42 @@ class PetitionDraftModalView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Icon(
-                            Icons.article_outlined,
-                            size: 18,
-                            color: tokens.accent,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Conteúdo da minuta',
-                            style: textTheme.titleMedium?.copyWith(
-                              color: tokens.textPrimary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
+                      _buildSection(
+                        context,
+                        title: 'Fatos estruturados',
+                        content: draft.structuredFacts,
+                        emptyText:
+                            'Os fatos estruturados ainda não estão disponíveis.',
                       ),
-                      const SizedBox(height: 14),
-                      SelectableText(
-                        normalizedContent.isEmpty
-                            ? 'A minuta ainda não tem conteúdo disponível.'
-                            : normalizedContent,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: tokens.textSecondary,
-                          height: 1.55,
-                        ),
+                      const SizedBox(height: 18),
+                      _buildSection(
+                        context,
+                        title: 'Fundamentos jurídicos',
+                        content: draft.legalGrounds,
+                        emptyText:
+                            'Os fundamentos jurídicos ainda não estão disponíveis.',
+                      ),
+                      const SizedBox(height: 18),
+                      _buildSection(
+                        context,
+                        title: 'Tese central',
+                        content: draft.centralThesis,
+                        emptyText: 'A tese central ainda não está disponível.',
+                      ),
+                      const SizedBox(height: 18),
+                      _buildListSection(
+                        context,
+                        title: 'Pedidos',
+                        items: draft.requests,
+                        emptyText: 'Os pedidos ainda não estão disponíveis.',
+                      ),
+                      const SizedBox(height: 18),
+                      _buildListSection(
+                        context,
+                        title: 'Citações de precedentes',
+                        items: draft.precedentCitations,
+                        emptyText:
+                            'As citações de precedentes ainda não estão disponíveis.',
                       ),
                     ],
                   ),
@@ -97,6 +106,89 @@ class PetitionDraftModalView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSection(
+    BuildContext context, {
+    required String title,
+    required String content,
+    required String emptyText,
+  }) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final String normalizedContent = content.trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          title,
+          style: textTheme.titleMedium?.copyWith(
+            color: tokens.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 10),
+        SelectableText(
+          normalizedContent.isEmpty ? emptyText : normalizedContent,
+          style: textTheme.bodyMedium?.copyWith(
+            color: tokens.textSecondary,
+            height: 1.55,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildListSection(
+    BuildContext context, {
+    required String title,
+    required List<String> items,
+    required String emptyText,
+  }) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final List<String> normalizedItems = items
+        .map((String item) => item.trim())
+        .where((String item) => item.isNotEmpty)
+        .toList(growable: false);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          title,
+          style: textTheme.titleMedium?.copyWith(
+            color: tokens.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (normalizedItems.isEmpty)
+          SelectableText(
+            emptyText,
+            style: textTheme.bodyMedium?.copyWith(
+              color: tokens.textSecondary,
+              height: 1.55,
+            ),
+          )
+        else
+          ...normalizedItems.map(
+            (String item) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SelectableText(
+                '• $item',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: tokens.textSecondary,
+                  height: 1.55,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
