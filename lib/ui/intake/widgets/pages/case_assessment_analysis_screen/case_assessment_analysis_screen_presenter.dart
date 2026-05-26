@@ -6,6 +6,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
@@ -24,15 +25,9 @@ import 'package:animus/drivers/file_storage/index.dart';
 import 'package:animus/drivers/pdf-driver/index.dart';
 import 'package:animus/rest/services/index.dart';
 
-/// Presenter for the Case Assessment (lawyer) analysis screen.
-///
-/// Orchestrates the full lawyer analysis flow: document upload, case
-/// summarization, precedents search (delegated to
-/// `AnalysisPrecedentsBubblePresenter`), petition draft generation and
-/// report export.
 class CaseAssessmentAnalysisScreenPresenter {
   static const List<String> allowedExtensions = <String>['pdf', 'docx'];
-  static const int maxFileSizeInBytes = 20 * 1024 * 1024;
+  static const int maxFileSizeInBytes = 100 * 1024 * 1024;
   static const Duration pollingInterval = Duration(seconds: 3);
   static const Duration requestTimeout = Duration(seconds: 10);
   static const String failedMessage =
@@ -68,6 +63,7 @@ class CaseAssessmentAnalysisScreenPresenter {
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
   final Signal<bool> isExportingReport = signal<bool>(false);
   final Signal<bool> precedentsReady = signal<bool>(false);
+  final Signal<bool> hasChosenPrecedents = signal<bool>(false);
 
   late final ReadonlySignal<bool> canPickDocument = computed(() {
     final AnalysisStatusDto currentStatus = status.value;
@@ -107,7 +103,9 @@ class CaseAssessmentAnalysisScreenPresenter {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
         precedentsReady.value &&
-        status.value != AnalysisStatusDto.generatingPetitionDraft;
+        hasChosenPrecedents.value &&
+        status.value != AnalysisStatusDto.generatingPetitionDraft &&
+        status.value != AnalysisStatusDto.generatingSynthesis;
   });
 
   late final ReadonlySignal<bool> canRegeneratePetitionDraft = computed(() {
@@ -149,7 +147,9 @@ class CaseAssessmentAnalysisScreenPresenter {
     }
 
     if (status.value == AnalysisStatusDto.generatingPetitionDraft ||
-        canGeneratePetitionDraft.value) {
+        status.value == AnalysisStatusDto.generatingSynthesis ||
+        canGeneratePetitionDraft.value ||
+        precedentsReady.value) {
       return 'Gerar minuta';
     }
 
@@ -164,7 +164,7 @@ class CaseAssessmentAnalysisScreenPresenter {
     final AnalysisStatusDto currentStatus = status.value;
     if (currentStatus == AnalysisStatusDto.waitingDocumentUpload ||
         currentStatus == AnalysisStatusDto.documentUploaded) {
-      return 'Selecionar petição';
+      return 'Selecionar documento do caso';
     }
 
     return 'Enviar outro documento';
@@ -219,7 +219,11 @@ class CaseAssessmentAnalysisScreenPresenter {
     }
 
     if (_shouldLoadPetitionDraft(analysis.status)) {
-      await _tryLoadPetitionDraft();
+      final bool didLoadDraft = await _tryLoadPetitionDraft();
+      if (!didLoadDraft && _shouldResumePetitionDraftPolling(analysis.status)) {
+        status.value = AnalysisStatusDto.generatingPetitionDraft;
+        unawaited(_pollUntilPetitionDraftReady());
+      }
     }
   }
 
@@ -246,7 +250,7 @@ class CaseAssessmentAnalysisScreenPresenter {
 
     final int fileSize = await file.length();
     if (fileSize > maxFileSizeInBytes) {
-      generalError.value = 'O arquivo deve ter no máximo 20MB.';
+      generalError.value = 'O arquivo deve ter no máximo 100MB.';
       return;
     }
 
@@ -264,7 +268,7 @@ class CaseAssessmentAnalysisScreenPresenter {
 
     try {
       final RestResponse<void> response = await _intakeService
-          .triggerFirstInstanceCaseSummarization(analysisId: analysisId)
+          .triggerCaseAssessmentCaseSummarization(analysisId: analysisId)
           .timeout(
             requestTimeout,
             onTimeout: () => RestResponse<void>(
@@ -274,7 +278,7 @@ class CaseAssessmentAnalysisScreenPresenter {
           );
 
       if (response.isFailure) {
-        await _applyFailure(response.errorMessage);
+        await _applyPetitionDraftFailure(response.errorMessage);
         return;
       }
 
@@ -328,10 +332,24 @@ class CaseAssessmentAnalysisScreenPresenter {
 
   void markPrecedentsReady() {
     precedentsReady.value = true;
+
+    if (status.value == AnalysisStatusDto.searchingPrecedents ||
+        status.value == AnalysisStatusDto.precedentsSearched ||
+        status.value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        status.value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        status.value == AnalysisStatusDto.generatingSynthesis) {
+      status.value = AnalysisStatusDto.precedentsSearched;
+    }
   }
 
-  Future<void> requestPetitionDraft() async {
-    if (!canGeneratePetitionDraft.value && !canRegeneratePetitionDraft.value) {
+  void syncChosenPrecedents(List<AnalysisPrecedentDto> precedents) {
+    hasChosenPrecedents.value = precedents.isNotEmpty;
+  }
+
+  Future<void> requestPetitionDraft({bool force = false}) async {
+    if (!force &&
+        !canGeneratePetitionDraft.value &&
+        !canRegeneratePetitionDraft.value) {
       return;
     }
 
@@ -340,6 +358,21 @@ class CaseAssessmentAnalysisScreenPresenter {
     isManagingAnalysis.value = true;
 
     try {
+      final RestResponse<void> response = await _intakeService
+          .triggerPetitionDraftGeneration(analysisId: analysisId)
+          .timeout(
+            requestTimeout,
+            onTimeout: () => RestResponse<void>(
+              statusCode: HttpStatus.requestTimeout,
+              errorMessage: _buildTimeoutMessage(),
+            ),
+          );
+
+      if (response.isFailure) {
+        await _applyFailure(response.errorMessage);
+        return;
+      }
+
       await _pollUntilPetitionDraftReady();
     } finally {
       isManagingAnalysis.value = false;
@@ -351,8 +384,10 @@ class CaseAssessmentAnalysisScreenPresenter {
       return;
     }
 
+    generalError.value = null;
+    status.value = AnalysisStatusDto.generatingPetitionDraft;
     petitionDraft.value = null;
-    await requestPetitionDraft();
+    await requestPetitionDraft(force: true);
   }
 
   Future<void> replaceDocument() async {
@@ -488,6 +523,7 @@ class CaseAssessmentAnalysisScreenPresenter {
     isManagingAnalysis.dispose();
     isExportingReport.dispose();
     precedentsReady.dispose();
+    hasChosenPrecedents.dispose();
     canPickDocument.dispose();
     canAnalyzeCase.dispose();
     canRegenerateSummary.dispose();
@@ -613,7 +649,7 @@ class CaseAssessmentAnalysisScreenPresenter {
       }
 
       if (currentStatus == AnalysisStatusDto.failed) {
-        await _applyFailure();
+        await _applyPetitionDraftFailure();
         return;
       }
 
@@ -639,27 +675,33 @@ class CaseAssessmentAnalysisScreenPresenter {
       }
 
       final AnalysisStatusDto currentStatus = analysisResponse.body.status;
-      status.value = currentStatus;
-
-      if (_shouldLoadPetitionDraft(currentStatus)) {
-        await _tryLoadPetitionDraft();
-      }
 
       if (currentStatus == AnalysisStatusDto.done) {
         if (petitionDraft.value != null) {
+          status.value = currentStatus;
           generalError.value = null;
           return;
         }
 
         final bool didLoadDraft = await _tryLoadPetitionDraft();
         if (!didLoadDraft) {
-          await _applyFailure();
-          return;
+          status.value = AnalysisStatusDto.generatingPetitionDraft;
+          await Future<void>.delayed(pollingInterval);
+          continue;
         }
 
+        status.value = currentStatus;
         generalError.value = null;
         return;
       }
+
+      if (_shouldLoadPetitionDraft(currentStatus)) {
+        await _tryLoadPetitionDraft();
+      }
+
+      status.value = _isPetitionDraftPendingStatus(currentStatus)
+          ? AnalysisStatusDto.generatingPetitionDraft
+          : currentStatus;
 
       if (currentStatus == AnalysisStatusDto.failed) {
         await _applyFailure();
@@ -690,6 +732,16 @@ class CaseAssessmentAnalysisScreenPresenter {
     status.value = AnalysisStatusDto.failed;
   }
 
+  Future<void> _applyPetitionDraftFailure([String? message]) async {
+    final String errorMessage = message == null || message.isEmpty
+        ? failedMessage
+        : message;
+    generalError.value = errorMessage;
+    status.value = precedentsReady.value
+        ? AnalysisStatusDto.precedentsSearched
+        : AnalysisStatusDto.failed;
+  }
+
   bool _shouldLoadAnalysisDocument(AnalysisStatusDto value) {
     return value != AnalysisStatusDto.waitingDocumentUpload;
   }
@@ -697,24 +749,40 @@ class CaseAssessmentAnalysisScreenPresenter {
   bool _shouldLoadSummary(AnalysisStatusDto value) {
     return value == AnalysisStatusDto.caseAnalyzed ||
         value == AnalysisStatusDto.searchingPrecedents ||
+        value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        value == AnalysisStatusDto.generatingSynthesis ||
         value == AnalysisStatusDto.generatingPetitionDraft ||
         value == AnalysisStatusDto.done;
   }
 
   bool _shouldLoadPetitionDraft(AnalysisStatusDto value) {
     return value == AnalysisStatusDto.searchingPrecedents ||
+        value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        value == AnalysisStatusDto.generatingSynthesis ||
         value == AnalysisStatusDto.generatingPetitionDraft ||
+        value == AnalysisStatusDto.done;
+  }
+
+  bool _isPetitionDraftPendingStatus(AnalysisStatusDto value) {
+    return value == AnalysisStatusDto.precedentsSearched ||
+        value == AnalysisStatusDto.generatingSynthesis;
+  }
+
+  bool _shouldResumePetitionDraftPolling(AnalysisStatusDto value) {
+    return value == AnalysisStatusDto.generatingPetitionDraft ||
         value == AnalysisStatusDto.done;
   }
 
   bool _isPrecedentsReadyStatus(AnalysisStatusDto value) {
     return value == AnalysisStatusDto.searchingPrecedents ||
+        value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        value == AnalysisStatusDto.generatingSynthesis ||
         value == AnalysisStatusDto.generatingPetitionDraft ||
         value == AnalysisStatusDto.done;
   }

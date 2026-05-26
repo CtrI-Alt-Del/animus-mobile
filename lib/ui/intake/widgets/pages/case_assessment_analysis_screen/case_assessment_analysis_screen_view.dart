@@ -47,6 +47,13 @@ class _CaseAssessmentAnalysisScreenViewState
     extends ConsumerState<CaseAssessmentAnalysisScreenView> {
   final ScrollController _scrollController = ScrollController();
 
+  void _syncChosenPrecedentsIfNeeded(
+    CaseAssessmentAnalysisScreenPresenter presenter,
+    List<AnalysisPrecedentDto> chosenPrecedents,
+  ) {
+    presenter.syncChosenPrecedents(chosenPrecedents);
+  }
+
   Widget _animatedEntry(
     Widget child, {
     Duration duration = const Duration(milliseconds: 260),
@@ -93,8 +100,10 @@ class _CaseAssessmentAnalysisScreenViewState
 
   bool _isPrecedentsFlow(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.precedentsSearched ||
         status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        status == AnalysisStatusDto.generatingSynthesis ||
         status == AnalysisStatusDto.generatingPetitionDraft ||
         status == AnalysisStatusDto.done;
   }
@@ -164,7 +173,6 @@ class _CaseAssessmentAnalysisScreenViewState
     }
 
     presenter.syncSelectedLimit(newLimit);
-    await presenter.retry();
   }
 
   Future<void> _showPrecedentsFiltersDialog(
@@ -440,18 +448,23 @@ class _CaseAssessmentAnalysisScreenViewState
                           final summary = presenter.caseSummary.watch(context);
                           final bool showSummary = summary != null;
                           final draft = presenter.petitionDraft.watch(context);
-                          final bool showDraft = draft != null;
+                          final bool showDraft =
+                              draft != null &&
+                              status !=
+                                  AnalysisStatusDto.generatingPetitionDraft;
                           final bool canRegenerateSummary = presenter
                               .canRegenerateSummary
                               .watch(context);
                           final bool showPrecedents =
                               status == AnalysisStatusDto.searchingPrecedents ||
+                              status == AnalysisStatusDto.precedentsSearched ||
                               status ==
                                   AnalysisStatusDto
                                       .analyzingPrecedentsSimilarity ||
                               status ==
                                   AnalysisStatusDto
                                       .analyzingPrecedentsApplicability ||
+                              status == AnalysisStatusDto.generatingSynthesis ||
                               status ==
                                   AnalysisStatusDto.generatingPetitionDraft ||
                               status == AnalysisStatusDto.done;
@@ -465,7 +478,7 @@ class _CaseAssessmentAnalysisScreenViewState
                                 _animatedEntry(
                                   const AiBubble(
                                     message:
-                                        'Envie a petição (PDF ou DOCX) para iniciar a análise do caso.',
+                                        'Envie o documento do caso (PDF ou DOCX) para iniciar a análise.',
                                     isTyping: false,
                                   ),
                                 ),
@@ -508,7 +521,7 @@ class _CaseAssessmentAnalysisScreenViewState
                                 _animatedEntry(
                                   const AiBubble(
                                     message:
-                                        'Analisando a petição enviada e montando o resumo do caso.',
+                                        'Analisando o documento do caso enviado e montando o resumo do caso.',
                                     isTyping: true,
                                     footerText:
                                         'Isso pode levar alguns instantes.',
@@ -540,6 +553,19 @@ class _CaseAssessmentAnalysisScreenViewState
                               ],
                               if (showPrecedents) ...<Widget>[
                                 const SizedBox(height: 12),
+                                Watch((BuildContext context) {
+                                  final List<AnalysisPrecedentDto>
+                                  chosenPrecedents = precedentsBubblePresenter
+                                      .chosenPrecedents
+                                      .watch(context);
+
+                                  _syncChosenPrecedentsIfNeeded(
+                                    presenter,
+                                    chosenPrecedents,
+                                  );
+
+                                  return const SizedBox.shrink();
+                                }),
                                 _animatedEntry(
                                   AnalysisPrecedentsBubble(
                                     analysisId: widget.analysisId,
@@ -574,6 +600,12 @@ class _CaseAssessmentAnalysisScreenViewState
                                         _showPetitionDraftModal(context, draft),
                                       );
                                     },
+                                    onRegenerate: () {
+                                      unawaited(
+                                        presenter.regeneratePetitionDraft(),
+                                      );
+                                      _scheduleJumpToBottom();
+                                    },
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -602,6 +634,11 @@ class _CaseAssessmentAnalysisScreenViewState
                           .watch(context);
                       final bool canRegeneratePetitionDraft = presenter
                           .canRegeneratePetitionDraft
+                          .watch(context);
+                      final bool precedentsReady = presenter.precedentsReady
+                          .watch(context);
+                      final bool hasChosenPrecedents = presenter
+                          .hasChosenPrecedents
                           .watch(context);
                       final bool canPickDocument = presenter.canPickDocument
                           .watch(context);
@@ -634,6 +671,11 @@ class _CaseAssessmentAnalysisScreenViewState
                           canAnalyzeCase ||
                           (status == AnalysisStatusDto.failed &&
                               canPickDocument);
+                      final bool shouldShowChoosePrecedentHelper =
+                          precedentsReady &&
+                          !hasChosenPrecedents &&
+                          !canGeneratePetitionDraft &&
+                          !canRegeneratePetitionDraft;
 
                       return AnalysisActionBar(
                         showFileAction: showFileAction,
@@ -696,8 +738,10 @@ class _CaseAssessmentAnalysisScreenViewState
                                 }
                               },
                         isPrimaryBusy: isUploading || isManaging,
-                        helperText: showFileAction
-                            ? 'PDF ou DOCX com até 20MB. O processamento pode levar alguns minutos.'
+                        helperText: shouldShowChoosePrecedentHelper
+                            ? 'É necessário marcar pelo menos um precedente como escolhido para gerar a minuta.'
+                            : showFileAction
+                            ? 'PDF ou DOCX com até 100MB. O processamento pode levar alguns minutos.'
                             : null,
                       );
                     }),
