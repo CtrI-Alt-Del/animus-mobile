@@ -63,7 +63,7 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     if (status == AnalysisStatusDto.generatingSynthesis) {
-      return 'Gerando as sinteses explicativas dos precedentes.';
+      return 'Gerando as sínteses explicativas dos precedentes.';
     }
 
     return 'Iniciando a busca de precedentes relevantes.';
@@ -182,6 +182,17 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     final AnalysisStatusDto? currentStatus = processingStatus.value;
+
+    if (status == AnalysisStatusDto.searchingPrecedents &&
+        !_isLoadingOrPollingPrecedents() &&
+        !_hasLoadedPrecedents()) {
+      final int currentFlowId = ++_flowId;
+      processingStatus.value = status;
+      generalError.value = null;
+      isLoading.value = true;
+      unawaited(_triggerPrecedentSearch(currentFlowId: currentFlowId));
+      return;
+    }
 
     if (currentStatus != null &&
         _statusOrder(status) < _statusOrder(currentStatus)) {
@@ -575,6 +586,7 @@ class AnalysisPrecedentsBubblePresenter {
 
   bool _isFinalPrecedentStatus(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.precedentsSearched ||
+        status == AnalysisStatusDto.generatingPetitionDraft ||
         status == AnalysisStatusDto.generatingJudgmentDraft ||
         status == AnalysisStatusDto.done ||
         status == AnalysisStatusDto.waitingPrecedentChoice ||
@@ -630,6 +642,16 @@ class AnalysisPrecedentsBubblePresenter {
         _isFinalPrecedentStatus(status);
   }
 
+  bool _isLoadingOrPollingPrecedents() {
+    return _isInitializing ||
+        _isPollingRequestInFlight ||
+        _pollingTimer != null;
+  }
+
+  bool _hasLoadedPrecedents() {
+    return precedents.value.isNotEmpty;
+  }
+
   int _statusOrder(AnalysisStatusDto status) {
     switch (status) {
       case AnalysisStatusDto.caseAnalyzed:
@@ -642,6 +664,7 @@ class AnalysisPrecedentsBubblePresenter {
         return 3;
       case AnalysisStatusDto.precedentsSearched:
         return 4;
+      case AnalysisStatusDto.generatingPetitionDraft:
       case AnalysisStatusDto.generatingJudgmentDraft:
         return 5;
       case AnalysisStatusDto.waitingPrecedentChoice:
