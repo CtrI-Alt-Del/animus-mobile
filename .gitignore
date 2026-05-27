@@ -74,4 +74,4 @@ android/**/*.keystore
 
 node_modules/
 
-documentation/ticket.mdlatest_stable.tar.xz
+documentation/ticket.md
