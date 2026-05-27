@@ -104,7 +104,7 @@ class _LibraryFolderSettingsModalViewState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Renomeie ou arquive esta pasta. As analises serao movidas para Sem pasta.',
+                    'Renomeie ou arquive esta pasta. As análises serão movidas para Sem pasta.',
                     textAlign: TextAlign.center,
                     style: textTheme.bodySmall?.copyWith(
                       color: tokens.textMuted,
@@ -161,7 +161,7 @@ class _LibraryFolderSettingsModalViewState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'A pasta sera arquivada e as analises continuarao disponiveis em Sem pasta.',
+                    'A pasta será arquivada e as análises continuarão disponíveis em Sem pasta.',
                     style: textTheme.bodySmall?.copyWith(
                       color: tokens.textMuted,
                       height: 1.35,

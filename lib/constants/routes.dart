@@ -15,6 +15,7 @@ class Routes {
   static const String analysis = '/analyses/:analysisId';
   static const String secondInstanceAnalysis =
       '/analyses/:analysisId/second-instance';
+  static const String archivedAnalyses = '/archived-analyses';
 
   static String getLibraryFolder({required String folderId}) {
     final Uri uri = Uri(

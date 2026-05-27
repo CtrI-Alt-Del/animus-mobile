@@ -50,6 +50,7 @@ void main() {
     when(() => cacheDriver.get(any())).thenReturn('access-token');
     when(() => cacheDriver.delete(any())).thenReturn(null);
     when(() => navigationDriver.goTo(any())).thenReturn(null);
+    when(() => navigationDriver.pushTo(any())).thenAnswer((_) async {});
     when(() => pushNotificationDriver.clearUser()).thenAnswer((_) async {});
   });
 
@@ -165,6 +166,17 @@ void main() {
       expect(presenter.displayInitial.value, 'A');
       expect(presenter.displayName.value, 'ada lovelace');
       expect(presenter.displayEmail.value, 'ada@example.com');
+    });
+  });
+
+  group('goToArchivedAnalyses', () {
+    test('navega para a rota de analises arquivadas', () {
+      final ProfileScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.goToArchivedAnalyses();
+
+      verify(() => navigationDriver.pushTo(Routes.archivedAnalyses)).called(1);
     });
   });
 

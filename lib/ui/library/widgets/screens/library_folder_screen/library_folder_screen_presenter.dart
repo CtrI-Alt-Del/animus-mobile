@@ -147,7 +147,7 @@ class LibraryFolderScreenPresenter {
       }
 
       generalError.value =
-          'Não foi possivel carregar esta pasta agora. Tente novamente.';
+          'Não foi possível carregar esta pasta agora. Tente novamente.';
       isLoading.value = false;
     }
   }
@@ -196,7 +196,7 @@ class LibraryFolderScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Não foi possivel carregar mais analises agora. Role novamente para tentar de novo.',
+            'Não foi possível carregar mais análises agora. Role novamente para tentar de novo.',
       );
       isLoadingMore.value = false;
       return;
@@ -232,7 +232,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel carregar analises disponiveis agora.',
+        fallback: 'Não foi possível carregar análises disponíveis agora.',
       );
       isLoadingAvailableAnalyses.value = false;
       return;
@@ -305,7 +305,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel adicionar as analises nesta pasta.',
+        fallback: 'Não foi possível adicionar as análises nesta pasta.',
       );
       isAddingAvailableAnalyses.value = false;
       return;
@@ -397,7 +397,7 @@ class LibraryFolderScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Não foi possivel mover as analises selecionadas agora. Tente novamente.',
+            'Não foi possível mover as análises selecionadas agora. Tente novamente.',
       );
       isOperating.value = false;
       return false;
@@ -438,7 +438,7 @@ class LibraryFolderScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Não foi possivel arquivar as analises selecionadas agora. Tente novamente.',
+            'Não foi possível arquivar as análises selecionadas agora. Tente novamente.',
       );
       isOperating.value = false;
       return false;
@@ -460,7 +460,7 @@ class LibraryFolderScreenPresenter {
 
     final String normalizedName = name.trim();
     if (normalizedName.isEmpty || normalizedName.length > 50) {
-      generalError.value = 'Informe um nome de pasta valido.';
+      generalError.value = 'Informe um nome de pasta válido.';
       return false;
     }
 
@@ -482,7 +482,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel atualizar o nome da pasta agora.',
+        fallback: 'Não foi possível atualizar o nome da pasta agora.',
       );
       isOperating.value = false;
       return false;
@@ -512,7 +512,7 @@ class LibraryFolderScreenPresenter {
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Não foi possivel arquivar esta pasta agora.',
+        fallback: 'Não foi possível arquivar esta pasta agora.',
       );
       isOperating.value = false;
       return false;
@@ -535,7 +535,7 @@ class LibraryFolderScreenPresenter {
   String formatCreatedAt(String value) {
     final DateTime? parsedDate = DateTime.tryParse(value);
     if (parsedDate == null) {
-      return 'Data indisponivel';
+      return 'Data indisponível';
     }
 
     final String day = parsedDate.day.toString().padLeft(2, '0');
@@ -627,12 +627,12 @@ class LibraryFolderScreenPresenter {
   String _resolveLoadErrorMessage(RestResponse<dynamic> response) {
     if (response.statusCode == HttpStatus.notFound ||
         response.statusCode == HttpStatus.forbidden) {
-      return 'Não foi possivel carregar esta pasta.';
+      return 'Não foi possível carregar esta pasta.';
     }
 
     return _resolveErrorMessage(
       response,
-      fallback: 'Não foi possivel carregar esta pasta agora. Tente novamente.',
+      fallback: 'Não foi possível carregar esta pasta agora. Tente novamente.',
     );
   }
 

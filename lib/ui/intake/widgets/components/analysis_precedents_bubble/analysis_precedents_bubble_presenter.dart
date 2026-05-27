@@ -230,7 +230,7 @@ class AnalysisPrecedentsBubblePresenter {
   Future<void> openPangea(AnalysisPrecedentDto precedent) async {
     if (_externalLinkDriver == null) {
       generalError.value =
-          'Não foi possivel abrir o Pangea agora. Tente novamente.';
+          'Não foi possível abrir o Pangea agora. Tente novamente.';
       return;
     }
 
@@ -239,7 +239,7 @@ class AnalysisPrecedentsBubblePresenter {
       await _externalLinkDriver.openUrl(uri.toString());
     } catch (_) {
       generalError.value =
-          'Não foi possivel abrir o Pangea agora. Tente novamente.';
+          'Não foi possível abrir o Pangea agora. Tente novamente.';
     }
   }
 
@@ -264,7 +264,7 @@ class AnalysisPrecedentsBubblePresenter {
     if (response.isFailure) {
       isLoading.value = false;
       generalError.value =
-          'Não foi possivel escolher o precedente agora. Tente novamente.';
+          'Não foi possível escolher o precedente agora. Tente novamente.';
       return false;
     }
 
@@ -314,7 +314,7 @@ class AnalysisPrecedentsBubblePresenter {
     if (response.isFailure) {
       isLoading.value = false;
       generalError.value =
-          'Não foi possivel desfazer a escolha do precedente agora. Tente novamente.';
+          'Não foi possível desfazer a escolha do precedente agora. Tente novamente.';
       return false;
     }
 
@@ -402,7 +402,7 @@ class AnalysisPrecedentsBubblePresenter {
 
     if (analysisResponse.isFailure) {
       _applyError(
-        'Não foi possivel carregar o status da analise. Tente novamente.',
+        'Não foi possível carregar o status da análise. Tente novamente.',
       );
       return;
     }
@@ -427,7 +427,7 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     if (status == AnalysisStatusDto.failed) {
-      _applyError('A analise falhou durante a busca de precedentes.');
+      _applyError('A análise falhou durante a busca de precedentes.');
       return;
     }
 
@@ -455,7 +455,7 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     if (searchResponse.isFailure) {
-      _applyError('Não foi possivel iniciar a busca de precedentes.');
+      _applyError('Não foi possível iniciar a busca de precedentes.');
       return;
     }
 
@@ -485,7 +485,7 @@ class AnalysisPrecedentsBubblePresenter {
       }
 
       if (analysisResponse.isFailure) {
-        _applyError('Não foi possivel atualizar o status dos precedentes.');
+        _applyError('Não foi possível atualizar o status dos precedentes.');
         return;
       }
 
@@ -505,11 +505,11 @@ class AnalysisPrecedentsBubblePresenter {
       }
 
       if (status == AnalysisStatusDto.failed) {
-        _applyError('A analise falhou durante a busca de precedentes.');
+        _applyError('A análise falhou durante a busca de precedentes.');
         return;
       }
 
-      _applyError('Não foi possivel interpretar o status atual da analise.');
+      _applyError('Não foi possível interpretar o status atual da análise.');
     } finally {
       _isPollingRequestInFlight = false;
     }
@@ -536,7 +536,7 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     if (response.isFailure) {
-      _applyError('Não foi possivel carregar os precedentes agora.');
+      _applyError('Não foi possível carregar os precedentes agora.');
       return;
     }
 

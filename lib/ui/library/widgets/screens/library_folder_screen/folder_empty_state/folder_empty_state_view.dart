@@ -48,7 +48,7 @@ class FolderEmptyStateView extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(
-                'Sem analises em ${folderName.trim().isEmpty ? 'esta pasta' : folderName}',
+                'Sem análises em ${folderName.trim().isEmpty ? 'esta pasta' : folderName}',
                 textAlign: TextAlign.center,
                 style: textTheme.titleSmall?.copyWith(
                   color: tokens.textPrimary,
@@ -57,7 +57,7 @@ class FolderEmptyStateView extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Quando novas analises forem movidas para esta pasta, elas aparecerao aqui.',
+                'Quando novas análises forem movidas para esta pasta, elas aparecerão aqui.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium?.copyWith(
                   color: tokens.textMuted,

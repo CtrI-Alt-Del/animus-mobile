@@ -75,7 +75,7 @@ class ForgotPasswordScreenView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Digite seu e-mail cadastrado e enviaremos um codigo OTP para redefinir sua senha.',
+                            'Digite seu e-mail cadastrado e enviaremos um código OTP para redefinir sua senha.',
                             style: textTheme.bodySmall?.copyWith(
                               color: tokens.textMuted,
                               height: 1.5,

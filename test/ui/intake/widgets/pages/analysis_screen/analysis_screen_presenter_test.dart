@@ -507,7 +507,7 @@ void main() {
 
       expect(
         presenter.generalError.value,
-        'O arquivo deve ter no maximo 50MB.',
+        'O arquivo deve ter no máximo 50MB.',
       );
       verifyNever(
         () => storageService.generateAnalysisDocumentUploadUrl(
@@ -974,7 +974,7 @@ void main() {
         when(
           () => pdfDriver.sharePdf(
             bytes: bytes,
-            filename: 'Analise final — Relatorio.pdf',
+            filename: 'Analise final — Relatório.pdf',
           ),
         ).thenAnswer((_) async {});
 
@@ -991,7 +991,7 @@ void main() {
           () => pdfDriver.generateAnalysisReport(report: report),
           () => pdfDriver.sharePdf(
             bytes: bytes,
-            filename: 'Analise final — Relatorio.pdf',
+            filename: 'Analise final — Relatório.pdf',
           ),
         ]);
       },
@@ -1051,7 +1051,7 @@ void main() {
         when(
           () => pdfDriver.sharePdf(
             bytes: bytes,
-            filename: 'Analise para retry — Relatorio.pdf',
+            filename: 'Analise para retry — Relatório.pdf',
           ),
         ).thenAnswer((_) async {});
 
@@ -1101,7 +1101,7 @@ void main() {
         when(
           () => pdfDriver.sharePdf(
             bytes: bytes,
-            filename: 'Analise com falha no share — Relatorio.pdf',
+            filename: 'Analise com falha no share — Relatório.pdf',
           ),
         ).thenThrow(Exception('share failed'));
 
@@ -1151,7 +1151,7 @@ void main() {
         when(
           () => pdfDriver.sharePdf(
             bytes: bytes,
-            filename: 'Analise-analysis-1 — Relatorio.pdf',
+            filename: 'Análise-analysis-1 — Relatório.pdf',
           ),
         ).thenAnswer((_) async {});
 
@@ -1161,7 +1161,7 @@ void main() {
         verify(
           () => pdfDriver.sharePdf(
             bytes: bytes,
-            filename: 'Analise-analysis-1 — Relatorio.pdf',
+            filename: 'Análise-analysis-1 — Relatório.pdf',
           ),
         ).called(1);
       },
@@ -1202,7 +1202,7 @@ void main() {
         when(
           () => pdfDriver.sharePdf(
             bytes: bytes,
-            filename: 'Analise concorrente — Relatorio.pdf',
+            filename: 'Analise concorrente — Relatório.pdf',
           ),
         ).thenAnswer((_) async {});
 
@@ -1260,7 +1260,7 @@ void main() {
         when(
           () => pdfDriver.sharePdf(
             bytes: bytes,
-            filename: 'Analise bloqueada — Relatorio.pdf',
+            filename: 'Analise bloqueada — Relatório.pdf',
           ),
         ).thenAnswer((_) async {});
 

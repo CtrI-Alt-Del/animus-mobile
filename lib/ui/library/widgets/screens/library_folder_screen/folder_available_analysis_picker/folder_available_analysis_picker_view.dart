@@ -37,7 +37,7 @@ class FolderAvailableAnalysisPickerView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Text(
-            'Adicionar analises',
+            'Adicionar análises',
             style: textTheme.titleSmall?.copyWith(
               color: tokens.textPrimary,
               fontWeight: FontWeight.w700,
@@ -45,7 +45,7 @@ class FolderAvailableAnalysisPickerView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Selecione analises disponiveis para preencher esta pasta.',
+            'Selecione análises disponíveis para preencher esta pasta.',
             style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
           ),
           const SizedBox(height: 16),
@@ -103,7 +103,7 @@ class FolderAvailableAnalysisPickerView extends StatelessWidget {
             Icon(Icons.inventory_2_outlined, color: tokens.textMuted, size: 42),
             const SizedBox(height: 12),
             Text(
-              'Nenhuma analise disponivel',
+              'Nenhuma análise disponível',
               textAlign: TextAlign.center,
               style: textTheme.labelMedium?.copyWith(
                 color: tokens.textPrimary,
@@ -162,7 +162,7 @@ class _AvailableAnalysisTile extends StatelessWidget {
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final String title = analysis.name.trim().isEmpty
-        ? 'Analise sem nome'
+        ? 'Análise sem nome'
         : analysis.name.trim();
 
     return Material(

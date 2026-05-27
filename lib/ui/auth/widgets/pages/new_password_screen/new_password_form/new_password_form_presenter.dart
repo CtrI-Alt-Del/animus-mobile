@@ -64,9 +64,9 @@ class NewPasswordFormPresenter {
 final Map<String, String Function(Object)> _newPasswordValidationMessages =
     <String, String Function(Object)>{
       ValidationMessage.required: (_) => 'Informe a nova senha.',
-      'minLength': (_) => 'A senha precisa ter no minimo 8 caracteres.',
-      'uppercase': (_) => 'A senha precisa ter pelo menos 1 letra maiuscula.',
-      'number': (_) => 'A senha precisa ter pelo menos 1 numero.',
+      'minLength': (_) => 'A senha precisa ter no mínimo 8 caracteres.',
+      'uppercase': (_) => 'A senha precisa ter pelo menos 1 letra maiúscula.',
+      'number': (_) => 'A senha precisa ter pelo menos 1 número.',
     };
 
 final Map<String, String Function(Object)> _confirmPasswordValidationMessages =

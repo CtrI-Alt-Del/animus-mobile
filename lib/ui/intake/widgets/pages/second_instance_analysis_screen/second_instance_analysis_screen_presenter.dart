@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -9,8 +10,10 @@ import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
+import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
@@ -18,18 +21,22 @@ import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart'
 import 'package:animus/core/storage/interfaces/storage_service.dart';
 import 'package:animus/drivers/document-picker-driver/index.dart';
 import 'package:animus/drivers/file_storage/index.dart';
+import 'package:animus/drivers/pdf-driver/index.dart';
 import 'package:animus/rest/services/index.dart';
 
-class SecondInstanceFirstInstanceAnalysisScreenPresenter {
+class SecondInstanceAnalysisScreenPresenter {
   static const List<String> allowedExtensions = <String>['pdf'];
-  static const int maxFileSizeInBytes = 50 * 1024 * 1024;
+  static const int maxFileSizeInBytes = 100 * 1024 * 1024;
   static const Duration pollingInterval = Duration(seconds: 3);
   static const Duration requestTimeout = Duration(seconds: 10);
   static const String failedMessage =
       'Não foi possível concluir esta etapa agora. Tente novamente.';
+  static const String exportFailedMessage =
+      'Não foi possível exportar a minuta agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
+  final PdfDriver _pdfDriver;
   final FileStorageDriver _fileStorageDriver;
   final DocumentPickerDriver _documentPickerDriver;
   final String analysisId;
@@ -47,7 +54,9 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
       signal<SecondInstanceJudgmentDraftDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
+  final Signal<bool> isArchived = signal<bool>(false);
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
+  final Signal<bool> isExportingReport = signal<bool>(false);
   final Signal<bool> precedentsReady = signal<bool>(false);
   final Signal<bool> hasChosenPrecedents = signal<bool>(false);
 
@@ -61,6 +70,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
     return !isUploading.value &&
         !isManagingAnalysis.value &&
+        !isExportingReport.value &&
         !isProcessingCase &&
         !isProcessingDraft;
   });
@@ -68,6 +78,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   late final ReadonlySignal<bool> canAnalyzeCase = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
+        !isExportingReport.value &&
         (selectedFile.value != null || analysisDocument.value != null) &&
         (status.value == AnalysisStatusDto.documentUploaded ||
             status.value == AnalysisStatusDto.failed);
@@ -76,12 +87,14 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   late final ReadonlySignal<bool> canRegenerateSummary = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
+        !isExportingReport.value &&
         status.value == AnalysisStatusDto.caseAnalyzed;
   });
 
   late final ReadonlySignal<bool> canSearchPrecedents = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
+        !isExportingReport.value &&
         status.value == AnalysisStatusDto.caseAnalyzed &&
         caseSummary.value != null;
   });
@@ -89,6 +102,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   late final ReadonlySignal<bool> canGenerateJudgmentDraft = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
+        !isExportingReport.value &&
         precedentsReady.value &&
         hasChosenPrecedents.value &&
         status.value != AnalysisStatusDto.generatingJudgmentDraft &&
@@ -98,8 +112,16 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   late final ReadonlySignal<bool> canRegenerateJudgmentDraft = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
+        !isExportingReport.value &&
         status.value == AnalysisStatusDto.done &&
         judgmentDraft.value != null;
+  });
+
+  late final ReadonlySignal<bool> canExportReport = computed(() {
+    return status.value == AnalysisStatusDto.done &&
+        judgmentDraft.value != null &&
+        !isManagingAnalysis.value &&
+        !isExportingReport.value;
   });
 
   late final ReadonlySignal<bool> showCaseProcessingBubble = computed(() {
@@ -147,14 +169,16 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     return 'Analisar';
   });
 
-  SecondInstanceFirstInstanceAnalysisScreenPresenter({
+  SecondInstanceAnalysisScreenPresenter({
     required IntakeService intakeService,
     required StorageService storageService,
+    required PdfDriver pdfDriver,
     required FileStorageDriver fileStorageDriver,
     required DocumentPickerDriver documentPickerDriver,
     required this.analysisId,
   }) : _intakeService = intakeService,
        _storageService = storageService,
+       _pdfDriver = pdfDriver,
        _fileStorageDriver = fileStorageDriver,
        _documentPickerDriver = documentPickerDriver;
 
@@ -171,6 +195,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
     final AnalysisDto analysis = analysisResponse.body;
     analysisName.value = analysis.name;
+    isArchived.value = analysis.isArchived;
     status.value = analysis.status;
     precedentsReady.value = _isPrecedentsReadyStatus(analysis.status);
 
@@ -218,7 +243,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
     final int fileSize = await file.length();
     if (fileSize > maxFileSizeInBytes) {
-      generalError.value = 'O arquivo deve ter no máximo 50MB.';
+      generalError.value = 'O arquivo deve ter no máximo 100MB.';
       return;
     }
 
@@ -310,6 +335,10 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 
   Future<void> resendDocument() async {
+    if (isManagingAnalysis.value || isExportingReport.value) {
+      return;
+    }
+
     selectedFile.value = null;
     analysisDocument.value = null;
     caseSummary.value = null;
@@ -322,7 +351,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 
   Future<bool> renameAnalysis(String name) async {
-    if (isManagingAnalysis.value) {
+    if (isManagingAnalysis.value || isExportingReport.value) {
       return false;
     }
 
@@ -348,7 +377,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 
   Future<bool> archiveAnalysis() async {
-    if (isManagingAnalysis.value) {
+    if (isManagingAnalysis.value || isExportingReport.value) {
       return false;
     }
 
@@ -364,6 +393,44 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
 
     generalError.value = null;
     return true;
+  }
+
+  Future<bool> exportSecondInstanceAnalysisReport() async {
+    if (!canExportReport.value) {
+      return false;
+    }
+
+    isExportingReport.value = true;
+    isManagingAnalysis.value = true;
+    generalError.value = null;
+
+    try {
+      final RestResponse<SecondInstanceAnalysisReportDto> reportResponse =
+          await _intakeService.getSecondInstanceAnalysisReport(
+            analysisId: analysisId,
+          );
+
+      if (reportResponse.isFailure) {
+        generalError.value = exportFailedMessage;
+        return false;
+      }
+
+      final SecondInstanceAnalysisReportDto report = _mergeReportWithDraft(
+        reportResponse.body,
+      );
+      final Uint8List bytes = await _pdfDriver
+          .generateSecondInstanceAnalysisReport(report: report);
+      final String filename = _buildReportFilename(report.analysis.name);
+
+      await _pdfDriver.sharePdf(bytes: bytes, filename: filename);
+      return true;
+    } catch (_) {
+      generalError.value = exportFailedMessage;
+      return false;
+    } finally {
+      isManagingAnalysis.value = false;
+      isExportingReport.value = false;
+    }
   }
 
   void markPrecedentsReady() {
@@ -406,7 +473,9 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     judgmentDraft.dispose();
     generalError.dispose();
     analysisName.dispose();
+    isArchived.dispose();
     isManagingAnalysis.dispose();
+    isExportingReport.dispose();
     precedentsReady.dispose();
     hasChosenPrecedents.dispose();
     canPickDocument.dispose();
@@ -415,10 +484,54 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
     canSearchPrecedents.dispose();
     canGenerateJudgmentDraft.dispose();
     canRegenerateJudgmentDraft.dispose();
+    canExportReport.dispose();
     showCaseProcessingBubble.dispose();
     showJudgmentDraftProcessingBubble.dispose();
     showPetitionNotFound.dispose();
     primaryActionLabel.dispose();
+  }
+
+  String _buildReportFilename(String rawAnalysisName) {
+    final String normalizedName = rawAnalysisName.trim();
+    final String fallbackName = 'Analise-$analysisId';
+    final String baseName = normalizedName.isEmpty
+        ? fallbackName
+        : normalizedName;
+    final String sanitizedName = baseName
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '-')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    final String safeName = sanitizedName.isEmpty
+        ? fallbackName
+        : sanitizedName;
+
+    return '$safeName - Minuta de Sentenca.pdf';
+  }
+
+  SecondInstanceAnalysisReportDto _mergeReportWithDraft(
+    SecondInstanceAnalysisReportDto report,
+  ) {
+    final SecondInstanceJudgmentDraftDto? currentDraft = judgmentDraft.value;
+    if (currentDraft == null || _hasDraftContent(report.judgmentDraft)) {
+      return report;
+    }
+
+    return SecondInstanceAnalysisReportDto(
+      analysis: report.analysis,
+      document: report.document,
+      caseSummary: report.caseSummary,
+      precedents: report.precedents,
+      judgmentDraft: currentDraft,
+    );
+  }
+
+  bool _hasDraftContent(SecondInstanceJudgmentDraftDto draft) {
+    return draft.report.trim().isNotEmpty ||
+        draft.meritAnalysis.trim().isNotEmpty ||
+        draft.precedentAdherenceAnalysis.trim().isNotEmpty ||
+        draft.ruling.any((String item) => item.trim().isNotEmpty) ||
+        (draft.preliminaryIssues?.trim().isNotEmpty ?? false) ||
+        (draft.noApplicablePrecedentNotice?.trim().isNotEmpty ?? false);
   }
 
   Future<void> _uploadAnalysisDocument(File file) async {
@@ -657,7 +770,7 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 
   String _buildTimeoutMessage() {
-    return '$failedMessage A requisicao excedeu o tempo limite de ${requestTimeout.inSeconds} segundos.';
+    return '$failedMessage A requisição excedeu o tempo limite de ${requestTimeout.inSeconds} segundos.';
   }
 
   String _getExtension(String path) {
@@ -670,14 +783,14 @@ class SecondInstanceFirstInstanceAnalysisScreenPresenter {
   }
 }
 
-final secondInstanceFirstInstanceAnalysisScreenPresenterProvider = Provider
-    .autoDispose
-    .family<SecondInstanceFirstInstanceAnalysisScreenPresenter, String>((
+final secondInstanceAnalysisScreenPresenterProvider = Provider.autoDispose
+    .family<SecondInstanceAnalysisScreenPresenter, String>((
       Ref ref,
       String analysisId,
     ) {
       final IntakeService intakeService = ref.watch(intakeServiceProvider);
       final StorageService storageService = ref.watch(storageServiceProvider);
+      final PdfDriver pdfDriver = ref.watch(pdfDriverProvider);
       final FileStorageDriver fileStorageDriver = ref.watch(
         fileStorageDriverProvider,
       );
@@ -685,10 +798,11 @@ final secondInstanceFirstInstanceAnalysisScreenPresenterProvider = Provider
         documentPickerDriverProvider,
       );
 
-      final SecondInstanceFirstInstanceAnalysisScreenPresenter presenter =
-          SecondInstanceFirstInstanceAnalysisScreenPresenter(
+      final SecondInstanceAnalysisScreenPresenter presenter =
+          SecondInstanceAnalysisScreenPresenter(
             intakeService: intakeService,
             storageService: storageService,
+            pdfDriver: pdfDriver,
             fileStorageDriver: fileStorageDriver,
             documentPickerDriver: documentPickerDriver,
             analysisId: analysisId,

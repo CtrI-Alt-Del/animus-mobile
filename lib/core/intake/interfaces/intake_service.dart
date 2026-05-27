@@ -22,6 +22,7 @@ abstract class IntakeService {
     String? cursor,
     required int limit,
     bool isArchived = false,
+    String search = '',
   });
 
   Future<RestResponse<AnalysisDto>> createAnalysis({
@@ -51,6 +52,7 @@ abstract class IntakeService {
     required String analysisId,
   }) => throw UnimplementedError();
 
+  /// Retorna o payload agregado usado na exportacao do relatorio da 2a instancia.
   Future<RestResponse<SecondInstanceAnalysisReportDto>>
   getSecondInstanceAnalysisReport({required String analysisId});
 

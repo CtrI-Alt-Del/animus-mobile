@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_search_bar/archived_analyses_search_bar_view.dart';
+
+typedef ArchivedAnalysesSearchBar = ArchivedAnalysesSearchBarView;

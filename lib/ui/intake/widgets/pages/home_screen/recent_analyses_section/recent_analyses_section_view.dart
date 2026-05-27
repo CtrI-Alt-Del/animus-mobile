@@ -194,6 +194,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                     return ProcessingAnalysisCard(
                       title: title,
                       dateLabel: formatCreatedAt(analysis.createdAt),
+                      type: analysis.type,
                       statusLabel: _resolveStatusLabel(analysis.status),
                       onTap: () {
                         unawaited(onTapAnalysis(analysis));
@@ -229,6 +230,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                     return RecentAnalysisCard(
                       title: title,
                       dateLabel: formatCreatedAt(analysis.createdAt),
+                      type: analysis.type,
                       statusLabel: _resolveStatusLabel(analysis.status),
                       onTap: () {
                         unawaited(onTapAnalysis(analysis));
@@ -269,14 +271,14 @@ class RecentAnalysesSectionView extends StatelessWidget {
         return 'Aguardando petição';
       case AnalysisStatusDto.petitionUploaded:
       case AnalysisStatusDto.documentUploaded:
-        return 'Peticao enviada';
+        return 'Petição enviada';
       case AnalysisStatusDto.analyzingPetition:
       case AnalysisStatusDto.analyzingCase:
-        return 'Peticao em análise';
+        return 'Petição em análise';
       case AnalysisStatusDto.extractingPetition:
         return 'Extraindo petição';
       case AnalysisStatusDto.caseAnalyzed:
-        return 'Peticao analisada';
+        return 'Petição analisada';
       case AnalysisStatusDto.searchingPrecedents:
         return 'Buscando precedentes';
       case AnalysisStatusDto.precedentsSearched:

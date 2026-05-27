@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/home_screen/create_analysis_type_dialog/create_analysis_type_option/create_analysis_type_option_view.dart';
+
+typedef CreateAnalysisTypeOption = CreateAnalysisTypeOptionView;

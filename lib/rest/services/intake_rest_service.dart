@@ -49,6 +49,7 @@ class IntakeRestService extends Service implements IntakeService {
     String? cursor,
     required int limit,
     bool isArchived = false,
+    String search = '',
   }) async {
     final RestResponse<CursorPaginationResponse<AnalysisDto>>? authFailure =
         requireAuth<CursorPaginationResponse<AnalysisDto>>();
@@ -63,6 +64,11 @@ class IntakeRestService extends Service implements IntakeService {
 
     if (cursor != null && cursor.trim().isNotEmpty) {
       queryParams['cursor'] = cursor;
+    }
+
+    final String trimmedSearch = search.trim();
+    if (trimmedSearch.isNotEmpty) {
+      queryParams['search'] = trimmedSearch;
     }
 
     final response = await restClient.get(
@@ -590,7 +596,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/analyses/precedents',
+      '/intake/analyses/precedents',
       body: <String, dynamic>{
         'analysis_id': analysisId,
         'identifier': <String, dynamic>{

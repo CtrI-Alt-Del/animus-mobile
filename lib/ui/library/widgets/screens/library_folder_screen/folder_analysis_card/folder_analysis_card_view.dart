@@ -25,7 +25,7 @@ class FolderAnalysisCardView extends StatelessWidget {
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final String title = analysis.name.trim().isEmpty
-        ? 'Analise sem nome'
+        ? 'Análise sem nome'
         : analysis.name;
 
     return Material(

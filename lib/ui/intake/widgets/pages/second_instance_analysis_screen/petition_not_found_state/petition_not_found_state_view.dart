@@ -14,7 +14,7 @@ class PetitionNotFoundStateView extends StatelessWidget {
       children: <Widget>[
         const AiBubble(
           message:
-              'Nao encontramos a peticao inicial no PDF enviado. Reenvie um documento com texto selecionavel e com a peticao completa.',
+              'Não encontramos a petição inicial no PDF enviado. Reenvie um documento com texto selecionável e com a petição completa.',
           isTyping: false,
         ),
         const SizedBox(height: 12),

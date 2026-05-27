@@ -1,13 +1,13 @@
 ---
-description: Prompt para concluir uma spec com validação final, atualização de documentação e geração de resumo estruturado para PR.
+description: Prompt para concluir uma spec com review de código integrado, validação final, atualização de documentação e geração de resumo estruturado para PR.
 ---
 
 # Prompt: Conclude Spec
 
 **Objetivo:** Finalizar e consolidar a implementação de uma Spec técnica no
-Animus Mobile, garantindo que o código Flutter esteja polido, documentado e
-validado no contexto do app — produzindo ao final um checklist de validação, os
-documentos atualizados e um resumo estruturado para PR.
+Animus Mobile, garantindo que o código Flutter esteja revisado, polido,
+documentado e validado no contexto do app — produzindo ao final um checklist
+de validação, os documentos atualizados e um resumo estruturado para PR.
 
 ---
 
@@ -19,6 +19,54 @@ documentos atualizados e um resumo estruturado para PR.
 
 ---
 
+## Fase 0 — Review de Código
+
+> ⚠️ **Esta fase deve ser executada antes de qualquer verificação estática.**
+
+O objetivo é revisar manualmente o diff da implementação com olhos críticos de
+revisor — identificando bugs, erros lógicos, inconsistências de nomenclatura e
+problemas de design que ferramentas de lint e análise estática não capturam.
+
+**0.1 Escaneamento Manual do Diff**
+
+Com base no diff injetado no contexto, leia o código implementado e procure
+ativamente por:
+
+- Erros de digitação em nomes de variáveis, funções, classes e arquivos
+- Erros lógicos: condições invertidas, retornos incorretos, operações na ordem errada
+- Inconsistências de nomenclatura: camelCase vs snake_case, plural vs singular,
+  prefixos/sufixos fora do padrão do projeto (ex.: `I` em interfaces, sufixos `Service`, `Presenter`, `Dto`)
+- Dead code: imports não utilizados, variáveis declaradas mas nunca lidas, branches inalcançáveis
+- Problemas de legibilidade: blocos muito longos sem extração de método, magic numbers sem constante nomeada
+- Erros óbvios de sintaxe que podem passar pelo parser mas indicam intenção equivocada
+
+Para cada problema encontrado, registre no formato:
+```
+- Arquivo: lib/...
+- Linha(s): N-M
+- Problema: descrição objetiva
+- Correção aplicada: o que foi ajustado
+```
+
+**0.2 Verificação de Conformidade com a Spec**
+
+Leia a Spec técnica e o código produzido lado a lado. Verifique se a
+**intenção do código** corresponde ao **comportamento esperado pela Spec** — não
+apenas se os componentes existem, mas se estão implementados corretamente
+(contratos respeitados, regras de domínio codificadas fielmente, edge cases
+tratados, estados de UI corretos).
+
+> Esta verificação é complementar ao checklist da Fase 1.4, que valida
+> presença dos componentes. A Fase 0.2 valida a **correção lógica** da
+> implementação.
+
+**0.3 Correções**
+
+Aplique imediatamente todas as correções identificadas nas etapas 0.1 e 0.2.
+Não avance para a Fase 1 com problemas de código identificados e não corrigidos.
+
+---
+
 ## Fase 1 — Verificação
 
 Esta fase é analítica e deve ser concluída antes de qualquer atualização de
@@ -26,12 +74,12 @@ documento.
 
 **1.1 Testes**
 
-Execute `flutter test` na raiz do projeto. Todos os testes - novos e
-existentes - devem estar passando. Caso algum falhe, interrompa e reporte.
+Execute `flutter test` na raiz do projeto. Todos os testes — novos e
+existentes — devem estar passando. Caso algum falhe, interrompa e reporte.
 
-Se a Spec impactar apenas uma parte do app, voce pode executar primeiro o
-arquivo ou diretório de teste mais específico para feedback rapido, mas a
-validacao final deve considerar `flutter test` na raiz.
+Se a Spec impactar apenas uma parte do app, você pode executar primeiro o
+arquivo ou diretório de teste mais específico para feedback rápido, mas a
+validação final deve considerar `flutter test` na raiz.
 
 > Falhas pré-existentes fora do escopo da Spec devem ser sinalizadas
 > explicitamente, indicando que são regressões anteriores e não introduzidas
@@ -46,6 +94,7 @@ Com base no diff injetado no contexto e nas regras em
 `documentation/rules/rest-layer-rules.md` e
 `documentation/rules/drivers-layer-rules.md`, verifique se os novos
 comportamentos introduzidos pela Spec possuem testes correspondentes.
+
 Considere como caminhos críticos que exigem cobertura:
 
 - Lógica nova ou modificada em `lib/core` (DTOs, contratos, respostas tipadas e
@@ -67,8 +116,8 @@ Ao final desta etapa, produza um relatório de cobertura no seguinte formato:
 ```markdown
 ## Cobertura de Testes
 
-- [x] <Comportamento A> - coberto em `test/caminho/do/test_arquivo.dart`
-- [x] <Comportamento B> - coberto em `test/caminho/do/test_arquivo.dart`
+- [x] <Comportamento A> — coberto em `test/caminho/do/test_arquivo.dart`
+- [x] <Comportamento B> — coberto em `test/caminho/do/test_arquivo.dart`
 - [ ] <Comportamento C> — **sem cobertura** (detalhe o que está faltando)
 ```
 
@@ -96,9 +145,9 @@ O subagent deve receber como contexto:
 > registre no relatório se existe ou não cobertura já presente; não abra
 > lacunas criando novos testes nessa fase.
 
-> O subagent e responsavel por criar os arquivos de teste, seguir as regras de
+> O subagent é responsável por criar os arquivos de teste, seguir as regras de
 > nomenclatura e estrutura do projeto, e garantir que `flutter test` passe ao
-> final. Nao avance para a Fase 2 enquanto o subagent nao concluir sem falhas.
+> final. Não avance para a Fase 2 enquanto o subagent não concluir sem falhas.
 
 **1.2 Lint e Formatação**
 
@@ -108,8 +157,8 @@ prosseguir.
 
 **1.3 Checagem de Tipos**
 
-Execute `flutter analyze` na raiz do projeto como checagem estatica final.
-O analisador Dart/Flutter deve retornar zero erros. Liste qualquer violacao
+Execute `flutter analyze` na raiz do projeto como checagem estática final.
+O analisador Dart/Flutter deve retornar zero erros. Liste qualquer violação
 explicitamente e corrija antes de prosseguir.
 
 **1.4 Cobertura de Requisitos**
@@ -121,8 +170,8 @@ no seguinte formato:
 ```markdown
 ## Checklist de Validação
 
-- [x] <Requisito A> - implementado em `lib/core/...`, `lib/rest/...`, `lib/drivers/...` ou `lib/ui/...`
-- [x] <Requisito B> - implementado em `lib/core/...`, `lib/rest/...`, `lib/drivers/...` ou `lib/ui/...`
+- [x] <Requisito A> — implementado em `lib/core/...`, `lib/rest/...`, `lib/drivers/...` ou `lib/ui/...`
+- [x] <Requisito B> — implementado em `lib/core/...`, `lib/rest/...`, `lib/drivers/...` ou `lib/ui/...`
 - [ ] <Requisito C> — **ausente ou incompleto** (detalhe o gap)
 ```
 
@@ -133,22 +182,22 @@ são acionados pelas camadas impactadas pela Spec. Em seguida, leia cada um dos
 docs relevantes e valide o código implementado contra eles.
 
 Verifique obrigatoriamente os documentos acionados pelas camadas impactadas.
-Em geral, os mais comuns no Animus Mobile sao:
+Em geral, os mais comuns no Animus Mobile são:
 
-- `documentation/rules/core-layer-rules.md` - `lib/core` puro, contendo DTOs,
-  contratos e tipos compartilhados sem dependencias de infraestrutura
-- `documentation/rules/rest-layer-rules.md` - services HTTP, clients e mappers
-  focados em integracao e traducao de dados
-- `documentation/rules/drivers-layer-rules.md` - adaptadores de plugins, cache,
+- `documentation/rules/core-layer-rules.md` — `lib/core` puro, contendo DTOs,
+  contratos e tipos compartilhados sem dependências de infraestrutura
+- `documentation/rules/rest-layer-rules.md` — services HTTP, clients e mappers
+  focados em integração e tradução de dados
+- `documentation/rules/drivers-layer-rules.md` — adaptadores de plugins, cache,
   storage, env e outros recursos concretos da plataforma
-- `documentation/rules/ui-layer-rules.md` - padrao MVP, widgets Flutter,
-  presenters, composicao de telas e estado visual
-- `documentation/rules/websocket-layer-rules.md` - listeners, envelopes e
-  integracoes realtime, quando a Spec tocar comunicacao ao vivo
-- `documentation/rules/code-conventions-rules.md` - nomenclatura, organizacao
-  de modulos, imports e padroes gerais de codigo
-- `documentation/rules/unit-tests-rules.md` - estrutura, mocks, fakers e
-  convencoes de testes
+- `documentation/rules/ui-layer-rules.md` — padrão MVP, widgets Flutter,
+  presenters, composição de telas e estado visual
+- `documentation/rules/websocket-layer-rules.md` — listeners, envelopes e
+  integrações realtime, quando a Spec tocar comunicação ao vivo
+- `documentation/rules/code-conventions-rules.md` — nomenclatura, organização
+  de módulos, imports e padrões gerais de código
+- `documentation/rules/unit-tests-rules.md` — estrutura, mocks, fakers e
+  convenções de testes
 
 Ao validar a camada `lib/drivers`, trate cobertura de testes apenas como
 diagnóstico: a fase de conclude spec **não deve criar novos testes para
@@ -190,20 +239,21 @@ da spec — ex.: se a spec está em
 Marque como concluídos os itens endereçados pela implementação. A audiência aqui
 é de produto — traduza o impacto técnico para linguagem de negócio.
 
-> 💡 Não copie conteúdo técnico de baixo nível para o PRD — sintetize o valor
+> Não copie conteúdo técnico de baixo nível para o PRD — sintetize o valor
 > entregue.
 
 **Divergência spec → PRD:** Caso a implementação concluída introduza algum
 aspecto que contradiga ou não esteja coberto pelo PRD (ex: regra de negócio
 refinada, escopo ampliado ou reduzido, comportamento diferente do especificado),
 atualize o PRD para refletir a realidade entregue. Registre a divergência no
-campo **"O que mudou em relação à Spec original"** do resumo de conclusão da spec (seção 3.1).
+campo **"O que mudou em relação à Spec original"** do resumo de conclusão da spec
+(seção 3.1).
 
 **2.3 Atualização da Arquitetura (se aplicável)**
 
-Caso a implementacao tenha introduzido novo fluxo de dados, novo contrato entre
-camadas, nova integracao (REST, WebSocket, cache, storage ou plugin) ou mudanca
-relevante na estrutura de diretorios, atualize `documentation/architecture.md`
+Caso a implementação tenha introduzido novo fluxo de dados, novo contrato entre
+camadas, nova integração (REST, WebSocket, cache, storage ou plugin) ou mudança
+relevante na estrutura de diretórios, atualize `documentation/architecture.md`
 para refletir a realidade atual do projeto.
 
 **2.4 Atualização de Rules (se aplicável)**
@@ -218,7 +268,7 @@ padrão e exemplos práticos.
 
 Esta fase produz o artefato final para facilitar a abertura do Pull Request.
 
-**3.1 Resumo de conclusão da spec**
+**3.1 Resumo de Conclusão da Spec**
 
 Gere um resumo de conclusão com a seguinte estrutura obrigatória:
 ```markdown
@@ -238,19 +288,21 @@ explicitamente "Nenhum desvio em relação à Spec original.">
 
 ## Pontos de atenção para o revisor
 
-<Riscos, areas sensiveis, dependencias externas ou decisoes que merecem revisao
-cuidadosa. Inclua mudancas de contrato REST/WebSocket, DTOs compartilhados,
-impactos em cache/local storage, efeitos em navegacao, dependencias de plugin,
+<Riscos, áreas sensíveis, dependências externas ou decisões que merecem revisão
+cuidadosa. Inclua mudanças de contrato REST/WebSocket, DTOs compartilhados,
+impactos em cache/local storage, efeitos em navegação, dependências de plugin,
 uso de `--dart-define` ou side effects relevantes em presenters/services. Se
-nenhum, declare explicitamente "Nenhum ponto de atencao identificado.">
+nenhum, declare explicitamente "Nenhum ponto de atenção identificado.">
 
 ## Checklist
 
+- [ ] Revisão de código manual aplicada (Fase 0: bugs, lógica, nomenclatura)
 - [ ] `dart format .` aplicado nos arquivos impactados
 - [ ] `flutter analyze` passou sem warnings ou erros
 - [ ] `flutter test` passou sem falhas (ou regressões pré-existentes devidamente sinalizadas)
 - [ ] Cobertura de testes verificada e lacunas críticas endereçadas
 - [ ] Limites arquiteturais validados
+- [ ] Spec atualizada com status `closed` e data
 - [ ] PRD atualizado com os itens concluídos (e divergências registradas, se houver)
 - [ ] `architecture.md` atualizado (se aplicável)
 - [ ] Rules atualizadas (se novos padrões foram introduzidos)
@@ -262,9 +314,10 @@ nenhum, declare explicitamente "Nenhum ponto de atencao identificado.">
 
 Ao final da execução, devem ter sido produzidos:
 
-1. **Relatório de cobertura de testes** (Fase 1.1.1)
-2. **Testes criados pelo subagent** para componentes sem cobertura (Fase 1.1.2, quando aplicável)
-3. **Checklist de validação** de requisitos (Fase 1.4)
-4. **Spec atualizada** com status `closed` e data (Fase 2.1)
-5. **PRD atualizado** com itens marcados como concluídos e divergências registradas, se houver (Fase 2.2)
-6. **Resumo de conclusão da spec** com estrutura completa (Fase 3.1)
+1. **Relatório de revisão de código** (Fase 0) — bugs, erros lógicos e inconsistências corrigidos
+2. **Relatório de cobertura de testes** (Fase 1.1.1)
+3. **Testes criados pelo subagent** para componentes sem cobertura (Fase 1.1.2, quando aplicável)
+4. **Checklist de validação** de requisitos (Fase 1.4)
+5. **Spec atualizada** com status `closed` e data (Fase 2.1)
+6. **PRD atualizado** com itens marcados como concluídos e divergências registradas, se houver (Fase 2.2)
+7. **Resumo de conclusão da spec** com estrutura completa (Fase 3.1)

@@ -28,7 +28,7 @@ void main() {
     expect(find.text('Falha ao entrar'), findsOneWidget);
     expect(find.text('Entrar'), findsOneWidget);
     expect(find.text('Continuar com Google'), findsOneWidget);
-    expect(find.text('Nao tem conta? '), findsOneWidget);
+    expect(find.text('Não tem conta? '), findsOneWidget);
     expect(find.text('Criar conta'), findsOneWidget);
   });
 

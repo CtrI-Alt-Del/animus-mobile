@@ -15,6 +15,7 @@ class AnalysisHeaderView extends StatelessWidget {
   final bool isMenuEnabled;
   final bool showExportReport;
   final bool isExportingReport;
+  final bool isArchived;
 
   const AnalysisHeaderView({
     required this.onBack,
@@ -28,6 +29,7 @@ class AnalysisHeaderView extends StatelessWidget {
     this.isMenuEnabled = true,
     this.showExportReport = false,
     this.isExportingReport = false,
+    this.isArchived = false,
     super.key,
   });
 
@@ -49,14 +51,42 @@ class AnalysisHeaderView extends StatelessWidget {
             ),
             Expanded(
               child: Center(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleMedium?.copyWith(
-                    color: tokens.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Flexible(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: tokens.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (isArchived) ...<Widget>[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: tokens.surfaceElevated,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: tokens.borderSubtle),
+                        ),
+                        child: Text(
+                          'Análise arquivada',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: tokens.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),

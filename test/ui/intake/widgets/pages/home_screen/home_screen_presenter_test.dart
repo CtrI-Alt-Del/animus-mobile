@@ -348,7 +348,7 @@ void main() {
       expect(presenter.isCreatingAnalysis.value, isFalse);
       expect(
         presenter.generalError.value,
-        'Não foi possivel abrir a analise criada.',
+        'Não foi possível abrir a análise criada.',
       );
       verifyNever(() => navigationDriver.pushTo(any()));
     });
@@ -388,7 +388,7 @@ void main() {
       final HomeScreenPresenter presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      expect(presenter.formatCreatedAt('data-invalida'), 'Data indisponivel');
+      expect(presenter.formatCreatedAt('data-invalida'), 'Data indisponível');
     });
   });
 
@@ -421,7 +421,7 @@ void main() {
 
       expect(
         presenter.generalError.value,
-        'Não foi possivel carregar as analises agora. Tente novamente.',
+        'Não foi possível carregar as análises agora. Tente novamente.',
       );
     },
   );

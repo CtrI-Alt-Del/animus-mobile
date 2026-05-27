@@ -131,7 +131,7 @@ class ForgotPasswordScreenPresenter {
     try {
       return response.errorMessage;
     } catch (_) {
-      return 'Não foi possivel enviar o link agora. Tente novamente.';
+      return 'Não foi possível enviar o link agora. Tente novamente.';
     }
   }
 }

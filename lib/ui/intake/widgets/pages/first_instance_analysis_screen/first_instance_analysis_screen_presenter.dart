@@ -13,6 +13,7 @@ import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
@@ -36,9 +37,9 @@ class FirstInstanceAnalysisScreenPresenter {
   static const Duration summaryPollingInterval = Duration(seconds: 3);
   static const Duration summaryRequestTimeout = Duration(seconds: 10);
   static const String failedMessage =
-      'Não foi possivel analisar o documento agora. Tente novamente.';
+      'Não foi possível analisar o documento agora. Tente novamente.';
   static const String exportFailedMessage =
-      'Não foi possivel exportar o relatorio agora. Tente novamente.';
+      'Não foi possível exportar o relatório agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
@@ -59,6 +60,7 @@ class FirstInstanceAnalysisScreenPresenter {
   final Signal<CaseSummaryDto?> summary = signal<CaseSummaryDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
+  final Signal<bool> isArchived = signal<bool>(false);
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
   final Signal<bool> isExportingReport = signal<bool>(false);
   final Signal<int> precedentsLimit = signal<int>(defaultPrecedentsLimit);
@@ -151,6 +153,7 @@ class FirstInstanceAnalysisScreenPresenter {
 
     final AnalysisStatusDto analysisStatus = analysisResponse.body.status;
     analysisName.value = analysisResponse.body.name;
+    isArchived.value = analysisResponse.body.isArchived;
 
     if (analysisStatus == AnalysisStatusDto.failed) {
       await _resetFailedAnalysis();
@@ -260,7 +263,7 @@ class FirstInstanceAnalysisScreenPresenter {
 
     final int fileSize = await file.length();
     if (fileSize > maxFileSizeInBytes) {
-      generalError.value = 'O arquivo deve ter no maximo 50MB.';
+      generalError.value = 'O arquivo deve ter no máximo 50MB.';
       return;
     }
 
@@ -450,7 +453,7 @@ class FirstInstanceAnalysisScreenPresenter {
 
   String _buildReportFilename(String rawAnalysisName) {
     final String normalizedName = rawAnalysisName.trim();
-    final String fallbackName = 'Analise-$analysisId';
+    final String fallbackName = 'Análise-$analysisId';
     final String baseName = normalizedName.isEmpty
         ? fallbackName
         : normalizedName;
@@ -462,7 +465,7 @@ class FirstInstanceAnalysisScreenPresenter {
         ? fallbackName
         : sanitizedName;
 
-    return '$safeName — Relatorio.pdf';
+    return '$safeName — Relatório.pdf';
   }
 
   void setPrecedentsLimit(int value) {
@@ -538,6 +541,7 @@ class FirstInstanceAnalysisScreenPresenter {
     summary.dispose();
     generalError.dispose();
     analysisName.dispose();
+    isArchived.dispose();
     isManagingAnalysis.dispose();
     isExportingReport.dispose();
     precedentsLimit.dispose();
@@ -695,6 +699,13 @@ class _PendingPdfDriver implements PdfDriver {
   @override
   Future<Uint8List> generateAnalysisReport({
     required FirstInstanceAnalysisReportDto report,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Uint8List> generateSecondInstanceAnalysisReport({
+    required SecondInstanceAnalysisReportDto report,
   }) async {
     throw UnimplementedError();
   }

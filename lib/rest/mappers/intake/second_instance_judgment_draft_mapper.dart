@@ -7,22 +7,34 @@ final class SecondInstanceJudgmentDraftMapper {
   static SecondInstanceJudgmentDraftDto toDto(Json json) {
     return SecondInstanceJudgmentDraftDto(
       analysisId:
-          (json['analysis_id'] as String?) ??
-          (json['analysisId'] as String?) ??
+          _toStringValue(json['analysis_id']) ??
+          _toStringValue(json['analysisId']) ??
           '',
-      report: (json['report'] as String?) ?? '',
-      meritAnalysis: (json['merit_analysis'] as String?) ?? '',
+      report: _toStringValue(json['report']) ?? '',
+      meritAnalysis:
+          _toStringValue(json['merit_analysis']) ??
+          _toStringValue(json['meritAnalysis']) ??
+          '',
       precedentAdherenceAnalysis:
-          (json['precedent_adherence_analysis'] as String?) ?? '',
+          _toStringValue(json['precedent_adherence_analysis']) ??
+          _toStringValue(json['precedentAdherenceAnalysis']) ??
+          '',
       ruling: _toStringList(json['ruling']),
-      preliminaryIssues: _toNullableString(json['preliminary_issues']),
-      noApplicablePrecedentNotice: _toNullableString(
-        json['no_applicable_precedent_notice'],
-      ),
+      preliminaryIssues:
+          _toNullableString(json['preliminary_issues']) ??
+          _toNullableString(json['preliminaryIssues']),
+      noApplicablePrecedentNotice:
+          _toNullableString(json['no_applicable_precedent_notice']) ??
+          _toNullableString(json['noApplicablePrecedentNotice']),
     );
   }
 
   static List<String> _toStringList(dynamic value) {
+    if (value is String) {
+      final String normalized = value.trim();
+      return normalized.isEmpty ? const <String>[] : <String>[normalized];
+    }
+
     if (value is! List<dynamic>) {
       return const <String>[];
     }
@@ -31,11 +43,19 @@ final class SecondInstanceJudgmentDraftMapper {
   }
 
   static String? _toNullableString(dynamic value) {
-    final String normalized = (value as String? ?? '').trim();
+    final String normalized = _toStringValue(value)?.trim() ?? '';
     if (normalized.isEmpty) {
       return null;
     }
 
     return normalized;
+  }
+
+  static String? _toStringValue(dynamic value) {
+    return switch (value) {
+      String stringValue => stringValue,
+      num numberValue => numberValue.toString(),
+      _ => null,
+    };
   }
 }

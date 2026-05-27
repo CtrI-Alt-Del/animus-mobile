@@ -27,7 +27,7 @@ class ArchiveAnalysisDialogView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Text(
-              'Arquivar analise',
+              'Arquivar análise',
               style: textTheme.titleMedium?.copyWith(
                 color: tokens.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -35,7 +35,7 @@ class ArchiveAnalysisDialogView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Voce pode encontra-la novamente na lista de analises arquivadas.',
+              'Você pode encontrá-la novamente na lista de análises arquivadas.',
               style: textTheme.bodyMedium?.copyWith(
                 color: tokens.textMuted,
                 height: 1.4,
