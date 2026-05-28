@@ -267,6 +267,26 @@ class _SecondInstanceAnalysisScreenViewState
     presenter.syncSelectedFilters(courts: result.courts, kinds: result.kinds);
   }
 
+  Future<void> _handleExportReport(
+    BuildContext context,
+    SecondInstanceFirstInstanceAnalysisScreenPresenter presenter,
+  ) async {
+    final bool exported = await presenter.exportAnalysisReport();
+    if (!mounted || !context.mounted || !exported) {
+      return;
+    }
+
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Relatório exportado com sucesso.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -307,9 +327,15 @@ class _SecondInstanceAnalysisScreenViewState
                       );
                       final bool isManaging = presenter.isManagingAnalysis
                           .watch(context);
+                      final bool isExportingReport = presenter.isExportingReport
+                          .watch(context);
                       final AnalysisStatusDto status = presenter.status.watch(
                         context,
                       );
+                      final bool canExportReport = presenter.canExportReport
+                          .watch(context);
+                      final bool showExportReport =
+                          status == AnalysisStatusDto.done;
                       final bool showPrecedentsActions = _isPrecedentsFlow(
                         status,
                       );
@@ -330,7 +356,13 @@ class _SecondInstanceAnalysisScreenViewState
 
                           context.go(Routes.home);
                         },
-                        onExportReport: null,
+                        onExportReport: canExportReport
+                            ? () {
+                                unawaited(
+                                  _handleExportReport(context, presenter),
+                                );
+                              }
+                            : null,
                         title: analysisName,
                         isArchived: isArchived,
                         onPrecedentsCount: isManaging || !showPrecedentsActions
@@ -397,8 +429,8 @@ class _SecondInstanceAnalysisScreenViewState
                               },
                         appliedFiltersCount: appliedFiltersCount,
                         isMenuEnabled: !isManaging,
-                        showExportReport: false,
-                        isExportingReport: false,
+                        showExportReport: showExportReport,
+                        isExportingReport: isExportingReport,
                       );
                     }),
                     Expanded(
@@ -425,13 +457,15 @@ class _SecondInstanceAnalysisScreenViewState
                           final bool showPetitionNotFound = presenter
                               .showPetitionNotFound
                               .watch(context);
-                          final bool showDraftProcessing = presenter
-                              .showJudgmentDraftProcessingBubble
-                              .watch(context);
+                          final bool showDraftProcessing =
+                              status ==
+                                  AnalysisStatusDto.generatingJudgmentDraft ||
+                              status == AnalysisStatusDto.generatingSynthesis;
                           final bool showSummary =
                               presenter.caseSummary.watch(context) != null;
+                          final draft = presenter.judgmentDraft.watch(context);
                           final bool showDraft =
-                              presenter.judgmentDraft.watch(context) != null;
+                              draft != null && !showDraftProcessing;
                           final bool showPrecedents =
                               status == AnalysisStatusDto.searchingPrecedents ||
                               status == AnalysisStatusDto.precedentsSearched ||
@@ -595,11 +629,7 @@ class _SecondInstanceAnalysisScreenViewState
                                 const SizedBox(height: 12),
                               ],
                               if (showDraft) ...<Widget>[
-                                _animatedEntry(
-                                  JudgmentDraftCard(
-                                    draft: presenter.judgmentDraft.value!,
-                                  ),
-                                ),
+                                _animatedEntry(JudgmentDraftCard(draft: draft)),
                                 const SizedBox(height: 12),
                               ],
                               if (generalError != null &&
