@@ -117,7 +117,7 @@ void main() {
 
     expect(
       find.text(
-        'Nenhum precedente relevante foi encontrado para esta petição.',
+        'Nenhum precedente relevante foi encontrado para esta análise.',
       ),
       findsOneWidget,
     );

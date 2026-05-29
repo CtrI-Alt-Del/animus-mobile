@@ -63,7 +63,7 @@ void main() {
       addTearDown(presenter.dispose);
 
       expect(presenter.status.value, AnalysisStatusDto.waitingDocumentUpload);
-      expect(presenter.fileActionLabel.value, 'Selecionar petição');
+      expect(presenter.fileActionLabel.value, 'Selecionar documento do caso');
       expect(presenter.primaryActionLabel.value, 'Analisar');
     });
 
@@ -102,6 +102,7 @@ void main() {
       expect(presenter.canGeneratePetitionDraft.value, isFalse);
 
       presenter.precedentsReady.value = true;
+      presenter.hasChosenPrecedents.value = true;
       expect(presenter.canGeneratePetitionDraft.value, isTrue);
 
       presenter.status.value = AnalysisStatusDto.generatingPetitionDraft;
