@@ -492,10 +492,9 @@ class FirstInstanceAnalysisScreenPresenter {
   }) {
     final List<PrecedentKindDto> validKinds =
         PrecedentKindDto.getValidKindsForCourts(courts);
-    final List<PrecedentKindDto> filteredKinds =
-        kinds
-            .where((PrecedentKindDto kind) => validKinds.contains(kind))
-            .toList(growable: false);
+    final List<PrecedentKindDto> filteredKinds = kinds
+        .where((PrecedentKindDto kind) => validKinds.contains(kind))
+        .toList(growable: false);
 
     precedentsCourts.value = List<CourtDto>.unmodifiable(courts);
     precedentsKinds.value = List<PrecedentKindDto>.unmodifiable(filteredKinds);
