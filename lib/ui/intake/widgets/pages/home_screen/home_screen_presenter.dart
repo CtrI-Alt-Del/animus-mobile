@@ -9,6 +9,7 @@ import 'package:animus/constants/routes.dart';
 import 'package:animus/core/auth/dtos/account_dto.dart';
 import 'package:animus/core/auth/interfaces/auth_service.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
@@ -100,7 +101,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         accountResponse,
         fallback:
-            'Nao foi possivel carregar a sua conta agora. Tente novamente.',
+            'Não foi possível carregar a sua conta agora. Tente novamente.',
       );
       isLoadingInitialData.value = false;
       return;
@@ -128,7 +129,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         analysesResponse,
         fallback:
-            'Nao foi possivel carregar as analises agora. Tente novamente.',
+            'Não foi possível carregar as análises agora. Tente novamente.',
       );
       isLoadingInitialData.value = false;
       return;
@@ -170,7 +171,7 @@ class HomeScreenPresenter {
       generalError.value = _resolveErrorMessage(
         response,
         fallback:
-            'Nao foi possivel carregar mais analises agora. Role novamente para tentar de novo.',
+            'Não foi possível carregar mais análises agora. Role novamente para tentar de novo.',
       );
       isLoadingMore.value = false;
       return;
@@ -188,7 +189,9 @@ class HomeScreenPresenter {
     isLoadingMore.value = false;
   }
 
-  Future<void> createAnalysis() async {
+  Future<void> createAnalysis({
+    AnalysisTypeDto type = AnalysisTypeDto.firstInstance,
+  }) async {
     if (isCreatingAnalysis.value) {
       return;
     }
@@ -197,12 +200,12 @@ class HomeScreenPresenter {
     generalError.value = null;
 
     final RestResponse<AnalysisDto> response = await _intakeService
-        .createAnalysis();
+        .createAnalysis(type: type);
 
     if (response.isFailure) {
       generalError.value = _resolveErrorMessage(
         response,
-        fallback: 'Nao foi possivel iniciar uma nova analise agora.',
+        fallback: 'Não foi possível iniciar uma nova análise agora.',
       );
       isCreatingAnalysis.value = false;
       return;
@@ -210,13 +213,15 @@ class HomeScreenPresenter {
 
     final String analysisId = (response.body.id ?? '').trim();
     if (analysisId.isEmpty) {
-      generalError.value = 'Nao foi possivel abrir a analise criada.';
+      generalError.value = 'Não foi possível abrir a análise criada.';
       isCreatingAnalysis.value = false;
       return;
     }
 
     isCreatingAnalysis.value = false;
-    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+    await _navigationDriver.pushTo(
+      Routes.getAnalysis(analysisId: analysisId, analysisType: type),
+    );
     await refresh();
   }
 
@@ -238,7 +243,23 @@ class HomeScreenPresenter {
       return;
     }
 
-    await _navigationDriver.pushTo(Routes.getAnalysis(analysisId: analysisId));
+    switch (analysis.type) {
+      case AnalysisTypeDto.firstInstance:
+        await _navigationDriver.pushTo(
+          Routes.getFirstInstanceAnalysis(analysisId: analysisId),
+        );
+        break;
+      case AnalysisTypeDto.secondInstance:
+        await _navigationDriver.pushTo(
+          Routes.getSecondInstanceAnalysis(analysisId: analysisId),
+        );
+        break;
+      case AnalysisTypeDto.caseAssessment:
+        await _navigationDriver.pushTo(
+          Routes.getSecondInstanceAnalysis(analysisId: analysisId),
+        );
+    }
+
     await refresh();
   }
 
@@ -249,7 +270,7 @@ class HomeScreenPresenter {
   String formatCreatedAt(String value) {
     final DateTime? parsedDate = DateTime.tryParse(value);
     if (parsedDate == null) {
-      return 'Data indisponivel';
+      return 'Data indisponível';
     }
 
     final String day = parsedDate.day.toString().padLeft(2, '0');
@@ -297,6 +318,11 @@ class HomeScreenPresenter {
     _isPollingProcessing = true;
 
     try {
+      final Set<String> previousProcessingIds = _processingAnalyses
+          .map((AnalysisDto analysis) => (analysis.id ?? '').trim())
+          .where((String id) => id.isNotEmpty)
+          .toSet();
+
       final RestResponse<List<AnalysisDto>> response = await _intakeService
           .listProcessingAnalyses();
       if (response.isFailure) {
@@ -304,12 +330,45 @@ class HomeScreenPresenter {
       }
 
       _processingAnalyses = List<AnalysisDto>.unmodifiable(response.body);
+
+      final Set<String> currentProcessingIds = _processingAnalyses
+          .map((AnalysisDto analysis) => (analysis.id ?? '').trim())
+          .where((String id) => id.isNotEmpty)
+          .toSet();
+
+      final bool hasCompletedAnalyses = previousProcessingIds.any(
+        (String id) => !currentProcessingIds.contains(id),
+      );
+
+      if (hasCompletedAnalyses) {
+        await _refreshRecentAnalysesPage();
+        return;
+      }
+
       recentAnalyses.value = List<AnalysisDto>.unmodifiable(
         _mergeProcessingAnalyses(recentAnalyses.value),
       );
     } finally {
       _isPollingProcessing = false;
     }
+  }
+
+  Future<void> _refreshRecentAnalysesPage() async {
+    final RestResponse<CursorPaginationResponse<AnalysisDto>> response =
+        await _intakeService.listAnalyses(limit: _pageSize, isArchived: false);
+
+    if (response.isFailure) {
+      recentAnalyses.value = List<AnalysisDto>.unmodifiable(
+        _mergeProcessingAnalyses(recentAnalyses.value),
+      );
+      return;
+    }
+
+    final CursorPaginationResponse<AnalysisDto> pagination = response.body;
+    recentAnalyses.value = List<AnalysisDto>.unmodifiable(
+      _mergeProcessingAnalyses(pagination.items),
+    );
+    nextCursor.value = pagination.nextCursor;
   }
 
   String _extractFirstName(AccountDto account) {

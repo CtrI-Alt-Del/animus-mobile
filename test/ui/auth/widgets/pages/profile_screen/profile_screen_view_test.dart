@@ -18,6 +18,7 @@ void main() {
     presenter = _MockProfileScreenPresenter();
     when(() => presenter.initialize()).thenAnswer((_) async {});
     when(() => presenter.signOut()).thenAnswer((_) async {});
+    when(() => presenter.goToArchivedAnalyses()).thenReturn(null);
     when(() => presenter.dispose()).thenReturn(null);
     when(() => presenter.appVersionLabel).thenReturn(signal<String>('v1.0.0'));
     when(() => presenter.isLoadingInitialData).thenReturn(signal<bool>(false));
@@ -74,6 +75,7 @@ void main() {
     expect(find.text('ada@example.com'), findsOneWidget);
     expect(find.text('Editar Nome'), findsOneWidget);
     expect(find.text('Alterar Senha'), findsOneWidget);
+    expect(find.text('Análises arquivadas'), findsOneWidget);
     expect(find.text('Tema'), findsOneWidget);
     expect(find.text('Sobre o App'), findsOneWidget);
     expect(find.text('v1.0.0'), findsOneWidget);
@@ -83,6 +85,21 @@ void main() {
     expect(find.text('BIBLIOTECA'), findsNothing);
     expect(find.text('PERFIL'), findsNothing);
   });
+
+  testWidgets(
+    'dispara goToArchivedAnalyses ao tocar no tile de analises arquivadas',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(_createWidget(presenter));
+      await tester.pump();
+      clearInteractions(presenter);
+
+      await tester.ensureVisible(find.text('Análises arquivadas'));
+      await tester.tap(find.text('Análises arquivadas'));
+      await tester.pump();
+
+      verify(() => presenter.goToArchivedAnalyses()).called(1);
+    },
+  );
 
   testWidgets('dispara signOut ao tocar no botao de sair', (
     WidgetTester tester,

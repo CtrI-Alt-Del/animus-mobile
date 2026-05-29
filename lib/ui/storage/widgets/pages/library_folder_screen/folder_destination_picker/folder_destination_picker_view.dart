@@ -56,7 +56,7 @@ class FolderDestinationPickerView extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Escolha uma pasta de destino para as analises selecionadas.',
+                'Escolha uma pasta de destino para as análises selecionadas.',
                 style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
               ),
               const SizedBox(height: 16),
@@ -64,7 +64,7 @@ class FolderDestinationPickerView extends ConsumerWidget {
                 _DestinationTile(
                   icon: Icons.inbox_outlined,
                   title: 'Sem pasta',
-                  subtitle: 'Remover organizacao das analises',
+                  subtitle: 'Remover organização das análises',
                   onTap: () => _select(context, null),
                 ),
                 const SizedBox(height: 12),
@@ -104,7 +104,7 @@ class FolderDestinationPickerView extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 24),
                       child: Center(
                         child: Text(
-                          'Nenhuma outra pasta disponivel.',
+                          'Nenhuma outra pasta disponível.',
                           style: textTheme.bodySmall?.copyWith(
                             color: tokens.textMuted,
                           ),
@@ -126,7 +126,7 @@ class FolderDestinationPickerView extends ConsumerWidget {
                       return _DestinationTile(
                         icon: Icons.folder_outlined,
                         title: folder.name,
-                        subtitle: '${folder.analysisCount} analises',
+                        subtitle: '${folder.analysisCount} análises',
                         onTap: () => _select(context, folderId),
                       );
                     },

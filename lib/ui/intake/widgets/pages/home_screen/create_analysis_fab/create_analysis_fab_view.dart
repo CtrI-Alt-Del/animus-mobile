@@ -21,7 +21,7 @@ class CreateAnalysisFabView extends StatelessWidget {
     final VoidCallback? effectiveOnPressed = isLoading ? null : onPressed;
 
     return Tooltip(
-      message: isLoading ? 'Criando analise...' : 'Iniciar nova analise',
+      message: isLoading ? 'Criando análise...' : 'Iniciar nova análise',
       child: SizedBox(
         width: _size,
         height: _size,

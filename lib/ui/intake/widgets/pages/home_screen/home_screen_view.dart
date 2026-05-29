@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/create_analysis_fab/index.dart';
+import 'package:animus/ui/intake/widgets/pages/home_screen/create_analysis_type_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_background_decorations/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_header/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/index.dart';
@@ -24,6 +28,23 @@ class HomeScreenView extends ConsumerWidget {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
+    Future<void> handleCreateAnalysis(BuildContext dialogContext) async {
+      final AnalysisTypeDto? selectedType = await showDialog<AnalysisTypeDto>(
+        context: dialogContext,
+        builder: (_) => const CreateAnalysisTypeDialog(),
+      );
+
+      if (selectedType == null) {
+        return;
+      }
+
+      if (!dialogContext.mounted) {
+        return;
+      }
+
+      await presenter.createAnalysis(type: selectedType);
+    }
+
     return Scaffold(
       backgroundColor: tokens.surfacePage,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -37,7 +58,11 @@ class HomeScreenView extends ConsumerWidget {
 
         return CreateAnalysisFab(
           isLoading: isCreatingAnalysis,
-          onPressed: isLoadingInitialData ? null : presenter.createAnalysis,
+          onPressed: isLoadingInitialData
+              ? null
+              : () {
+                  unawaited(handleCreateAnalysis(context));
+                },
         );
       }),
       body: SafeArea(
@@ -99,7 +124,7 @@ class HomeScreenView extends ConsumerWidget {
                             },
                             onLoadMore: presenter.loadNextPage,
                             onCreateFirstAnalysis: () {
-                              presenter.createAnalysis();
+                              unawaited(handleCreateAnalysis(context));
                             },
                           );
                         }),

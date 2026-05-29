@@ -7,7 +7,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/theme.dart';
 import 'package:animus/ui/auth/widgets/pages/check_email_screen/check_email_screen_presenter.dart';
-import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
 
 class CheckEmailScreenView extends ConsumerWidget {
   final String email;
@@ -70,7 +70,7 @@ class CheckEmailScreenView extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Enviamos um codigo OTP de 6 digitos para $email. Digite o codigo para continuar a redefinicao da senha.',
+                        'Enviamos um código OTP de 6 dígitos para $email. Digite o código para continuar a redefinição da senha.',
                         textAlign: TextAlign.center,
                         style: textTheme.bodySmall?.copyWith(
                           color: tokens.textSecondary,
@@ -106,7 +106,7 @@ class CheckEmailScreenView extends ConsumerWidget {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Codigo valido por tempo limitado. Se ele expirar, voce pode solicitar um novo envio.',
+                        'Código válido por tempo limitado. Se ele expirar, você pode solicitar um novo envio.',
                         textAlign: TextAlign.center,
                         style: textTheme.bodySmall?.copyWith(
                           color: tokens.textSecondary,
@@ -149,7 +149,7 @@ class CheckEmailScreenView extends ConsumerWidget {
                               ),
                             ),
                             child: Text(
-                              isVerifying ? 'Validando...' : 'Confirmar codigo',
+                              isVerifying ? 'Validando...' : 'Confirmar código',
                               style: textTheme.labelMedium?.copyWith(
                                 color: tokens.surfacePage,
                                 fontWeight: FontWeight.w600,
@@ -174,7 +174,7 @@ class CheckEmailScreenView extends ConsumerWidget {
                           spacing: 4,
                           children: <Widget>[
                             Text(
-                              'Nao recebeu?',
+                              'Não recebeu?',
                               style: textTheme.labelSmall?.copyWith(
                                 color: tokens.textMuted,
                                 fontWeight: FontWeight.w400,

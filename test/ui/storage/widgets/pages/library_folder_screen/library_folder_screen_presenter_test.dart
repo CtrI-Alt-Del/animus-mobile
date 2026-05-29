@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:animus/constants/routes.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/core/library/dtos/folder_dto.dart';
 import 'package:animus/core/library/interfaces/library_service.dart';
 import 'package:animus/core/shared/interfaces/navigation_driver.dart';
@@ -55,6 +56,7 @@ void main() {
       id: id,
       name: name,
       accountId: 'account-1',
+      type: AnalysisTypeDto.firstInstance,
       status: AnalysisStatusDto.precedentChosen,
       summary: '',
       createdAt: '2026-05-03T10:00:00Z',
@@ -128,7 +130,7 @@ void main() {
       expect(presenter.isLoading.value, isFalse);
       expect(
         presenter.generalError.value,
-        'Nao foi possivel carregar esta pasta.',
+        'Não foi possível carregar esta pasta.',
       );
       expect(presenter.folder.value, isNull);
       expect(presenter.analyses.value, isEmpty);
@@ -327,7 +329,10 @@ void main() {
 
       verify(
         () => navigationDriver.pushTo(
-          Routes.getAnalysis(analysisId: 'analysis-1'),
+          Routes.getAnalysis(
+            analysisId: 'analysis-1',
+            analysisType: AnalysisTypeDto.firstInstance,
+          ),
         ),
       ).called(1);
     });
@@ -348,7 +353,7 @@ void main() {
       addTearDown(presenter.dispose);
 
       expect(presenter.formatCreatedAt('2026-05-03T10:00:00Z'), '03/05/2026');
-      expect(presenter.formatCreatedAt('invalida'), 'Data indisponivel');
+      expect(presenter.formatCreatedAt('invalida'), 'Data indisponível');
     });
   });
 }

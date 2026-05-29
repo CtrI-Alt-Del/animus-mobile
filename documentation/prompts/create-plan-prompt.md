@@ -123,7 +123,7 @@ Exemplo:
 ```
 - [ ] Criar contrato `IntakeService` em `lib/core/intake/services/intake_service.dart`
   - Depende de: —
-  - Desbloqueia: "Implementar IntakeRestService" (F2-T1) e "Criar AnalysisScreenPresenter" (F3-T1)
+  - Desbloqueia: "Implementar IntakeRestService" (F2-T1) e "Criar FirstInstanceAnalysisScreenPresenter" (F3-T1)
 ```
 
 ---

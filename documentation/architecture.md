@@ -120,24 +120,25 @@ O fluxo padrao da aplicacao segue esta direcao:
 
 O fluxo de precedentes do modulo `intake` segue a mesma separacao arquitetural e acontece sem abrir nova rota:
 
-1. `AnalysisScreenPresenter` carrega `analysis`, `petition` e `summary`, inclusive em reentrada nos estados de precedentes.
-2. `RelevantPrecedentsBubblePresenter` orquestra o fluxo assíncrono de precedentes na UI: dispara a busca, faz polling do status da analise, carrega a lista final e confirma a escolha.
-3. `IntakeService` define os contratos tipados de busca, listagem e escolha de precedentes no `core`.
-4. `IntakeRestService` encapsula `POST /precedents/search`, `GET /precedents` e `PATCH /precedents/choose`, devolvendo `RestResponse` e `ListResponse` tipados para a UI.
-5. `CacheDriver` persiste a quantidade de precedentes configurada para reutilizacao no fluxo.
-6. `ExternalLinkDriver` encapsula a abertura externa do Pangea, evitando acoplamento da UI a plugins concretos.
+1. `AnalysisPrecedentsBubblePresenter` orquestra o fluxo compartilhado de precedentes na UI: dispara a busca, faz polling do status da analise, carrega a lista final, reconstrói escolhas a partir de `isChosen`, confirma escolhas múltiplas, desfaz escolhas e recarrega a lista após inclusão manual.
+2. `FirstInstanceAnalysisScreenPresenter` e `SecondInstanceFirstInstanceAnalysisScreenPresenter` consomem apenas o contrato público do bubble; a 2ª instância sincroniza `chosenPrecedents` para bloquear a geração da minuta sem precedente escolhido.
+3. `IntakeService` define no `core` os contratos tipados de busca, listagem, escolha, desescolha, preview por identificador e inclusão manual de precedentes.
+4. `IntakeRestService` encapsula `POST /intake/analyses/{analysisId}/precedents/search`, `GET /intake/analyses/{analysisId}/precedents`, `PATCH /intake/analyses/{analysisId}/precedents/choose`, `PATCH /intake/analyses/{analysisId}/precedents/unchoose`, `GET /precedents/identifier` e `POST /analyses/precedents`, devolvendo `RestResponse` e `ListResponse` tipados para a UI.
+5. `AddPrecedentDialogPresenter` valida `court`, `kind` e `number`, consulta o precedente por identificador, exibe preview antes da confirmação e delega a persistência da inclusão manual ao `IntakeService`.
+6. `CacheDriver` persiste a quantidade de precedentes configurada para reutilizacao no fluxo, e `ExternalLinkDriver` encapsula a abertura externa do Pangea sem acoplar a UI a plugins concretos.
 
 ## Fluxo de Exportacao de Relatorio na Analysis Screen
 
-Quando a analise chega ao estado `precedentChosen`, a exportacao do relatorio segue a mesma separacao arquitetural entre UI, Core, Rest e Drivers:
+Quando a analise chega ao estado final elegivel para exportacao, o relatorio segue a mesma separacao arquitetural entre UI, Core, Rest e Drivers:
 
 1. `AnalysisHeaderActionsView` exibe a acao `Exportar PDF` no menu do header.
-2. `AnalysisScreenView` apenas delega a interacao e exibe feedback visual de loading, sucesso e erro.
-3. `AnalysisScreenPresenter` orquestra o fluxo e bloqueia tentativas concorrentes durante a exportacao.
-4. `IntakeService` publica o contrato `getAnalysisReport`, consumido pela UI sem conhecimento de HTTP.
-5. `IntakeRestService` chama `GET /intake/analyses/{analysis_id}/report` e usa `AnalysisReportMapper` para traduzir o payload agregado em `AnalysisReportDto`.
-6. `PdfDriver` define a capacidade de gerar e compartilhar o PDF sem expor tipos de `pdf` ou `printing` para a UI.
-7. `PrintingPdfDriver` monta o documento em memoria com `pdf` e delega o share sheet nativo ao pacote `printing`.
+2. `AnalysisScreenView` e `SecondInstanceAnalysisScreenView` apenas delegam a interacao e exibem feedback visual de loading e erro.
+3. `FirstInstanceAnalysisScreenPresenter` e `SecondInstanceAnalysisScreenPresenter` orquestram o fluxo e bloqueiam tentativas concorrentes durante a exportacao.
+4. `IntakeService` publica contratos tipados por tipo de analise, sem expor HTTP para a UI.
+5. `IntakeRestService` encapsula os endpoints agregados por fluxo, incluindo `GET /intake/analyses/{analysis_id}/first-instance-analysis-report` e `GET /intake/analyses/{analysis_id}/second-instance-analysis-report`.
+6. Os mappers REST traduzem `analysis`, `document`, `case_summary`, `precedents` e drafts tipados antes de expor dados para a UI.
+7. `PdfDriver` define a capacidade de gerar e compartilhar PDFs por tipo de analise, sem expor tipos de `pdf` ou `printing` para a UI.
+8. `PrintingPdfDriver` monta o documento em memoria com geradores especializados por fluxo: o relatorio de 1ª instancia destaca o precedente escolhido e o de 2ª instancia consolida resumo do caso, minuta estruturada e precedentes associados antes de delegar o share sheet nativo ao pacote `printing`.
 
 ## Fluxo da Tela de Pasta da Biblioteca
 

@@ -6405,7 +6405,7 @@
               "id": "maw7G",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -38879,7 +38879,7 @@
               "id": "bTQ6W",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -42863,7 +42863,7 @@
               "id": "Kxlem",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -47120,7 +47120,7 @@
               "id": "x963m",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -52468,7 +52468,7 @@
               "id": "PYC5n",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -61480,7 +61480,7 @@
               "id": "Qem2k",
               "name": "hintText1",
               "fill": "$text-muted",
-              "content": "Formatos aceitos: PDF, DOCX • Máx. 20MB",
+              "content": "Formatos aceitos: PDF, DOCX • Máx. 50MB",
               "fontFamily": "DM Sans",
               "fontSize": 12,
               "fontWeight": "500"
@@ -63075,46 +63075,6 @@
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "VPL5A",
-                      "name": "d22",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "fyunN",
-                          "name": "d23",
-                          "fill": "#6B6B70",
-                          "content": "82%",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "frame",
-                          "id": "ytaKZ",
-                          "name": "d24",
-                          "width": "fill_container",
-                          "height": 5,
-                          "fill": "#E2E2E6",
-                          "cornerRadius": 3,
-                          "children": [
-                            {
-                              "type": "frame",
-                              "id": "8tkma",
-                              "name": "d25",
-                              "width": 240,
-                              "height": 5,
-                              "fill": "#32D583",
-                              "cornerRadius": 3
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
                       "type": "text",
                       "id": "ROy8g",
                       "name": "e1",
@@ -63380,46 +63340,6 @@
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "Fz7tC",
-                      "name": "e23",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "YyGT8",
-                          "name": "e24",
-                          "fill": "#6B6B70",
-                          "content": "67%",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "frame",
-                          "id": "Y98V2",
-                          "name": "e25",
-                          "width": "fill_container",
-                          "height": 5,
-                          "fill": "#E2E2E6",
-                          "cornerRadius": 3,
-                          "children": [
-                            {
-                              "type": "frame",
-                              "id": "cNdU5",
-                              "name": "g1",
-                              "width": 195,
-                              "height": 5,
-                              "fill": "#FBE26D",
-                              "cornerRadius": 3
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
                       "type": "text",
                       "id": "sZ1g2",
                       "name": "g4",
@@ -63655,46 +63575,6 @@
                               "fontFamily": "Inter",
                               "fontSize": 11,
                               "fontWeight": "500"
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "0eRpX",
-                      "name": "g24",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "ZK8ef",
-                          "name": "g25",
-                          "fill": "#6B6B70",
-                          "content": "31%",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "frame",
-                          "id": "Zil3J",
-                          "name": "j1",
-                          "width": "fill_container",
-                          "height": 5,
-                          "fill": "#E2E2E6",
-                          "cornerRadius": 3,
-                          "children": [
-                            {
-                              "type": "frame",
-                              "id": "JiaBW",
-                              "name": "j2",
-                              "width": 96,
-                              "height": 5,
-                              "fill": "#E85A4F",
-                              "cornerRadius": 3
                             }
                           ]
                         }
@@ -64048,56 +63928,6 @@
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "MQjzb",
-                      "name": "f20",
-                      "width": "fill_container",
-                      "justifyContent": "space_between",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "8RiLw",
-                          "name": "f21",
-                          "width": "fill_container",
-                          "gap": 8,
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "j7nzm",
-                              "name": "f22",
-                              "fill": "#6B6B70",
-                              "content": "82%",
-                              "fontFamily": "Inter",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "frame",
-                              "id": "C3SGj",
-                              "name": "f23",
-                              "width": "fill_container",
-                              "height": 5,
-                              "fill": "#E2E2E6",
-                              "cornerRadius": 3,
-                              "children": [
-                                {
-                                  "type": "frame",
-                                  "id": "JR7Hc",
-                                  "name": "f24",
-                                  "width": 285,
-                                  "height": 5,
-                                  "fill": "#32D583",
-                                  "cornerRadius": 3
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
                       "type": "text",
                       "id": "A2X64",
                       "name": "h2",
@@ -64264,6 +64094,1381 @@
             {
               "type": "frame",
               "id": "M3Hlg",
+              "layoutPosition": "absolute",
+              "x": 32,
+              "y": 110,
+              "name": "f4",
+              "width": 4,
+              "height": 118,
+              "fill": "#FEF9E2",
+              "cornerRadius": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "O3y2N",
+      "x": 9163,
+      "y": -917,
+      "name": "PDF Segunda Instancia / Relatorio",
+      "gap": 40,
+      "children": [
+        {
+          "type": "frame",
+          "id": "phFCt",
+          "name": "PDF / Página 1 — Cabeçalho",
+          "clip": true,
+          "width": 595,
+          "height": 842,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ePnrl",
+              "name": "Page 1 / Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Jf1Jy",
+                  "name": "a4",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Qq3Hr",
+                      "name": "a5",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#FBE26D",
+                      "cornerRadius": 8,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "F5upJ",
+                          "name": "a6",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "scale",
+                          "iconFontFamily": "lucide",
+                          "fill": "#0B0B0E"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "vB2Um",
+                      "name": "a7",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rK31g",
+                          "name": "a8",
+                          "fill": "#0B0B0E",
+                          "content": "Animus",
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "lkEwi",
+                          "name": "a9",
+                          "fill": "#6B6B70",
+                          "content": "Análise Jurídica com IA",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "DYXx9",
+                  "name": "a10",
+                  "fill": "#0B0B0E",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Relatorio de analise de segunda instancia",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "xngFw",
+                  "name": "a11",
+                  "fill": "#4A4A50",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Apelacao civel | minuta orientada por precedentes e aderencia jurisprudencial",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "K78tb",
+                  "name": "a12",
+                  "width": "fill_container",
+                  "height": 2,
+                  "fill": "#EFEFED"
+                },
+                {
+                  "type": "text",
+                  "id": "G6H50P",
+                  "name": "a13",
+                  "fill": "#C4A535",
+                  "content": "DADOS DA ANALISE",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "r0Cn8s",
+                  "name": "a14",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "TbE6q",
+                      "name": "a15",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UUlPn",
+                          "name": "a16",
+                          "fill": "#6B6B70",
+                          "content": "Nome da analise",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "LyLu1",
+                          "name": "a17",
+                          "fill": "#0B0B0E",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Apelacao civel | plano de saude | segunda instancia",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "W0oLE",
+                      "name": "a18",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ENqBN",
+                          "name": "a19",
+                          "fill": "#6B6B70",
+                          "content": "Status / tipo",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "AcC9y",
+                          "name": "a20",
+                          "fill": "#0B0B0E",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "completed | secondInstance",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "A0TzB",
+                  "name": "c1",
+                  "width": "fill_container",
+                  "height": 2,
+                  "fill": "#EFEFED"
+                },
+                {
+                  "type": "text",
+                  "id": "f8gaKm",
+                  "name": "c2",
+                  "fill": "#C4A535",
+                  "content": "DOCUMENTO E FILTROS",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "X1uAR8",
+                  "name": "c3",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "YMIQZ",
+                      "name": "c4",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "HSUF0",
+                          "name": "c5",
+                          "fill": "#6B6B70",
+                          "content": "Documento",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "LQ9Jc",
+                          "name": "c6",
+                          "fill": "#0B0B0E",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "apelacao_plano_saude_segunda_instancia.pdf",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Otkm3",
+                      "name": "c7",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "t5pS5",
+                          "name": "c8",
+                          "fill": "#6B6B70",
+                          "content": "Filtros",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "L0kFGN",
+                          "name": "c9",
+                          "fill": "#0B0B0E",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "STJ, TJSP | sumula, tema repetitivo",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J654gl",
+              "name": "Page 1 / Footer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ueln9",
+                  "name": "c10",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#E2E2E6"
+                },
+                {
+                  "type": "frame",
+                  "id": "qNyTj",
+                  "name": "c11",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "g1I3O",
+                      "name": "c12",
+                      "fill": "#8E8E93",
+                      "content": "Gerado pelo Animus em 04/04/2026 às 09:41",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "H6YzVb",
+                      "name": "c13",
+                      "fill": "#8E8E93",
+                      "content": "Pagina 1 de 4",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tX9il",
+              "layoutPosition": "absolute",
+              "x": 48,
+              "y": 24,
+              "name": "a1",
+              "width": 156,
+              "height": 6,
+              "fill": "#FBE26D",
+              "cornerRadius": 100
+            },
+            {
+              "type": "frame",
+              "id": "L7viK",
+              "layoutPosition": "absolute",
+              "x": 468,
+              "y": 20,
+              "name": "a2",
+              "fill": "#FEF9E2",
+              "cornerRadius": 100,
+              "padding": [
+                4,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "PZ5tH",
+                  "name": "a3",
+                  "fill": "#C4A535",
+                  "content": "Página 1",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "SzBDU",
+          "name": "PDF / Página 2 — Síntese da petição",
+          "clip": true,
+          "width": 595,
+          "height": 842,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "J6ZD8",
+              "name": "Page 2 / Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ko5sE",
+                  "name": "b6",
+                  "fill": "#0B0B0E",
+                  "content": "Resumo do caso",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "WkXGv",
+                  "name": "b7",
+                  "fill": "#C4A535",
+                  "content": "RESUMO DO CASO",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "jfCAa",
+                  "name": "b8",
+                  "width": "fill_container",
+                  "fill": "#F4F4F2",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "thickness": 0.5,
+                    "fill": "#E2E2E6"
+                  },
+                  "layout": "vertical",
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "aoaMB",
+                      "name": "b9",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Sintetiza o conteudo de case_summary.case_summary, reunindo a narrativa central do recurso, os pontos atacados na decisao recorrida e o contexto processual necessario para a leitura do colegiado.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "BWavG",
+                  "name": "b10",
+                  "fill": "#C4A535",
+                  "content": "QUESTAO CENTRAL",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "SDUXE",
+                  "name": "b11",
+                  "width": "fill_container",
+                  "fill": "$text-primary",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#e2e2e6"
+                  },
+                  "layout": "vertical",
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PWkJG",
+                      "name": "b12",
+                      "fill": "$bg-card",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Exibe case_summary.central_question como a pergunta juridica principal que orienta a analise do recurso em segunda instancia.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "lt6YT",
+                  "name": "b13",
+                  "fill": "#C4A535",
+                  "content": "QUESTOES JURIDICAS",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "BzmVw",
+                  "name": "b14",
+                  "width": "fill_container",
+                  "fill": "#F4F4F2",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "thickness": 0.5,
+                    "fill": "#E2E2E6"
+                  },
+                  "layout": "vertical",
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "d0Ici",
+                      "name": "b15",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Combina legal_issue, secondary_legal_issues, jurisdiction_issue e standing_issue em um bloco objetivo para mostrar o recorte juridico do julgamento.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "S0ajtS",
+                  "name": "b16",
+                  "fill": "#C4A535",
+                  "content": "FATOS E PEDIDOS RELEVANTES",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "text",
+                  "id": "LZ0z4",
+                  "name": "b17",
+                  "fill": "#0B0B0E",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "1. Lista key_facts em ordem de relevancia.\n2. Agrupa requested_relief e procedural_issues.\n3. Pode registrar excluded_or_accessory_topics como observacoes de baixa prioridade.",
+                  "lineHeight": 1.8,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "jsYxH",
+                  "name": "c14",
+                  "fill": "#C4A535",
+                  "content": "LEIS E TERMOS DE BUSCA",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "text",
+                  "id": "wm5fW",
+                  "name": "c15",
+                  "fill": "#0B0B0E",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "• relevant_laws em formato de lista.\n• search_terms usados na busca de precedentes.\n• type_of_action quando informado pelo backend.",
+                  "lineHeight": 1.8,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "r1xF9z",
+              "name": "Page 2 / Footer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "aEmmb",
+                  "name": "c16",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#E2E2E6"
+                },
+                {
+                  "type": "frame",
+                  "id": "j20A4T",
+                  "name": "c17",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "fGrn3",
+                      "name": "c18",
+                      "fill": "#8E8E93",
+                      "content": "Gerado pelo Animus em 04/04/2026 às 09:41",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "BoVaV",
+                      "name": "c19",
+                      "fill": "#8E8E93",
+                      "content": "Pagina 2 de 4",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rGrS2",
+              "layoutPosition": "absolute",
+              "x": 48,
+              "y": 24,
+              "name": "b1",
+              "width": 176,
+              "height": 6,
+              "fill": "#FBE26D",
+              "cornerRadius": 100
+            },
+            {
+              "type": "frame",
+              "id": "sdA6C",
+              "layoutPosition": "absolute",
+              "x": 468,
+              "y": 20,
+              "name": "b2",
+              "fill": "#FEF9E2",
+              "cornerRadius": 100,
+              "padding": [
+                4,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "UXey7",
+                  "name": "b3",
+                  "fill": "#C4A535",
+                  "content": "Página 2",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ZZyFU",
+          "name": "PDF / Página 3 — Precedentes analisados",
+          "clip": true,
+          "width": 595,
+          "height": 842,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "PNT67",
+              "name": "Page 3 / Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Sl7Tx",
+                  "name": "d5",
+                  "fill": "#0B0B0E",
+                  "content": "Precedentes escolhidos",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "uLPsQ",
+                  "name": "d9",
+                  "width": "fill_container",
+                  "fill": "#FFFCF0",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "thickness": 1.5,
+                    "fill": "#FBE26D"
+                  },
+                  "layout": "vertical",
+                  "gap": 7,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Yxqtf",
+                      "name": "d10",
+                      "width": "fill_container",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "U7FxQ",
+                          "name": "d11",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "rJGav",
+                              "name": "d12",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "RDL6k",
+                                  "name": "d13",
+                                  "fill": "#6B6B70",
+                                  "content": "STJ",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dqqcW",
+                              "name": "d14",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "QlHvR",
+                              "name": "d15",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ImwQN",
+                                  "name": "d16",
+                                  "fill": "#6B6B70",
+                                  "content": "Súmula",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "bKIiI",
+                              "name": "d17",
+                              "width": 1,
+                              "height": 14,
+                              "fill": "#E2E2E6"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "V6t3HB",
+                              "name": "d18",
+                              "fill": "#F4F4F2",
+                              "cornerRadius": 100,
+                              "stroke": {
+                                "thickness": 0.5,
+                                "fill": "#E2E2E6"
+                              },
+                              "padding": [
+                                3,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "K4Uho6",
+                                  "name": "d19",
+                                  "fill": "#6B6B70",
+                                  "content": "385",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "gB1jP",
+                      "name": "e1",
+                      "fill": "#8E8E93",
+                      "content": "ENUNCIADO",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "DmcGT",
+                      "name": "e2",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "precedent.enunciation do item com melhor combinacao entre similarity_score, final_rank e applicability_level.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nNOtj",
+                      "name": "e3",
+                      "fill": "#8E8E93",
+                      "content": "TESE FIRMADA",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "dp6i4",
+                      "name": "e4",
+                      "fill": "#0B0B0E",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "precedent.thesis sintetizado para explicar a utilidade argumentativa do precedente no voto.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "kAsqF",
+                      "name": "e5",
+                      "fill": "#8E8E93",
+                      "content": "SINTSESE E RANKING",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "KqcQV",
+                      "name": "e6",
+                      "fill": "#6B6B70",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Mostra synthesis, final_rank, similarity_rank e total_search_hits do precedente selecionado para fundamentar a minuta.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "fontStyle": "italic"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qSEzT",
+              "name": "Page 3 / Footer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QQ546",
+                  "name": "j7",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#E2E2E6"
+                },
+                {
+                  "type": "frame",
+                  "id": "YQ6o1",
+                  "name": "j8",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uJ5l1",
+                      "name": "j9",
+                      "fill": "#8E8E93",
+                      "content": "Gerado pelo Animus em 04/04/2026 às 09:41",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "zwAzh",
+                      "name": "j10",
+                      "fill": "#8E8E93",
+                      "content": "Pagina 3 de 4",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i7e7d",
+              "layoutPosition": "absolute",
+              "x": 48,
+              "y": 24,
+              "name": "d1",
+              "width": 190,
+              "height": 6,
+              "fill": "#FBE26D",
+              "cornerRadius": 100
+            },
+            {
+              "type": "frame",
+              "id": "Fx8FL",
+              "layoutPosition": "absolute",
+              "x": 468,
+              "y": 20,
+              "name": "d2",
+              "fill": "#FEF9E2",
+              "cornerRadius": 100,
+              "padding": [
+                4,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nysIG",
+                  "name": "d3",
+                  "fill": "#C4A535",
+                  "content": "Página 3",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eCwMU",
+              "layoutPosition": "absolute",
+              "x": 500,
+              "y": 78,
+              "name": "d4",
+              "width": 24,
+              "height": 24,
+              "fill": "#FEF9E2",
+              "cornerRadius": 8
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "g4ffq",
+          "name": "PDF / Pagina 4 - Minuta do julgamento",
+          "clip": true,
+          "width": 595,
+          "height": 842,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "q2JBom",
+              "name": "Page 4 / Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "z3HHX",
+                  "name": "f5",
+                  "fill": "#0B0B0E",
+                  "content": "Minuta do julgamento",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "CsKb9",
+                  "name": "f5",
+                  "fill": "#6B6B70",
+                  "content": "Campos do draft agrupados para compor a decisao.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "gauMU",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#EFEFED"
+                },
+                {
+                  "type": "frame",
+                  "id": "FBaiD",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#FEF9E2"
+                },
+                {
+                  "type": "frame",
+                  "id": "sOC3X",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#FEF9E2"
+                },
+                {
+                  "type": "text",
+                  "id": "HuiJc",
+                  "name": "f5",
+                  "fill": "#C4A535",
+                  "content": "RELATORIO /",
+                  "lineHeight": 1.2,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "JCHPu",
+                  "name": "f5",
+                  "fill": "#0B0B0E",
+                  "content": "Narrativa processual, admissibilidade\ne objeto devolvido ao tribunal.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "S8NDV",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#FEF9E2"
+                },
+                {
+                  "type": "text",
+                  "id": "elNr5",
+                  "name": "f5",
+                  "fill": "#C4A535",
+                  "content": "PRELIMINARES /",
+                  "lineHeight": 1.2,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "fdnAP",
+                  "name": "f5",
+                  "fill": "#6B6B70",
+                  "content": "Questoes opcionais antes do merito.\nOmitir quando nulo.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal",
+                  "fontStyle": "italic"
+                },
+                {
+                  "type": "frame",
+                  "id": "Wfr0o",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#FEF9E2"
+                },
+                {
+                  "type": "text",
+                  "id": "lvveY",
+                  "name": "f5",
+                  "fill": "#C4A535",
+                  "content": "MERITO ",
+                  "lineHeight": 1.2,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "xXhal",
+                  "name": "f5",
+                  "fill": "#0B0B0E",
+                  "content": "Fundamentacao principal e enfrentamento\ndos argumentos recursais.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "e3d2o",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#FEF9E2"
+                },
+                {
+                  "type": "text",
+                  "id": "ZDiiA",
+                  "name": "f5",
+                  "fill": "#C4A535",
+                  "content": "PRECEDENTES ",
+                  "lineHeight": 1.2,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "W2R5Em",
+                  "name": "f5",
+                  "fill": "#0B0B0E",
+                  "content": "Conexao entre precedentes escolhidos\ne a solucao proposta.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "tRt1f",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#FEF9E2"
+                },
+                {
+                  "type": "text",
+                  "id": "HqGn8",
+                  "name": "f5",
+                  "fill": "#C4A535",
+                  "content": "DISPOSITIVO /",
+                  "lineHeight": 1.2,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "Ti310",
+                  "name": "f5",
+                  "fill": "#0B0B0E",
+                  "content": "Comandos decisorios em lista,\nna ordem enviada pelo backend.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "l8meB",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#FEF9E2"
+                },
+                {
+                  "type": "text",
+                  "id": "q1Q3x",
+                  "name": "f5",
+                  "fill": "#C4A535",
+                  "content": "AVISO OPCIONAL ",
+                  "lineHeight": 1.2,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "w2Rybc",
+                  "name": "f5",
+                  "fill": "#6B6B70",
+                  "content": "Mensagem quando nao houver precedente\ndiretamente aplicavel.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal",
+                  "fontStyle": "italic"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ZYsUI",
+              "name": "Page 4 / Footer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QMsMM",
+                  "name": "h8",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "#E2E2E6"
+                },
+                {
+                  "type": "frame",
+                  "id": "bQn4i",
+                  "name": "h9",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "k7snX",
+                      "name": "h10",
+                      "fill": "#8E8E93",
+                      "content": "Gerado pelo Animus em 04/04/2026 às 09:41",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "RZzMA",
+                      "name": "h11",
+                      "fill": "#8E8E93",
+                      "content": "Pagina 4 de 4",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "KTCpz",
+              "layoutPosition": "absolute",
+              "x": 48,
+              "y": 24,
+              "name": "f1",
+              "width": 164,
+              "height": 6,
+              "fill": "#FBE26D",
+              "cornerRadius": 100
+            },
+            {
+              "type": "frame",
+              "id": "fmQQ1",
+              "layoutPosition": "absolute",
+              "x": 468,
+              "y": 20,
+              "name": "f2",
+              "fill": "#FEF9E2",
+              "cornerRadius": 100,
+              "padding": [
+                4,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ZNqK2",
+                  "name": "f3",
+                  "fill": "#C4A535",
+                  "content": "Pagina 4",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "epOgs",
               "layoutPosition": "absolute",
               "x": 32,
               "y": 110,

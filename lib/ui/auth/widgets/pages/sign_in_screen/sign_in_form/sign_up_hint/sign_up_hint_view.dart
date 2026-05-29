@@ -19,7 +19,7 @@ class SignUpHintView extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
           Text(
-            'Nao tem conta? ',
+            'Não tem conta? ',
             style: textTheme.labelSmall?.copyWith(
               color: tokens.textMuted,
               fontWeight: FontWeight.w400,

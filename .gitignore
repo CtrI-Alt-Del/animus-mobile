@@ -73,3 +73,5 @@ android/**/*.keystore
 .cp-images/
 
 node_modules/
+
+documentation/ticket.md

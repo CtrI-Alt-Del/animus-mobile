@@ -12,8 +12,10 @@ import 'package:animus/ui/auth/widgets/pages/new_password_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/index.dart';
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/index.dart';
+import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/index.dart';
+import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/index.dart';
+import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/index.dart';
 import 'package:animus/ui/shared/widgets/pages/app_shell/index.dart';
 import 'package:animus/ui/library/widgets/screens/library_folder_screen/index.dart';
 import 'package:animus/ui/library/widgets/screens/library_screen/index.dart';
@@ -167,12 +169,31 @@ final GoRouter appRouter = GoRouter(
       },
       builder: (context, state) {
         final String analysisId = state.pathParameters['analysisId'] ?? '';
-        return AnalysisScreen(analysisId: analysisId);
+        return FirstInstanceAnalysisScreen(analysisId: analysisId);
+      },
+    ),
+    GoRoute(
+      path: Routes.secondInstanceAnalysis,
+      redirect: (context, state) {
+        final String? analysisId = state.pathParameters['analysisId'];
+        if (analysisId == null || analysisId.trim().isEmpty) {
+          return Routes.home;
+        }
+
+        return null;
+      },
+      builder: (context, state) {
+        final String analysisId = state.pathParameters['analysisId'] ?? '';
+        return SecondInstanceAnalysisScreen(analysisId: analysisId);
       },
     ),
     GoRoute(
       path: Routes.libraryUnfoldered,
       builder: (context, state) => const LibraryUnfolderedScreen(),
+    ),
+    GoRoute(
+      path: Routes.archivedAnalyses,
+      builder: (context, state) => const ArchivedAnalysesScreen(),
     ),
   ],
 );

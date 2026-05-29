@@ -188,12 +188,13 @@ class RecentAnalysesSectionView extends StatelessWidget {
                   if (index < processingAnalyses.length) {
                     final AnalysisDto analysis = processingAnalyses[index];
                     final String title = analysis.name.trim().isEmpty
-                        ? 'Analise sem nome'
+                        ? 'Análise sem nome'
                         : analysis.name;
 
                     return ProcessingAnalysisCard(
                       title: title,
                       dateLabel: formatCreatedAt(analysis.createdAt),
+                      type: analysis.type,
                       statusLabel: _resolveStatusLabel(analysis.status),
                       onTap: () {
                         unawaited(onTapAnalysis(analysis));
@@ -223,12 +224,13 @@ class RecentAnalysesSectionView extends StatelessWidget {
                     final AnalysisDto analysis =
                         recentAnalyses[index - recentStartIndex];
                     final String title = analysis.name.trim().isEmpty
-                        ? 'Analise sem nome'
+                        ? 'Análise sem nome'
                         : analysis.name;
 
                     return RecentAnalysisCard(
                       title: title,
                       dateLabel: formatCreatedAt(analysis.createdAt),
+                      type: analysis.type,
                       statusLabel: _resolveStatusLabel(analysis.status),
                       onTap: () {
                         unawaited(onTapAnalysis(analysis));
@@ -252,35 +254,53 @@ class RecentAnalysesSectionView extends StatelessWidget {
 
   bool _isProcessingStatus(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.analyzingPetition ||
+        status == AnalysisStatusDto.extractingPetition ||
+        status == AnalysisStatusDto.analyzingCase ||
         status == AnalysisStatusDto.searchingPrecedents ||
         status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
-        status == AnalysisStatusDto.generatingSynthesis;
+        status == AnalysisStatusDto.generatingSynthesis ||
+        status == AnalysisStatusDto.generatingPetitionDraft ||
+        status == AnalysisStatusDto.generatingJudgmentDraft;
   }
 
   String _resolveStatusLabel(AnalysisStatusDto status) {
     switch (status) {
       case AnalysisStatusDto.waitingPetition:
+      case AnalysisStatusDto.waitingDocumentUpload:
         return 'Aguardando petição';
       case AnalysisStatusDto.petitionUploaded:
-        return 'Peticao enviada';
+      case AnalysisStatusDto.documentUploaded:
+        return 'Petição enviada';
       case AnalysisStatusDto.analyzingPetition:
-        return 'Peticao em análise';
-      case AnalysisStatusDto.petitionAnalyzed:
-        return 'Peticao analisada';
+      case AnalysisStatusDto.analyzingCase:
+        return 'Petição em análise';
+      case AnalysisStatusDto.extractingPetition:
+        return 'Extraindo petição';
+      case AnalysisStatusDto.caseAnalyzed:
+        return 'Petição analisada';
       case AnalysisStatusDto.searchingPrecedents:
         return 'Buscando precedentes';
+      case AnalysisStatusDto.precedentsSearched:
+        return 'Precedentes encontrados';
       case AnalysisStatusDto.analyzingPrecedentsSimilarity:
       case AnalysisStatusDto.analyzingPrecedentsApplicability:
         return 'Comparando precedentes';
       case AnalysisStatusDto.generatingSynthesis:
         return 'Gerando síntese';
+      case AnalysisStatusDto.generatingPetitionDraft:
+        return 'Gerando minuta da petição';
+      case AnalysisStatusDto.generatingJudgmentDraft:
+        return 'Gerando minuta do julgamento';
       case AnalysisStatusDto.waitingPrecedentChoice:
         return 'Aguardando escolha de precedente';
       case AnalysisStatusDto.precedentChosen:
+      case AnalysisStatusDto.done:
         return 'Concluída';
       case AnalysisStatusDto.failed:
         return 'Falhou';
     }
+
+    return 'Processando';
   }
 }

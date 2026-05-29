@@ -166,7 +166,7 @@ class NewPasswordScreenPresenter {
     try {
       return response.errorMessage;
     } catch (_) {
-      return 'Nao foi possivel redefinir a senha agora. Tente novamente.';
+      return 'Não foi possível redefinir a senha agora. Tente novamente.';
     }
   }
 

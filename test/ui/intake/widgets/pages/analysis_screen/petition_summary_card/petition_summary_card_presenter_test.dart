@@ -1,16 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:animus/ui/intake/widgets/pages/analysis_screen/petition_summary_card/petition_summary_card_presenter.dart';
+import 'package:animus/ui/intake/widgets/components/case_summary_card/case_summary_card_presenter.dart';
 
 import '../../../../../../fakers/intake/petition_summary_dto_faker.dart';
 
 void main() {
-  group('PetitionSummaryCardPresenter', () {
+  group('CaseSummaryCardPresenter', () {
     test(
       'should build clipboard summary with placeholders and bullet lists',
       () {
-        final PetitionSummaryCardPresenter presenter =
-            PetitionSummaryCardPresenter();
+        final CaseSummaryCardPresenter presenter = CaseSummaryCardPresenter();
         final summary = PetitionSummaryDtoFaker.fake(
           caseSummary: 'Resumo do caso',
           legalIssue: 'Questao juridica principal',

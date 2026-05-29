@@ -4,7 +4,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/theme.dart';
-import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
 import 'package:animus/ui/auth/widgets/pages/new_password_screen/new_password_form/password_rule_row/index.dart';
 import 'package:animus/ui/auth/widgets/pages/new_password_screen/new_password_form/reset_password_submit_button/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_up_screen/sign_up_form/input_decoration/index.dart';
@@ -95,11 +95,11 @@ class NewPasswordFormView extends ConsumerWidget {
                 PasswordRuleRow(label: '8 caracteres', isMet: hasMinLength),
                 const SizedBox(height: 8),
                 PasswordRuleRow(
-                  label: 'Letra maiuscula',
+                  label: 'Letra maiúscula',
                   isMet: hasUppercaseLetter,
                 ),
                 const SizedBox(height: 8),
-                PasswordRuleRow(label: 'Numero', isMet: hasNumber),
+                PasswordRuleRow(label: 'Número', isMet: hasNumber),
               ],
             );
           }),
