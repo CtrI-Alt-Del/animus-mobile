@@ -84,7 +84,11 @@ void main() {
         presenter.status.value = AnalysisStatusDto.done;
         presenter.petitionDraft.value = const PetitionDraftDto(
           analysisId: 'analysis-1',
-          content: 'Minuta gerada.',
+          structuredFacts: 'Fatos estruturados.',
+          legalGrounds: 'Fundamentos juridicos.',
+          centralThesis: 'Tese central.',
+          requests: <String>['Pedido 1'],
+          precedentCitations: <String>['Precedente 1'],
         );
         expect(presenter.primaryActionLabel.value, 'Regerar minuta');
       },
@@ -134,7 +138,11 @@ void main() {
 
       const PetitionDraftDto draft = PetitionDraftDto(
         analysisId: 'analysis-1',
-        content: 'Conteúdo da minuta.',
+        structuredFacts: 'Conteúdo da minuta.',
+        legalGrounds: 'Fundamentos juridicos.',
+        centralThesis: 'Tese central.',
+        requests: <String>['Pedido 1'],
+        precedentCitations: <String>['Precedente 1'],
       );
 
       when(
@@ -167,7 +175,10 @@ void main() {
 
       expect(presenter.status.value, AnalysisStatusDto.done);
       expect(presenter.precedentsReady.value, isTrue);
-      expect(presenter.petitionDraft.value?.content, draft.content);
+      expect(
+        presenter.petitionDraft.value?.structuredFacts,
+        draft.structuredFacts,
+      );
       expect(presenter.canExportReport.value, isTrue);
     });
 
@@ -184,7 +195,11 @@ void main() {
 
       presenter.petitionDraft.value = const PetitionDraftDto(
         analysisId: 'analysis-1',
-        content: 'Conteúdo.',
+        structuredFacts: 'Conteúdo.',
+        legalGrounds: 'Fundamentos juridicos.',
+        centralThesis: 'Tese central.',
+        requests: <String>['Pedido 1'],
+        precedentCitations: <String>['Precedente 1'],
       );
       expect(presenter.canExportReport.value, isTrue);
 

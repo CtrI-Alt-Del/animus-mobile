@@ -12,7 +12,11 @@ void main() {
           status: 'GENERATING_PETITION_DRAFT',
           draft: <String, dynamic>{
             'analysis_id': 'analysis-1',
-            'content': 'Minuta da peticao',
+            'structured_facts': 'Fatos estruturados',
+            'legal_grounds': 'Fundamentos juridicos',
+            'central_thesis': 'Tese central',
+            'requests': <dynamic>['Pedido 1'],
+            'precedent_citations': <dynamic>['Precedente 1'],
           },
           draftKey: 'petition_draft',
         ),
@@ -24,7 +28,8 @@ void main() {
       expect(dto.caseSummary.caseSummary, 'Resumo do caso');
       expect(dto.precedents.single.analysisId, 'analysis-1');
       expect(dto.petitionDraft.analysisId, 'analysis-1');
-      expect(dto.petitionDraft.content, 'Minuta da peticao');
+      expect(dto.petitionDraft.structuredFacts, 'Fatos estruturados');
+      expect(dto.petitionDraft.requests, <String>['Pedido 1']);
     });
   });
 }

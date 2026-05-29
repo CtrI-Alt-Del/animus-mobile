@@ -570,7 +570,7 @@ void main() {
       expect(presenter.summary.value, isNull);
       expect(presenter.generalError.value, isNull);
       expect(presenter.uploadProgress.value, 1);
-      expect(presenter.selectedFile.value?.path, file.path);
+      expect(presenter.selectedFile.value, isNull);
       verify(
         () => storageService.generateAnalysisDocumentUploadUrl(
           analysisId: 'analysis-1',
@@ -813,9 +813,11 @@ void main() {
       when(
         () => intakeService.archiveAnalysis(analysisId: 'analysis-1'),
       ).thenAnswer(
-        (_) async => RestResponse(
+        (_) async => RestResponse<List<AnalysisDto>>(
           statusCode: 200,
-          body: AnalysisDtoFaker.fake(isArchived: true),
+          body: <AnalysisDto>[
+            AnalysisDtoFaker.fake(id: 'analysis-1', isArchived: true),
+          ],
         ),
       );
 
@@ -832,7 +834,7 @@ void main() {
       when(
         () => intakeService.archiveAnalysis(analysisId: 'analysis-1'),
       ).thenAnswer(
-        (_) async => RestResponse<AnalysisDto>(
+        (_) async => RestResponse<List<AnalysisDto>>(
           statusCode: 500,
           errorMessage: 'Falha ao arquivar analise.',
         ),
@@ -914,7 +916,7 @@ void main() {
           newDocument.filePath,
         );
         expect(presenter.summary.value, isNull);
-        expect(presenter.selectedFile.value?.path, newFile.path);
+        expect(presenter.selectedFile.value, isNull);
         expect(presenter.uploadProgress.value, 1);
         verify(
           () => documentPickerDriver.pickDocument(

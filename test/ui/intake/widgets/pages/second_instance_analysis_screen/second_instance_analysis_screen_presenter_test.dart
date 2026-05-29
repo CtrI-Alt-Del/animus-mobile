@@ -254,6 +254,96 @@ void main() {
       expect(presenter.generalError.value, isNull);
     });
 
+    test(
+      'should load case summary when analysis is already analyzed',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final summary = CaseSummaryDtoFaker.fake(
+          caseSummary: 'Resumo carregado',
+        );
+
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              type: AnalysisTypeDto.secondInstance,
+              status: AnalysisStatusDto.caseAnalyzed,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse(
+            statusCode: 200,
+            body: AnalysisDocumentDtoFaker.fake(),
+          ),
+        );
+        when(
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+        ).thenAnswer((_) async => RestResponse(statusCode: 200, body: summary));
+
+        await presenter.load();
+
+        expect(presenter.status.value, AnalysisStatusDto.caseAnalyzed);
+        expect(presenter.caseSummary.value?.caseSummary, 'Resumo carregado');
+        verify(
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+        ).called(1);
+      },
+    );
+
+    test(
+      'should load missing case summary when status changes to caseAnalyzed',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final summary = CaseSummaryDtoFaker.fake(caseSummary: 'Resumo tardio');
+
+        presenter.status.value = AnalysisStatusDto.caseAnalyzed;
+        when(
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+        ).thenAnswer((_) async => RestResponse(statusCode: 200, body: summary));
+
+        final bool didLoad = await presenter.ensureCaseSummaryLoaded();
+
+        expect(didLoad, isTrue);
+        expect(presenter.caseSummary.value?.caseSummary, 'Resumo tardio');
+        verify(
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+        ).called(1);
+      },
+    );
+
+    test('should mark analysis as archived after archive succeeds', () async {
+      final presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(
+        () => intakeService.archiveAnalysis(analysisId: 'analysis-1'),
+      ).thenAnswer(
+        (_) async => RestResponse<List<AnalysisDto>>(
+          statusCode: 200,
+          body: <AnalysisDto>[
+            AnalysisDtoFaker.fake(
+              id: 'analysis-1',
+              type: AnalysisTypeDto.secondInstance,
+              isArchived: true,
+            ),
+          ],
+        ),
+      );
+
+      final bool archived = await presenter.archiveAnalysis();
+
+      expect(archived, isTrue);
+      expect(presenter.isArchived.value, isTrue);
+      expect(presenter.generalError.value, isNull);
+    });
+
     group('exportSecondInstanceAnalysisReport', () {
       test('should export report with sanitized filename', () async {
         final presenter = createPresenter();
