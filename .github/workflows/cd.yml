@@ -52,20 +52,30 @@ jobs:
         shell: bash
         env:
           ANIMUS_SERVER_APP_URL: ${{ secrets.ANIMUS_SERVER_APP_URL }}
-          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
           GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
           GCS_URL: ${{ secrets.GCS_URL }}
           GCS_DOWNLOAD_URL: ${{ secrets.GCS_DOWNLOAD_URL }}
           PANGEA_URL: ${{ secrets.PANGEA_URL }}
+          ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: ${{ secrets.SUPABASE_STORAGE_BUCKET }}
         run: |
-          cat <<EOF > .env
-          ANIMUS_SERVER_APP_URL=${ANIMUS_SERVER_APP_URL}
-          GOOGLE_IOS_CLIENT_ID=${GOOGLE_IOS_CLIENT_ID}
-          GOOGLE_SERVER_CLIENT_ID=${GOOGLE_SERVER_CLIENT_ID}
-          GCS_URL=${GCS_URL}
-          GCS_DOWNLOAD_URL=${GCS_DOWNLOAD_URL}
-          PANGEA_URL=${PANGEA_URL}
-          EOF
+          : > .env
+
+          while IFS= read -r line; do
+            line="${line%$'\r'}"
+            [[ -z "$line" ]] && continue
+            [[ "$line" == \#* ]] && continue
+
+            value="${!line:-}"
+            if [[ -z "$value" ]]; then
+              echo "Missing required secret for $line" >&2
+              exit 1
+            fi
+
+            printf '%s=%s\n' "$line" "$value" >> .env
+          done < .env.example
 
       - name: Restore Android keystore
         shell: bash
