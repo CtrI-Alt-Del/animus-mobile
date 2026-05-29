@@ -608,7 +608,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/analyses/precedents',
+      '/intake/analyses/precedents',
       body: <String, dynamic>{
         'analysis_id': analysisId,
         'identifier': <String, dynamic>{

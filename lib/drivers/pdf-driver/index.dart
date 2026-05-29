@@ -5,5 +5,5 @@ import 'package:animus/drivers/pdf-driver/printing/animus_pdf_theme.dart';
 import 'package:animus/drivers/pdf-driver/printing/printing_pdf_driver.dart';
 
 final Provider<PdfDriver> pdfDriverProvider = Provider<PdfDriver>((Ref ref) {
-  return const PrintingPdfDriver(theme: AnimusPdfTheme());
+  return PrintingPdfDriver(theme: AnimusPdfTheme());
 });

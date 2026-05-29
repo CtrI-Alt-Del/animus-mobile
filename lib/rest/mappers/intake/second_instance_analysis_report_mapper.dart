@@ -6,8 +6,9 @@ import 'package:animus/rest/mappers/intake/analysis_document_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
 import 'package:animus/rest/mappers/intake/case_summary_mapper.dart';
+import 'package:animus/rest/mappers/intake/second_instance_judgment_draft_mapper.dart';
 
-class SecondInstanceAnalysisReportMapper {
+final class SecondInstanceAnalysisReportMapper {
   const SecondInstanceAnalysisReportMapper._();
 
   static SecondInstanceAnalysisReportDto toDto(Json json) {
@@ -15,21 +16,14 @@ class SecondInstanceAnalysisReportMapper {
       analysis: AnalysisMapper.toDto(_toJsonField(json['analysis'])),
       document: AnalysisDocumentMapper.toDto(_toJsonField(json['document'])),
       caseSummary: CaseSummaryMapper.toDto(_toJsonField(json['case_summary'])),
-      precedents: _toPrecedents(json['precedents']),
-      chosenPrecedent: _toChosenPrecedent(json),
+      precedents: _toDtoList(json['precedents']),
+      judgmentDraft: SecondInstanceJudgmentDraftMapper.toDto(
+        _toJsonField(json['judgment_draft']),
+      ),
     );
   }
 
-  static AnalysisPrecedentDto? _toChosenPrecedent(Json json) {
-    final dynamic value = json['chosen_precedent'];
-    if (value is! Json || !_hasValidChosenPrecedent(value)) {
-      return null;
-    }
-
-    return AnalysisPrecedentMapper.toDto(value);
-  }
-
-  static List<AnalysisPrecedentDto> _toPrecedents(dynamic value) {
+  static List<AnalysisPrecedentDto> _toDtoList(dynamic value) {
     if (value is! List<dynamic>) {
       return const <AnalysisPrecedentDto>[];
     }
@@ -46,23 +40,5 @@ class SecondInstanceAnalysisReportMapper {
     }
 
     return <String, dynamic>{};
-  }
-
-  static bool _hasValidChosenPrecedent(Json chosenPrecedent) {
-    final dynamic precedentValue = chosenPrecedent['precedent'];
-    if (precedentValue is! Json) {
-      return false;
-    }
-
-    final dynamic identifierValue = precedentValue['identifier'];
-    if (identifierValue is Json) {
-      return identifierValue['court'] is String &&
-          identifierValue['kind'] is String &&
-          identifierValue['number'] != null;
-    }
-
-    return precedentValue['court'] is String &&
-        precedentValue['kind'] is String &&
-        precedentValue['number'] != null;
   }
 }

@@ -13,6 +13,7 @@ import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
@@ -691,6 +692,13 @@ class _PendingPdfDriver implements PdfDriver {
   @override
   Future<Uint8List> generateAnalysisReport({
     required FirstInstanceAnalysisReportDto report,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Uint8List> generateSecondInstanceAnalysisReport({
+    required SecondInstanceAnalysisReportDto report,
   }) async {
     throw UnimplementedError();
   }

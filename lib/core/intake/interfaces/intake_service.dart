@@ -51,6 +51,7 @@ abstract class IntakeService {
     required String analysisId,
   }) => throw UnimplementedError();
 
+  /// Retorna o payload agregado usado na exportacao do relatorio da 2a instancia.
   Future<RestResponse<SecondInstanceAnalysisReportDto>>
   getSecondInstanceAnalysisReport({required String analysisId});
 
