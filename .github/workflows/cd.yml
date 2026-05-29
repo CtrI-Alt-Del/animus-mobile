@@ -68,13 +68,15 @@ jobs:
             [[ -z "$line" ]] && continue
             [[ "$line" == \#* ]] && continue
 
-            value="${!line:-}"
+            key="${line%%=*}"
+
+            value="$(printenv "$key")"
             if [[ -z "$value" ]]; then
-              echo "Missing required secret for $line" >&2
+              echo "Missing required secret for $key" >&2
               exit 1
             fi
 
-            printf '%s=%s\n' "$line" "$value" >> .env
+            printf '%s=%s\n' "$key" "$value" >> .env
           done < .env.example
 
       - name: Restore Android keystore
