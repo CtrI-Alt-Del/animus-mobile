@@ -269,9 +269,9 @@ class _SecondInstanceAnalysisScreenViewState
 
   Future<void> _handleExportReport(
     BuildContext context,
-    SecondInstanceFirstInstanceAnalysisScreenPresenter presenter,
+    SecondInstanceAnalysisScreenPresenter presenter,
   ) async {
-    final bool exported = await presenter.exportAnalysisReport();
+    final bool exported = await presenter.exportSecondInstanceAnalysisReport();
     if (!mounted || !context.mounted || !exported) {
       return;
     }
@@ -319,6 +319,9 @@ class _SecondInstanceAnalysisScreenViewState
                       final String analysisName = presenter.analysisName.watch(
                         context,
                       );
+                      final bool isArchived = presenter.isArchived.watch(
+                        context,
+                      );
                       final bool isManaging = presenter.isManagingAnalysis
                           .watch(context);
                       final bool isExportingReport = presenter.isExportingReport
@@ -355,12 +358,12 @@ class _SecondInstanceAnalysisScreenViewState
                         onExportReport: canExportReport
                             ? () {
                                 unawaited(
-                                  presenter
-                                      .exportSecondInstanceAnalysisReport(),
+                                  _handleExportReport(context, presenter),
                                 );
                               }
                             : null,
                         title: analysisName,
+                        isArchived: isArchived,
                         onPrecedentsCount: isManaging || !showPrecedentsActions
                             ? null
                             : () {
@@ -420,7 +423,13 @@ class _SecondInstanceAnalysisScreenViewState
                                 );
 
                                 if (confirm == true) {
-                                  await presenter.archiveAnalysis();
+                                  final bool archived = await presenter
+                                      .archiveAnalysis();
+                                  if (!context.mounted || !archived) {
+                                    return;
+                                  }
+
+                                  Navigator.of(context).maybePop();
                                 }
                               },
                         appliedFiltersCount: appliedFiltersCount,
@@ -457,8 +466,19 @@ class _SecondInstanceAnalysisScreenViewState
                               status ==
                                   AnalysisStatusDto.generatingJudgmentDraft ||
                               status == AnalysisStatusDto.generatingSynthesis;
-                          final bool showSummary =
-                              presenter.caseSummary.watch(context) != null;
+                          final summary = presenter.caseSummary.watch(context);
+                          if (status == AnalysisStatusDto.caseAnalyzed &&
+                              summary == null) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!mounted) {
+                                return;
+                              }
+
+                              unawaited(presenter.ensureCaseSummaryLoaded());
+                            });
+                          }
+
+                          final bool showSummary = summary != null;
                           final draft = presenter.judgmentDraft.watch(context);
                           final bool showDraft =
                               draft != null && !showDraftProcessing;
@@ -551,9 +571,7 @@ class _SecondInstanceAnalysisScreenViewState
                               if (showSummary) ...<Widget>[
                                 const SizedBox(height: 12),
                                 _animatedEntry(
-                                  CaseSummaryCard(
-                                    summary: presenter.caseSummary.value!,
-                                  ),
+                                  CaseSummaryCard(summary: summary),
                                 ),
                                 Watch((BuildContext context) {
                                   final bool canReanalyze = presenter

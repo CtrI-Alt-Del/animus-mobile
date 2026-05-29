@@ -327,19 +327,33 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
-  Future<RestResponse<AnalysisDto>> archiveAnalysis({
+  Future<RestResponse<List<AnalysisDto>>> archiveAnalysis({
     required String analysisId,
   }) async {
-    final RestResponse<AnalysisDto>? authFailure = requireAuth<AnalysisDto>();
+    final RestResponse<List<AnalysisDto>>? authFailure =
+        requireAuth<List<AnalysisDto>>();
     if (authFailure != null) {
       return authFailure;
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
-      '/intake/analyses/$analysisId/archive',
+      '/intake/analyses/archive',
+      body: <String, dynamic>{
+        'analysis_ids': <String>[analysisId],
+      },
     );
 
-    return response.mapBody<AnalysisDto>(AnalysisMapper.toDto);
+    return response.mapBody<List<AnalysisDto>>((Json json) {
+      final dynamic itemsValue = json['items'];
+      if (itemsValue is! List<dynamic>) {
+        return const <AnalysisDto>[];
+      }
+
+      return itemsValue
+          .whereType<Json>()
+          .map(AnalysisMapper.toDto)
+          .toList(growable: false);
+    });
   }
 
   @override

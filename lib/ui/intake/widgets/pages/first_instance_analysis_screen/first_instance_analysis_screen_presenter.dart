@@ -345,6 +345,7 @@ class FirstInstanceAnalysisScreenPresenter {
     }
 
     analysisDocument.value = petitionResponse.body;
+    selectedFile.value = null;
     summary.value = null;
     status.value = AnalysisStatusDto.petitionUploaded;
   }
@@ -401,7 +402,7 @@ class FirstInstanceAnalysisScreenPresenter {
     }
 
     isManagingAnalysis.value = true;
-    final RestResponse<AnalysisDto> response = await _intakeService
+    final RestResponse<List<AnalysisDto>> response = await _intakeService
         .archiveAnalysis(analysisId: analysisId);
     isManagingAnalysis.value = false;
 
@@ -410,8 +411,25 @@ class FirstInstanceAnalysisScreenPresenter {
       return false;
     }
 
+    final AnalysisDto? archivedAnalysis = _findArchivedAnalysis(response.body);
+    if (archivedAnalysis == null) {
+      generalError.value = failedMessage;
+      return false;
+    }
+
+    isArchived.value = archivedAnalysis.isArchived;
     generalError.value = null;
     return true;
+  }
+
+  AnalysisDto? _findArchivedAnalysis(List<AnalysisDto> analyses) {
+    for (final AnalysisDto analysis in analyses) {
+      if (analysis.id == analysisId) {
+        return analysis;
+      }
+    }
+
+    return analyses.isEmpty ? null : analyses.first;
   }
 
   Future<bool> exportAnalysisReport() async {

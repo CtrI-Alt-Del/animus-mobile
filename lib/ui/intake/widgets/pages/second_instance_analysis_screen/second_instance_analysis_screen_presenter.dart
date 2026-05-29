@@ -41,6 +41,7 @@ class SecondInstanceAnalysisScreenPresenter {
   final DocumentPickerDriver _documentPickerDriver;
   final String analysisId;
   int _judgmentDraftPollingFlow = 0;
+  Future<bool>? _caseSummaryLoadRequest;
 
   final Signal<AnalysisStatusDto> status = signal<AnalysisStatusDto>(
     AnalysisStatusDto.waitingDocumentUpload,
@@ -140,11 +141,6 @@ class SecondInstanceAnalysisScreenPresenter {
     () => status.value == AnalysisStatusDto.petitionNotFound,
   );
 
-  late final ReadonlySignal<bool> canExportReport = computed(() {
-    print('canExportReport: ${status.value.value}');
-    return status.value == AnalysisStatusDto.done && !isExportingReport.value;
-  });
-
   late final ReadonlySignal<String> primaryActionLabel = computed(() {
     if (status.value == AnalysisStatusDto.failed) {
       if (precedentsReady.value && hasChosenPrecedents.value) {
@@ -214,11 +210,7 @@ class SecondInstanceAnalysisScreenPresenter {
     }
 
     if (_shouldLoadSummary(analysis.status)) {
-      final RestResponse<CaseSummaryDto> summaryResponse = await _intakeService
-          .getCaseSummary(analysisId: analysisId);
-      if (summaryResponse.isSuccessful) {
-        caseSummary.value = summaryResponse.body;
-      }
+      await _loadCaseSummary();
     }
 
     if (_shouldLoadJudgmentDraft(analysis.status)) {
@@ -397,7 +389,7 @@ class SecondInstanceAnalysisScreenPresenter {
     }
 
     isManagingAnalysis.value = true;
-    final RestResponse<AnalysisDto> response = await _intakeService
+    final RestResponse<List<AnalysisDto>> response = await _intakeService
         .archiveAnalysis(analysisId: analysisId);
     isManagingAnalysis.value = false;
 
@@ -406,8 +398,25 @@ class SecondInstanceAnalysisScreenPresenter {
       return false;
     }
 
+    final AnalysisDto? archivedAnalysis = _findArchivedAnalysis(response.body);
+    if (archivedAnalysis == null) {
+      generalError.value = failedMessage;
+      return false;
+    }
+
+    isArchived.value = archivedAnalysis.isArchived;
     generalError.value = null;
     return true;
+  }
+
+  AnalysisDto? _findArchivedAnalysis(List<AnalysisDto> analyses) {
+    for (final AnalysisDto analysis in analyses) {
+      if (analysis.id == analysisId) {
+        return analysis;
+      }
+    }
+
+    return analyses.isEmpty ? null : analyses.first;
   }
 
   Future<bool> exportSecondInstanceAnalysisReport() async {
@@ -454,6 +463,14 @@ class SecondInstanceAnalysisScreenPresenter {
 
   void syncChosenPrecedents(List<AnalysisPrecedentDto> precedents) {
     hasChosenPrecedents.value = precedents.isNotEmpty;
+  }
+
+  Future<bool> ensureCaseSummaryLoaded() async {
+    if (caseSummary.value != null || !_shouldLoadSummary(status.value)) {
+      return caseSummary.value != null;
+    }
+
+    return _loadCaseSummary();
   }
 
   String fileName(File file) {
@@ -503,7 +520,6 @@ class SecondInstanceAnalysisScreenPresenter {
     showCaseProcessingBubble.dispose();
     showJudgmentDraftProcessingBubble.dispose();
     showPetitionNotFound.dispose();
-    canExportReport.dispose();
     primaryActionLabel.dispose();
   }
 
@@ -606,6 +622,7 @@ class SecondInstanceAnalysisScreenPresenter {
     }
 
     analysisDocument.value = createDocumentResponse.body;
+    selectedFile.value = null;
 
     final RestResponse<AnalysisStatusDto> statusResponse = await _intakeService
         .updateAnalysisStatus(
@@ -647,15 +664,12 @@ class SecondInstanceAnalysisScreenPresenter {
       status.value = currentStatus;
 
       if (currentStatus == AnalysisStatusDto.caseAnalyzed) {
-        final RestResponse<CaseSummaryDto> summaryResponse =
-            await _intakeService.getCaseSummary(analysisId: analysisId);
-
-        if (summaryResponse.isFailure) {
-          await _applyFailure(summaryResponse.errorMessage);
+        final bool didLoadSummary = await _loadCaseSummary();
+        if (!didLoadSummary) {
+          await _applyFailure();
           return;
         }
 
-        caseSummary.value = summaryResponse.body;
         precedentsReady.value = false;
         generalError.value = null;
         return;
@@ -748,6 +762,30 @@ class SecondInstanceAnalysisScreenPresenter {
         : message;
     generalError.value = errorMessage;
     status.value = AnalysisStatusDto.failed;
+  }
+
+  Future<bool> _loadCaseSummary() {
+    final Future<bool>? currentRequest = _caseSummaryLoadRequest;
+    if (currentRequest != null) {
+      return currentRequest;
+    }
+
+    final Future<bool> request = _intakeService
+        .getCaseSummary(analysisId: analysisId)
+        .then((RestResponse<CaseSummaryDto> summaryResponse) {
+          if (summaryResponse.isFailure) {
+            return false;
+          }
+
+          caseSummary.value = summaryResponse.body;
+          return true;
+        })
+        .whenComplete(() {
+          _caseSummaryLoadRequest = null;
+        });
+
+    _caseSummaryLoadRequest = request;
+    return request;
   }
 
   void _applyRemoteStatus(AnalysisStatusDto value) {

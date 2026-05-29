@@ -434,7 +434,7 @@ class CaseAssessmentAnalysisScreenPresenter {
     }
 
     isManagingAnalysis.value = true;
-    final RestResponse<AnalysisDto> response = await _intakeService
+    final RestResponse<List<AnalysisDto>> response = await _intakeService
         .archiveAnalysis(analysisId: analysisId);
     isManagingAnalysis.value = false;
 
@@ -443,8 +443,25 @@ class CaseAssessmentAnalysisScreenPresenter {
       return false;
     }
 
+    final AnalysisDto? archivedAnalysis = _findArchivedAnalysis(response.body);
+    if (archivedAnalysis == null) {
+      generalError.value = failedMessage;
+      return false;
+    }
+
+    isArchived.value = archivedAnalysis.isArchived;
     generalError.value = null;
     return true;
+  }
+
+  AnalysisDto? _findArchivedAnalysis(List<AnalysisDto> analyses) {
+    for (final AnalysisDto analysis in analyses) {
+      if (analysis.id == analysisId) {
+        return analysis;
+      }
+    }
+
+    return analyses.isEmpty ? null : analyses.first;
   }
 
   /// Exports the full case assessment analysis report as PDF and shares it.
@@ -593,6 +610,7 @@ class CaseAssessmentAnalysisScreenPresenter {
     }
 
     analysisDocument.value = createDocumentResponse.body;
+    selectedFile.value = null;
 
     final RestResponse<AnalysisStatusDto> statusResponse = await _intakeService
         .updateAnalysisStatus(

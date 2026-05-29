@@ -66,7 +66,7 @@ abstract class IntakeService {
     required String name,
   });
 
-  Future<RestResponse<AnalysisDto>> archiveAnalysis({
+  Future<RestResponse<List<AnalysisDto>>> archiveAnalysis({
     required String analysisId,
   });
 
