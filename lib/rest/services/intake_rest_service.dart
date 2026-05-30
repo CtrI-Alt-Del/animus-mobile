@@ -599,7 +599,7 @@ class IntakeRestService extends Service implements IntakeService {
     }
 
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
-      '/precedents/identifier',
+      '/intake/precedents',
       queryParams: <String, dynamic>{
         'court': identifier.court.value,
         'kind': identifier.kind.value,
