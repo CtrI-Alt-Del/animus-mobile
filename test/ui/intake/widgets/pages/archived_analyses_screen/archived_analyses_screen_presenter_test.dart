@@ -6,6 +6,7 @@ import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/ui/intake/widgets/pages/archived_analyses_screen/archived_analyses_screen_presenter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -31,10 +32,12 @@ void main() {
 
   ArchivedAnalysesScreenPresenter createPresenter({
     Duration searchDebounce = Duration.zero,
+    VoidCallback? onAnalysesChanged,
   }) {
     return ArchivedAnalysesScreenPresenter(
       intakeService: intakeService,
       navigationDriver: navigationDriver,
+      onAnalysesChanged: onAnalysesChanged ?? () {},
       searchDebounce: searchDebounce,
     );
   }
@@ -408,8 +411,7 @@ void main() {
 
   group('unarchive', () {
     test('remove o item da lista em sucesso e retorna true', () async {
-      final ArchivedAnalysesScreenPresenter presenter = createPresenter();
-      addTearDown(presenter.dispose);
+      int onAnalysesChangedCount = 0;
 
       final AnalysisDto target = AnalysisDtoFaker.fake(
         id: 'a-1',
@@ -437,14 +439,23 @@ void main() {
         (_) async => RestResponse<AnalysisDto>(statusCode: 200, body: target),
       );
 
-      await presenter.initialize();
-      final bool result = await presenter.unarchive(target);
+      final ArchivedAnalysesScreenPresenter presenterWithCallback =
+          createPresenter(
+            onAnalysesChanged: () {
+              onAnalysesChangedCount += 1;
+            },
+          );
+      addTearDown(presenterWithCallback.dispose);
+
+      await presenterWithCallback.initialize();
+      final bool result = await presenterWithCallback.unarchive(target);
 
       expect(result, isTrue);
-      expect(presenter.archivedAnalyses.value.length, 1);
-      expect(presenter.archivedAnalyses.value.first.id, 'a-2');
-      expect(presenter.isUnarchiving.value, isFalse);
-      expect(presenter.unarchivingId.value, isNull);
+      expect(presenterWithCallback.archivedAnalyses.value.length, 1);
+      expect(presenterWithCallback.archivedAnalyses.value.first.id, 'a-2');
+      expect(presenterWithCallback.isUnarchiving.value, isFalse);
+      expect(presenterWithCallback.unarchivingId.value, isNull);
+      expect(onAnalysesChangedCount, 1);
     });
 
     test('mantem o item na lista em falha e retorna false', () async {

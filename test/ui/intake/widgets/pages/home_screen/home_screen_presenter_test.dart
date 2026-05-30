@@ -10,6 +10,7 @@ import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/constants/routes.dart';
+import 'package:animus/ui/intake/providers/analyses_feed_refresh_provider.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_screen_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -34,6 +35,7 @@ void main() {
   late _MockCacheDriver cacheDriver;
   late _MockNavigationDriver navigationDriver;
   late _MockPushNotificationDriver pushNotificationDriver;
+  late AnalysesFeedRefreshNotifier analysesFeedRefreshNotifier;
 
   setUp(() {
     authService = _MockAuthService();
@@ -41,6 +43,7 @@ void main() {
     cacheDriver = _MockCacheDriver();
     navigationDriver = _MockNavigationDriver();
     pushNotificationDriver = _MockPushNotificationDriver();
+    analysesFeedRefreshNotifier = AnalysesFeedRefreshNotifier();
 
     when(
       () => cacheDriver.get(CacheKeys.accessToken),
@@ -85,6 +88,7 @@ void main() {
       cacheDriver: cacheDriver,
       navigationDriver: navigationDriver,
       pushNotificationDriver: pushNotificationDriver,
+      analysesFeedRefreshNotifier: analysesFeedRefreshNotifier,
     );
   }
 
@@ -182,6 +186,47 @@ void main() {
 
       verifyNever(() => pushNotificationDriver.identifyUser(any()));
     });
+
+    test(
+      'refaz a lista quando recebe invalidacao de desarquivamento',
+      () async {
+        final HomeScreenPresenter presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        when(() => authService.getAccount()).thenAnswer(
+          (_) async => RestResponse<AccountDto>(
+            statusCode: 200,
+            body: AccountDtoFaker.fake(id: 'account-123', name: 'Ada Lovelace'),
+          ),
+        );
+
+        final AnalysisDto initialAnalysis = AnalysisDtoFaker.fake(id: 'a-1');
+        final AnalysisDto refreshedAnalysis = AnalysisDtoFaker.fake(id: 'a-2');
+
+        int listAnalysesCalls = 0;
+        when(
+          () => intakeService.listAnalyses(limit: 10, isArchived: false),
+        ).thenAnswer((_) async {
+          listAnalysesCalls += 1;
+
+          return RestResponse<CursorPaginationResponse<AnalysisDto>>(
+            statusCode: 200,
+            body: createPagination(
+              items: <AnalysisDto>[
+                listAnalysesCalls == 1 ? initialAnalysis : refreshedAnalysis,
+              ],
+            ),
+          );
+        });
+
+        await presenter.initialize();
+        analysesFeedRefreshNotifier.notifyChanged();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(listAnalysesCalls, 2);
+        expect(presenter.recentAnalyses.value.single.id, refreshedAnalysis.id);
+      },
+    );
   });
 
   group('loadNextPage', () {

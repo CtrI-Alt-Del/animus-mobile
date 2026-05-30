@@ -846,6 +846,26 @@ void main() {
       expect(presenter.generalError.value, 'Falha ao arquivar analise.');
     });
 
+    test('should unarchive analysis successfully', () async {
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(
+        () => intakeService.unarchiveAnalysis(analysisId: 'analysis-1'),
+      ).thenAnswer(
+        (_) async => RestResponse<AnalysisDto>(
+          statusCode: 200,
+          body: AnalysisDtoFaker.fake(id: 'analysis-1', isArchived: false),
+        ),
+      );
+
+      final bool unarchived = await presenter.unarchiveAnalysis();
+
+      expect(unarchived, isTrue);
+      expect(presenter.isArchived.value, isFalse);
+      expect(presenter.generalError.value, isNull);
+    });
+
     test(
       'should clear previous state and reuse pick document flow on replace',
       () async {
