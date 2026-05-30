@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
@@ -7,7 +9,7 @@ import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/p
 class PetitionDraftCardView extends StatelessWidget {
   final PetitionDraftDto draft;
   final VoidCallback onOpenModal;
-  final VoidCallback? onRegenerate;
+  final Future<bool> Function()? onRegenerate;
 
   const PetitionDraftCardView({
     required this.draft,
@@ -32,23 +34,37 @@ class PetitionDraftCardView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  'Minuta de petição',
-                  style: textTheme.titleSmall?.copyWith(
-                    color: tokens.accent,
-                    fontWeight: FontWeight.w700,
+          Text(
+            'Minuta de petição',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.titleSmall?.copyWith(
+              color: tokens.accent,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: <Widget>[
+                if (onRegenerate != null)
+                  TextButton.icon(
+                    onPressed: () {
+                      unawaited(onRegenerate!.call());
+                    },
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: const Text('Regerar minuta'),
                   ),
+                TextButton.icon(
+                  onPressed: onOpenModal,
+                  icon: const Icon(Icons.open_in_full, size: 16),
+                  label: const Text('Ver minuta'),
                 ),
-              ),
-              TextButton.icon(
-                onPressed: onOpenModal,
-                icon: const Icon(Icons.open_in_full, size: 16),
-                label: const Text('Ver minuta'),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           PreviewSection(
