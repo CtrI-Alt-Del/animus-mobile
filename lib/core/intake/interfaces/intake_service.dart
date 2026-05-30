@@ -102,6 +102,16 @@ abstract class IntakeService {
     required String analysisId,
   }) => throw UnimplementedError();
 
+  Future<RestResponse<void>> regeneratePetitionDraft({
+    required String analysisId,
+    required String comments,
+  });
+
+  Future<RestResponse<void>> regenerateJudgmentDraft({
+    required String analysisId,
+    required String comments,
+  });
+
   Future<RestResponse<SecondInstanceJudgmentDraftDto>>
   getSecondInstanceJudgmentDraft({required String analysisId});
 
