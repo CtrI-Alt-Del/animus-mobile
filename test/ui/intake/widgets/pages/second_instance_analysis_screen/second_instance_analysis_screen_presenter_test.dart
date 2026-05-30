@@ -344,6 +344,34 @@ void main() {
       expect(presenter.generalError.value, isNull);
     });
 
+    test(
+      'should mark analysis as unarchived after unarchive succeeds',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        presenter.isArchived.value = true;
+
+        when(
+          () => intakeService.unarchiveAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              id: 'analysis-1',
+              type: AnalysisTypeDto.secondInstance,
+              isArchived: false,
+            ),
+          ),
+        );
+
+        final bool unarchived = await presenter.unarchiveAnalysis();
+
+        expect(unarchived, isTrue);
+        expect(presenter.isArchived.value, isFalse);
+        expect(presenter.generalError.value, isNull);
+      },
+    );
+
     group('exportSecondInstanceAnalysisReport', () {
       test('should export report with sanitized filename', () async {
         final presenter = createPresenter();

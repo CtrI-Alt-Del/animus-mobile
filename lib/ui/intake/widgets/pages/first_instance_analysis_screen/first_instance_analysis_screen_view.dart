@@ -20,6 +20,7 @@ import 'package:animus/ui/intake/widgets/components/analysis_action_bar/index.da
 import 'package:animus/ui/intake/widgets/components/analysis_header/archive_analysis_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/rename_analysis_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_header/unarchive_analysis_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/components/case_summary_card/index.dart';
@@ -421,26 +422,30 @@ class _FirstInstanceAnalysisScreenViewState
                                       rootNavigator: true,
                                     ).context;
 
-                                final bool shouldArchive =
+                                final bool shouldProceed =
                                     await showDialog<bool>(
                                       context: dialogHostContext,
                                       barrierColor: const Color(0x99000000),
-                                      builder: (_) =>
-                                          const ArchiveAnalysisDialog(),
+                                      builder: (_) => isArchived
+                                          ? const UnarchiveAnalysisDialog()
+                                          : const ArchiveAnalysisDialog(),
                                     ) ??
                                     false;
 
-                                if (!shouldArchive) {
+                                if (!shouldProceed) {
                                   return;
                                 }
 
-                                final bool archived = await presenter
-                                    .archiveAnalysis();
-                                if (!context.mounted || !archived) {
+                                final bool changed = isArchived
+                                    ? await presenter.unarchiveAnalysis()
+                                    : await presenter.archiveAnalysis();
+                                if (!context.mounted || !changed) {
                                   return;
                                 }
 
-                                Navigator.of(context).maybePop();
+                                if (!isArchived) {
+                                  Navigator.of(context).maybePop();
+                                }
                               },
                         appliedFiltersCount: appliedFiltersCount,
                         isMenuEnabled: !isManagingAnalysis,

@@ -100,6 +100,7 @@ class AnalysisHeaderView extends StatelessWidget {
               appliedFiltersCount: appliedFiltersCount,
               showExportReport: showExportReport,
               isExportingReport: isExportingReport,
+              isArchived: isArchived,
             ),
           ],
         ),

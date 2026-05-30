@@ -18,6 +18,7 @@ import 'package:animus/ui/intake/widgets/components/analysis_action_bar/index.da
 import 'package:animus/ui/intake/widgets/components/analysis_header/archive_analysis_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/rename_analysis_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_header/unarchive_analysis_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart';
@@ -427,17 +428,22 @@ class _SecondInstanceAnalysisScreenViewState
                                 final bool? confirm = await showDialog<bool>(
                                   context: dialogContext,
                                   barrierColor: const Color(0x99000000),
-                                  builder: (_) => const ArchiveAnalysisDialog(),
+                                  builder: (_) => isArchived
+                                      ? const UnarchiveAnalysisDialog()
+                                      : const ArchiveAnalysisDialog(),
                                 );
 
                                 if (confirm == true) {
-                                  final bool archived = await presenter
-                                      .archiveAnalysis();
-                                  if (!context.mounted || !archived) {
+                                  final bool changed = isArchived
+                                      ? await presenter.unarchiveAnalysis()
+                                      : await presenter.archiveAnalysis();
+                                  if (!context.mounted || !changed) {
                                     return;
                                   }
 
-                                  Navigator.of(context).maybePop();
+                                  if (!isArchived) {
+                                    Navigator.of(context).maybePop();
+                                  }
                                 }
                               },
                         appliedFiltersCount: appliedFiltersCount,

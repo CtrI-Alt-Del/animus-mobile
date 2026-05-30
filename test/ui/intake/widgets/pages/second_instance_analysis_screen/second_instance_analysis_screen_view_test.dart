@@ -258,6 +258,7 @@ void main() {
       when(() => presenter.confirmAndViewPrecedents()).thenReturn(null);
       when(() => presenter.renameAnalysis(any())).thenAnswer((_) async => true);
       when(() => presenter.archiveAnalysis()).thenAnswer((_) async => true);
+      when(() => presenter.unarchiveAnalysis()).thenAnswer((_) async => true);
       when(
         () => presenter.exportAnalysisReport(),
       ).thenAnswer((_) async => true);

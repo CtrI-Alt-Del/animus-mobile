@@ -455,6 +455,26 @@ class CaseAssessmentAnalysisScreenPresenter {
     return true;
   }
 
+  Future<bool> unarchiveAnalysis() async {
+    if (isManagingAnalysis.value || isExportingReport.value) {
+      return false;
+    }
+
+    isManagingAnalysis.value = true;
+    final RestResponse<AnalysisDto> response = await _intakeService
+        .unarchiveAnalysis(analysisId: analysisId);
+    isManagingAnalysis.value = false;
+
+    if (response.isFailure) {
+      generalError.value = response.errorMessage;
+      return false;
+    }
+
+    isArchived.value = response.body.isArchived;
+    generalError.value = null;
+    return true;
+  }
+
   AnalysisDto? _findArchivedAnalysis(List<AnalysisDto> analyses) {
     for (final AnalysisDto analysis in analyses) {
       if (analysis.id == analysisId) {

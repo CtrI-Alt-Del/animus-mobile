@@ -20,6 +20,7 @@ import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/drivers/push-notification-driver/index.dart';
 import 'package:animus/rest/services/index.dart';
+import 'package:animus/ui/intake/providers/analyses_feed_refresh_provider.dart';
 
 class HomeScreenPresenter {
   static const int _pageSize = 10;
@@ -30,6 +31,7 @@ class HomeScreenPresenter {
   final CacheDriver _cacheDriver;
   final NavigationDriver _navigationDriver;
   final PushNotificationDriver _pushNotificationDriver;
+  final AnalysesFeedRefreshNotifier _analysesFeedRefreshNotifier;
 
   final Signal<bool> isLoadingInitialData = signal<bool>(false);
   final Signal<bool> isLoadingMore = signal<bool>(false);
@@ -74,11 +76,15 @@ class HomeScreenPresenter {
     required CacheDriver cacheDriver,
     required NavigationDriver navigationDriver,
     required PushNotificationDriver pushNotificationDriver,
+    required AnalysesFeedRefreshNotifier analysesFeedRefreshNotifier,
   }) : _authService = authService,
        _intakeService = intakeService,
        _cacheDriver = cacheDriver,
        _navigationDriver = navigationDriver,
-       _pushNotificationDriver = pushNotificationDriver;
+       _pushNotificationDriver = pushNotificationDriver,
+       _analysesFeedRefreshNotifier = analysesFeedRefreshNotifier {
+    _analysesFeedRefreshNotifier.addListener(_handleAnalysesFeedRefresh);
+  }
 
   Future<void> initialize() async {
     if (isLoadingInitialData.value || _didCompleteInitialLoad) {
@@ -268,6 +274,7 @@ class HomeScreenPresenter {
 
   void dispose() {
     _stopProcessingPolling();
+    _analysesFeedRefreshNotifier.removeListener(_handleAnalysesFeedRefresh);
     isLoadingInitialData.dispose();
     isLoadingMore.dispose();
     isCreatingAnalysis.dispose();
@@ -356,6 +363,10 @@ class HomeScreenPresenter {
       _mergeProcessingAnalyses(pagination.items),
     );
     nextCursor.value = pagination.nextCursor;
+  }
+
+  void _handleAnalysesFeedRefresh() {
+    unawaited(refresh());
   }
 
   String _extractFirstName(AccountDto account) {
@@ -472,6 +483,9 @@ final Provider<HomeScreenPresenter> homeScreenPresenterProvider =
       final PushNotificationDriver pushNotificationDriver = ref.watch(
         pushNotificationDriverProvider,
       );
+      final AnalysesFeedRefreshNotifier analysesFeedRefreshNotifier = ref.watch(
+        analysesFeedRefreshNotifierProvider,
+      );
 
       final HomeScreenPresenter presenter = HomeScreenPresenter(
         authService: authService,
@@ -479,6 +493,7 @@ final Provider<HomeScreenPresenter> homeScreenPresenterProvider =
         cacheDriver: cacheDriver,
         navigationDriver: navigationDriver,
         pushNotificationDriver: pushNotificationDriver,
+        analysesFeedRefreshNotifier: analysesFeedRefreshNotifier,
       );
 
       ref.onDispose(presenter.dispose);
