@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
@@ -7,8 +9,13 @@ import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/j
 
 class JudgmentDraftCardView extends StatelessWidget {
   final SecondInstanceJudgmentDraftDto draft;
+  final Future<bool> Function()? onRegenerate;
 
-  const JudgmentDraftCardView({required this.draft, super.key});
+  const JudgmentDraftCardView({
+    required this.draft,
+    this.onRegenerate,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,32 +33,49 @@ class JudgmentDraftCardView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  'Minuta de Sentença',
-                  style: textTheme.titleSmall?.copyWith(
-                    color: tokens.accent,
-                    fontWeight: FontWeight.w700,
+          Text(
+            'Minuta de sentença',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.titleSmall?.copyWith(
+              color: tokens.accent,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: <Widget>[
+                if (onRegenerate != null)
+                  TextButton.icon(
+                    onPressed: () {
+                      unawaited(onRegenerate!.call());
+                    },
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: const Text('Regerar minuta'),
                   ),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) {
+                          return JudgmentDraftDialog(
+                            draft: draft,
+                            onRegenerate: onRegenerate,
+                          );
+                        },
+                        fullscreenDialog: true,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.open_in_full, size: 16),
+                  label: const Text('Ver completa'),
                 ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) {
-                        return JudgmentDraftDialog(draft: draft);
-                      },
-                      fullscreenDialog: true,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.open_in_full, size: 16),
-                label: const Text('Ver completa'),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           PreviewSection(
