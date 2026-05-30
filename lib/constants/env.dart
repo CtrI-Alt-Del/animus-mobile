@@ -8,8 +8,6 @@ class Env {
 
   static String get gcsUrl => _validateValue('GCS_URL');
 
-  static String get gcsDownloadUrl => _validateValue('GCS_DOWNLOAD_URL');
-
   static String get supabaseUrl => _validateValue('SUPABASE_URL');
 
   static String get supabaseKey => _validateValue('SUPABASE_PUBLISHABLE_KEY');

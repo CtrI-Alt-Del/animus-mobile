@@ -145,7 +145,7 @@ Entregar o recorte mobile de `ANI-51` dentro da `analysis_screen`: quando a anal
 
 - **Localizacao:** `lib/core/shared/interfaces/pdf_driver.dart` (**novo arquivo**)
 - **Metodos:**
-- `Future<Uint8List> generateAnalysisReport({required AnalysisReportDto report})` - gera o documento PDF em memoria a partir do DTO agregado, sem depender de tipos de Flutter no contrato publico.
+- `Future<Uint8List> generateFirstInstanceAnalysisReport({required AnalysisReportDto report})` - gera o documento PDF em memoria a partir do DTO agregado, sem depender de tipos de Flutter no contrato publico.
 - `Future<void> sharePdf({required Uint8List bytes, required String filename})` - abre o mecanismo nativo de compartilhamento para os bytes ja gerados.
 
 ## Camada Drivers (Adaptadores)
@@ -154,7 +154,7 @@ Entregar o recorte mobile de `ANI-51` dentro da `analysis_screen`: quando a anal
 - **Interface implementada (port do `core`):** `PdfDriver`
 - **Biblioteca/pacote utilizado:** `pdf`, `printing`
 - **Metodos:**
-- `Future<Uint8List> generateAnalysisReport({required AnalysisReportDto report})` - monta o `pw.Document`, adiciona as paginas do relatorio e retorna `doc.save()`.
+- `Future<Uint8List> generateFirstInstanceAnalysisReport({required AnalysisReportDto report})` - monta o `pw.Document`, adiciona as paginas do relatorio e retorna `doc.save()`.
 - `List<pw.Widget> buildPrecedentCards({required List<AnalysisPrecedentDto> precedents})` - constroi os cards da secao de precedentes em formato compativel com `pw.MultiPage`, preservando ordenacao, integridade visual do card e quebra automatica entre paginas.
 - `Future<void> sharePdf({required Uint8List bytes, required String filename})` - delega ao `Printing.sharePdf(bytes: bytes, filename: filename)` para abrir o share sheet nativo.
 
@@ -318,7 +318,7 @@ PopupMenuItem("Exportar PDF")
      -> IntakeService.getAnalysisReport(analysisId)
         -> IntakeRestService.get('/intake/analyses/{analysis_id}/report')
         -> AnalysisReportMapper.toDto(json)
-     -> PdfDriver.generateAnalysisReport(report)
+     -> PdfDriver.generateFirstInstanceAnalysisReport(report)
         -> AnimusPdfTheme.load()
         -> pw.Document.addPage(...)
         -> Uint8List bytes

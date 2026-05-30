@@ -11,6 +11,7 @@ import 'package:animus/constants/routes.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
+import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/components/ai_bubble/index.dart';
@@ -18,35 +19,40 @@ import 'package:animus/ui/intake/widgets/components/analysis_action_bar/index.da
 import 'package:animus/ui/intake/widgets/components/analysis_header/archive_analysis_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_header/rename_analysis_dialog/index.dart';
-import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/index.dart';
-import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/analysis_precedents_bubble_presenter.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_limit_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/components/case_summary_card/index.dart';
 import 'package:animus/ui/intake/widgets/components/document_file_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/generate_petition_draft_card/index.dart';
+import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_card/index.dart';
+import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_modal/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/dot_grid_background/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedent_dialog/index.dart';
-import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/generate_judgment_draft_card/index.dart';
-import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/judgment_draft_card/index.dart';
-import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/petition_not_found_state/index.dart';
-import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/processing_bubble/index.dart';
-import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart';
 
-class SecondInstanceAnalysisScreenView extends ConsumerStatefulWidget {
+class CaseAssessmentAnalysisScreenView extends ConsumerStatefulWidget {
   final String analysisId;
 
-  const SecondInstanceAnalysisScreenView({required this.analysisId, super.key});
+  const CaseAssessmentAnalysisScreenView({required this.analysisId, super.key});
 
   @override
-  ConsumerState<SecondInstanceAnalysisScreenView> createState() =>
-      _SecondInstanceAnalysisScreenViewState();
+  ConsumerState<CaseAssessmentAnalysisScreenView> createState() =>
+      _CaseAssessmentAnalysisScreenViewState();
 }
 
-class _SecondInstanceAnalysisScreenViewState
-    extends ConsumerState<SecondInstanceAnalysisScreenView> {
+class _CaseAssessmentAnalysisScreenViewState
+    extends ConsumerState<CaseAssessmentAnalysisScreenView> {
   final ScrollController _scrollController = ScrollController();
-  List<String> _lastChosenPrecedentKeys = <String>[];
+
+  void _syncChosenPrecedentsIfNeeded(
+    CaseAssessmentAnalysisScreenPresenter presenter,
+    List<AnalysisPrecedentDto> chosenPrecedents,
+  ) {
+    presenter.syncChosenPrecedents(chosenPrecedents);
+  }
 
   Widget _animatedEntry(
     Widget child, {
@@ -61,23 +67,6 @@ class _SecondInstanceAnalysisScreenViewState
           duration: duration,
           curve: Curves.easeOutCubic,
         );
-  }
-
-  Future<void> _showPrecedentDialog(
-    BuildContext context,
-    AnalysisPrecedentDto precedent,
-  ) async {
-    await Navigator.of(context, rootNavigator: true).push<void>(
-      MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (BuildContext context) {
-          return PrecedentDialog(
-            analysisId: widget.analysisId,
-            precedent: precedent,
-          );
-        },
-      ),
-    );
   }
 
   void _jumpToBottom() {
@@ -109,49 +98,45 @@ class _SecondInstanceAnalysisScreenViewState
     });
   }
 
-  void _syncChosenPrecedentsIfNeeded(
-    SecondInstanceAnalysisScreenPresenter presenter,
-    List<AnalysisPrecedentDto> chosenPrecedents,
-  ) {
-    final List<String> currentKeys = chosenPrecedents
-        .map(
-          (AnalysisPrecedentDto precedent) =>
-              '${precedent.precedent.identifier.court.name}:${precedent.precedent.identifier.kind.name}:${precedent.precedent.identifier.number}',
-        )
-        .toList(growable: false);
-
-    final bool didChange =
-        currentKeys.length != _lastChosenPrecedentKeys.length ||
-        !currentKeys.asMap().entries.every(
-          (MapEntry<int, String> entry) =>
-              _lastChosenPrecedentKeys[entry.key] == entry.value,
-        );
-
-    if (!didChange) {
-      return;
-    }
-
-    _lastChosenPrecedentKeys = currentKeys;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-
-      presenter.syncChosenPrecedents(chosenPrecedents);
-    });
-  }
-
   bool _isPrecedentsFlow(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.searchingPrecedents ||
         status == AnalysisStatusDto.precedentsSearched ||
         status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         status == AnalysisStatusDto.generatingSynthesis ||
-        status == AnalysisStatusDto.waitingPrecedentChoice ||
-        status == AnalysisStatusDto.precedentChosen ||
-        status == AnalysisStatusDto.generatingJudgmentDraft ||
+        status == AnalysisStatusDto.generatingPetitionDraft ||
         status == AnalysisStatusDto.done;
+  }
+
+  Future<void> _showPrecedentDialog(
+    BuildContext context,
+    AnalysisPrecedentDto precedent,
+  ) async {
+    await Navigator.of(context, rootNavigator: true).push<void>(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (BuildContext context) {
+          return PrecedentDialog(
+            analysisId: widget.analysisId,
+            precedent: precedent,
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _showPetitionDraftModal(
+    BuildContext context,
+    PetitionDraftDto draft,
+  ) async {
+    await Navigator.of(context, rootNavigator: true).push<void>(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (BuildContext context) {
+          return PetitionDraftModal(draft: draft);
+        },
+      ),
+    );
   }
 
   Future<void> _showPrecedentsLimitDialog(
@@ -220,14 +205,6 @@ class _SecondInstanceAnalysisScreenViewState
                       } else {
                         selectedCourts.add(court);
                       }
-
-                      final List<PrecedentKindDto> validKinds =
-                          PrecedentKindDto.getValidKindsForCourts(
-                            selectedCourts,
-                          );
-                      selectedKinds.removeWhere(
-                        (PrecedentKindDto kind) => !validKinds.contains(kind),
-                      );
                     });
                   },
                   onToggleKind: (PrecedentKindDto kind) {
@@ -277,9 +254,9 @@ class _SecondInstanceAnalysisScreenViewState
 
   Future<void> _handleExportReport(
     BuildContext context,
-    SecondInstanceAnalysisScreenPresenter presenter,
+    CaseAssessmentAnalysisScreenPresenter presenter,
   ) async {
-    final bool exported = await presenter.exportSecondInstanceAnalysisReport();
+    final bool exported = await presenter.exportAnalysisReport();
     if (!mounted || !context.mounted || !exported) {
       return;
     }
@@ -303,8 +280,8 @@ class _SecondInstanceAnalysisScreenViewState
 
   @override
   Widget build(BuildContext context) {
-    final SecondInstanceAnalysisScreenPresenter presenter = ref.watch(
-      secondInstanceAnalysisScreenPresenterProvider(widget.analysisId),
+    final CaseAssessmentAnalysisScreenPresenter presenter = ref.watch(
+      caseAssessmentAnalysisScreenPresenterProvider(widget.analysisId),
     );
     final AnalysisPrecedentsBubblePresenter precedentsBubblePresenter = ref
         .watch(analysisPrecedentsBubblePresenterProvider(widget.analysisId));
@@ -337,15 +314,13 @@ class _SecondInstanceAnalysisScreenViewState
                       final AnalysisStatusDto status = presenter.status.watch(
                         context,
                       );
-                      final bool hasJudgmentDraft =
-                          presenter.judgmentDraft.watch(context) != null;
+                      final bool canExportReport = presenter.canExportReport
+                          .watch(context);
+                      final bool showExportReport =
+                          status == AnalysisStatusDto.done;
                       final bool showPrecedentsActions = _isPrecedentsFlow(
                         status,
                       );
-                      final bool showExportReport =
-                          status == AnalysisStatusDto.done && hasJudgmentDraft;
-                      final bool canExportReport = presenter.canExportReport
-                          .watch(context);
                       final int appliedFiltersCount =
                           precedentsBubblePresenter.selectedCourts
                               .watch(context)
@@ -441,7 +416,7 @@ class _SecondInstanceAnalysisScreenViewState
                                 }
                               },
                         appliedFiltersCount: appliedFiltersCount,
-                        isMenuEnabled: !isManaging || isExportingReport,
+                        isMenuEnabled: !isManaging,
                         showExportReport: showExportReport,
                         isExportingReport: isExportingReport,
                       );
@@ -467,29 +442,19 @@ class _SecondInstanceAnalysisScreenViewState
                           final bool showProcessing = presenter
                               .showCaseProcessingBubble
                               .watch(context);
-                          final bool showPetitionNotFound = presenter
-                              .showPetitionNotFound
+                          final bool showDraftProcessing = presenter
+                              .showPetitionDraftProcessingCard
                               .watch(context);
-                          final bool showDraftProcessing =
-                              status ==
-                                  AnalysisStatusDto.generatingJudgmentDraft ||
-                              status == AnalysisStatusDto.generatingSynthesis;
                           final summary = presenter.caseSummary.watch(context);
-                          if (status == AnalysisStatusDto.caseAnalyzed &&
-                              summary == null) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (!mounted) {
-                                return;
-                              }
-
-                              unawaited(presenter.ensureCaseSummaryLoaded());
-                            });
-                          }
-
                           final bool showSummary = summary != null;
-                          final draft = presenter.judgmentDraft.watch(context);
+                          final draft = presenter.petitionDraft.watch(context);
                           final bool showDraft =
-                              draft != null && !showDraftProcessing;
+                              draft != null &&
+                              status !=
+                                  AnalysisStatusDto.generatingPetitionDraft;
+                          final bool canRegenerateSummary = presenter
+                              .canRegenerateSummary
+                              .watch(context);
                           final bool showPrecedents =
                               status == AnalysisStatusDto.searchingPrecedents ||
                               status == AnalysisStatusDto.precedentsSearched ||
@@ -499,9 +464,9 @@ class _SecondInstanceAnalysisScreenViewState
                               status ==
                                   AnalysisStatusDto
                                       .analyzingPrecedentsApplicability ||
-                              status ==
-                                  AnalysisStatusDto.generatingJudgmentDraft ||
                               status == AnalysisStatusDto.generatingSynthesis ||
+                              status ==
+                                  AnalysisStatusDto.generatingPetitionDraft ||
                               status == AnalysisStatusDto.done;
 
                           return Column(
@@ -513,7 +478,7 @@ class _SecondInstanceAnalysisScreenViewState
                                 _animatedEntry(
                                   const AiBubble(
                                     message:
-                                        'Envie os autos em PDF para iniciar a analise de segunda instancia.',
+                                        'Envie o documento do caso (PDF ou DOCX) para iniciar a análise.',
                                     isTyping: false,
                                   ),
                                 ),
@@ -554,61 +519,37 @@ class _SecondInstanceAnalysisScreenViewState
                               ],
                               if (showProcessing) ...<Widget>[
                                 _animatedEntry(
-                                  ProcessingBubble(
+                                  const AiBubble(
                                     message:
-                                        status ==
-                                            AnalysisStatusDto.extractingPetition
-                                        ? 'Extraindo a peticao inicial dos autos enviados.'
-                                        : 'Analisando o caso e estruturando a sintese juridica.',
+                                        'Analisando o documento do caso enviado e montando o resumo do caso.',
+                                    isTyping: true,
                                     footerText:
                                         'Isso pode levar alguns instantes.',
                                   ),
                                 ),
                                 const SizedBox(height: 12),
                               ],
-                              if (showPetitionNotFound) ...<Widget>[
-                                _animatedEntry(
-                                  PetitionNotFoundState(
-                                    onResendDocument: () {
-                                      unawaited(presenter.resendDocument());
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
                               if (showSummary) ...<Widget>[
-                                const SizedBox(height: 12),
                                 _animatedEntry(
                                   CaseSummaryCard(summary: summary),
                                 ),
-                                Watch((BuildContext context) {
-                                  final bool canReanalyze = presenter
-                                      .canRegenerateSummary
-                                      .watch(context);
-
-                                  if (!canReanalyze) {
-                                    return const SizedBox.shrink();
-                                  }
-
-                                  return Align(
+                                if (canRegenerateSummary)
+                                  Align(
                                     alignment: Alignment.centerRight,
                                     child: Padding(
                                       padding: const EdgeInsets.only(top: 10),
                                       child: TextButton.icon(
                                         onPressed: () {
-                                          unawaited(presenter.reanalyzeCase());
+                                          unawaited(presenter.retrySummary());
                                         },
                                         icon: const Icon(
                                           Icons.refresh,
                                           size: 16,
                                         ),
-                                        label: const Text(
-                                          'Regerar análise do processo',
-                                        ),
+                                        label: const Text('Regerar resumo'),
                                       ),
                                     ),
-                                  );
-                                }),
+                                  ),
                               ],
                               if (showPrecedents) ...<Widget>[
                                 const SizedBox(height: 12),
@@ -646,12 +587,27 @@ class _SecondInstanceAnalysisScreenViewState
                               ],
                               if (showDraftProcessing) ...<Widget>[
                                 _animatedEntry(
-                                  const GenerateJudgmentDraftCard(),
+                                  const GeneratePetitionDraftCard(),
                                 ),
                                 const SizedBox(height: 12),
                               ],
                               if (showDraft) ...<Widget>[
-                                _animatedEntry(JudgmentDraftCard(draft: draft)),
+                                _animatedEntry(
+                                  PetitionDraftCard(
+                                    draft: draft,
+                                    onOpenModal: () {
+                                      unawaited(
+                                        _showPetitionDraftModal(context, draft),
+                                      );
+                                    },
+                                    onRegenerate: () {
+                                      unawaited(
+                                        presenter.regeneratePetitionDraft(),
+                                      );
+                                      _scheduleJumpToBottom();
+                                    },
+                                  ),
+                                ),
                                 const SizedBox(height: 12),
                               ],
                               if (generalError != null &&
@@ -668,116 +624,124 @@ class _SecondInstanceAnalysisScreenViewState
                       ),
                     ),
                     Watch((BuildContext context) {
-                      final bool canAnalyze = presenter.canAnalyzeCase.watch(
-                        context,
-                      );
-                      final summary = presenter.caseSummary.watch(context);
-                      final bool canSearch = presenter.canSearchPrecedents
+                      final bool canAnalyzeCase = presenter.canAnalyzeCase
                           .watch(context);
-                      final bool canGenerate = presenter
-                          .canGenerateJudgmentDraft
+                      final bool canSearchPrecedents = presenter
+                          .canSearchPrecedents
                           .watch(context);
-                      final bool canRegenerate = presenter
-                          .canRegenerateJudgmentDraft
+                      final bool canGeneratePetitionDraft = presenter
+                          .canGeneratePetitionDraft
                           .watch(context);
-                      final bool canPick = presenter.canPickDocument.watch(
-                        context,
-                      );
+                      final bool canRegeneratePetitionDraft = presenter
+                          .canRegeneratePetitionDraft
+                          .watch(context);
+                      final bool precedentsReady = presenter.precedentsReady
+                          .watch(context);
+                      final bool hasChosenPrecedents = presenter
+                          .hasChosenPrecedents
+                          .watch(context);
+                      final bool canPickDocument = presenter.canPickDocument
+                          .watch(context);
                       final bool isUploading = presenter.isUploading.watch(
-                        context,
-                      );
-                      final AnalysisStatusDto status = presenter.status.watch(
                         context,
                       );
                       final bool isManaging = presenter.isManagingAnalysis
                           .watch(context);
+                      final AnalysisStatusDto status = presenter.status.watch(
+                        context,
+                      );
+                      final summary = presenter.caseSummary.watch(context);
+                      final String primaryActionLabel = presenter
+                          .primaryActionLabel
+                          .watch(context);
+                      final String fileActionLabel = presenter.fileActionLabel
+                          .watch(context);
+
                       final bool showPrimaryAction =
                           status != AnalysisStatusDto.waitingDocumentUpload;
                       final bool showFileAction =
                           !isUploading &&
                           (status == AnalysisStatusDto.waitingDocumentUpload ||
-                              status == AnalysisStatusDto.documentUploaded);
+                              status == AnalysisStatusDto.documentUploaded ||
+                              status == AnalysisStatusDto.caseAnalyzed);
                       final bool hasPrimaryAction =
-                          canRegenerate ||
-                          canGenerate ||
-                          canSearch ||
-                          canAnalyze ||
-                          canPick;
-                      final AnalysisPrecedentsBubblePresenter
-                      precedentsPresenter = ref.read(
-                        analysisPrecedentsBubblePresenterProvider(
-                          widget.analysisId,
-                        ),
-                      );
+                          canRegeneratePetitionDraft ||
+                          canGeneratePetitionDraft ||
+                          canSearchPrecedents ||
+                          canAnalyzeCase ||
+                          (status == AnalysisStatusDto.failed &&
+                              canPickDocument);
+                      final bool shouldShowChoosePrecedentHelper =
+                          precedentsReady &&
+                          !hasChosenPrecedents &&
+                          !canGeneratePetitionDraft &&
+                          !canRegeneratePetitionDraft;
 
                       return AnalysisActionBar(
                         showFileAction: showFileAction,
-                        fileActionLabel: 'Selecionar processo',
-                        onFileAction: canPick
+                        fileActionLabel: fileActionLabel,
+                        onFileAction: isUploading
+                            ? null
+                            : canPickDocument
                             ? () {
+                                if (status == AnalysisStatusDto.caseAnalyzed) {
+                                  unawaited(presenter.replaceDocument());
+                                  return;
+                                }
+
                                 unawaited(presenter.pickDocument());
                               }
                             : null,
-                        primaryActionLabel: presenter.primaryActionLabel.watch(
-                          context,
-                        ),
+                        primaryActionLabel: primaryActionLabel,
                         showPrimaryAction: showPrimaryAction,
-                        onPrimaryAction: hasPrimaryAction
-                            ? () {
-                                if (canRegenerate) {
+                        onPrimaryAction: !hasPrimaryAction
+                            ? null
+                            : () {
+                                if (canRegeneratePetitionDraft) {
                                   unawaited(
-                                    presenter.regenerateJudgmentDraft(),
+                                    presenter.regeneratePetitionDraft(),
                                   );
                                   _scheduleJumpToBottom();
                                   return;
                                 }
 
-                                if (canGenerate) {
-                                  unawaited(presenter.requestJudgmentDraft());
+                                if (canGeneratePetitionDraft) {
+                                  unawaited(presenter.requestPetitionDraft());
                                   _scheduleJumpToBottom();
                                   return;
                                 }
 
                                 if (status == AnalysisStatusDto.failed) {
                                   if (summary != null) {
-                                    presenter.markPrecedentsReady();
-                                    presenter.status.value =
-                                        AnalysisStatusDto.searchingPrecedents;
-                                    unawaited(precedentsPresenter.retry());
+                                    presenter.confirmAndViewPrecedents();
                                     _scheduleJumpToBottom();
                                     return;
                                   }
 
-                                  if (canAnalyze) {
+                                  if (canAnalyzeCase) {
                                     unawaited(presenter.analyzeCase());
                                     _scheduleJumpToBottom();
                                     return;
                                   }
                                 }
 
-                                if (canSearch) {
-                                  presenter.markPrecedentsReady();
-                                  presenter.status.value =
-                                      AnalysisStatusDto.searchingPrecedents;
+                                if (canSearchPrecedents) {
+                                  presenter.confirmAndViewPrecedents();
                                   _scheduleJumpToBottom();
                                   return;
                                 }
 
-                                if (canAnalyze) {
+                                if (canAnalyzeCase) {
                                   unawaited(presenter.analyzeCase());
                                   _scheduleJumpToBottom();
                                   return;
                                 }
-
-                                if (canPick) {
-                                  unawaited(presenter.pickDocument());
-                                  _scheduleJumpToBottom();
-                                }
-                              }
-                            : null,
+                              },
                         isPrimaryBusy: isUploading || isManaging,
-                        helperText: showFileAction
-                            ? 'Somente PDF com ate 100MB. O processamento pode levar alguns minutos.'
+                        helperText: shouldShowChoosePrecedentHelper
+                            ? 'É necessário marcar pelo menos um precedente como escolhido para gerar a minuta.'
+                            : showFileAction
+                            ? 'PDF ou DOCX com até 100MB. O processamento pode levar alguns minutos.'
                             : null,
                       );
                     }),

@@ -6,7 +6,9 @@ enum CaseAssessmentAnalysisStatusDto {
   searchingPrecedents('SEARCHING_PRECEDENTS'),
   analyzingPrecedentsSimilarity('ANALYZING_PRECEDENTS_SIMILARITY'),
   analyzingPrecedentsApplicability('ANALYZING_PRECEDENTS_APPLICABILITY'),
+  generatingSynthesis('GENERATING_SYNTHESIS'),
   generatingPetitionDraft('GENERATING_PETITION_DRAFT'),
+  precedentsSearched('PRECEDENTS_SEARCHED'),
   done('DONE'),
   failed('FAILED');
 

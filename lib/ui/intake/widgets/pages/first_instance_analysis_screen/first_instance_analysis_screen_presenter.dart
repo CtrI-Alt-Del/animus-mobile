@@ -8,6 +8,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/constants/cache_keys.dart';
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/court_dto.dart';
@@ -110,6 +111,8 @@ class FirstInstanceAnalysisScreenPresenter {
     final AnalysisStatusDto currentStatus = status.value;
 
     return currentStatus == AnalysisStatusDto.searchingPrecedents ||
+        currentStatus == AnalysisStatusDto.precedentsSearched ||
+        currentStatus == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         currentStatus == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         currentStatus == AnalysisStatusDto.generatingSynthesis ||
         currentStatus == AnalysisStatusDto.waitingPrecedentChoice ||
@@ -117,7 +120,8 @@ class FirstInstanceAnalysisScreenPresenter {
   });
 
   late final ReadonlySignal<bool> canExportReport = computed(() {
-    return status.value == AnalysisStatusDto.precedentChosen &&
+    return (status.value == AnalysisStatusDto.precedentChosen ||
+            status.value == AnalysisStatusDto.precedentsSearched) &&
         !isExportingReport.value;
   });
 
@@ -225,6 +229,8 @@ class FirstInstanceAnalysisScreenPresenter {
         status == AnalysisStatusDto.analyzingPetition ||
         status == AnalysisStatusDto.caseAnalyzed ||
         status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.precedentsSearched ||
+        status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         status == AnalysisStatusDto.generatingSynthesis ||
         status == AnalysisStatusDto.waitingPrecedentChoice ||
@@ -234,6 +240,8 @@ class FirstInstanceAnalysisScreenPresenter {
   bool _shouldLoadSummary(AnalysisStatusDto status) {
     return status == AnalysisStatusDto.caseAnalyzed ||
         status == AnalysisStatusDto.searchingPrecedents ||
+        status == AnalysisStatusDto.precedentsSearched ||
+        status == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         status == AnalysisStatusDto.analyzingPrecedentsApplicability ||
         status == AnalysisStatusDto.generatingSynthesis ||
         status == AnalysisStatusDto.waitingPrecedentChoice ||
@@ -345,6 +353,7 @@ class FirstInstanceAnalysisScreenPresenter {
     }
 
     analysisDocument.value = petitionResponse.body;
+    selectedFile.value = null;
     summary.value = null;
     status.value = AnalysisStatusDto.petitionUploaded;
   }
@@ -401,7 +410,7 @@ class FirstInstanceAnalysisScreenPresenter {
     }
 
     isManagingAnalysis.value = true;
-    final RestResponse<AnalysisDto> response = await _intakeService
+    final RestResponse<List<AnalysisDto>> response = await _intakeService
         .archiveAnalysis(analysisId: analysisId);
     isManagingAnalysis.value = false;
 
@@ -410,8 +419,25 @@ class FirstInstanceAnalysisScreenPresenter {
       return false;
     }
 
+    final AnalysisDto? archivedAnalysis = _findArchivedAnalysis(response.body);
+    if (archivedAnalysis == null) {
+      generalError.value = failedMessage;
+      return false;
+    }
+
+    isArchived.value = archivedAnalysis.isArchived;
     generalError.value = null;
     return true;
+  }
+
+  AnalysisDto? _findArchivedAnalysis(List<AnalysisDto> analyses) {
+    for (final AnalysisDto analysis in analyses) {
+      if (analysis.id == analysisId) {
+        return analysis;
+      }
+    }
+
+    return analyses.isEmpty ? null : analyses.first;
   }
 
   Future<bool> exportAnalysisReport() async {
@@ -435,9 +461,8 @@ class FirstInstanceAnalysisScreenPresenter {
       }
 
       final FirstInstanceAnalysisReportDto report = reportResponse.body;
-      final Uint8List bytes = await _pdfDriver.generateAnalysisReport(
-        report: report,
-      );
+      final Uint8List bytes = await _pdfDriver
+          .generateFirstInstanceAnalysisReport(report: report);
 
       final String filename = _buildReportFilename(report.analysis.name);
       await _pdfDriver.sharePdf(bytes: bytes, filename: filename);
@@ -696,7 +721,14 @@ class FirstInstanceAnalysisScreenPresenter {
 
 class _PendingPdfDriver implements PdfDriver {
   @override
-  Future<Uint8List> generateAnalysisReport({
+  Future<Uint8List> generateCaseAssessmentAnalysisReport({
+    required CaseAssessmentAnalysisReportDto report,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Uint8List> generateFirstInstanceAnalysisReport({
     required FirstInstanceAnalysisReportDto report,
   }) async {
     throw UnimplementedError();

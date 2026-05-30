@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/home_pull_to_refresh/index.dart';
 import 'package:animus/ui/intake/widgets/pages/home_screen/recent_analyses_section/recent_analyses_empty_state/index.dart';
@@ -195,7 +196,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                       title: title,
                       dateLabel: formatCreatedAt(analysis.createdAt),
                       type: analysis.type,
-                      statusLabel: _resolveStatusLabel(analysis.status),
+                      statusLabel: _resolveStatusLabel(analysis),
                       onTap: () {
                         unawaited(onTapAnalysis(analysis));
                       },
@@ -231,7 +232,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                       title: title,
                       dateLabel: formatCreatedAt(analysis.createdAt),
                       type: analysis.type,
-                      statusLabel: _resolveStatusLabel(analysis.status),
+                      statusLabel: _resolveStatusLabel(analysis),
                       onTap: () {
                         unawaited(onTapAnalysis(analysis));
                       },
@@ -264,21 +265,31 @@ class RecentAnalysesSectionView extends StatelessWidget {
         status == AnalysisStatusDto.generatingJudgmentDraft;
   }
 
-  String _resolveStatusLabel(AnalysisStatusDto status) {
+  String _resolveStatusLabel(AnalysisDto analysis) {
+    final AnalysisStatusDto status = analysis.status;
+    final bool isCaseAssessment =
+        analysis.type == AnalysisTypeDto.caseAssessment;
+
     switch (status) {
       case AnalysisStatusDto.waitingPetition:
       case AnalysisStatusDto.waitingDocumentUpload:
-        return 'Aguardando petição';
+        return isCaseAssessment
+            ? 'Aguardando documento do caso'
+            : 'Aguardando petição';
       case AnalysisStatusDto.petitionUploaded:
       case AnalysisStatusDto.documentUploaded:
-        return 'Petição enviada';
+        return isCaseAssessment
+            ? 'Documento do caso enviado'
+            : 'Petição enviada';
       case AnalysisStatusDto.analyzingPetition:
       case AnalysisStatusDto.analyzingCase:
-        return 'Petição em análise';
+        return isCaseAssessment
+            ? 'Documento do caso em análise'
+            : 'Petição em análise';
       case AnalysisStatusDto.extractingPetition:
         return 'Extraindo petição';
       case AnalysisStatusDto.caseAnalyzed:
-        return 'Petição analisada';
+        return isCaseAssessment ? 'Caso analisado' : 'Petição analisada';
       case AnalysisStatusDto.searchingPrecedents:
         return 'Buscando precedentes';
       case AnalysisStatusDto.precedentsSearched:

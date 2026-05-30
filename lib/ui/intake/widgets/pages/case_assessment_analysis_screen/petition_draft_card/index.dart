@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_card/petition_draft_card_view.dart';
+
+typedef PetitionDraftCard = PetitionDraftCardView;

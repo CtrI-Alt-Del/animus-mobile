@@ -124,7 +124,7 @@ status: closed
   - Depende de: F1-T1, F1-T3
   - Desbloqueia: F3-T3, integração real de F4-T1 com geração do PDF
 
-- [x] **F3-T3** — Transformar `PrintingPdfDriver` em fachada de composição, delegando `generateAnalysisReport(...)` para `FirstInstancePdfGenerator`, `generateSecondInstanceAnalysisReport(...)` para `SecondInstancePdfGenerator` e preservando `sharePdf(...)`
+- [x] **F3-T3** — Transformar `PrintingPdfDriver` em fachada de composição, delegando `generateFirstInstanceAnalysisReport(...)` para `FirstInstancePdfGenerator`, `generateSecondInstanceAnalysisReport(...)` para `SecondInstancePdfGenerator` e preservando `sharePdf(...)`
   - Camada: `drivers`
   - Artefato: `lib/drivers/pdf-driver/printing/printing_pdf_driver.dart`
   - Concluído em: 2026-05-21

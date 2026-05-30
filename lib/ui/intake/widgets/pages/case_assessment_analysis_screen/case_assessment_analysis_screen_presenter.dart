@@ -5,43 +5,46 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
-import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
+import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
-import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
-import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
+import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
+import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
 import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
 import 'package:animus/core/storage/interfaces/storage_service.dart';
+import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/document-picker-driver/index.dart';
 import 'package:animus/drivers/file_storage/index.dart';
 import 'package:animus/drivers/pdf-driver/index.dart';
 import 'package:animus/rest/services/index.dart';
 
-class SecondInstanceAnalysisScreenPresenter {
-  static const List<String> allowedExtensions = <String>['pdf'];
+class CaseAssessmentAnalysisScreenPresenter {
+  static const List<String> allowedExtensions = <String>['pdf', 'docx'];
   static const int maxFileSizeInBytes = 100 * 1024 * 1024;
   static const Duration pollingInterval = Duration(seconds: 3);
   static const Duration requestTimeout = Duration(seconds: 10);
   static const String failedMessage =
       'Não foi possível concluir esta etapa agora. Tente novamente.';
   static const String exportFailedMessage =
-      'Não foi possível exportar a minuta agora. Tente novamente.';
+      'Não foi possível exportar o relatório agora. Tente novamente.';
 
   final IntakeService _intakeService;
   final StorageService _storageService;
-  final PdfDriver _pdfDriver;
   final FileStorageDriver _fileStorageDriver;
   final DocumentPickerDriver _documentPickerDriver;
+  // ignore: unused_field
+  final CacheDriver _cacheDriver;
+  // ignore: unused_field
+  final PdfDriver _pdfDriver;
   final String analysisId;
-  int _judgmentDraftPollingFlow = 0;
-  Future<bool>? _caseSummaryLoadRequest;
 
   final Signal<AnalysisStatusDto> status = signal<AnalysisStatusDto>(
     AnalysisStatusDto.waitingDocumentUpload,
@@ -52,8 +55,9 @@ class SecondInstanceAnalysisScreenPresenter {
   final Signal<bool> isUploading = signal<bool>(false);
   final Signal<double?> uploadProgress = signal<double?>(null);
   final Signal<CaseSummaryDto?> caseSummary = signal<CaseSummaryDto?>(null);
-  final Signal<SecondInstanceJudgmentDraftDto?> judgmentDraft =
-      signal<SecondInstanceJudgmentDraftDto?>(null);
+  final Signal<PetitionDraftDto?> petitionDraft = signal<PetitionDraftDto?>(
+    null,
+  );
   final Signal<String?> generalError = signal<String?>(null);
   final Signal<String> analysisName = signal<String>('Nova Análise');
   final Signal<bool> isArchived = signal<bool>(false);
@@ -65,14 +69,12 @@ class SecondInstanceAnalysisScreenPresenter {
   late final ReadonlySignal<bool> canPickDocument = computed(() {
     final AnalysisStatusDto currentStatus = status.value;
     final bool isProcessingCase =
-        currentStatus == AnalysisStatusDto.extractingPetition ||
         currentStatus == AnalysisStatusDto.analyzingCase;
     final bool isProcessingDraft =
-        currentStatus == AnalysisStatusDto.generatingJudgmentDraft;
+        currentStatus == AnalysisStatusDto.generatingPetitionDraft;
 
     return !isUploading.value &&
         !isManagingAnalysis.value &&
-        !isExportingReport.value &&
         !isProcessingCase &&
         !isProcessingDraft;
   });
@@ -80,7 +82,6 @@ class SecondInstanceAnalysisScreenPresenter {
   late final ReadonlySignal<bool> canAnalyzeCase = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
-        !isExportingReport.value &&
         (selectedFile.value != null || analysisDocument.value != null) &&
         (status.value == AnalysisStatusDto.documentUploaded ||
             status.value == AnalysisStatusDto.failed);
@@ -89,61 +90,49 @@ class SecondInstanceAnalysisScreenPresenter {
   late final ReadonlySignal<bool> canRegenerateSummary = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
-        !isExportingReport.value &&
         status.value == AnalysisStatusDto.caseAnalyzed;
   });
 
   late final ReadonlySignal<bool> canSearchPrecedents = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
-        !isExportingReport.value &&
         status.value == AnalysisStatusDto.caseAnalyzed &&
         caseSummary.value != null;
   });
 
-  late final ReadonlySignal<bool> canGenerateJudgmentDraft = computed(() {
+  late final ReadonlySignal<bool> canGeneratePetitionDraft = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
-        !isExportingReport.value &&
         precedentsReady.value &&
         hasChosenPrecedents.value &&
-        status.value != AnalysisStatusDto.generatingJudgmentDraft &&
+        status.value != AnalysisStatusDto.generatingPetitionDraft &&
         status.value != AnalysisStatusDto.generatingSynthesis;
   });
 
-  late final ReadonlySignal<bool> canRegenerateJudgmentDraft = computed(() {
+  late final ReadonlySignal<bool> canRegeneratePetitionDraft = computed(() {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
-        !isExportingReport.value &&
         status.value == AnalysisStatusDto.done &&
-        judgmentDraft.value != null;
+        petitionDraft.value != null;
   });
+
+  late final ReadonlySignal<bool> showCaseProcessingBubble = computed(
+    () => status.value == AnalysisStatusDto.analyzingCase,
+  );
+
+  late final ReadonlySignal<bool> showPetitionDraftProcessingCard = computed(
+    () => status.value == AnalysisStatusDto.generatingPetitionDraft,
+  );
 
   late final ReadonlySignal<bool> canExportReport = computed(() {
     return status.value == AnalysisStatusDto.done &&
-        judgmentDraft.value != null &&
-        !isManagingAnalysis.value &&
+        petitionDraft.value != null &&
         !isExportingReport.value;
   });
 
-  late final ReadonlySignal<bool> showCaseProcessingBubble = computed(() {
-    return status.value == AnalysisStatusDto.extractingPetition ||
-        status.value == AnalysisStatusDto.analyzingCase;
-  });
-
-  late final ReadonlySignal<bool> showJudgmentDraftProcessingBubble = computed(
-    () =>
-        status.value == AnalysisStatusDto.generatingJudgmentDraft ||
-        status.value == AnalysisStatusDto.generatingSynthesis,
-  );
-
-  late final ReadonlySignal<bool> showPetitionNotFound = computed(
-    () => status.value == AnalysisStatusDto.petitionNotFound,
-  );
-
   late final ReadonlySignal<String> primaryActionLabel = computed(() {
     if (status.value == AnalysisStatusDto.failed) {
-      if (precedentsReady.value && hasChosenPrecedents.value) {
+      if (precedentsReady.value) {
         return 'Tentar gerar minuta novamente';
       }
 
@@ -158,8 +147,9 @@ class SecondInstanceAnalysisScreenPresenter {
       return 'Regerar minuta';
     }
 
-    if (status.value == AnalysisStatusDto.generatingJudgmentDraft ||
-        canGenerateJudgmentDraft.value ||
+    if (status.value == AnalysisStatusDto.generatingPetitionDraft ||
+        status.value == AnalysisStatusDto.generatingSynthesis ||
+        canGeneratePetitionDraft.value ||
         precedentsReady.value) {
       return 'Gerar minuta';
     }
@@ -171,18 +161,30 @@ class SecondInstanceAnalysisScreenPresenter {
     return 'Analisar';
   });
 
-  SecondInstanceAnalysisScreenPresenter({
+  late final ReadonlySignal<String> fileActionLabel = computed(() {
+    final AnalysisStatusDto currentStatus = status.value;
+    if (currentStatus == AnalysisStatusDto.waitingDocumentUpload ||
+        currentStatus == AnalysisStatusDto.documentUploaded) {
+      return 'Selecionar documento do caso';
+    }
+
+    return 'Enviar outro documento';
+  });
+
+  CaseAssessmentAnalysisScreenPresenter({
     required IntakeService intakeService,
     required StorageService storageService,
-    required PdfDriver pdfDriver,
     required FileStorageDriver fileStorageDriver,
     required DocumentPickerDriver documentPickerDriver,
+    required CacheDriver cacheDriver,
+    required PdfDriver pdfDriver,
     required this.analysisId,
   }) : _intakeService = intakeService,
        _storageService = storageService,
-       _pdfDriver = pdfDriver,
        _fileStorageDriver = fileStorageDriver,
-       _documentPickerDriver = documentPickerDriver;
+       _documentPickerDriver = documentPickerDriver,
+       _cacheDriver = cacheDriver,
+       _pdfDriver = pdfDriver;
 
   Future<void> load() async {
     generalError.value = null;
@@ -198,7 +200,7 @@ class SecondInstanceAnalysisScreenPresenter {
     final AnalysisDto analysis = analysisResponse.body;
     analysisName.value = analysis.name;
     isArchived.value = analysis.isArchived;
-    _applyRemoteStatus(analysis.status);
+    status.value = analysis.status;
     precedentsReady.value = _isPrecedentsReadyStatus(analysis.status);
 
     if (_shouldLoadAnalysisDocument(analysis.status)) {
@@ -210,16 +212,18 @@ class SecondInstanceAnalysisScreenPresenter {
     }
 
     if (_shouldLoadSummary(analysis.status)) {
-      await _loadCaseSummary();
+      final RestResponse<CaseSummaryDto> summaryResponse = await _intakeService
+          .getCaseSummary(analysisId: analysisId);
+      if (summaryResponse.isSuccessful) {
+        caseSummary.value = summaryResponse.body;
+      }
     }
 
-    if (_shouldLoadJudgmentDraft(analysis.status)) {
-      await _tryLoadJudgmentDraft();
-
-      if (_shouldResumeJudgmentDraftPolling(analysis.status)) {
-        status.value = AnalysisStatusDto.generatingJudgmentDraft;
-        final int currentFlow = ++_judgmentDraftPollingFlow;
-        unawaited(_pollUntilJudgmentDraftReady(currentFlow));
+    if (_shouldLoadPetitionDraft(analysis.status)) {
+      final bool didLoadDraft = await _tryLoadPetitionDraft();
+      if (!didLoadDraft && _shouldResumePetitionDraftPolling(analysis.status)) {
+        status.value = AnalysisStatusDto.generatingPetitionDraft;
+        unawaited(_pollUntilPetitionDraftReady());
       }
     }
   }
@@ -241,7 +245,7 @@ class SecondInstanceAnalysisScreenPresenter {
 
     final String extension = _getExtension(file.path);
     if (!allowedExtensions.contains(extension)) {
-      generalError.value = 'Selecione um arquivo PDF.';
+      generalError.value = 'Selecione um arquivo PDF ou DOCX.';
       return;
     }
 
@@ -265,7 +269,7 @@ class SecondInstanceAnalysisScreenPresenter {
 
     try {
       final RestResponse<void> response = await _intakeService
-          .triggerSecondInstanceCaseSummarization(analysisId: analysisId)
+          .triggerCaseAssessmentCaseSummarization(analysisId: analysisId)
           .timeout(
             requestTimeout,
             onTimeout: () => RestResponse<void>(
@@ -275,7 +279,7 @@ class SecondInstanceAnalysisScreenPresenter {
           );
 
       if (response.isFailure) {
-        await _applyFailure(response.errorMessage);
+        await _applyPetitionDraftFailure(response.errorMessage);
         return;
       }
 
@@ -292,27 +296,71 @@ class SecondInstanceAnalysisScreenPresenter {
     }
 
     caseSummary.value = null;
-    judgmentDraft.value = null;
+    petitionDraft.value = null;
     precedentsReady.value = false;
     status.value = AnalysisStatusDto.documentUploaded;
     await analyzeCase();
   }
 
-  Future<void> requestJudgmentDraft({bool force = false}) async {
-    if (!force &&
-        !canGenerateJudgmentDraft.value &&
-        !canRegenerateJudgmentDraft.value) {
+  Future<void> retrySummary() async {
+    if (status.value == AnalysisStatusDto.caseAnalyzed) {
+      await reanalyzeCase();
+      return;
+    }
+
+    if (status.value == AnalysisStatusDto.failed) {
+      caseSummary.value = null;
+      petitionDraft.value = null;
+      precedentsReady.value = false;
+      status.value = AnalysisStatusDto.documentUploaded;
+      await analyzeCase();
+    }
+  }
+
+  void confirmAndViewPrecedents() {
+    if (status.value != AnalysisStatusDto.caseAnalyzed) {
+      return;
+    }
+
+    if (caseSummary.value == null) {
+      generalError.value = failedMessage;
       return;
     }
 
     generalError.value = null;
-    status.value = AnalysisStatusDto.generatingJudgmentDraft;
+    status.value = AnalysisStatusDto.searchingPrecedents;
+  }
+
+  void markPrecedentsReady() {
+    precedentsReady.value = true;
+
+    if (status.value == AnalysisStatusDto.searchingPrecedents ||
+        status.value == AnalysisStatusDto.precedentsSearched ||
+        status.value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        status.value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        status.value == AnalysisStatusDto.generatingSynthesis) {
+      status.value = AnalysisStatusDto.precedentsSearched;
+    }
+  }
+
+  void syncChosenPrecedents(List<AnalysisPrecedentDto> precedents) {
+    hasChosenPrecedents.value = precedents.isNotEmpty;
+  }
+
+  Future<void> requestPetitionDraft({bool force = false}) async {
+    if (!force &&
+        !canGeneratePetitionDraft.value &&
+        !canRegeneratePetitionDraft.value) {
+      return;
+    }
+
+    generalError.value = null;
+    status.value = AnalysisStatusDto.generatingPetitionDraft;
     isManagingAnalysis.value = true;
-    final int currentFlow = ++_judgmentDraftPollingFlow;
 
     try {
-      final RestResponse<void> triggerResponse = await _intakeService
-          .triggerSecondInstanceJudgmentDraftGeneration(analysisId: analysisId)
+      final RestResponse<void> response = await _intakeService
+          .triggerPetitionDraftGeneration(analysisId: analysisId)
           .timeout(
             requestTimeout,
             onTimeout: () => RestResponse<void>(
@@ -321,35 +369,33 @@ class SecondInstanceAnalysisScreenPresenter {
             ),
           );
 
-      if (triggerResponse.isFailure) {
-        await _applyFailure(triggerResponse.errorMessage);
+      if (response.isFailure) {
+        await _applyFailure(response.errorMessage);
         return;
       }
 
-      await _pollUntilJudgmentDraftReady(currentFlow);
+      await _pollUntilPetitionDraftReady();
     } finally {
       isManagingAnalysis.value = false;
     }
   }
 
-  Future<void> regenerateJudgmentDraft() async {
-    if (!canRegenerateJudgmentDraft.value) {
+  Future<void> regeneratePetitionDraft() async {
+    if (!canRegeneratePetitionDraft.value) {
       return;
     }
 
-    judgmentDraft.value = null;
-    await requestJudgmentDraft(force: true);
+    generalError.value = null;
+    status.value = AnalysisStatusDto.generatingPetitionDraft;
+    petitionDraft.value = null;
+    await requestPetitionDraft(force: true);
   }
 
-  Future<void> resendDocument() async {
-    if (isManagingAnalysis.value || isExportingReport.value) {
-      return;
-    }
-
+  Future<void> replaceDocument() async {
     selectedFile.value = null;
     analysisDocument.value = null;
     caseSummary.value = null;
-    judgmentDraft.value = null;
+    petitionDraft.value = null;
     precedentsReady.value = false;
     uploadProgress.value = null;
     generalError.value = null;
@@ -419,8 +465,8 @@ class SecondInstanceAnalysisScreenPresenter {
     return analyses.isEmpty ? null : analyses.first;
   }
 
-  Future<bool> exportSecondInstanceAnalysisReport() async {
-    if (!canExportReport.value) {
+  Future<bool> exportAnalysisReport() async {
+    if (!canExportReport.value || isManagingAnalysis.value) {
       return false;
     }
 
@@ -429,8 +475,8 @@ class SecondInstanceAnalysisScreenPresenter {
     generalError.value = null;
 
     try {
-      final RestResponse<SecondInstanceAnalysisReportDto> reportResponse =
-          await _intakeService.getSecondInstanceAnalysisReport(
+      final RestResponse<CaseAssessmentAnalysisReportDto> reportResponse =
+          await _intakeService.getCaseAssessmentAnalysisReport(
             analysisId: analysisId,
           );
 
@@ -439,11 +485,9 @@ class SecondInstanceAnalysisScreenPresenter {
         return false;
       }
 
-      final SecondInstanceAnalysisReportDto report = _mergeReportWithDraft(
-        reportResponse.body,
-      );
+      final CaseAssessmentAnalysisReportDto report = reportResponse.body;
       final Uint8List bytes = await _pdfDriver
-          .generateSecondInstanceAnalysisReport(report: report);
+          .generateCaseAssessmentAnalysisReport(report: report);
       final String filename = _buildReportFilename(report.analysis.name);
 
       await _pdfDriver.sharePdf(bytes: bytes, filename: filename);
@@ -455,22 +499,6 @@ class SecondInstanceAnalysisScreenPresenter {
       isManagingAnalysis.value = false;
       isExportingReport.value = false;
     }
-  }
-
-  void markPrecedentsReady() {
-    precedentsReady.value = true;
-  }
-
-  void syncChosenPrecedents(List<AnalysisPrecedentDto> precedents) {
-    hasChosenPrecedents.value = precedents.isNotEmpty;
-  }
-
-  Future<bool> ensureCaseSummaryLoaded() async {
-    if (caseSummary.value != null || !_shouldLoadSummary(status.value)) {
-      return caseSummary.value != null;
-    }
-
-    return _loadCaseSummary();
   }
 
   String fileName(File file) {
@@ -495,34 +523,6 @@ class SecondInstanceAnalysisScreenPresenter {
     return '${sizeInMb.toStringAsFixed(1)} MB';
   }
 
-  void dispose() {
-    status.dispose();
-    selectedFile.dispose();
-    analysisDocument.dispose();
-    isUploading.dispose();
-    uploadProgress.dispose();
-    caseSummary.dispose();
-    judgmentDraft.dispose();
-    generalError.dispose();
-    analysisName.dispose();
-    isArchived.dispose();
-    isManagingAnalysis.dispose();
-    isExportingReport.dispose();
-    precedentsReady.dispose();
-    hasChosenPrecedents.dispose();
-    canPickDocument.dispose();
-    canAnalyzeCase.dispose();
-    canRegenerateSummary.dispose();
-    canSearchPrecedents.dispose();
-    canGenerateJudgmentDraft.dispose();
-    canRegenerateJudgmentDraft.dispose();
-    canExportReport.dispose();
-    showCaseProcessingBubble.dispose();
-    showJudgmentDraftProcessingBubble.dispose();
-    showPetitionNotFound.dispose();
-    primaryActionLabel.dispose();
-  }
-
   String _buildReportFilename(String rawAnalysisName) {
     final String normalizedName = rawAnalysisName.trim();
     final String fallbackName = 'Analise-$analysisId';
@@ -537,33 +537,35 @@ class SecondInstanceAnalysisScreenPresenter {
         ? fallbackName
         : sanitizedName;
 
-    return '$safeName - Minuta de Sentenca.pdf';
+    return '$safeName - Relatorio da Analise do Caso.pdf';
   }
 
-  SecondInstanceAnalysisReportDto _mergeReportWithDraft(
-    SecondInstanceAnalysisReportDto report,
-  ) {
-    final SecondInstanceJudgmentDraftDto? currentDraft = judgmentDraft.value;
-    if (currentDraft == null || _hasDraftContent(report.judgmentDraft)) {
-      return report;
-    }
-
-    return SecondInstanceAnalysisReportDto(
-      analysis: report.analysis,
-      document: report.document,
-      caseSummary: report.caseSummary,
-      precedents: report.precedents,
-      judgmentDraft: currentDraft,
-    );
-  }
-
-  bool _hasDraftContent(SecondInstanceJudgmentDraftDto draft) {
-    return draft.report.trim().isNotEmpty ||
-        draft.meritAnalysis.trim().isNotEmpty ||
-        draft.precedentAdherenceAnalysis.trim().isNotEmpty ||
-        draft.ruling.any((String item) => item.trim().isNotEmpty) ||
-        (draft.preliminaryIssues?.trim().isNotEmpty ?? false) ||
-        (draft.noApplicablePrecedentNotice?.trim().isNotEmpty ?? false);
+  void dispose() {
+    status.dispose();
+    selectedFile.dispose();
+    analysisDocument.dispose();
+    isUploading.dispose();
+    uploadProgress.dispose();
+    caseSummary.dispose();
+    petitionDraft.dispose();
+    generalError.dispose();
+    analysisName.dispose();
+    isArchived.dispose();
+    isManagingAnalysis.dispose();
+    isExportingReport.dispose();
+    precedentsReady.dispose();
+    hasChosenPrecedents.dispose();
+    canPickDocument.dispose();
+    canAnalyzeCase.dispose();
+    canRegenerateSummary.dispose();
+    canSearchPrecedents.dispose();
+    canGeneratePetitionDraft.dispose();
+    canRegeneratePetitionDraft.dispose();
+    showCaseProcessingBubble.dispose();
+    showPetitionDraftProcessingCard.dispose();
+    canExportReport.dispose();
+    primaryActionLabel.dispose();
+    fileActionLabel.dispose();
   }
 
   Future<void> _uploadAnalysisDocument(File file) async {
@@ -664,24 +666,22 @@ class SecondInstanceAnalysisScreenPresenter {
       status.value = currentStatus;
 
       if (currentStatus == AnalysisStatusDto.caseAnalyzed) {
-        final bool didLoadSummary = await _loadCaseSummary();
-        if (!didLoadSummary) {
-          await _applyFailure();
+        final RestResponse<CaseSummaryDto> summaryResponse =
+            await _intakeService.getCaseSummary(analysisId: analysisId);
+
+        if (summaryResponse.isFailure) {
+          await _applyFailure(summaryResponse.errorMessage);
           return;
         }
 
+        caseSummary.value = summaryResponse.body;
         precedentsReady.value = false;
         generalError.value = null;
         return;
       }
 
-      if (currentStatus == AnalysisStatusDto.petitionNotFound) {
-        generalError.value = null;
-        return;
-      }
-
       if (currentStatus == AnalysisStatusDto.failed) {
-        await _applyFailure();
+        await _applyPetitionDraftFailure();
         return;
       }
 
@@ -689,12 +689,8 @@ class SecondInstanceAnalysisScreenPresenter {
     }
   }
 
-  Future<void> _pollUntilJudgmentDraftReady(int currentFlow) async {
+  Future<void> _pollUntilPetitionDraftReady() async {
     while (true) {
-      if (currentFlow != _judgmentDraftPollingFlow) {
-        return;
-      }
-
       final RestResponse<AnalysisDto> analysisResponse = await _intakeService
           .getAnalysis(analysisId: analysisId)
           .timeout(
@@ -705,10 +701,6 @@ class SecondInstanceAnalysisScreenPresenter {
             ),
           );
 
-      if (currentFlow != _judgmentDraftPollingFlow) {
-        return;
-      }
-
       if (analysisResponse.isFailure) {
         await _applyFailure(analysisResponse.errorMessage);
         return;
@@ -717,34 +709,30 @@ class SecondInstanceAnalysisScreenPresenter {
       final AnalysisStatusDto currentStatus = analysisResponse.body.status;
 
       if (currentStatus == AnalysisStatusDto.done) {
-        status.value = currentStatus;
-        _judgmentDraftPollingFlow++;
-
-        if (judgmentDraft.value != null) {
+        if (petitionDraft.value != null) {
+          status.value = currentStatus;
           generalError.value = null;
           return;
         }
 
-        final bool didLoadDraft = await _tryLoadJudgmentDraft();
+        final bool didLoadDraft = await _tryLoadPetitionDraft();
         if (!didLoadDraft) {
-          generalError.value = failedMessage;
-          return;
+          status.value = AnalysisStatusDto.generatingPetitionDraft;
+          await Future<void>.delayed(pollingInterval);
+          continue;
         }
 
+        status.value = currentStatus;
         generalError.value = null;
         return;
       }
 
-      if (_shouldLoadJudgmentDraft(currentStatus)) {
-        await _tryLoadJudgmentDraft();
+      if (_shouldLoadPetitionDraft(currentStatus)) {
+        await _tryLoadPetitionDraft();
       }
 
-      if (currentFlow != _judgmentDraftPollingFlow) {
-        return;
-      }
-
-      status.value = _isJudgmentDraftPendingStatus(currentStatus)
-          ? AnalysisStatusDto.generatingJudgmentDraft
+      status.value = _isPetitionDraftPendingStatus(currentStatus)
+          ? AnalysisStatusDto.generatingPetitionDraft
           : currentStatus;
 
       if (currentStatus == AnalysisStatusDto.failed) {
@@ -756,6 +744,18 @@ class SecondInstanceAnalysisScreenPresenter {
     }
   }
 
+  Future<bool> _tryLoadPetitionDraft() async {
+    final RestResponse<PetitionDraftDto> draftResponse = await _intakeService
+        .getPetitionDraft(analysisId: analysisId);
+
+    if (draftResponse.isFailure) {
+      return false;
+    }
+
+    petitionDraft.value = draftResponse.body;
+    return true;
+  }
+
   Future<void> _applyFailure([String? message]) async {
     final String errorMessage = message == null || message.isEmpty
         ? failedMessage
@@ -764,37 +764,18 @@ class SecondInstanceAnalysisScreenPresenter {
     status.value = AnalysisStatusDto.failed;
   }
 
-  Future<bool> _loadCaseSummary() {
-    final Future<bool>? currentRequest = _caseSummaryLoadRequest;
-    if (currentRequest != null) {
-      return currentRequest;
-    }
-
-    final Future<bool> request = _intakeService
-        .getCaseSummary(analysisId: analysisId)
-        .then((RestResponse<CaseSummaryDto> summaryResponse) {
-          if (summaryResponse.isFailure) {
-            return false;
-          }
-
-          caseSummary.value = summaryResponse.body;
-          return true;
-        })
-        .whenComplete(() {
-          _caseSummaryLoadRequest = null;
-        });
-
-    _caseSummaryLoadRequest = request;
-    return request;
+  Future<void> _applyPetitionDraftFailure([String? message]) async {
+    final String errorMessage = message == null || message.isEmpty
+        ? failedMessage
+        : message;
+    generalError.value = errorMessage;
+    status.value = precedentsReady.value
+        ? AnalysisStatusDto.precedentsSearched
+        : AnalysisStatusDto.failed;
   }
 
-  void _applyRemoteStatus(AnalysisStatusDto value) {
-    if (status.value == AnalysisStatusDto.done &&
-        _isJudgmentDraftLoadingStatus(value)) {
-      return;
-    }
-
-    status.value = value;
+  bool _shouldLoadAnalysisDocument(AnalysisStatusDto value) {
+    return value != AnalysisStatusDto.waitingDocumentUpload;
   }
 
   bool _shouldLoadSummary(AnalysisStatusDto value) {
@@ -803,56 +784,29 @@ class SecondInstanceAnalysisScreenPresenter {
         value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
-        value == AnalysisStatusDto.generatingJudgmentDraft ||
         value == AnalysisStatusDto.generatingSynthesis ||
+        value == AnalysisStatusDto.generatingPetitionDraft ||
         value == AnalysisStatusDto.done;
   }
 
-  bool _shouldLoadAnalysisDocument(AnalysisStatusDto value) {
-    return value != AnalysisStatusDto.waitingDocumentUpload;
-  }
-
-  bool _shouldLoadJudgmentDraft(AnalysisStatusDto value) {
+  bool _shouldLoadPetitionDraft(AnalysisStatusDto value) {
     return value == AnalysisStatusDto.searchingPrecedents ||
         value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
-        value == AnalysisStatusDto.generatingJudgmentDraft ||
         value == AnalysisStatusDto.generatingSynthesis ||
+        value == AnalysisStatusDto.generatingPetitionDraft ||
         value == AnalysisStatusDto.done;
   }
 
-  bool _isJudgmentDraftPendingStatus(AnalysisStatusDto value) {
+  bool _isPetitionDraftPendingStatus(AnalysisStatusDto value) {
     return value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.generatingSynthesis;
   }
 
-  bool _isJudgmentDraftLoadingStatus(AnalysisStatusDto value) {
-    return value == AnalysisStatusDto.precedentsSearched ||
-        value == AnalysisStatusDto.generatingJudgmentDraft ||
-        value == AnalysisStatusDto.generatingSynthesis;
-  }
-
-  bool _shouldResumeJudgmentDraftPolling(AnalysisStatusDto value) {
-    return value == AnalysisStatusDto.generatingJudgmentDraft;
-  }
-
-  Future<bool> _tryLoadJudgmentDraft() async {
-    final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
-        await _intakeService.getSecondInstanceJudgmentDraft(
-          analysisId: analysisId,
-        );
-
-    if (draftResponse.isFailure) {
-      if (draftResponse.statusCode == HttpStatus.notFound) {
-        return false;
-      }
-
-      return false;
-    }
-
-    judgmentDraft.value = draftResponse.body;
-    return true;
+  bool _shouldResumePetitionDraftPolling(AnalysisStatusDto value) {
+    return value == AnalysisStatusDto.generatingPetitionDraft ||
+        value == AnalysisStatusDto.done;
   }
 
   bool _isPrecedentsReadyStatus(AnalysisStatusDto value) {
@@ -860,8 +814,8 @@ class SecondInstanceAnalysisScreenPresenter {
         value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
         value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
-        value == AnalysisStatusDto.generatingJudgmentDraft ||
         value == AnalysisStatusDto.generatingSynthesis ||
+        value == AnalysisStatusDto.generatingPetitionDraft ||
         value == AnalysisStatusDto.done;
   }
 
@@ -879,28 +833,30 @@ class SecondInstanceAnalysisScreenPresenter {
   }
 }
 
-final secondInstanceAnalysisScreenPresenterProvider = Provider.autoDispose
-    .family<SecondInstanceAnalysisScreenPresenter, String>((
+final caseAssessmentAnalysisScreenPresenterProvider = Provider.autoDispose
+    .family<CaseAssessmentAnalysisScreenPresenter, String>((
       Ref ref,
       String analysisId,
     ) {
       final IntakeService intakeService = ref.watch(intakeServiceProvider);
       final StorageService storageService = ref.watch(storageServiceProvider);
-      final PdfDriver pdfDriver = ref.watch(pdfDriverProvider);
       final FileStorageDriver fileStorageDriver = ref.watch(
         fileStorageDriverProvider,
       );
       final DocumentPickerDriver documentPickerDriver = ref.watch(
         documentPickerDriverProvider,
       );
+      final CacheDriver cacheDriver = ref.watch(cacheDriverProvider);
+      final PdfDriver pdfDriver = ref.watch(pdfDriverProvider);
 
-      final SecondInstanceAnalysisScreenPresenter presenter =
-          SecondInstanceAnalysisScreenPresenter(
+      final CaseAssessmentAnalysisScreenPresenter presenter =
+          CaseAssessmentAnalysisScreenPresenter(
             intakeService: intakeService,
             storageService: storageService,
-            pdfDriver: pdfDriver,
             fileStorageDriver: fileStorageDriver,
             documentPickerDriver: documentPickerDriver,
+            cacheDriver: cacheDriver,
+            pdfDriver: pdfDriver,
             analysisId: analysisId,
           );
 

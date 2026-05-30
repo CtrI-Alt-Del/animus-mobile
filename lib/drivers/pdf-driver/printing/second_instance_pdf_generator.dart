@@ -261,24 +261,11 @@ class SecondInstancePdfGenerator {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: <pw.Widget>[
-              pw.Expanded(
-                child: pw.Text(
-                  'Similaridade ${_buildSimilarityPercent(precedent)}',
-                  style: pw.TextStyle(
-                    color: _theme.textMuted,
-                    fontSize: 11,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
-              pw.SizedBox(width: 12),
-              _buildApplicabilityBadge(precedent.applicabilityLevel),
-            ],
+            children: <pw.Widget>[_buildApplicabilityBadge(precedent)],
           ),
           pw.SizedBox(height: 6),
           pw.Text(
-            'Nivel de aplicabilidade: ${_buildApplicabilityLabel(precedent.applicabilityLevel)}',
+            'Nivel de aplicabilidade: ${_buildApplicabilityLabel(precedent)}',
             style: pw.TextStyle(
               color: _theme.textMuted,
               fontSize: 11,
@@ -318,11 +305,9 @@ class SecondInstancePdfGenerator {
     );
   }
 
-  pw.Widget _buildApplicabilityBadge(
-    AnalysisPrecedentApplicabilityLevelDto level,
-  ) {
+  pw.Widget _buildApplicabilityBadge(AnalysisPrecedentDto precedent) {
     final ({String label, PdfColor background, PdfColor text}) badge =
-        _buildApplicabilityBadgeData(level);
+        _buildApplicabilityBadgeData(precedent);
 
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -343,8 +328,16 @@ class SecondInstancePdfGenerator {
   }
 
   ({String label, PdfColor background, PdfColor text})
-  _buildApplicabilityBadgeData(AnalysisPrecedentApplicabilityLevelDto level) {
-    switch (level) {
+  _buildApplicabilityBadgeData(AnalysisPrecedentDto precedent) {
+    if (precedent.isManuallyAdded) {
+      return (
+        label: 'Manualmente aplicavel',
+        background: _theme.pageBadgeFill,
+        text: _theme.accentStrong,
+      );
+    }
+
+    switch (precedent.applicabilityLevel) {
       case AnalysisPrecedentApplicabilityLevelDto.applicable:
         return (
           label: 'Aplicavel',
@@ -366,16 +359,8 @@ class SecondInstancePdfGenerator {
     }
   }
 
-  String _buildApplicabilityLabel(
-    AnalysisPrecedentApplicabilityLevelDto level,
-  ) {
-    return _buildApplicabilityBadgeData(level).label;
-  }
-
-  String _buildSimilarityPercent(AnalysisPrecedentDto precedent) {
-    final int similarity = precedent.similarityScore.clamp(0, 100).round();
-
-    return '$similarity%';
+  String _buildApplicabilityLabel(AnalysisPrecedentDto precedent) {
+    return _buildApplicabilityBadgeData(precedent).label;
   }
 
   pw.Widget _buildPrecedentChip(String label) {

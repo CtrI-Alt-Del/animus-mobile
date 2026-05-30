@@ -15,6 +15,8 @@ class Routes {
   static const String analysis = '/analyses/:analysisId';
   static const String secondInstanceAnalysis =
       '/analyses/:analysisId/second-instance';
+  static const String caseAssessmentAnalysis =
+      '/analyses/:analysisId/case-assessment';
   static const String archivedAnalyses = '/archived-analyses';
 
   static String getLibraryFolder({required String folderId}) {
@@ -63,7 +65,7 @@ class Routes {
       case AnalysisTypeDto.secondInstance:
         return Routes.getSecondInstanceAnalysis(analysisId: analysisId);
       case AnalysisTypeDto.caseAssessment:
-        return Routes.getSecondInstanceAnalysis(analysisId: analysisId);
+        return Routes.getCaseAssessmentAnalysis(analysisId: analysisId);
     }
   }
 
@@ -75,6 +77,13 @@ class Routes {
   static String getSecondInstanceAnalysis({required String analysisId}) {
     final Uri uri = Uri(
       path: '/analyses/${Uri.encodeComponent(analysisId)}/second-instance',
+    );
+    return uri.toString();
+  }
+
+  static String getCaseAssessmentAnalysis({required String analysisId}) {
+    final Uri uri = Uri(
+      path: '/analyses/${Uri.encodeComponent(analysisId)}/case-assessment',
     );
     return uri.toString();
   }

@@ -10,6 +10,4 @@ abstract class FileStorageDriver {
   });
 
   Future<File?> getFile(String filePath);
-
-  Uri getFileUrl(String filePath);
 }

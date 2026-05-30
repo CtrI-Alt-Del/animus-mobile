@@ -37,17 +37,6 @@ class FirstInstancePdfGenerator {
         generatedAt: generatedAt,
       ),
     );
-    AnalysisPrecedentDto? chosenPrecedent;
-    for (final AnalysisPrecedentDto precedent in report.precedents) {
-      if (precedent.isChosen) {
-        chosenPrecedent = precedent;
-        break;
-      }
-    }
-
-    if (chosenPrecedent != null) {
-      doc.addPage(_buildChosenPrecedentPage(chosenPrecedent, generatedAt));
-    }
 
     return doc.save();
   }
@@ -167,32 +156,9 @@ class FirstInstancePdfGenerator {
           _buildFooter(context: context, generatedAt: generatedAt),
       build: (pw.Context context) {
         return <pw.Widget>[
-          _buildSectionTitle(
-            'Precedentes analisados (${precedents.length} encontrados)',
-            fontSize: 22,
-          ),
+          _buildSectionTitle('Precedentes escolhidos', fontSize: 22),
           pw.SizedBox(height: 16),
           ...buildPrecedentCards(precedents: precedents),
-        ];
-      },
-    );
-  }
-
-  pw.Page _buildChosenPrecedentPage(
-    AnalysisPrecedentDto chosenPrecedent,
-    DateTime generatedAt,
-  ) {
-    return pw.MultiPage(
-      pageTheme: _buildPageTheme(),
-      header: (pw.Context context) =>
-          _buildPageChrome(pageNumber: 4, stripeWidth: 158),
-      footer: (pw.Context context) =>
-          _buildFooter(context: context, generatedAt: generatedAt),
-      build: (pw.Context context) {
-        return <pw.Widget>[
-          _buildSectionTitle('Precedente escolhido', fontSize: 22),
-          pw.SizedBox(height: 16),
-          _buildPrecedentCard(chosenPrecedent, highlight: true),
         ];
       },
     );
@@ -228,11 +194,11 @@ class FirstInstancePdfGenerator {
                 ),
               ),
               pw.SizedBox(width: 12),
-              _buildClassificationBadge(precedent.applicabilityLevel),
+              _buildClassificationBadge(precedent),
             ],
           ),
           pw.SizedBox(height: 10),
-          _buildApplicabilityLabel(precedent.applicabilityLevel),
+          _buildApplicabilityLabel(precedent),
           pw.SizedBox(height: 12),
           _buildField(
             title: 'ENUNCIADO',
@@ -299,10 +265,8 @@ class FirstInstancePdfGenerator {
     );
   }
 
-  pw.Widget _buildClassificationBadge(
-    AnalysisPrecedentApplicabilityLevelDto level,
-  ) {
-    final _BadgeData badge = _badgeData(level);
+  pw.Widget _buildClassificationBadge(AnalysisPrecedentDto precedent) {
+    final _BadgeData badge = _badgeData(precedent);
 
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -322,8 +286,16 @@ class FirstInstancePdfGenerator {
     );
   }
 
-  _BadgeData _badgeData(AnalysisPrecedentApplicabilityLevelDto level) {
-    switch (level) {
+  _BadgeData _badgeData(AnalysisPrecedentDto precedent) {
+    if (precedent.isManuallyAdded) {
+      return _BadgeData(
+        label: 'Manualmente aplicavel',
+        background: _theme.pageBadgeFill,
+        text: _theme.accentStrong,
+      );
+    }
+
+    switch (precedent.applicabilityLevel) {
       case AnalysisPrecedentApplicabilityLevelDto.applicable:
         return _BadgeData(
           label: 'Aplicavel',
@@ -345,10 +317,8 @@ class FirstInstancePdfGenerator {
     }
   }
 
-  pw.Widget _buildApplicabilityLabel(
-    AnalysisPrecedentApplicabilityLevelDto level,
-  ) {
-    final _BadgeData badge = _badgeData(level);
+  pw.Widget _buildApplicabilityLabel(AnalysisPrecedentDto precedent) {
+    final _BadgeData badge = _badgeData(precedent);
 
     return pw.Text(
       'Nivel de aplicabilidade: ${badge.label}',

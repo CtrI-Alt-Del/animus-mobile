@@ -266,10 +266,10 @@ Implementar no mobile o fluxo de **exportacao em PDF da minuta de sentenca da an
 - **Motivo da escolha:** `ANI-100` define `SecondInstanceAnalysisReportDto` e endpoint `/second-instance-analysis-report`; manter dois DTOs para o mesmo relatorio criaria duplicidade e risco de consumo do endpoint errado.
 - **Impactos / trade-offs:** exige ajuste de imports que mencionam `SecondInstanceAnalysisReportDto`, mas reduz ambiguidade futura.
 
-- **Decisão:** adicionar `PdfDriver.generateSecondInstanceAnalysisReport(...)` sem renomear `generateAnalysisReport(...)`.
+- **Decisão:** adicionar `PdfDriver.generateSecondInstanceAnalysisReport(...)` sem renomear `generateFirstInstanceAnalysisReport(...)`.
 - **Alternativas consideradas:** renomear o metodo atual para `generateFirstInstanceAnalysisReport(...)`; criar driver separado para juiz.
 - **Motivo da escolha:** menor alteracao no fluxo ja existente de exportacao da 1ª instancia e sem necessidade de novo provider.
-- **Impactos / trade-offs:** `PdfDriver` fica com dois metodos especificos de relatorio; a nomenclatura antiga `generateAnalysisReport` permanece menos explicita por compatibilidade interna.
+- **Impactos / trade-offs:** `PdfDriver` fica com dois metodos especificos de relatorio; a nomenclatura antiga `generateFirstInstanceAnalysisReport` permanece menos explicita por compatibilidade interna.
 
 - **Decisão:** manter a montagem do PDF no `PrintingPdfDriver`.
 - **Alternativas consideradas:** montar secoes no presenter; criar mapper de UI para PDF; criar service de PDF na camada REST.

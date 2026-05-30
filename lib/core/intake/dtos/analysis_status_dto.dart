@@ -103,8 +103,12 @@ class AnalysisStatusDto {
         return analyzingPrecedentsSimilarity;
       case CaseAssessmentAnalysisStatusDto.analyzingPrecedentsApplicability:
         return analyzingPrecedentsApplicability;
+      case CaseAssessmentAnalysisStatusDto.generatingSynthesis:
+        return generatingSynthesis;
       case CaseAssessmentAnalysisStatusDto.generatingPetitionDraft:
         return generatingPetitionDraft;
+      case CaseAssessmentAnalysisStatusDto.precedentsSearched:
+        return precedentsSearched;
       case CaseAssessmentAnalysisStatusDto.done:
         return done;
       case CaseAssessmentAnalysisStatusDto.failed:
@@ -126,6 +130,8 @@ class AnalysisStatusDto {
         return caseAnalyzed;
       case FirstInstanceAnalysisStatusDto.searchingPrecedents:
         return searchingPrecedents;
+      case FirstInstanceAnalysisStatusDto.precedentsSearched:
+        return precedentsSearched;
       case FirstInstanceAnalysisStatusDto.analyzingPrecedentsSimilarity:
         return analyzingPrecedentsSimilarity;
       case FirstInstanceAnalysisStatusDto.analyzingPrecedentsApplicability:
