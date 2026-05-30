@@ -499,7 +499,7 @@ CaseAssessmentAnalysisScreenView
 
 ## 10.1 `PdfDriver.generateCaseAssessmentReport(...)` não existe
 
-- **Descrição da pendência:** o `PdfDriver` (`lib/core/shared/interfaces/pdf_driver.dart`) atualmente define apenas `generateAnalysisReport(...)` para 1ª instância. O método para Case Assessment ainda não foi acordado.
+- **Descrição da pendência:** o `PdfDriver` (`lib/core/shared/interfaces/pdf_driver.dart`) atualmente define apenas `generateFirstInstanceAnalysisReport(...)` para 1ª instância. O método para Case Assessment ainda não foi acordado.
 - **Impacto na implementação:** a exportação chamará `_pdfDriver.generateCaseAssessmentReport(...)`. Se o método não existir, o presenter captura o erro e exibe `exportFailedMessage` para o usuário. A UI permanece funcional para todos os outros estados.
 - **Ação sugerida:** abrir ticket próprio (ex.: `ANI-XXX — Add CaseAssessment report support to PdfDriver`) para o time de drivers/exportação. Sem bloqueio para ANI-103 funcionar até `DONE`.
 
