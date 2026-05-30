@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -12,6 +13,7 @@ import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/drivers/navigation/index.dart';
 import 'package:animus/rest/services/index.dart';
+import 'package:animus/ui/intake/providers/analyses_feed_refresh_provider.dart';
 
 class ArchivedAnalysesScreenPresenter {
   static const int _pageSize = 10;
@@ -19,6 +21,7 @@ class ArchivedAnalysesScreenPresenter {
 
   final IntakeService _intakeService;
   final NavigationDriver _navigationDriver;
+  final VoidCallback _onAnalysesChanged;
   final Duration _searchDebounce;
 
   Timer? _searchDebounceTimer;
@@ -60,9 +63,11 @@ class ArchivedAnalysesScreenPresenter {
   ArchivedAnalysesScreenPresenter({
     required IntakeService intakeService,
     required NavigationDriver navigationDriver,
+    required VoidCallback onAnalysesChanged,
     Duration? searchDebounce,
   }) : _intakeService = intakeService,
        _navigationDriver = navigationDriver,
+       _onAnalysesChanged = onAnalysesChanged,
        _searchDebounce = searchDebounce ?? _defaultSearchDebounce;
 
   Future<void> initialize() async {
@@ -224,6 +229,7 @@ class ArchivedAnalysesScreenPresenter {
         (AnalysisDto current) => (current.id ?? '').trim() != analysisId,
       ),
     );
+    _onAnalysesChanged();
 
     isUnarchiving.value = false;
     unarchivingId.value = null;
@@ -320,6 +326,9 @@ archivedAnalysesScreenPresenterProvider =
           ArchivedAnalysesScreenPresenter(
             intakeService: intakeService,
             navigationDriver: navigationDriver,
+            onAnalysesChanged: () {
+              ref.read(analysesFeedRefreshNotifierProvider).notifyChanged();
+            },
           );
 
       ref.onDispose(presenter.dispose);

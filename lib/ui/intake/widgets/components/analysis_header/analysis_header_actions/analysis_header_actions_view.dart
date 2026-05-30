@@ -12,6 +12,7 @@ class AnalysisHeaderActionsView extends StatelessWidget {
   final bool isEnabled;
   final bool showExportReport;
   final bool isExportingReport;
+  final bool isArchived;
 
   const AnalysisHeaderActionsView({
     required this.onExportReport,
@@ -23,6 +24,7 @@ class AnalysisHeaderActionsView extends StatelessWidget {
     required this.isEnabled,
     this.showExportReport = false,
     this.isExportingReport = false,
+    this.isArchived = false,
     super.key,
   });
 
@@ -99,13 +101,15 @@ class AnalysisHeaderActionsView extends StatelessWidget {
           child: Row(
             children: <Widget>[
               Icon(
-                Icons.inventory_2_outlined,
+                isArchived
+                    ? Icons.unarchive_outlined
+                    : Icons.inventory_2_outlined,
                 color: tokens.textPrimary,
                 size: 18,
               ),
               const SizedBox(width: 10),
               Text(
-                'Arquivar',
+                isArchived ? 'Desarquivar' : 'Arquivar',
                 style: textTheme.bodyMedium?.copyWith(
                   color: tokens.textPrimary,
                 ),
