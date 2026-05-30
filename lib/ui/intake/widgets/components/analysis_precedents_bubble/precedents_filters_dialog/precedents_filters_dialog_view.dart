@@ -76,6 +76,8 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final List<PrecedentKindDto> filteredKinds =
+        PrecedentKindDto.getValidKindsForCourts(selectedCourts);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -190,7 +192,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
                     FilterSection<PrecedentKindDto>(
                       title: 'Espécies',
                       appliedCount: selectedKinds.length,
-                      values: supportedKinds,
+                      values: filteredKinds,
                       selected: selectedKinds,
                       onTap: onToggleKind,
                       labelBuilder: (PrecedentKindDto value) => value.value,

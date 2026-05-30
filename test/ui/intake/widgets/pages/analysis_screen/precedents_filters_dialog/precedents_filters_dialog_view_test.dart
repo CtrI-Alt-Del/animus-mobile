@@ -87,4 +87,26 @@ void main() {
     expect(clearCalls, 1);
     expect(applyCalls, 1);
   });
+
+  testWidgets('exibe apenas espécies válidas para o tribunal selecionado', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      createWidget(
+        onToggleCourt: (_) {},
+        onToggleKind: (_) {},
+        onClear: () {},
+        onApply: () {},
+      ),
+    );
+
+    // Com STF selecionado (padrão do createWidget)
+    expect(find.text('SUM'), findsOneWidget);
+    expect(find.text('SV'), findsOneWidget);
+    expect(find.text('ADI'), findsOneWidget);
+    expect(find.text('OJ'), findsNothing); // OJ não é do STF
+  });
 }
