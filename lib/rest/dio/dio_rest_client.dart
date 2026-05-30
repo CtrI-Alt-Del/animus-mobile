@@ -11,7 +11,10 @@ typedef QueryParams = Map<String, dynamic>;
 class DioRestClient implements RestClient {
   final Dio _dio;
 
-  DioRestClient() : _dio = Dio(BaseOptions(listFormat: ListFormat.multi));
+  DioRestClient({List<Interceptor> interceptors = const <Interceptor>[]})
+    : _dio = Dio(BaseOptions(listFormat: ListFormat.multi)) {
+    _dio.interceptors.addAll(interceptors);
+  }
 
   @override
   Future<RestResponse<Json>> get(

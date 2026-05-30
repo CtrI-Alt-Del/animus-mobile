@@ -1,19 +1,21 @@
-import 'package:animus/app.dart';
-import 'package:animus/constants/cache_keys.dart';
-import 'package:animus/constants/env.dart';
-import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
-import 'package:animus/drivers/caches/shared_preferences/shared_preferences_cache_driver.dart';
-import 'package:animus/drivers/cache/index.dart';
-import 'package:animus/drivers/navigation/go_router/go_router_navigation_driver.dart';
-import 'package:animus/drivers/push-notification-driver/index.dart';
-import 'package:animus/rest/dio/dio_rest_client.dart';
-import 'package:animus/rest/services/auth_rest_service.dart';
-import 'package:animus/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:animus/app.dart';
+import 'package:animus/constants/cache_keys.dart';
+import 'package:animus/constants/env.dart';
+import 'package:animus/core/shared/interfaces/push_notification_driver.dart';
+import 'package:animus/rest/dio/auth_token_interceptor.dart';
+import 'package:animus/rest/dio/dio_rest_client.dart';
+import 'package:animus/rest/services/auth_rest_service.dart';
+import 'package:animus/theme.dart';
+import 'package:animus/drivers/caches/shared_preferences/shared_preferences_cache_driver.dart';
+import 'package:animus/drivers/cache/index.dart';
+import 'package:animus/drivers/navigation/index.dart';
+import 'package:animus/drivers/push-notification-driver/index.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,14 +66,21 @@ Future<void> _validateSessionOnAppLoad(
     return;
   }
 
-  final DioRestClient restClient = DioRestClient();
+  final SharedPreferencesCacheDriver cacheDriver = SharedPreferencesCacheDriver(
+    preferences,
+  );
+  final AuthTokenInterceptor authTokenInterceptor = AuthTokenInterceptor(
+    cacheDriver: cacheDriver,
+    navigationDriver: const GoRouterNavigationDriver(),
+    baseUrl: Env.animusServerAppUrl,
+  );
+
+  final DioRestClient restClient = DioRestClient(
+    interceptors: [authTokenInterceptor],
+  );
   restClient.setBaseUrl(Env.animusServerAppUrl);
 
-  final AuthRestService authService = AuthRestService(
-    restClient: restClient,
-    cacheDriver: SharedPreferencesCacheDriver(preferences),
-    navigationDriver: const GoRouterNavigationDriver(),
-  );
+  final AuthRestService authService = AuthRestService(restClient: restClient);
 
   final response = await authService.getAccount();
   if (response.isFailure) {

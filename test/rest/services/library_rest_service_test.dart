@@ -1,6 +1,3 @@
-import 'package:animus/constants/cache_keys.dart';
-import 'package:animus/core/shared/interfaces/cache_driver.dart';
-import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/shared/types/json.dart';
@@ -10,28 +7,13 @@ import 'package:mocktail/mocktail.dart';
 
 class MockRestClient extends Mock implements RestClient {}
 
-class MockCacheDriver extends Mock implements CacheDriver {}
-
-class MockNavigationDriver extends Mock implements NavigationDriver {}
-
 void main() {
   late MockRestClient restClient;
-  late MockCacheDriver cacheDriver;
-  late MockNavigationDriver navigationDriver;
   late LibraryRestService service;
 
   setUp(() {
     restClient = MockRestClient();
-    cacheDriver = MockCacheDriver();
-    navigationDriver = MockNavigationDriver();
-    service = LibraryRestService(
-      restClient: restClient,
-      cacheDriver: cacheDriver,
-      navigationDriver: navigationDriver,
-    );
-
-    when(() => cacheDriver.get(CacheKeys.accessToken)).thenReturn('access');
-    when(() => cacheDriver.get(CacheKeys.refreshToken)).thenReturn('refresh');
+    service = LibraryRestService(restClient: restClient);
   });
 
   test(
@@ -84,7 +66,6 @@ void main() {
         'is_archived': false,
         'cursor': 'cursor-1',
       });
-      verify(() => restClient.setHeader('Authorization', 'Bearer access'));
     },
   );
 

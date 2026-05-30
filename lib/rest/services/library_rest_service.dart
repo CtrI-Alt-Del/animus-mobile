@@ -1,8 +1,6 @@
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
 import 'package:animus/core/library/dtos/folder_dto.dart';
 import 'package:animus/core/library/interfaces/library_service.dart';
-import 'package:animus/core/shared/interfaces/cache_driver.dart';
-import 'package:animus/core/shared/interfaces/navigation_driver.dart';
 import 'package:animus/core/shared/interfaces/rest_client.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
@@ -13,23 +11,13 @@ import 'package:animus/rest/mappers/shared/cursor_pagination_mapper.dart';
 import 'package:animus/rest/services/service.dart';
 
 class LibraryRestService extends Service implements LibraryService {
-  LibraryRestService({
-    required RestClient restClient,
-    required CacheDriver cacheDriver,
-    required NavigationDriver navigationDriver,
-  }) : super(restClient, cacheDriver, navigationDriver);
+  LibraryRestService({required RestClient restClient}) : super(restClient);
 
   @override
   Future<RestResponse<CursorPaginationResponse<FolderDto>>> listFolders({
     String? cursor,
     required int limit,
   }) async {
-    final RestResponse<CursorPaginationResponse<FolderDto>>? authFailure =
-        requireAuth<CursorPaginationResponse<FolderDto>>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final Json queryParams = <String, dynamic>{'limit': limit};
 
     if (cursor != null && cursor.trim().isNotEmpty) {
@@ -49,12 +37,6 @@ class LibraryRestService extends Service implements LibraryService {
   @override
   Future<RestResponse<CursorPaginationResponse<AnalysisDto>>>
   listUnfolderedAnalyses({String? cursor, required int limit}) async {
-    final RestResponse<CursorPaginationResponse<AnalysisDto>>? authFailure =
-        requireAuth<CursorPaginationResponse<AnalysisDto>>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final Json queryParams = <String, dynamic>{'limit': limit};
 
     if (cursor != null && cursor.trim().isNotEmpty) {
@@ -78,12 +60,6 @@ class LibraryRestService extends Service implements LibraryService {
     String? cursor,
     required int limit,
   }) async {
-    final RestResponse<CursorPaginationResponse<AnalysisDto>>? authFailure =
-        requireAuth<CursorPaginationResponse<AnalysisDto>>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final Json queryParams = <String, dynamic>{
       'folder_id': folderId,
       'is_archived': false,
@@ -113,11 +89,6 @@ class LibraryRestService extends Service implements LibraryService {
 
   @override
   Future<RestResponse<FolderDto>> getFolder({required String folderId}) async {
-    final RestResponse<FolderDto>? authFailure = requireAuth<FolderDto>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final RestResponse<Map<String, dynamic>> response = await restClient.get(
       '/library/folders/$folderId',
     );
@@ -126,11 +97,6 @@ class LibraryRestService extends Service implements LibraryService {
 
   @override
   Future<RestResponse<FolderDto>> createFolder({required String name}) async {
-    final RestResponse<FolderDto>? authFailure = requireAuth<FolderDto>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
       '/library/folders',
       body: <String, dynamic>{'name': name.trim()},
@@ -143,11 +109,6 @@ class LibraryRestService extends Service implements LibraryService {
     required String folderId,
     required String name,
   }) async {
-    final RestResponse<FolderDto>? authFailure = requireAuth<FolderDto>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
       '/library/folders/$folderId',
       body: <String, dynamic>{'name': name.trim()},
@@ -159,11 +120,6 @@ class LibraryRestService extends Service implements LibraryService {
   Future<RestResponse<FolderDto>> archiveFolder({
     required String folderId,
   }) async {
-    final RestResponse<FolderDto>? authFailure = requireAuth<FolderDto>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
       '/library/folders/$folderId/archive',
     );
@@ -175,11 +131,6 @@ class LibraryRestService extends Service implements LibraryService {
     required List<String> analysisIds,
     required String? folderId,
   }) async {
-    final RestResponse<void>? authFailure = requireAuth<void>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final String? normalizedFolderId = folderId?.trim();
 
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
@@ -199,11 +150,6 @@ class LibraryRestService extends Service implements LibraryService {
   Future<RestResponse<void>> archiveAnalyses({
     required List<String> analysisIds,
   }) async {
-    final RestResponse<void>? authFailure = requireAuth<void>();
-    if (authFailure != null) {
-      return authFailure;
-    }
-
     final RestResponse<Map<String, dynamic>> response = await restClient.patch(
       '/intake/analyses/archive',
       body: <String, dynamic>{'analysis_ids': analysisIds},
