@@ -61,19 +61,6 @@ class SupabaseFileStorageDriver implements FileStorageDriver {
     }
   }
 
-  @override
-  Uri getFileUrl(String filePath) {
-    final ({String bucketName, String path}) target = _resolveFileTarget(
-      filePath,
-    );
-
-    final String publicUrl = _supabaseClient.storage
-        .from(target.bucketName)
-        .getPublicUrl(target.path);
-
-    return Uri.parse(publicUrl);
-  }
-
   String _resolveContentType(String path) {
     final String lowerPath = path.toLowerCase();
     if (lowerPath.endsWith('.pdf')) {

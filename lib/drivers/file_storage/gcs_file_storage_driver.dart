@@ -50,18 +50,24 @@ class GcsFileStorageDriver implements FileStorageDriver {
   }
 
   @override
-  Uri getFileUrl(String filePath) {
+  Future<File?> getFile(String filePath) async {
     final String encodedFilePath = filePath
         .split('/')
         .map(Uri.encodeComponent)
         .join('/');
-
-    return Uri.parse('${Env.gcsDownloadUrl}/$encodedFilePath');
-  }
-
-  @override
-  Future<File?> getFile(String filePath) async {
-    final Uri fileUri = _resolveDownloadUri(getFileUrl(filePath));
+    final Uri fileUri = _resolveDownloadUri(
+      Uri.parse(Env.gcsUrl).replace(
+        pathSegments: <String>[
+          'download',
+          'storage',
+          'v1',
+          'b',
+          Env.supabaseStorageBucket,
+          'o',
+          encodedFilePath,
+        ],
+      ),
+    );
     final HttpClient httpClient = HttpClient();
 
     try {

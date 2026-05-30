@@ -121,21 +121,14 @@ lib/
      - **O que e:** endpoint base do servico de storage usado pelo app.
      - **Como obter (dev local):** se estiver usando emulacao/local storage gateway, use `http://10.0.2.2:4443` no Android Emulator.
 
-   - `GCS_DOWNLOAD_URL`
-     - **O que e:** endpoint base para download de objetos no bucket.
-     - **Como obter (dev local):** normalmente segue o padrao:
-       `http://10.0.2.2:4443/download/storage/v1/b/<bucket>/o`
-       substituindo `<bucket>` pelo nome real do bucket (no projeto atual: `animus-bucket`).
+    Exemplo de `.env` para ambiente local:
 
-   Exemplo de `.env` para ambiente local:
-
-   ```env
-   ANIMUS_SERVER_APP_URL=http://10.0.2.2:8080
-   GOOGLE_IOS_CLIENT_ID=seu-client-id-ios.apps.googleusercontent.com
-   GOOGLE_SERVER_CLIENT_ID=seu-client-id-web.apps.googleusercontent.com
-   GCS_URL=http://10.0.2.2:4443
-   GCS_DOWNLOAD_URL=http://10.0.2.2:4443/download/storage/v1/b/animus-bucket/o
-   ```
+    ```env
+    ANIMUS_SERVER_APP_URL=http://10.0.2.2:8080
+    GOOGLE_IOS_CLIENT_ID=seu-client-id-ios.apps.googleusercontent.com
+    GOOGLE_SERVER_CLIENT_ID=seu-client-id-web.apps.googleusercontent.com
+    GCS_URL=http://10.0.2.2:4443
+    ```
 
 4. **Execute o app em desenvolvimento:**
 
@@ -201,7 +194,6 @@ Cada environment deve conter os secrets abaixo com os valores do respectivo ambi
 - `GOOGLE_IOS_CLIENT_ID`
 - `GOOGLE_SERVER_CLIENT_ID`
 - `GCS_URL`
-- `GCS_DOWNLOAD_URL`
 - `PANGEA_URL`
 - `ANDROID_KEYSTORE_BASE64`
 - `ANDROID_KEYSTORE_PASSWORD`

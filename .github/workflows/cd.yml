@@ -55,7 +55,6 @@ jobs:
           GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
           GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
           GCS_URL: ${{ secrets.GCS_URL }}
-          GCS_DOWNLOAD_URL: ${{ secrets.GCS_DOWNLOAD_URL }}
           PANGEA_URL: ${{ secrets.PANGEA_URL }}
         run: |
           cat <<EOF > .env
@@ -63,7 +62,6 @@ jobs:
           GOOGLE_IOS_CLIENT_ID=${GOOGLE_IOS_CLIENT_ID}
           GOOGLE_SERVER_CLIENT_ID=${GOOGLE_SERVER_CLIENT_ID}
           GCS_URL=${GCS_URL}
-          GCS_DOWNLOAD_URL=${GCS_DOWNLOAD_URL}
           PANGEA_URL=${PANGEA_URL}
           EOF
 
