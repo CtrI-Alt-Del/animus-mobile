@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -464,13 +465,6 @@ class CaseAssessmentAnalysisScreenPresenter {
     return analyses.isEmpty ? null : analyses.first;
   }
 
-  /// Exports the full case assessment analysis report as PDF and shares it.
-  ///
-  /// Note: `PdfDriver` currently only exposes a first-instance report
-  /// generator. Until `PdfDriver.generateCaseAssessmentReport(...)` is
-  /// added (pending ticket — see spec 10.1), this method fetches the
-  /// report and reports an export failure so the UI can surface the
-  /// pending dependency without crashing.
   Future<bool> exportAnalysisReport() async {
     if (!canExportReport.value || isManagingAnalysis.value) {
       return false;
@@ -491,10 +485,13 @@ class CaseAssessmentAnalysisScreenPresenter {
         return false;
       }
 
-      // PdfDriver does not yet expose generateCaseAssessmentReport.
-      // Surface the gap explicitly until the driver method ships.
-      generalError.value = exportFailedMessage;
-      return false;
+      final CaseAssessmentAnalysisReportDto report = reportResponse.body;
+      final Uint8List bytes = await _pdfDriver
+          .generateCaseAssessmentAnalysisReport(report: report);
+      final String filename = _buildReportFilename(report.analysis.name);
+
+      await _pdfDriver.sharePdf(bytes: bytes, filename: filename);
+      return true;
     } catch (_) {
       generalError.value = exportFailedMessage;
       return false;
@@ -524,6 +521,23 @@ class CaseAssessmentAnalysisScreenPresenter {
 
     final double sizeInMb = sizeInKb / 1024;
     return '${sizeInMb.toStringAsFixed(1)} MB';
+  }
+
+  String _buildReportFilename(String rawAnalysisName) {
+    final String normalizedName = rawAnalysisName.trim();
+    final String fallbackName = 'Analise-$analysisId';
+    final String baseName = normalizedName.isEmpty
+        ? fallbackName
+        : normalizedName;
+    final String sanitizedName = baseName
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '-')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    final String safeName = sanitizedName.isEmpty
+        ? fallbackName
+        : sanitizedName;
+
+    return '$safeName - Relatorio da Analise do Caso.pdf';
   }
 
   void dispose() {

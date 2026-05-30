@@ -130,6 +130,8 @@ class AnalysisStatusDto {
         return caseAnalyzed;
       case FirstInstanceAnalysisStatusDto.searchingPrecedents:
         return searchingPrecedents;
+      case FirstInstanceAnalysisStatusDto.precedentsSearched:
+        return precedentsSearched;
       case FirstInstanceAnalysisStatusDto.analyzingPrecedentsSimilarity:
         return analyzingPrecedentsSimilarity;
       case FirstInstanceAnalysisStatusDto.analyzingPrecedentsApplicability:

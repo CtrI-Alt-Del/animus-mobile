@@ -971,7 +971,7 @@ void main() {
           ),
         );
         when(
-          () => pdfDriver.generateAnalysisReport(report: report),
+          () => pdfDriver.generateFirstInstanceAnalysisReport(report: report),
         ).thenAnswer((_) async => bytes);
         when(
           () => pdfDriver.sharePdf(
@@ -990,7 +990,7 @@ void main() {
           () => intakeService.getFirstInstanceAnalysisReport(
             analysisId: 'analysis-1',
           ),
-          () => pdfDriver.generateAnalysisReport(report: report),
+          () => pdfDriver.generateFirstInstanceAnalysisReport(report: report),
           () => pdfDriver.sharePdf(
             bytes: bytes,
             filename: 'Analise final — Relatório.pdf',
@@ -1048,7 +1048,7 @@ void main() {
           ),
         );
         when(
-          () => pdfDriver.generateAnalysisReport(report: report),
+          () => pdfDriver.generateFirstInstanceAnalysisReport(report: report),
         ).thenAnswer((_) async => bytes);
         when(
           () => pdfDriver.sharePdf(
@@ -1098,7 +1098,7 @@ void main() {
           ),
         );
         when(
-          () => pdfDriver.generateAnalysisReport(report: report),
+          () => pdfDriver.generateFirstInstanceAnalysisReport(report: report),
         ).thenAnswer((_) async => bytes);
         when(
           () => pdfDriver.sharePdf(
@@ -1148,7 +1148,7 @@ void main() {
           ),
         );
         when(
-          () => pdfDriver.generateAnalysisReport(report: report),
+          () => pdfDriver.generateFirstInstanceAnalysisReport(report: report),
         ).thenAnswer((_) async => bytes);
         when(
           () => pdfDriver.sharePdf(
@@ -1199,7 +1199,7 @@ void main() {
           ),
         );
         when(
-          () => pdfDriver.generateAnalysisReport(report: report),
+          () => pdfDriver.generateFirstInstanceAnalysisReport(report: report),
         ).thenAnswer((_) => generateCompleter.future);
         when(
           () => pdfDriver.sharePdf(
@@ -1257,7 +1257,7 @@ void main() {
           ),
         );
         when(
-          () => pdfDriver.generateAnalysisReport(report: report),
+          () => pdfDriver.generateFirstInstanceAnalysisReport(report: report),
         ).thenAnswer((_) => generateCompleter.future);
         when(
           () => pdfDriver.sharePdf(
