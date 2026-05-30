@@ -220,6 +220,14 @@ class _SecondInstanceAnalysisScreenViewState
                       } else {
                         selectedCourts.add(court);
                       }
+
+                      final List<PrecedentKindDto> validKinds =
+                          PrecedentKindDto.getValidKindsForCourts(
+                            selectedCourts,
+                          );
+                      selectedKinds.removeWhere(
+                        (PrecedentKindDto kind) => !validKinds.contains(kind),
+                      );
                     });
                   },
                   onToggleKind: (PrecedentKindDto kind) {

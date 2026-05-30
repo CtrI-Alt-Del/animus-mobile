@@ -14,6 +14,18 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(keystorePropertiesFile.inputStream())
 }
 
+val releaseStoreFilePath = keystoreProperties["storeFile"] as? String
+val releaseStorePassword = keystoreProperties["storePassword"] as? String
+val releaseKeyAlias = keystoreProperties["keyAlias"] as? String
+val releaseKeyPassword = keystoreProperties["keyPassword"] as? String
+
+val releaseKeystoreConfigured = listOf(
+    releaseStoreFilePath,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() } && releaseStoreFilePath?.let { file(it).exists() } == true
+
 android {
     namespace = "br.com.animus.app"
     compileSdk = flutter.compileSdkVersion
@@ -40,22 +52,21 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            val storeFilePath = keystoreProperties["storeFile"] as String?
-
-            if (storeFilePath != null) {
-                storeFile = file(storeFilePath)
+        if (releaseKeystoreConfigured) {
+            create("release") {
+                storeFile = file(releaseStoreFilePath)
+                this.storePassword = releaseStorePassword
+                this.keyAlias = releaseKeyAlias
+                this.keyPassword = releaseKeyPassword
             }
-
-            storePassword = keystoreProperties["storePassword"] as String?
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (releaseKeystoreConfigured) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }
