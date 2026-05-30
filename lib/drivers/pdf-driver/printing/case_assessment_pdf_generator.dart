@@ -37,9 +37,7 @@ class CaseAssessmentPdfGenerator {
     doc.addPage(_buildOverviewPage(report, generatedAt));
     doc.addPage(_buildCaseSummaryPage(report, generatedAt));
     doc.addPage(_buildPetitionDraftPage(report, generatedAt));
-    doc.addPage(
-      _buildPrecedentsPage(precedentsForReport, generatedAt),
-    );
+    doc.addPage(_buildPrecedentsPage(precedentsForReport, generatedAt));
 
     return doc.save();
   }
@@ -65,10 +63,7 @@ class CaseAssessmentPdfGenerator {
               label: 'Criada em',
               value: _formatDateTime(_parseDate(report.analysis.createdAt)),
             ),
-            (
-              label: 'Gerado em',
-              value: _formatDateTime(generatedAt),
-            ),
+            (label: 'Gerado em', value: _formatDateTime(generatedAt)),
           ]),
           pw.SizedBox(height: 16),
           _buildSectionLabel('DADOS DO DOCUMENTO'),
@@ -142,10 +137,7 @@ class CaseAssessmentPdfGenerator {
             'FUNDAMENTOS JURÍDICOS',
             report.petitionDraft.legalGrounds,
           ),
-          _buildLabeledText(
-            'TESE CENTRAL',
-            report.petitionDraft.centralThesis,
-          ),
+          _buildLabeledText('TESE CENTRAL', report.petitionDraft.centralThesis),
           _buildLabeledList('PEDIDOS', report.petitionDraft.requests),
           _buildLabeledList(
             'CITAÇÕES DE PRECEDENTES',
@@ -183,7 +175,9 @@ class CaseAssessmentPdfGenerator {
 
   pw.Widget _buildPrecedentCard(AnalysisPrecedentDto precedent) {
     final String court = precedent.precedent.identifier.court.value;
-    final String kind = _theme.formatKindLabel(precedent.precedent.identifier.kind);
+    final String kind = _theme.formatKindLabel(
+      precedent.precedent.identifier.kind,
+    );
     final String number = precedent.precedent.identifier.number.toString();
 
     return pw.Container(
@@ -376,38 +370,42 @@ class CaseAssessmentPdfGenerator {
               ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: normalizedItems.asMap().entries.map((entry) {
-                  final int index = entry.key;
-                  final String value = entry.value;
-                  final String prefix = ordered ? '${index + 1}.' : '•';
+                children: normalizedItems
+                    .asMap()
+                    .entries
+                    .map((entry) {
+                      final int index = entry.key;
+                      final String value = entry.value;
+                      final String prefix = ordered ? '${index + 1}.' : '•';
 
-                  return pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 6),
-                    child: pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: <pw.Widget>[
-                        pw.Text(
-                          '$prefix ',
-                          style: pw.TextStyle(
-                            fontSize: 12,
-                            color: _theme.textPrimary,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                        pw.Expanded(
-                          child: pw.Text(
-                            value,
-                            style: pw.TextStyle(
-                              fontSize: 12,
-                              color: _theme.textSecondary,
-                              lineSpacing: 3,
+                      return pw.Padding(
+                        padding: const pw.EdgeInsets.only(bottom: 6),
+                        child: pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: <pw.Widget>[
+                            pw.Text(
+                              '$prefix ',
+                              style: pw.TextStyle(
+                                fontSize: 12,
+                                color: _theme.textPrimary,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
                             ),
-                          ),
+                            pw.Expanded(
+                              child: pw.Text(
+                                value,
+                                style: pw.TextStyle(
+                                  fontSize: 12,
+                                  color: _theme.textSecondary,
+                                  lineSpacing: 3,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                }).toList(growable: false),
+                      );
+                    })
+                    .toList(growable: false),
               ),
             ),
         ],

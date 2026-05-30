@@ -261,9 +261,7 @@ class SecondInstancePdfGenerator {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: <pw.Widget>[
-              _buildApplicabilityBadge(precedent),
-            ],
+            children: <pw.Widget>[_buildApplicabilityBadge(precedent)],
           ),
           pw.SizedBox(height: 6),
           pw.Text(
