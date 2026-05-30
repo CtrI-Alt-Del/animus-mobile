@@ -318,6 +318,118 @@ void main() {
       },
     );
 
+    test(
+      'should reload judgment draft after regenerateJudgmentDraft succeeds',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final SecondInstanceJudgmentDraftDto previousDraft =
+            SecondInstanceJudgmentDraftDtoFaker.fake(
+              report: 'Versao anterior',
+              meritAnalysis: 'Merito anterior',
+            );
+        final SecondInstanceJudgmentDraftDto regeneratedDraft =
+            SecondInstanceJudgmentDraftDtoFaker.fake(
+              report: 'Versao nova',
+              meritAnalysis: 'Merito novo',
+            );
+
+        presenter.status.value = AnalysisStatusDto.done;
+        presenter.judgmentDraft.value = previousDraft;
+
+        when(
+          () => intakeService.regenerateJudgmentDraft(
+            analysisId: 'analysis-1',
+            comments: 'Ajustar o relatório.',
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              id: 'analysis-1',
+              type: AnalysisTypeDto.secondInstance,
+              status: AnalysisStatusDto.done,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.getSecondInstanceJudgmentDraft(
+            analysisId: 'analysis-1',
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse<SecondInstanceJudgmentDraftDto>(
+            statusCode: 200,
+            body: regeneratedDraft,
+          ),
+        );
+
+        await presenter.regenerateJudgmentDraft('Ajustar o relatório.');
+
+        expect(presenter.status.value, AnalysisStatusDto.done);
+        expect(presenter.generalError.value, isNull);
+        expect(presenter.judgmentDraft.value?.report, regeneratedDraft.report);
+        verifyInOrder(<dynamic Function()>[
+          () => intakeService.regenerateJudgmentDraft(
+            analysisId: 'analysis-1',
+            comments: 'Ajustar o relatório.',
+          ),
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+          () => intakeService.getSecondInstanceJudgmentDraft(
+            analysisId: 'analysis-1',
+          ),
+        ]);
+      },
+    );
+
+    test(
+      'should preserve previous draft when regenerateJudgmentDraft reaches failed status',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final SecondInstanceJudgmentDraftDto previousDraft =
+            SecondInstanceJudgmentDraftDtoFaker.fake(
+              report: 'Versao anterior',
+              meritAnalysis: 'Merito anterior',
+            );
+
+        presenter.status.value = AnalysisStatusDto.done;
+        presenter.judgmentDraft.value = previousDraft;
+
+        when(
+          () => intakeService.regenerateJudgmentDraft(
+            analysisId: 'analysis-1',
+            comments: 'Refazer julgamento.',
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              id: 'analysis-1',
+              type: AnalysisTypeDto.secondInstance,
+              status: AnalysisStatusDto.failed,
+            ),
+          ),
+        );
+
+        await presenter.regenerateJudgmentDraft('Refazer julgamento.');
+
+        expect(presenter.status.value, AnalysisStatusDto.failed);
+        expect(presenter.generalError.value, isNotNull);
+        expect(presenter.judgmentDraft.value?.report, previousDraft.report);
+        verifyNever(
+          () => intakeService.getSecondInstanceJudgmentDraft(
+            analysisId: 'analysis-1',
+          ),
+        );
+      },
+    );
+
     test('should mark analysis as archived after archive succeeds', () async {
       final presenter = createPresenter();
       addTearDown(presenter.dispose);
