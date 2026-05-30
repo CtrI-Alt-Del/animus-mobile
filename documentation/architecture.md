@@ -116,6 +116,18 @@ O fluxo padrao da aplicacao segue esta direcao:
 5. `drivers` resolvem capacidades locais e de plataforma.
 6. O estado reativo e atualizado e a `View` re-renderiza.
 
+## Fluxo de Sessao Autenticada e Refresh Automatico
+
+O fluxo de autenticacao persistida agora fica centralizado na borda REST para evitar duplicacao de responsabilidade nos services:
+
+1. `restClientProvider` compoe `DioRestClient` com `AuthTokenInterceptor`, `CacheDriver` e `NavigationDriver`.
+2. `AuthTokenInterceptor.onRequest` le `CacheKeys.accessToken` do cache local e injeta `Authorization: Bearer <token>` apenas quando houver token valido.
+3. Services REST protegidos (`AuthRestService`, `IntakeRestService`, `LibraryRestService` e `StorageRestService`) deixam de validar sessao manualmente e passam a depender apenas do contrato `RestClient`.
+4. Quando um endpoint protegido retorna `401`, o interceptor compara o token usado na request com o token atual do cache para evitar refresh duplicado em cenarios concorrentes.
+5. Se necessario, o interceptor chama `POST /auth/refresh` por um client interno sem interceptors, persiste novos `access_token` e `refresh_token` e repete a request original.
+6. Endpoints publicos de autenticacao, como `sign-in`, `sign-up`, verificacoes e reset de senha, nao participam do fluxo de refresh e preservam seus erros funcionais originais.
+7. Quando o refresh falha de forma definitiva, os tokens locais sao limpos e a navegacao volta para `Routes.signIn` por meio de `NavigationDriver`, mantendo a decisao visual fora da camada REST.
+
 ## Fluxo de Precedentes na Analysis Screen
 
 O fluxo de precedentes do modulo `intake` segue a mesma separacao arquitetural e acontece sem abrir nova rota:
