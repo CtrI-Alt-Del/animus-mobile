@@ -430,6 +430,119 @@ void main() {
       },
     );
 
+    test(
+      'should retry judgment draft reload after done when draft is not found yet',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final SecondInstanceJudgmentDraftDto previousDraft =
+            SecondInstanceJudgmentDraftDtoFaker.fake(report: 'Versao anterior');
+        final SecondInstanceJudgmentDraftDto regeneratedDraft =
+            SecondInstanceJudgmentDraftDtoFaker.fake(report: 'Versao nova');
+        int judgmentDraftRequests = 0;
+
+        presenter.status.value = AnalysisStatusDto.done;
+        presenter.judgmentDraft.value = previousDraft;
+
+        when(
+          () => intakeService.regenerateJudgmentDraft(
+            analysisId: 'analysis-1',
+            comments: 'Ajustar o relatório.',
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              id: 'analysis-1',
+              type: AnalysisTypeDto.secondInstance,
+              status: AnalysisStatusDto.done,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.getSecondInstanceJudgmentDraft(
+            analysisId: 'analysis-1',
+          ),
+        ).thenAnswer((_) async {
+          judgmentDraftRequests++;
+
+          if (judgmentDraftRequests == 1) {
+            return RestResponse<SecondInstanceJudgmentDraftDto>(
+              statusCode: HttpStatus.notFound,
+              errorMessage: 'Nao encontrado',
+            );
+          }
+
+          return RestResponse<SecondInstanceJudgmentDraftDto>(
+            statusCode: 200,
+            body: regeneratedDraft,
+          );
+        });
+
+        await presenter.regenerateJudgmentDraft('Ajustar o relatório.');
+
+        expect(presenter.status.value, AnalysisStatusDto.done);
+        expect(presenter.generalError.value, isNull);
+        expect(presenter.judgmentDraft.value?.report, regeneratedDraft.report);
+        verify(
+          () => intakeService.getSecondInstanceJudgmentDraft(
+            analysisId: 'analysis-1',
+          ),
+        ).called(2);
+      },
+    );
+
+    test(
+      'should fail regenerate when judgment draft reload returns server error after done',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final SecondInstanceJudgmentDraftDto previousDraft =
+            SecondInstanceJudgmentDraftDtoFaker.fake(report: 'Versao anterior');
+
+        presenter.status.value = AnalysisStatusDto.done;
+        presenter.judgmentDraft.value = previousDraft;
+
+        when(
+          () => intakeService.regenerateJudgmentDraft(
+            analysisId: 'analysis-1',
+            comments: 'Ajustar o relatório.',
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              id: 'analysis-1',
+              type: AnalysisTypeDto.secondInstance,
+              status: AnalysisStatusDto.done,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.getSecondInstanceJudgmentDraft(
+            analysisId: 'analysis-1',
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse<SecondInstanceJudgmentDraftDto>(
+            statusCode: HttpStatus.internalServerError,
+            errorMessage: 'Erro interno',
+          ),
+        );
+
+        await presenter.regenerateJudgmentDraft('Ajustar o relatório.');
+
+        expect(presenter.status.value, AnalysisStatusDto.failed);
+        expect(presenter.generalError.value, 'Erro interno');
+        expect(presenter.judgmentDraft.value?.report, previousDraft.report);
+      },
+    );
+
     test('should mark analysis as archived after archive succeeds', () async {
       final presenter = createPresenter();
       addTearDown(presenter.dispose);

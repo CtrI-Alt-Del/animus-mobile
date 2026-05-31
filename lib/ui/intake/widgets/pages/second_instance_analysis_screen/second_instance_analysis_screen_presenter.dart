@@ -764,19 +764,26 @@ class SecondInstanceAnalysisScreenPresenter {
 
       if (currentStatus == AnalysisStatusDto.done) {
         status.value = currentStatus;
-        _judgmentDraftPollingFlow++;
 
         if (!forceReloadOnDone && judgmentDraft.value != null) {
           generalError.value = null;
           return;
         }
 
-        final bool didLoadDraft = await _tryLoadJudgmentDraft();
-        if (!didLoadDraft) {
+        final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
+            await _loadJudgmentDraftResponse();
+        if (draftResponse.isFailure) {
+          if (draftResponse.statusCode != HttpStatus.notFound) {
+            await _applyFailure(draftResponse.errorMessage);
+            return;
+          }
+
           status.value = AnalysisStatusDto.generatingJudgmentDraft;
           await Future<void>.delayed(pollingInterval);
           continue;
         }
+
+        judgmentDraft.value = draftResponse.body;
 
         generalError.value = null;
         return;
@@ -884,11 +891,16 @@ class SecondInstanceAnalysisScreenPresenter {
     return value == AnalysisStatusDto.generatingJudgmentDraft;
   }
 
+  Future<RestResponse<SecondInstanceJudgmentDraftDto>>
+  _loadJudgmentDraftResponse() {
+    return _intakeService.getSecondInstanceJudgmentDraft(
+      analysisId: analysisId,
+    );
+  }
+
   Future<bool> _tryLoadJudgmentDraft() async {
     final RestResponse<SecondInstanceJudgmentDraftDto> draftResponse =
-        await _intakeService.getSecondInstanceJudgmentDraft(
-          analysisId: analysisId,
-        );
+        await _loadJudgmentDraftResponse();
 
     if (draftResponse.isFailure) {
       if (draftResponse.statusCode == HttpStatus.notFound) {

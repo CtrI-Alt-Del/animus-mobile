@@ -210,17 +210,16 @@ class RegenerateDraftDialogView extends ConsumerWidget {
                     return FilledButton.icon(
                       onPressed: canConfirm
                           ? () {
-                              unawaited(
-                                Future<void>(() async {
-                                  final bool didConfirm = await presenter
-                                      .confirm(onConfirm);
-                                  if (!didConfirm || !context.mounted) {
-                                    return;
-                                  }
+                              unawaited(() async {
+                                final bool didConfirm = await presenter.confirm(
+                                  onConfirm,
+                                );
+                                if (!didConfirm || !context.mounted) {
+                                  return;
+                                }
 
-                                  Navigator.of(context).pop(true);
-                                }),
-                              );
+                                Navigator.of(context).pop(true);
+                              }());
                             }
                           : null,
                       style: FilledButton.styleFrom(

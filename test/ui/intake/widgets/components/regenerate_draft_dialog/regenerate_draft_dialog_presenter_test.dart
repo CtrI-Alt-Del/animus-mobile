@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:animus/ui/intake/widgets/components/regenerate_draft_dialog/regenerate_draft_dialog_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -43,5 +45,51 @@ void main() {
         expect(presenter.isSubmitting.value, isTrue);
       },
     );
+
+    test(
+      'should ignore duplicate confirm while submission is in progress',
+      () async {
+        final RegenerateDraftDialogPresenter presenter =
+            RegenerateDraftDialogPresenter();
+        addTearDown(presenter.dispose);
+        final Completer<void> completer = Completer<void>();
+        int confirmCalls = 0;
+
+        presenter.updateComments('Ajustar fundamentos.');
+
+        final bool firstDidConfirm = await presenter.confirm((String _) {
+          confirmCalls++;
+          return completer.future;
+        });
+        final bool secondDidConfirm = await presenter.confirm((String _) async {
+          confirmCalls++;
+        });
+
+        expect(firstDidConfirm, isTrue);
+        expect(secondDidConfirm, isFalse);
+        expect(confirmCalls, 1);
+
+        completer.complete();
+      },
+    );
+
+    test('should reset submission state when onConfirm throws', () async {
+      final RegenerateDraftDialogPresenter presenter =
+          RegenerateDraftDialogPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.updateComments('Ajustar fundamentos.');
+
+      expect(
+        await presenter.confirm((String _) async {
+          throw Exception('Falha ao confirmar');
+        }),
+        isTrue,
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(presenter.isSubmitting.value, isFalse);
+    });
   });
 }

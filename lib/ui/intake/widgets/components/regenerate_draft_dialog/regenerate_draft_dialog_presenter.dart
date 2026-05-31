@@ -31,10 +31,18 @@ final class RegenerateDraftDialogPresenter {
       return false;
     }
 
+    if (isSubmitting.value) {
+      return false;
+    }
+
     validationError.value = null;
     isSubmitting.value = true;
 
-    unawaited(Future<void>.sync(() => onConfirm(normalized)));
+    unawaited(
+      Future<void>.sync(() => onConfirm(normalized)).catchError((Object _) {
+        isSubmitting.value = false;
+      }),
+    );
     return true;
   }
 
