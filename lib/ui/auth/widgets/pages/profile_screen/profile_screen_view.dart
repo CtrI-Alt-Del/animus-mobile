@@ -12,6 +12,7 @@ import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_loading_card
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_logout_button/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_settings_group/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_update_name_dialog/index.dart';
+import 'package:animus/ui/shared/theme/index.dart';
 
 import 'profile_screen_presenter.dart';
 
@@ -25,6 +26,7 @@ class ProfileScreenView extends ConsumerWidget {
     final ProfileScreenPresenter presenter = ref.watch(
       profileScreenPresenterProvider,
     );
+    final ThemeMode themeMode = ref.watch(themeModeProvider);
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
@@ -92,9 +94,10 @@ class ProfileScreenView extends ConsumerWidget {
                                 .watch(context);
 
                             return ProfileSettingsGroup(
-                              isDarkThemeEnabled:
-                                  AppTheme.defaultThemeMode == ThemeMode.dark,
+                              isDarkThemeEnabled: themeMode == ThemeMode.dark,
                               appVersionLabel: appVersionLabel,
+                              onThemeTap: () =>
+                                  ref.read(themeModeProvider.notifier).toggle(),
                               onEditNameTap: () async {
                                 final String currentName =
                                     presenter.displayName.value;

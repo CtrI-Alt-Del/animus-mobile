@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:reactive_forms/reactive_forms.dart';
-import 'package:signals_flutter/signals_flutter.dart';
+import 'package:go_router/go_router.dart';
 
-import 'package:animus/ui/auth/widgets/pages/email_confirmation_screen/email_confirmation_screen_presenter.dart';
-import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
+import 'package:animus/constants/routes.dart';
+import 'package:animus/theme.dart';
 
 class EmailConfirmationScreenView extends ConsumerWidget {
   final String email;
@@ -14,289 +12,107 @@ class EmailConfirmationScreenView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final EmailConfirmationScreenPresenter presenter = ref.watch(
-      emailConfirmationScreenPresenterProvider(email),
-    );
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0E),
+      backgroundColor: tokens.surfacePage,
+      appBar: AppBar(
+        backgroundColor: tokens.surfacePage,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: tokens.textPrimary),
+          onPressed: () => context.go(Routes.signIn),
+        ),
+      ),
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Container(height: 2, color: const Color(0xFFFBE26D)),
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 32,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 402),
-                    child: ReactiveForm(
-                      formGroup: presenter.form,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(
-                                Icons.balance,
-                                color: Color(0xFFFBE26D),
-                                size: 28,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Animus',
-                                style: TextStyle(
-                                  color: Color(0xFFFBE26D),
-                                  fontSize: 38,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: -0.8,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Inteligencia juridica ao seu lado',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color(0x99FBE26D),
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          const Text(
-                            'Verifique seu e-mail',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color(0xFFFAFAF9),
-                              fontSize: 36,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.8,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Enviamos um código OTP de 6 dígitos para $email. '
-                            'Digite o código para liberar o acesso ao app.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xFF6B6B70),
-                              fontSize: 14,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1A1A1E),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: const Color(0x33FBE26D),
-                              ),
-                            ),
-                            child: const Row(
-                              children: <Widget>[
-                                Icon(
-                                  Icons.mark_email_read_outlined,
-                                  color: Color(0xFFFBE26D),
-                                  size: 18,
-                                ),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Código enviado para o e-mail cadastrado. Validade de 1 hora.',
-                                    style: TextStyle(
-                                      color: Color(0xFFFAFAF9),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          OtpTextField(
-                            numberOfFields: 6,
-                            fieldWidth: 52,
-                            borderRadius: BorderRadius.circular(12),
-                            borderColor: const Color(0xFF2A2A2E),
-                            focusedBorderColor: const Color(0xFFFBE26D),
-                            enabledBorderColor: const Color(0xFF2A2A2E),
-                            fillColor: const Color(0xFF1A1A1E),
-                            filled: true,
-                            showFieldAsBox: true,
-                            textStyle: const TextStyle(
-                              color: Color(0xFFFAFAF9),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            onCodeChanged: (String code) {
-                              presenter.otpControl.value = code;
-                              presenter.otpControl.markAsDirty();
-                              presenter.otpControl.removeError('server');
-                            },
-                            onSubmit: (String verificationCode) {
-                              presenter.otpControl.value = verificationCode;
-                              presenter.verifyOtp();
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Código válido por 1 hora. Se ele expirar, você pode solicitar um novo envio.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color(0xFF8E8E93),
-                              fontSize: 13,
-                            ),
-                          ),
-                          Watch((BuildContext context) {
-                            final String? error = presenter.otpErrorMessage();
-                            if (error == null) {
-                              return const SizedBox(height: 10);
-                            }
-
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: Text(
-                                error,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Color(0xFFEF4444),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            );
-                          }),
-                          Watch((BuildContext context) {
-                            final String? feedback = presenter.feedbackMessage
-                                .watch(context);
-                            if (feedback == null || feedback.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: MessageBox(
-                                message: feedback,
-                                color: const Color(0xFFFBE26D),
-                              ),
-                            );
-                          }),
-                          Watch((BuildContext context) {
-                            final String? error = presenter.generalError.watch(
-                              context,
-                            );
-                            if (error == null || error.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: MessageBox(
-                                message: error,
-                                color: const Color(0xFFEF4444),
-                              ),
-                            );
-                          }),
-                          const SizedBox(height: 20),
-                          Watch((BuildContext context) {
-                            final bool isVerifying = presenter.isVerifying
-                                .watch(context);
-                            return SizedBox(
-                              height: 52,
-                              child: ElevatedButton(
-                                onPressed: isVerifying
-                                    ? null
-                                    : presenter.verifyOtp,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFBE26D),
-                                  foregroundColor: const Color(0xFF0B0B0E),
-                                  disabledBackgroundColor: const Color(
-                                    0xFFFBE26D,
-                                  ).withValues(alpha: 0.6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: Text(
-                                  isVerifying
-                                      ? 'Validando...'
-                                      : 'Confirmar e-mail',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                          const SizedBox(height: 14),
-                          Center(
-                            child: Watch((BuildContext context) {
-                              final bool isResending = presenter.isResending
-                                  .watch(context);
-                              final int resendCountdown = presenter
-                                  .resendCountdown
-                                  .watch(context);
-                              final bool resendBlocked =
-                                  isResending || resendCountdown > 0;
-                              return Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 4,
-                                children: <Widget>[
-                                  const Text(
-                                    'Não recebeu o código?',
-                                    style: TextStyle(
-                                      color: Color(0xFF8E8E93),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: resendBlocked
-                                        ? null
-                                        : presenter.resendVerificationEmail,
-                                    child: Text(
-                                      isResending
-                                          ? 'Reenviando...'
-                                          : 'Reenviar',
-                                      style: TextStyle(
-                                        color: resendBlocked
-                                            ? const Color(0xFF6B6B70)
-                                            : const Color(0xFFFBE26D),
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    resendCountdown > 0
-                                        ? 'em ${presenter.resendCountdownLabel}'
-                                        : '',
-                                    style: const TextStyle(
-                                      color: Color(0xFF8E8E93),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }),
-                          ),
-                        ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const SizedBox(height: 24),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: tokens.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.mark_email_unread_outlined,
+                  color: tokens.accent,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'Confirme seu e-mail',
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineMedium?.copyWith(color: tokens.textPrimary),
+              ),
+              const SizedBox(height: 12),
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: tokens.textSecondary),
+                  children: <InlineSpan>[
+                    const TextSpan(
+                      text: 'Enviamos um link de confirmação para ',
+                    ),
+                    TextSpan(
+                      text: email,
+                      style: TextStyle(
+                        color: tokens.accent,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: tokens.surfaceCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: tokens.borderSubtle),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Icon(Icons.info_outline, color: tokens.accent, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Verifique sua caixa de entrada e clique no link para ativar sua conta.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: tokens.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              FilledButton(
+                onPressed: () => context.go(Routes.signIn),
+                child: const Text('Voltar para o login'),
+              ),
+              const Spacer(),
+              Center(
+                child: TextButton(
+                  onPressed: () => context.go(Routes.signIn),
+                  child: Text(
+                    'Já confirmou? Entrar',
+                    style: TextStyle(color: tokens.accent),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

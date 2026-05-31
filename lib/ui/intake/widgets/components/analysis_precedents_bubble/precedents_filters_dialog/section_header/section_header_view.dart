@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/theme.dart';
+
 class SectionHeaderView extends StatelessWidget {
   final String title;
   final int appliedCount;
@@ -12,6 +14,8 @@ class SectionHeaderView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Row(
@@ -20,7 +24,7 @@ class SectionHeaderView extends StatelessWidget {
           child: Text(
             title,
             style: textTheme.labelMedium?.copyWith(
-              color: const Color(0xFF6B6B70),
+              color: tokens.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -29,14 +33,14 @@ class SectionHeaderView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0x14FBE26D),
+            color: tokens.accent.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: const Color(0x35FBE26D)),
+            border: Border.all(color: tokens.accent.withValues(alpha: 0.21)),
           ),
           child: Text(
             '$appliedCount aplicado${appliedCount == 1 ? '' : 's'}',
             style: textTheme.labelMedium?.copyWith(
-              color: const Color(0xFFFAFAF9),
+              color: tokens.textPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),

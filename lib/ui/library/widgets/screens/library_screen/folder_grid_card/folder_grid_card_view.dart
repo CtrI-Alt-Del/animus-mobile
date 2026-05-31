@@ -2,7 +2,6 @@ import 'package:animus/core/library/dtos/folder_dto.dart';
 import 'package:animus/theme.dart';
 import 'package:flutter/material.dart';
 
-const Color _folderCardColor = Color(0xFF1E1E24);
 
 class FolderGridCardView extends StatelessWidget {
   final FolderDto folder;
@@ -28,7 +27,7 @@ class FolderGridCardView extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           decoration: BoxDecoration(
-            color: _folderCardColor,
+            color: tokens.surfaceElevated,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: tokens.borderSubtle),
           ),

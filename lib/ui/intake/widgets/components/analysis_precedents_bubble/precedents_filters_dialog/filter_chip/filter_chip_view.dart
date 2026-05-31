@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/theme.dart';
+
 class FilterChipView extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -14,29 +16,32 @@ class FilterChipView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final Color background = isSelected
+        ? tokens.accentStrong.withValues(alpha: 0.08)
+        : tokens.surfaceElevated;
+    final Color border = isSelected
+        ? tokens.accentStrong
+        : tokens.borderStrong;
+    final Color textColor = isSelected ? tokens.accent : tokens.textMuted;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
+    return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0x147A6A17) : const Color(0xFF202027),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFF7A6A17)
-                : const Color(0xFF2F2F36),
-          ),
+          color: background,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: border),
         ),
         child: Text(
           label,
-          style: textTheme.labelMedium?.copyWith(
-            color: isSelected
-                ? const Color(0xFFFBE26D)
-                : const Color(0xFF8E8E93),
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),

@@ -163,12 +163,12 @@ class _ProfileUpdateNameDialogViewState
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               backgroundColor: tokens.accent,
-                              foregroundColor: const Color(0xFF0B0B0E),
+                              foregroundColor: tokens.surfacePage,
                             ),
                             child: Text(
                               'Atualizar',
                               style: textTheme.bodyMedium?.copyWith(
-                                color: const Color(0xFF0B0B0E),
+                                color: tokens.surfacePage,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),

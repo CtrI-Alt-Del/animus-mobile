@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:animus/theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -30,6 +32,8 @@ class CourtFilterSectionView extends ConsumerWidget {
       courtFilterSectionPresenterProvider('Superiores'),
     );
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
     return Watch((BuildContext context) {
       final Set<String> expandedGroups = presenter.expandedGroups.watch(
@@ -67,14 +71,14 @@ class CourtFilterSectionView extends ConsumerWidget {
                                 ? Icons.keyboard_arrow_down
                                 : Icons.keyboard_arrow_right,
                             size: 18,
-                            color: const Color(0xFF8E8E93),
+                            color: tokens.textMuted,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               group.title,
                               style: textTheme.labelMedium?.copyWith(
-                                color: const Color(0xFFB2B2B9),
+                                color: tokens.textMuted,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -86,16 +90,16 @@ class CourtFilterSectionView extends ConsumerWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0x14FBE26D),
+                                color: tokens.accent.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(999),
                                 border: Border.all(
-                                  color: const Color(0x35FBE26D),
+                                  color: tokens.accent.withValues(alpha: 0.21),
                                 ),
                               ),
                               child: Text(
                                 '$selectedInGroup',
                                 style: textTheme.labelSmall?.copyWith(
-                                  color: const Color(0xFFFBE26D),
+                                  color: tokens.accent,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),

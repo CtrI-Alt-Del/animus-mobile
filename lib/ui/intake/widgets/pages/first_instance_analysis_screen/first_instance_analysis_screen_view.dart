@@ -126,7 +126,7 @@ class _FirstInstanceAnalysisScreenViewState
 
     final int? newLimit = await showDialog<int>(
       context: context,
-      barrierColor: const Color(0x99000000),
+      barrierColor: (Theme.of(context).extension<AppThemeTokens>()?.scrim ?? AppTheme.tokens.scrim),
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -168,7 +168,7 @@ class _FirstInstanceAnalysisScreenViewState
           ({List<CourtDto> courts, List<PrecedentKindDto> kinds})
         >(
           context: context,
-          barrierColor: const Color(0x99000000),
+          barrierColor: (Theme.of(context).extension<AppThemeTokens>()?.scrim ?? AppTheme.tokens.scrim),
           builder: (BuildContext context) {
             return StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
@@ -386,7 +386,7 @@ class _FirstInstanceAnalysisScreenViewState
                                 final String? newName =
                                     await showDialog<String>(
                                       context: dialogHostContext,
-                                      barrierColor: const Color(0x99000000),
+                                      barrierColor: (Theme.of(context).extension<AppThemeTokens>()?.scrim ?? AppTheme.tokens.scrim),
                                       builder: (_) => RenameAnalysisDialog(
                                         initialName:
                                             presenter.analysisName.value,
@@ -425,7 +425,7 @@ class _FirstInstanceAnalysisScreenViewState
                                 final bool shouldProceed =
                                     await showDialog<bool>(
                                       context: dialogHostContext,
-                                      barrierColor: const Color(0x99000000),
+                                      barrierColor: (Theme.of(context).extension<AppThemeTokens>()?.scrim ?? AppTheme.tokens.scrim),
                                       builder: (_) => isArchived
                                           ? const UnarchiveAnalysisDialog()
                                           : const ArchiveAnalysisDialog(),

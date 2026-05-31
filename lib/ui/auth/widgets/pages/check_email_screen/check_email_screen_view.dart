@@ -88,8 +88,8 @@ class CheckEmailScreenView extends ConsumerWidget {
                         fillColor: tokens.surfaceCard,
                         filled: true,
                         showFieldAsBox: true,
-                        textStyle: const TextStyle(
-                          color: Color(0xFFFAFAF9),
+                        textStyle: TextStyle(
+                          color: tokens.textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                           height: 1,

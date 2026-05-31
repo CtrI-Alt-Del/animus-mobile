@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/theme.dart';
+
 import 'package:animus/core/intake/dtos/court_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/precedents_filters_dialog/court_filter_section/index.dart';
@@ -76,6 +78,8 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final List<PrecedentKindDto> filteredKinds =
         PrecedentKindDto.getValidKindsForCourts(selectedCourts);
 
@@ -89,9 +93,9 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
         ),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF16161A),
+          color: tokens.surfaceCard,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF2A2A2E)),
+          border: Border.all(color: tokens.borderSubtle),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -103,7 +107,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
                   child: Text(
                     'Filtros de precedentes',
                     style: textTheme.titleLarge?.copyWith(
-                      color: const Color(0xFFFAFAF9),
+                      color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -111,7 +115,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   splashRadius: 18,
-                  icon: const Icon(Icons.close, color: Color(0xFF8E8E93)),
+                  icon: Icon(Icons.close, color: tokens.textMuted),
                 ),
               ],
             ),
@@ -119,7 +123,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
             Text(
               'Refine tribunais e espécies para a próxima busca manual de precedentes.',
               style: textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF8E8E93),
+                color: tokens.textMuted,
                 height: 1.4,
               ),
             ),
@@ -129,8 +133,8 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
               child: OutlinedButton(
                 onPressed: onClear,
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: const Color(0xFF202027),
-                  side: const BorderSide(color: Color(0xFF2F2F36)),
+                  backgroundColor: tokens.surfaceElevated,
+                  side: BorderSide(color: tokens.borderStrong),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -138,7 +142,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
                 child: Text(
                   'Limpar filtros',
                   style: textTheme.labelLarge?.copyWith(
-                    color: const Color(0xFFFAFAF9),
+                    color: tokens.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -150,10 +154,10 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: <Color>[Color(0xFFFBE26D), Color(0xFFC4A535)],
+                    colors: <Color>[tokens.accent, tokens.accentStrong],
                   ),
                 ),
                 child: FilledButton(
@@ -168,7 +172,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
                   child: Text(
                     'Aplicar filtros',
                     style: textTheme.labelLarge?.copyWith(
-                      color: const Color(0xFF0B0B0E),
+                      color: tokens.surfacePage,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -201,7 +205,7 @@ class AnalysisPrecedentsBubblePrecedentsFiltersDialogView
                     Text(
                       'Os filtros refinam apenas a próxima busca manual, sem afetar a análise atual até você refazer a busca.',
                       style: textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF8E8E93),
+                        color: tokens.textMuted,
                         height: 1.4,
                       ),
                     ),

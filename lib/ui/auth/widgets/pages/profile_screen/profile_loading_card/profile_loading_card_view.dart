@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
-const Color _profileLoadingSurfaceColor = Color(0xFF1E1E24);
-const Color _profileLoadingBorderColor = Color(0x33FBE26D);
+import 'package:animus/theme.dart';
 
 class ProfileLoadingCardView extends StatelessWidget {
   const ProfileLoadingCardView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: _profileLoadingSurfaceColor,
+        color: tokens.surfaceElevated,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _profileLoadingBorderColor),
+        border: Border.all(color: tokens.accent.withValues(alpha: 0.2)),
       ),
       child: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),

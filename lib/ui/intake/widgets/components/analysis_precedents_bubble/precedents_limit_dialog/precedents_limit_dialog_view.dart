@@ -35,9 +35,9 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
         constraints: const BoxConstraints(maxWidth: 352),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF16161A),
+          color: tokens.surfaceCard,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF2A2A2E)),
+          border: Border.all(color: tokens.borderSubtle),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -46,7 +46,7 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
             Text(
               'Qtd. de precedentes',
               style: textTheme.titleLarge?.copyWith(
-                color: const Color(0xFFFAFAF9),
+                color: tokens.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -54,7 +54,7 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
             Text(
               'Escolha quantos precedentes a IA deve retornar para esta analise.',
               style: textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF8E8E93),
+                color: tokens.textMuted,
                 height: 1.4,
               ),
             ),
@@ -65,7 +65,7 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
                   child: Text(
                     'Quantidade retornada',
                     style: textTheme.labelMedium?.copyWith(
-                      color: const Color(0xFF6B6B70),
+                      color: tokens.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -96,10 +96,10 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
             const SizedBox(height: 10),
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                activeTrackColor: const Color(0xFFFBE26D),
-                inactiveTrackColor: const Color(0xFF2F2F36),
-                thumbColor: const Color(0xFFFBE26D),
-                overlayColor: const Color(0x33FBE26D),
+                activeTrackColor: tokens.accent,
+                inactiveTrackColor: tokens.borderStrong,
+                thumbColor: tokens.accent,
+                overlayColor: tokens.accent.withValues(alpha: 0.2),
               ),
               child: Slider(
                 value: currentValue.toDouble(),
@@ -116,14 +116,14 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
                 Text(
                   minValue.toString(),
                   style: textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF8E8E93),
+                    color: tokens.textMuted,
                   ),
                 ),
                 const Spacer(),
                 Text(
                   maxValue.toString(),
                   style: textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF8E8E93),
+                    color: tokens.textMuted,
                   ),
                 ),
               ],
@@ -132,7 +132,7 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
             Text(
               'Defina quantos resultados relevantes devem aparecer antes da escolha final.',
               style: textTheme.bodySmall?.copyWith(
-                color: const Color(0xFF8E8E93),
+                color: tokens.textMuted,
                 height: 1.4,
               ),
             ),
@@ -142,8 +142,8 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
               child: OutlinedButton(
                 onPressed: onCancel,
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: const Color(0xFF202027),
-                  side: const BorderSide(color: Color(0xFF2F2F36)),
+                  backgroundColor: tokens.surfaceElevated,
+                  side: BorderSide(color: tokens.borderStrong),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -151,7 +151,7 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
                 child: Text(
                   'Cancelar',
                   style: textTheme.labelLarge?.copyWith(
-                    color: const Color(0xFFFAFAF9),
+                    color: tokens.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -163,10 +163,10 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: <Color>[Color(0xFFFBE26D), Color(0xFFC4A535)],
+                    colors: <Color>[tokens.accent, tokens.accentStrong],
                   ),
                 ),
                 child: FilledButton(
@@ -181,7 +181,7 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
                   child: Text(
                     'Aplicar',
                     style: textTheme.labelLarge?.copyWith(
-                      color: const Color(0xFF0B0B0E),
+                      color: tokens.surfacePage,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

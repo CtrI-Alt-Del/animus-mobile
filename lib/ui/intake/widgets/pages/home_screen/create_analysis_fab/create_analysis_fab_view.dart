@@ -54,12 +54,12 @@ class CreateAnalysisFabView extends StatelessWidget {
                         height: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.2,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Colors.black,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            tokens.surfacePage,
                           ),
                         ),
                       )
-                    : const Icon(Icons.add, color: Colors.black, size: 28),
+                    : Icon(Icons.add, color: tokens.surfacePage, size: 28),
               ),
             ),
           ),

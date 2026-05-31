@@ -28,7 +28,7 @@ class ArchivedAnalysisCardView extends StatelessWidget {
     final bool confirmed =
         await showDialog<bool>(
           context: dialogHostContext,
-          barrierColor: const Color(0x99000000),
+          barrierColor: (Theme.of(context).extension<AppThemeTokens>()?.scrim ?? AppTheme.tokens.scrim),
           builder: (_) => UnarchiveAnalysisDialog(
             analysisName: title.isEmpty ? null : title,
           ),
