@@ -18,28 +18,27 @@ class FilterChipView extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
-    final Color background = isSelected
-        ? tokens.accentStrong.withValues(alpha: 0.08)
-        : tokens.surfaceElevated;
-    final Color border = isSelected ? tokens.accentStrong : tokens.borderStrong;
-    final Color textColor = isSelected ? tokens.accent : tokens.textMuted;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
-    return GestureDetector(
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: border),
+          color: isSelected
+              ? tokens.accentStrong.withValues(alpha: 0.08)
+              : tokens.surfaceElevated,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: isSelected ? tokens.accentStrong : tokens.borderStrong,
+          ),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+          style: textTheme.labelMedium?.copyWith(
+            color: isSelected ? tokens.accent : tokens.textMuted,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
           ),
         ),
       ),

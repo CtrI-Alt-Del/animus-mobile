@@ -74,7 +74,7 @@ class UnarchiveAnalysisDialogView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       backgroundColor: tokens.accent,
-                      foregroundColor: tokens.surfacePage,
+                      foregroundColor: tokens.onAccent,
                     ),
                     child: Text(
                       'Desarquivar',

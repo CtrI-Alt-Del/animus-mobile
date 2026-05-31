@@ -15,6 +15,7 @@ const Color _green = Color(0xFF32D583);
 const Color _greenDark = Color(0xFF059669);
 const Color _indigo = Color(0xFF6366F1);
 const Color _indigoDark = Color(0xFF4F46E5);
+const Color _onAccent = Color(0xFF0B0B0E);
 const Color _redError = Color(0xFFEF4444);
 const Color _textMuted = Color(0xFF8E8E93);
 const Color _textPrimary = Color(0xFFFAFAF9);
@@ -56,6 +57,7 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
     required this.textTertiary,
     required this.accent,
     required this.accentStrong,
+    required this.onAccent,
     required this.white,
     required this.success,
     required this.successDark,
@@ -77,6 +79,11 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
   final Color textTertiary;
   final Color accent;
   final Color accentStrong;
+
+  /// Foreground color for content placed on top of [accent] surfaces
+  /// (e.g. text/icons on accent buttons). Dark in both themes because the
+  /// accent is a light gold tone in dark and light alike.
+  final Color onAccent;
   final Color white;
   final Color success;
   final Color successDark;
@@ -99,6 +106,7 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
     Color? textTertiary,
     Color? accent,
     Color? accentStrong,
+    Color? onAccent,
     Color? white,
     Color? success,
     Color? successDark,
@@ -120,6 +128,7 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
       textTertiary: textTertiary ?? this.textTertiary,
       accent: accent ?? this.accent,
       accentStrong: accentStrong ?? this.accentStrong,
+      onAccent: onAccent ?? this.onAccent,
       white: white ?? this.white,
       success: success ?? this.success,
       successDark: successDark ?? this.successDark,
@@ -156,6 +165,7 @@ final class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
       accent: Color.lerp(accent, other.accent, t) ?? accent,
       accentStrong:
           Color.lerp(accentStrong, other.accentStrong, t) ?? accentStrong,
+      onAccent: Color.lerp(onAccent, other.onAccent, t) ?? onAccent,
       white: Color.lerp(white, other.white, t) ?? white,
       success: Color.lerp(success, other.success, t) ?? success,
       successDark: Color.lerp(successDark, other.successDark, t) ?? successDark,
@@ -193,6 +203,7 @@ final class AppTheme {
     textTertiary: _textTertiary,
     accent: _amber,
     accentStrong: _amberStrong,
+    onAccent: _onAccent,
     white: _white,
     success: _green,
     successDark: _greenDark,
@@ -215,6 +226,7 @@ final class AppTheme {
     textTertiary: _lTextTertiary,
     accent: _lAmber,
     accentStrong: _lAmberStrong,
+    onAccent: _onAccent,
     white: _white,
     success: _lGreen,
     successDark: _lGreenDark,

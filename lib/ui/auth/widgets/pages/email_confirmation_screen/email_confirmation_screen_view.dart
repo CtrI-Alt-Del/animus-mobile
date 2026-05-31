@@ -63,7 +63,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Inteligencia juridica ao seu lado',
+                            'Inteligência jurídica ao seu lado',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: tokens.accent.withValues(alpha: 0.6),
@@ -221,7 +221,7 @@ class EmailConfirmationScreenView extends ConsumerWidget {
                                     : presenter.verifyOtp,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: tokens.accent,
-                                  foregroundColor: tokens.surfacePage,
+                                  foregroundColor: tokens.onAccent,
                                   disabledBackgroundColor: tokens.accent
                                       .withValues(alpha: 0.6),
                                   shape: RoundedRectangleBorder(

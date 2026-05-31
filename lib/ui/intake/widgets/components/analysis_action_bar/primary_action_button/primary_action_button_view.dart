@@ -42,13 +42,13 @@ class PrimaryActionButtonView extends StatelessWidget {
                     width: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: tokens.surfacePage,
+                      color: tokens.onAccent,
                     ),
                   )
                 : Text(
                     label,
                     style: textTheme.labelMedium?.copyWith(
-                      color: tokens.surfacePage,
+                      color: tokens.onAccent,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

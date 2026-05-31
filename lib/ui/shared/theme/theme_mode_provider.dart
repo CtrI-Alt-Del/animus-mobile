@@ -54,21 +54,6 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   void _applyOverlay(ThemeMode mode) {
     SystemChrome.setSystemUIOverlayStyle(AppTheme.overlayStyleFor(mode));
   }
-
-  static ThemeMode _decode(String? value) {
-    switch (value) {
-      case _lightValue:
-        return ThemeMode.light;
-      case _darkValue:
-        return ThemeMode.dark;
-      default:
-        return AppTheme.defaultThemeMode;
-    }
-  }
-
-  static String _encode(ThemeMode mode) {
-    return mode == ThemeMode.light ? _lightValue : _darkValue;
-  }
 }
 
 final NotifierProvider<ThemeModeNotifier, ThemeMode> themeModeProvider =

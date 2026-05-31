@@ -177,7 +177,7 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       backgroundColor: tokens.accent,
-                      foregroundColor: tokens.surfacePage,
+                      foregroundColor: tokens.onAccent,
                       disabledBackgroundColor: tokens.accent.withValues(
                         alpha: 0.4,
                       ),

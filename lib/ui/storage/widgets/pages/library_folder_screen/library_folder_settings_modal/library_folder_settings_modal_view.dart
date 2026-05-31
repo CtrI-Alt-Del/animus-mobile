@@ -142,7 +142,7 @@ class _LibraryFolderSettingsModalViewState
                             },
                       style: FilledButton.styleFrom(
                         backgroundColor: tokens.accent,
-                        foregroundColor: tokens.surfacePage,
+                        foregroundColor: tokens.onAccent,
                       ),
                       child: isUpdating
                           ? _SmallProgress(color: tokens.surfacePage)

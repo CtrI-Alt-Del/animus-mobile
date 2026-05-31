@@ -59,7 +59,7 @@ class CreateAnalysisFabView extends StatelessWidget {
                           ),
                         ),
                       )
-                    : Icon(Icons.add, color: tokens.surfacePage, size: 28),
+                    : Icon(Icons.add, color: tokens.onAccent, size: 28),
               ),
             ),
           ),

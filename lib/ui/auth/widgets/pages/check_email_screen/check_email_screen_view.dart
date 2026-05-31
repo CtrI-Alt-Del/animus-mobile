@@ -142,7 +142,7 @@ class CheckEmailScreenView extends ConsumerWidget {
                             onPressed: isVerifying ? null : presenter.verifyOtp,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: tokens.accent,
-                              foregroundColor: tokens.surfacePage,
+                              foregroundColor: tokens.onAccent,
                               disabledBackgroundColor: tokens.borderStrong,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
