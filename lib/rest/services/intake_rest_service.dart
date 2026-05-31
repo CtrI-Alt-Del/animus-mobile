@@ -370,6 +370,32 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
+  Future<RestResponse<void>> regeneratePetitionDraft({
+    required String analysisId,
+    required String comments,
+  }) async {
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/analyses/$analysisId/petition-drafts/regenerate',
+      body: <String, dynamic>{'comments': comments.trim()},
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
+  Future<RestResponse<void>> regenerateJudgmentDraft({
+    required String analysisId,
+    required String comments,
+  }) async {
+    final RestResponse<Map<String, dynamic>> response = await restClient.post(
+      '/intake/analyses/$analysisId/judgment-drafts/regenerate',
+      body: <String, dynamic>{'comments': comments.trim()},
+    );
+
+    return toVoidResponse(response);
+  }
+
+  @override
   Future<RestResponse<SecondInstanceJudgmentDraftDto>>
   getSecondInstanceJudgmentDraft({required String analysisId}) async {
     final RestResponse<Map<String, dynamic>> response = await restClient.get(

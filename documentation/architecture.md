@@ -152,6 +152,17 @@ Quando a analise chega ao estado final elegivel para exportacao, o relatorio seg
 7. `PdfDriver` define a capacidade de gerar e compartilhar PDFs por tipo de analise, sem expor tipos de `pdf` ou `printing` para a UI.
 8. `PrintingPdfDriver` monta o documento em memoria com geradores especializados por fluxo: o relatorio de 1ª instancia destaca o precedente escolhido e o de 2ª instancia consolida resumo do caso, minuta estruturada e precedentes associados antes de delegar o share sheet nativo ao pacote `printing`.
 
+## Fluxo de Regeracao de Minutas nas Telas de Analise
+
+Quando o usuario precisa pedir ajustes em uma minuta ja gerada, o app mantem a mesma separacao arquitetural entre UI, Core e REST:
+
+1. `RegenerateDraftDialogView` coleta comentarios obrigatorios do usuario e fecha imediatamente apos a confirmacao local.
+2. `CaseAssessmentAnalysisScreenPresenter` e `SecondInstanceAnalysisScreenPresenter` preservam a minuta atual em memoria, marcam localmente o status de processamento e chamam apenas os contratos tipados de `IntakeService`.
+3. `IntakeService` publica os contratos `regeneratePetitionDraft` e `regenerateJudgmentDraft`, sem expor endpoint ou payload para a UI.
+4. `IntakeRestService` encapsula `POST /intake/analyses/{analysisId}/petition-drafts/regenerate` e `POST /intake/analyses/{analysisId}/judgment-drafts/regenerate`, montando o payload `{ comments }` na borda REST.
+5. O polling existente de `getAnalysis` continua com intervalo de 3 segundos; ao chegar em `DONE`, os presenters recarregam obrigatoriamente `getPetitionDraft` ou `getSecondInstanceJudgmentDraft` para substituir a versao anterior.
+6. Em `FAILED`, a minuta anterior permanece disponivel na UI e o erro continua recuperavel por novo disparo do dialog, sem persistencia local dos comentarios.
+
 ## Fluxo da Tela de Pasta da Biblioteca
 
 A tela dedicada de pasta da biblioteca segue o mesmo fluxo MVP e mantem as operacoes de organizacao no bounded context `library`:
