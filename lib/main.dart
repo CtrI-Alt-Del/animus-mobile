@@ -29,16 +29,12 @@ Future<void> main() async {
 
   await _validateSessionOnAppLoad(sharedPreferences, pushNotificationDriver);
 
-  if (AppTheme.defaultThemeMode == ThemeMode.dark) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarIconBrightness: Brightness.light,
-      ),
-    );
-  }
+  final ThemeMode initialThemeMode = _resolveInitialThemeMode(
+    sharedPreferences,
+  );
+  SystemChrome.setSystemUIOverlayStyle(
+    AppTheme.overlayStyleFor(initialThemeMode),
+  );
 
   runApp(
     ProviderScope(
@@ -51,6 +47,18 @@ Future<void> main() async {
       child: const AnimusApp(),
     ),
   );
+}
+
+ThemeMode _resolveInitialThemeMode(SharedPreferences preferences) {
+  final String? stored = preferences.getString(CacheKeys.themeMode);
+  switch (stored) {
+    case 'light':
+      return ThemeMode.light;
+    case 'dark':
+      return ThemeMode.dark;
+    default:
+      return AppTheme.defaultThemeMode;
+  }
 }
 
 Future<void> _validateSessionOnAppLoad(
