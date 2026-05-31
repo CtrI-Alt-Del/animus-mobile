@@ -1,2 +1,0 @@
-FMT_DONE
-ERRORS=0
