@@ -21,9 +21,7 @@ class FilterChipView extends StatelessWidget {
     final Color background = isSelected
         ? tokens.accentStrong.withValues(alpha: 0.08)
         : tokens.surfaceElevated;
-    final Color border = isSelected
-        ? tokens.accentStrong
-        : tokens.borderStrong;
+    final Color border = isSelected ? tokens.accentStrong : tokens.borderStrong;
     final Color textColor = isSelected ? tokens.accent : tokens.textMuted;
 
     return GestureDetector(

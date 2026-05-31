@@ -50,7 +50,9 @@ class LibraryFolderScreenView extends ConsumerWidget {
     final bool shouldArchive =
         await showDialog<bool>(
           context: context,
-          barrierColor: (Theme.of(context).extension<AppThemeTokens>()?.scrim ?? AppTheme.tokens.scrim),
+          barrierColor:
+              (Theme.of(context).extension<AppThemeTokens>()?.scrim ??
+              AppTheme.tokens.scrim),
           builder: (_) => ArchiveSelectedAnalysesDialog(
             selectedCount: presenter.selectedCount.value,
           ),

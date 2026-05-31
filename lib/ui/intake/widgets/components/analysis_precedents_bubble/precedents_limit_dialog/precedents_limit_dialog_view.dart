@@ -115,16 +115,12 @@ class AnalysisPrecedentsBubblePrecedentsLimitDialogView
               children: <Widget>[
                 Text(
                   minValue.toString(),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: tokens.textMuted,
-                  ),
+                  style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
                 ),
                 const Spacer(),
                 Text(
                   maxValue.toString(),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: tokens.textMuted,
-                  ),
+                  style: textTheme.bodySmall?.copyWith(color: tokens.textMuted),
                 ),
               ],
             ),

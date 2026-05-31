@@ -225,9 +225,10 @@ fallback de tokens em
   `#7BC4E3` azul). São hues de identidade (badges distintivos), não superfícies
   de tema; legíveis em dark e light. É um método `static` sem `BuildContext`,
   então não tem acesso a tokens. Mantido como cor de marca.
-- **`Colors.black.withValues(alpha: ...)`** em `folder_selection_action_bar`,
-  `app_bottom_navigation` e `library_folder_settings_modal` — sombras/scrims que
-  devem permanecer pretas translúcidas em ambos os temas (sombra de elevação).
+- **Sombras de elevação** em `folder_selection_action_bar`,
+  `app_bottom_navigation` e `library_folder_settings_modal` — usam
+  `tokens.scrim.withValues(alpha: ...)` para manter preto translúcido no dark e
+  permitir um scrim mais suave no tema light.
 - **`Colors.transparent`** — usado em diversos widgets (`Material`, `AppBar`,
   `FilledButton` sobre gradiente etc.); semanticamente correto em qualquer tema.
 

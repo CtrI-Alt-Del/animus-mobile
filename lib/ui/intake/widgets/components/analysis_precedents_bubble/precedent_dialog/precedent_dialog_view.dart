@@ -61,10 +61,7 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                     children: <Widget>[
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.arrow_back,
-                          color: tokens.textPrimary,
-                        ),
+                        icon: Icon(Icons.arrow_back, color: tokens.textPrimary),
                       ),
                       Expanded(
                         child: Text(
