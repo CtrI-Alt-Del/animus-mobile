@@ -145,7 +145,7 @@ class _LibraryFolderSettingsModalViewState
                         foregroundColor: tokens.onAccent,
                       ),
                       child: isUpdating
-                          ? _SmallProgress(color: tokens.surfacePage)
+                          ? _SmallProgress(color: tokens.onAccent)
                           : const Text('Atualizar nome'),
                     );
                   }),

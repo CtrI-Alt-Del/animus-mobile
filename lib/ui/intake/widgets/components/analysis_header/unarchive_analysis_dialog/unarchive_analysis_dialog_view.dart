@@ -79,7 +79,7 @@ class UnarchiveAnalysisDialogView extends StatelessWidget {
                     child: Text(
                       'Desarquivar',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: tokens.surfacePage,
+                        color: tokens.onAccent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

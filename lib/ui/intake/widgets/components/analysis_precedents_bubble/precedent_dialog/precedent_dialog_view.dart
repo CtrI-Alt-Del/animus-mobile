@@ -306,14 +306,14 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                         isChosen
                             ? Icons.remove_done_outlined
                             : Icons.balance_outlined,
-                        color: tokens.surfacePage,
+                        color: tokens.onAccent,
                       ),
                       label: Text(
                         isChosen
                             ? 'Desescolher precedente'
                             : 'Escolher Precedente',
                         style: textTheme.labelLarge?.copyWith(
-                          color: tokens.surfacePage,
+                          color: tokens.onAccent,
                           fontWeight: FontWeight.w700,
                         ),
                       ),

@@ -151,7 +151,7 @@ class CheckEmailScreenView extends ConsumerWidget {
                             child: Text(
                               isVerifying ? 'Validando...' : 'Confirmar código',
                               style: textTheme.labelMedium?.copyWith(
-                                color: tokens.surfacePage,
+                                color: tokens.onAccent,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

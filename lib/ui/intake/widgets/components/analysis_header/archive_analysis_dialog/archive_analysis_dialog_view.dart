@@ -79,7 +79,7 @@ class ArchiveAnalysisDialogView extends StatelessWidget {
                     child: Text(
                       'Arquivar',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: tokens.surfacePage,
+                        color: tokens.onAccent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

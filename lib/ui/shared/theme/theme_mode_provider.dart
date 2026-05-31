@@ -14,6 +14,25 @@ const String _darkValue = 'dark';
 /// local cache via the [CacheDriver] port. Defaults to
 /// [AppTheme.defaultThemeMode] (dark) when no preference is stored.
 class ThemeModeNotifier extends Notifier<ThemeMode> {
+  /// Decodes a stored theme-mode string into a [ThemeMode], falling back to
+  /// [AppTheme.defaultThemeMode] for unknown/null values. Shared with
+  /// `main.dart` so cold-start resolution and the provider stay in sync.
+  static ThemeMode decode(String? value) {
+    switch (value) {
+      case _lightValue:
+        return ThemeMode.light;
+      case _darkValue:
+        return ThemeMode.dark;
+      default:
+        return AppTheme.defaultThemeMode;
+    }
+  }
+
+  /// Encodes a [ThemeMode] into its persisted string representation.
+  static String encode(ThemeMode mode) {
+    return mode == ThemeMode.light ? _lightValue : _darkValue;
+  }
+
   CacheDriver get _cacheDriver => ref.read(cacheDriverProvider);
 
   @override
@@ -25,7 +44,7 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 
   ThemeMode _readStoredMode() {
     try {
-      return _decode(_cacheDriver.get(CacheKeys.themeMode));
+      return decode(_cacheDriver.get(CacheKeys.themeMode));
     } catch (_) {
       // Cache driver may be unavailable (e.g. in widget tests without an
       // override). Fall back to the default theme mode in that case.
@@ -47,7 +66,12 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
       return;
     }
     state = mode;
-    _cacheDriver.set(CacheKeys.themeMode, _encode(mode));
+    try {
+      _cacheDriver.set(CacheKeys.themeMode, encode(mode));
+    } catch (_) {
+      // Cache driver may be unavailable (e.g. in widget tests without an
+      // override). The in-memory state is still updated above.
+    }
     _applyOverlay(mode);
   }
 

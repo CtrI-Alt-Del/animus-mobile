@@ -121,7 +121,7 @@ class _RenameAnalysisDialogViewState extends State<RenameAnalysisDialogView> {
                     child: Text(
                       'Salvar',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: tokens.surfacePage,
+                        color: tokens.onAccent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

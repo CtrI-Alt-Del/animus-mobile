@@ -168,7 +168,7 @@ class _ProfileUpdateNameDialogViewState
                             child: Text(
                               'Atualizar',
                               style: textTheme.bodyMedium?.copyWith(
-                                color: tokens.surfacePage,
+                                color: tokens.onAccent,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),

@@ -83,7 +83,7 @@ class RecentAnalysesSectionView extends StatelessWidget {
                 child: Text(
                   '$processingCount',
                   style: textTheme.labelSmall?.copyWith(
-                    color: tokens.surfacePage,
+                    color: tokens.onAccent,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

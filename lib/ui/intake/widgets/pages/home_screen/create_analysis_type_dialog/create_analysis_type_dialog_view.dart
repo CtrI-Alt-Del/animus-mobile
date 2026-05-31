@@ -142,7 +142,7 @@ class _CreateAnalysisTypeDialogViewState
                     child: Text(
                       'Criar',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: tokens.surfacePage,
+                        color: tokens.onAccent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
