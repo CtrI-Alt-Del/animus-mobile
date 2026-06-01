@@ -77,32 +77,43 @@ class CheckEmailScreenView extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      OtpTextField(
-                        numberOfFields: 6,
-                        fieldWidth: 52,
-                        keyboardType: TextInputType.number,
-                        borderRadius: BorderRadius.circular(12),
-                        borderColor: tokens.borderStrong,
-                        focusedBorderColor: tokens.accent,
-                        enabledBorderColor: tokens.borderStrong,
-                        fillColor: tokens.surfaceCard,
-                        filled: true,
-                        showFieldAsBox: true,
-                        textStyle: TextStyle(
-                          color: tokens.textPrimary,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          height: 1,
-                        ),
-                        onCodeChanged: (String code) {
-                          presenter.otpControl.value = code;
-                          presenter.otpControl.markAsDirty();
-                          presenter.otpControl.removeError('server');
-                        },
-                        onSubmit: (String verificationCode) {
-                          presenter.otpControl.value = verificationCode;
-                          presenter.verifyOtp();
-                        },
+                      LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                              final double fieldWidth =
+                                  ((constraints.maxWidth - 40) / 6).clamp(
+                                    40.0,
+                                    52.0,
+                                  );
+
+                              return OtpTextField(
+                                numberOfFields: 6,
+                                fieldWidth: fieldWidth,
+                                keyboardType: TextInputType.number,
+                                borderRadius: BorderRadius.circular(12),
+                                borderColor: tokens.borderStrong,
+                                focusedBorderColor: tokens.accent,
+                                enabledBorderColor: tokens.borderStrong,
+                                fillColor: tokens.surfaceCard,
+                                filled: true,
+                                showFieldAsBox: true,
+                                textStyle: const TextStyle(
+                                  color: Color(0xFFFAFAF9),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1,
+                                ),
+                                onCodeChanged: (String code) {
+                                  presenter.otpControl.value = code;
+                                  presenter.otpControl.markAsDirty();
+                                  presenter.otpControl.removeError('server');
+                                },
+                                onSubmit: (String verificationCode) {
+                                  presenter.otpControl.value = verificationCode;
+                                  presenter.verifyOtp();
+                                },
+                              );
+                            },
                       ),
                       const SizedBox(height: 10),
                       Text(

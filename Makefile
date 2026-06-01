@@ -1,4 +1,4 @@
-.PHONY: dev build clean test release
+.PHONY: dev prod format build aab apk debug icon splash clean test release
 
 dev:
 	flutter run
@@ -9,8 +9,18 @@ prod:
 format:
 	dart format .
 
-build:
+aab:
 	flutter build appbundle --dart-define=ENV_FILE=.env.production
+
+apk:
+	flutter build apk --debug --dart-define=ENV_FILE=.env.production
+	mv build/app/outputs/flutter-apk/app-debug.apk build/app/outputs/flutter-apk/animus.apk
+
+icon:
+	dart run flutter_launcher_icons
+
+splash:
+	dart run flutter_native_splash:create
 
 test:
 	flutter test
