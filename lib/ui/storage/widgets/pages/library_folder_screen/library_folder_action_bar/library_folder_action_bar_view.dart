@@ -55,10 +55,10 @@ class LibraryFolderActionBarView extends StatelessWidget {
                 minimumSize: const Size(92, 44),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 backgroundColor: tokens.accent,
-                foregroundColor: tokens.surfacePage,
+                foregroundColor: tokens.onAccent,
               ),
               icon: isMoving
-                  ? _SmallProgress(color: tokens.surfacePage)
+                  ? _SmallProgress(color: tokens.onAccent)
                   : const Icon(Icons.drive_file_move_outline, size: 18),
               label: const Text('Mover'),
             ),

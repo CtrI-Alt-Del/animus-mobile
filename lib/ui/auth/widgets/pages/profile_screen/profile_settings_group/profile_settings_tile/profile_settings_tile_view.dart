@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
 
-const Color _profileChevronColor = Color(0x66FBE26D);
-
 class ProfileSettingsTileView extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -32,7 +30,8 @@ class ProfileSettingsTileView extends StatelessWidget {
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final Color titleColor = isDestructive ? tokens.danger : tokens.textPrimary;
-    final Color resolvedChevronColor = chevronColor ?? _profileChevronColor;
+    final Color resolvedChevronColor =
+        chevronColor ?? tokens.accent.withValues(alpha: 0.4);
 
     return Material(
       color: Colors.transparent,

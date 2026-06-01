@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
 
-const Color _profileErrorSurfaceColor = Color(0xFF1E1E24);
-const Color _profileErrorBorderColor = Color(0x33FBE26D);
-
 class ProfileErrorCardView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
@@ -23,9 +20,9 @@ class ProfileErrorCardView extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: _profileErrorSurfaceColor,
+        color: tokens.surfaceElevated,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _profileErrorBorderColor),
+        border: Border.all(color: tokens.accent.withValues(alpha: 0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),

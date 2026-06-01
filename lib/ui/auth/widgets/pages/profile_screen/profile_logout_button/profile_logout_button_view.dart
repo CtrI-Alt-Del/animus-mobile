@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
 
-const Color _logoutBackgroundColor = Color(0x1AEF4444);
-const Color _logoutBorderColor = Color(0x4DEF4444);
-
 class ProfileLogoutButtonView extends StatelessWidget {
   final VoidCallback onPressed;
 
@@ -25,9 +22,9 @@ class ProfileLogoutButtonView extends StatelessWidget {
           child: Ink(
             height: 52,
             decoration: BoxDecoration(
-              color: _logoutBackgroundColor,
+              color: tokens.danger.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _logoutBorderColor),
+              border: Border.all(color: tokens.danger.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:animus/theme.dart';
+
 class FilterChipView extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -14,6 +16,8 @@ class FilterChipView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppThemeTokens tokens =
+        Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return InkWell(
@@ -22,20 +26,18 @@ class FilterChipView extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0x147A6A17) : const Color(0xFF202027),
+          color: isSelected
+              ? tokens.accentStrong.withValues(alpha: 0.08)
+              : tokens.surfaceElevated,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF7A6A17)
-                : const Color(0xFF2F2F36),
+            color: isSelected ? tokens.accentStrong : tokens.borderStrong,
           ),
         ),
         child: Text(
           label,
           style: textTheme.labelMedium?.copyWith(
-            color: isSelected
-                ? const Color(0xFFFBE26D)
-                : const Color(0xFF8E8E93),
+            color: isSelected ? tokens.accent : tokens.textMuted,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
           ),
         ),

@@ -48,7 +48,7 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
         : currentPrecedent.precedent.enunciation.trim();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0E),
+      backgroundColor: tokens.surfacePage,
       body: SafeArea(
         child: Stack(
           children: <Widget>[
@@ -61,16 +61,13 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                     children: <Widget>[
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: Color(0xFFFAFAF9),
-                        ),
+                        icon: Icon(Icons.arrow_back, color: tokens.textPrimary),
                       ),
                       Expanded(
                         child: Text(
                           'Visualização de Precedente',
                           style: textTheme.titleLarge?.copyWith(
-                            color: const Color(0xFFFAFAF9),
+                            color: tokens.textPrimary,
                             fontFamily: 'Fraunces',
                             fontWeight: FontWeight.w600,
                           ),
@@ -92,14 +89,14 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                             border: Border.all(
                               color: isChosen
                                   ? tokens.accent
-                                  : const Color(0xFFFAFAF9),
+                                  : tokens.textPrimary,
                             ),
-                            gradient: const LinearGradient(
+                            gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: <Color>[
-                                Color(0x18FBE26D),
-                                Color(0x08FBE26D),
+                                tokens.accent.withValues(alpha: 0.09),
+                                tokens.accent.withValues(alpha: 0.03),
                               ],
                             ),
                           ),
@@ -115,8 +112,8 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                                         : 'Precedente*',
                                     style: textTheme.labelSmall?.copyWith(
                                       color: isChosen
-                                          ? const Color(0xFFFBE26D)
-                                          : const Color(0xFF6B6B70),
+                                          ? tokens.accent
+                                          : tokens.textSecondary,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -140,7 +137,7 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                               Text(
                                 identifier,
                                 style: textTheme.bodyLarge?.copyWith(
-                                  color: const Color(0xFFFAFAF9),
+                                  color: tokens.textPrimary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -151,10 +148,10 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1E1E24),
+                                  color: tokens.surfaceElevated,
                                   borderRadius: BorderRadius.circular(999),
                                   border: Border.all(
-                                    color: const Color(0xFF2A2A2E),
+                                    color: tokens.borderSubtle,
                                   ),
                                 ),
                                 child: Row(
@@ -170,7 +167,7 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                                       child: Text(
                                         status,
                                         style: textTheme.labelMedium?.copyWith(
-                                          color: const Color(0xFFFAFAF9),
+                                          color: tokens.textPrimary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -182,14 +179,14 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                               Text(
                                 precedentDescription,
                                 style: textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF6B6B70),
+                                  color: tokens.textSecondary,
                                   height: 1.5,
                                 ),
                               ),
                               const SizedBox(height: 10),
                               TextButton.icon(
                                 style: TextButton.styleFrom(
-                                  foregroundColor: const Color(0xFFFBE26D),
+                                  foregroundColor: tokens.accent,
                                   padding: EdgeInsets.zero,
                                   minimumSize: const Size(0, 0),
                                   tapTargetSize:
@@ -207,12 +204,12 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Container(height: 1, color: const Color(0xFF2A2A2E)),
+                        Container(height: 1, color: tokens.borderSubtle),
                         const SizedBox(height: 16),
                         Text(
                           'Síntese Explicativa',
                           style: textTheme.titleMedium?.copyWith(
-                            color: const Color(0xFFFAFAF9),
+                            color: tokens.textPrimary,
                             fontFamily: 'Fraunces',
                             fontWeight: FontWeight.w600,
                           ),
@@ -220,17 +217,17 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: <Widget>[
-                            const Icon(
+                            Icon(
                               Icons.book_outlined,
                               size: 16,
-                              color: Color(0xFFFBE26D),
+                              color: tokens.accent,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Texto correspondente à síntese do precedente escolhido',
                                 style: textTheme.bodySmall?.copyWith(
-                                  color: const Color(0xFF8E8E93),
+                                  color: tokens.textMuted,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -241,13 +238,13 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E24),
+                            color: tokens.surfaceElevated,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
                             synthesisText,
                             style: textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF6B6B70),
+                              color: tokens.textSecondary,
                               height: 1.45,
                             ),
                           ),
@@ -264,19 +261,19 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
               bottom: 0,
               child: Container(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1A1A1E),
-                  border: Border(top: BorderSide(color: Color(0xFF2A2A2E))),
+                decoration: BoxDecoration(
+                  color: tokens.surfaceElevated,
+                  border: Border(top: BorderSide(color: tokens.borderSubtle)),
                 ),
                 child: SizedBox(
                   height: 52,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: <Color>[Color(0xFFFBE26D), Color(0xFFC4A535)],
+                        colors: <Color>[tokens.accent, tokens.accentStrong],
                       ),
                     ),
                     child: FilledButton.icon(
@@ -309,14 +306,14 @@ class AnalysisPrecedentDialogView extends ConsumerWidget {
                         isChosen
                             ? Icons.remove_done_outlined
                             : Icons.balance_outlined,
-                        color: const Color(0xFF0B0B0E),
+                        color: tokens.onAccent,
                       ),
                       label: Text(
                         isChosen
                             ? 'Desescolher precedente'
                             : 'Escolher Precedente',
                         style: textTheme.labelLarge?.copyWith(
-                          color: const Color(0xFF0B0B0E),
+                          color: tokens.onAccent,
                           fontWeight: FontWeight.w700,
                         ),
                       ),

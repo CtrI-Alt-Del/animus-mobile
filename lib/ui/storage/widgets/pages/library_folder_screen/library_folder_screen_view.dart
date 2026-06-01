@@ -259,7 +259,7 @@ class LibraryFolderScreenView extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(true),
               style: FilledButton.styleFrom(
                 backgroundColor: tokens.accent,
-                foregroundColor: tokens.surfacePage,
+                foregroundColor: tokens.onAccent,
               ),
               child: const Text('Arquivar'),
             ),

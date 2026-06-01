@@ -89,7 +89,7 @@ class FolderAnalysisCardView extends StatelessWidget {
                 child: Checkbox(
                   value: isSelected,
                   activeColor: tokens.accent,
-                  checkColor: tokens.surfacePage,
+                  checkColor: tokens.onAccent,
                   side: BorderSide(color: tokens.borderStrong),
                   onChanged: (_) => onToggleSelection(),
                 ),

@@ -75,3 +75,6 @@ android/**/*.keystore
 node_modules/
 
 documentation/ticket.md
+
+analyze_out.txt
+final_status.txt

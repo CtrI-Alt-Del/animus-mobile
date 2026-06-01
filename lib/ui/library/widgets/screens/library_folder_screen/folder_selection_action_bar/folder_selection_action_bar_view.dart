@@ -32,7 +32,7 @@ class FolderSelectionActionBarView extends StatelessWidget {
           border: Border.all(color: tokens.borderStrong),
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.24),
+              color: tokens.scrim.withValues(alpha: 0.24),
               blurRadius: 24,
               offset: const Offset(0, 12),
             ),

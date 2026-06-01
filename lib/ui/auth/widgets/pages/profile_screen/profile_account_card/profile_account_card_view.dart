@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:animus/theme.dart';
 
-const Color _profilePanelColor = Color(0xFF1E1E24);
-const Color _profilePanelBorderColor = Color(0x33FBE26D);
-const Color _profileAvatarInnerColor = Color(0xFF2A2A3E);
-
 class ProfileAccountCardView extends StatelessWidget {
   final String initial;
   final String name;
@@ -26,9 +22,9 @@ class ProfileAccountCardView extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: _profilePanelColor,
+        color: tokens.surfaceElevated,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _profilePanelBorderColor),
+        border: Border.all(color: tokens.accent.withValues(alpha: 0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -47,7 +43,7 @@ class ProfileAccountCardView extends StatelessWidget {
                 ),
               ),
               child: CircleAvatar(
-                backgroundColor: _profileAvatarInnerColor,
+                backgroundColor: tokens.surfaceCard,
                 child: Text(
                   initial,
                   style: textTheme.titleLarge?.copyWith(

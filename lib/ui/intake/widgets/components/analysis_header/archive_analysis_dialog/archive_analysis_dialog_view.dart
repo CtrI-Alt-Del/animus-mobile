@@ -74,12 +74,12 @@ class ArchiveAnalysisDialogView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       backgroundColor: tokens.accent,
-                      foregroundColor: const Color(0xFF0B0B0E),
+                      foregroundColor: tokens.onAccent,
                     ),
                     child: Text(
                       'Arquivar',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF0B0B0E),
+                        color: tokens.onAccent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

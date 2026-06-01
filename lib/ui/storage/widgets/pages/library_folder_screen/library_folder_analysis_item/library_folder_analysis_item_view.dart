@@ -87,7 +87,7 @@ class LibraryFolderAnalysisItemView extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                   side: BorderSide(color: tokens.accent.withValues(alpha: 0.4)),
                   activeColor: tokens.accent,
-                  checkColor: tokens.surfacePage,
+                  checkColor: tokens.onAccent,
                 ),
               ),
             ],

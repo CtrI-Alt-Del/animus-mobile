@@ -5,16 +5,13 @@ import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_settings_gro
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_settings_group/profile_settings_tile/index.dart';
 import 'package:animus/ui/auth/widgets/pages/profile_screen/profile_settings_group/profile_theme_preview/index.dart';
 
-const Color _profileSettingsSurfaceColor = Color(0xFF1E1E24);
-const Color _profileSettingsBorderColor = Color(0x33FBE26D);
-const Color _profileSettingsDividerColor = Color(0x1AFBE26D);
-
 class ProfileSettingsGroupView extends StatelessWidget {
   final bool isDarkThemeEnabled;
   final String appVersionLabel;
   final VoidCallback onEditNameTap;
   final VoidCallback onChangePasswordTap;
   final VoidCallback onArchivedAnalysesTap;
+  final VoidCallback onThemeTap;
 
   const ProfileSettingsGroupView({
     required this.isDarkThemeEnabled,
@@ -22,6 +19,7 @@ class ProfileSettingsGroupView extends StatelessWidget {
     required this.onEditNameTap,
     required this.onChangePasswordTap,
     required this.onArchivedAnalysesTap,
+    required this.onThemeTap,
     super.key,
   });
 
@@ -29,12 +27,15 @@ class ProfileSettingsGroupView extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final Color surfaceColor = tokens.surfaceElevated;
+    final Color borderColor = tokens.accent.withValues(alpha: 0.2);
+    final Color dividerColor = tokens.accent.withValues(alpha: 0.1);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: _profileSettingsSurfaceColor,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _profileSettingsBorderColor),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: <Widget>[
@@ -44,29 +45,29 @@ class ProfileSettingsGroupView extends StatelessWidget {
             iconColor: tokens.accent,
             onTap: onEditNameTap,
           ),
-          const ProfileDivider(color: _profileSettingsDividerColor),
+          ProfileDivider(color: dividerColor),
           ProfileSettingsTile(
             title: 'Alterar Senha',
             icon: Icons.lock_outline,
             iconColor: tokens.accent,
             onTap: onChangePasswordTap,
           ),
-          const ProfileDivider(color: _profileSettingsDividerColor),
+          ProfileDivider(color: dividerColor),
           ProfileSettingsTile(
             title: 'Análises arquivadas',
             icon: Icons.inventory_2_outlined,
             iconColor: tokens.accent,
             onTap: onArchivedAnalysesTap,
           ),
-          const ProfileDivider(color: _profileSettingsDividerColor),
+          ProfileDivider(color: dividerColor),
           ProfileSettingsTile(
             title: 'Tema',
             icon: Icons.brightness_6_outlined,
             iconColor: tokens.accent,
             trailing: ProfileThemePreview(isEnabled: isDarkThemeEnabled),
-            onTap: _noop,
+            onTap: onThemeTap,
           ),
-          const ProfileDivider(color: _profileSettingsDividerColor),
+          ProfileDivider(color: dividerColor),
           ProfileSettingsTile(
             title: 'Sobre o App',
             icon: Icons.info_outline,
@@ -80,7 +81,7 @@ class ProfileSettingsGroupView extends StatelessWidget {
             onTap: _noop,
             showChevron: false,
           ),
-          const ProfileDivider(color: _profileSettingsDividerColor),
+          ProfileDivider(color: dividerColor),
           ProfileSettingsTile(
             title: 'Deletar Conta',
             icon: Icons.delete_outline,

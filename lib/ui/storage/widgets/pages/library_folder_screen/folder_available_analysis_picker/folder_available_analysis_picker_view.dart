@@ -59,7 +59,7 @@ class FolderAvailableAnalysisPickerView extends StatelessWidget {
                   },
             style: FilledButton.styleFrom(
               backgroundColor: tokens.accent,
-              foregroundColor: tokens.surfacePage,
+              foregroundColor: tokens.onAccent,
             ),
             icon: isAdding
                 ? SizedBox(
@@ -205,7 +205,7 @@ class _AvailableAnalysisTile extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
                 side: BorderSide(color: tokens.accent.withValues(alpha: 0.4)),
                 activeColor: tokens.accent,
-                checkColor: tokens.surfacePage,
+                checkColor: tokens.onAccent,
               ),
             ],
           ),

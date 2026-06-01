@@ -12,6 +12,7 @@ import 'package:animus/rest/dio/auth_token_interceptor.dart';
 import 'package:animus/rest/dio/dio_rest_client.dart';
 import 'package:animus/rest/services/auth_rest_service.dart';
 import 'package:animus/theme.dart';
+import 'package:animus/ui/shared/theme/index.dart';
 import 'package:animus/drivers/caches/shared_preferences/shared_preferences_cache_driver.dart';
 import 'package:animus/drivers/cache/index.dart';
 import 'package:animus/drivers/navigation/index.dart';
@@ -29,16 +30,12 @@ Future<void> main() async {
 
   await _validateSessionOnAppLoad(sharedPreferences, pushNotificationDriver);
 
-  if (AppTheme.defaultThemeMode == ThemeMode.dark) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarIconBrightness: Brightness.light,
-      ),
-    );
-  }
+  final ThemeMode initialThemeMode = _resolveInitialThemeMode(
+    sharedPreferences,
+  );
+  SystemChrome.setSystemUIOverlayStyle(
+    AppTheme.overlayStyleFor(initialThemeMode),
+  );
 
   runApp(
     ProviderScope(
@@ -51,6 +48,10 @@ Future<void> main() async {
       child: const AnimusApp(),
     ),
   );
+}
+
+ThemeMode _resolveInitialThemeMode(SharedPreferences preferences) {
+  return ThemeModeNotifier.decode(preferences.getString(CacheKeys.themeMode));
 }
 
 Future<void> _validateSessionOnAppLoad(

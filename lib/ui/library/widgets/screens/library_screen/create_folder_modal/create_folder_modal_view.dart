@@ -177,11 +177,11 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       backgroundColor: tokens.accent,
-                      foregroundColor: tokens.surfacePage,
+                      foregroundColor: tokens.onAccent,
                       disabledBackgroundColor: tokens.accent.withValues(
                         alpha: 0.4,
                       ),
-                      disabledForegroundColor: tokens.surfacePage.withValues(
+                      disabledForegroundColor: tokens.onAccent.withValues(
                         alpha: 0.6,
                       ),
                     ),
@@ -199,7 +199,7 @@ class _CreateFolderModalViewState extends State<CreateFolderModalView> {
                         : Text(
                             'Criar pasta',
                             style: textTheme.bodyMedium?.copyWith(
-                              color: tokens.surfacePage,
+                              color: tokens.onAccent,
                               fontWeight: FontWeight.w700,
                             ),
                           ),

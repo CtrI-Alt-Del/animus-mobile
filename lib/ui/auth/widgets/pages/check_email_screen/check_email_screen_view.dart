@@ -88,8 +88,8 @@ class CheckEmailScreenView extends ConsumerWidget {
                         fillColor: tokens.surfaceCard,
                         filled: true,
                         showFieldAsBox: true,
-                        textStyle: const TextStyle(
-                          color: Color(0xFFFAFAF9),
+                        textStyle: TextStyle(
+                          color: tokens.textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                           height: 1,
@@ -142,7 +142,7 @@ class CheckEmailScreenView extends ConsumerWidget {
                             onPressed: isVerifying ? null : presenter.verifyOtp,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: tokens.accent,
-                              foregroundColor: tokens.surfacePage,
+                              foregroundColor: tokens.onAccent,
                               disabledBackgroundColor: tokens.borderStrong,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -151,7 +151,7 @@ class CheckEmailScreenView extends ConsumerWidget {
                             child: Text(
                               isVerifying ? 'Validando...' : 'Confirmar código',
                               style: textTheme.labelMedium?.copyWith(
-                                color: tokens.surfacePage,
+                                color: tokens.onAccent,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

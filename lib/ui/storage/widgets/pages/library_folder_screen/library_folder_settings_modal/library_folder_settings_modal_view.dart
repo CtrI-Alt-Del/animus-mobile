@@ -82,7 +82,7 @@ class _LibraryFolderSettingsModalViewState
               border: Border.all(color: tokens.borderSubtle),
               boxShadow: <BoxShadow>[
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.28),
+                  color: tokens.scrim.withValues(alpha: 0.28),
                   blurRadius: 24,
                   offset: const Offset(0, -4),
                 ),
@@ -142,10 +142,10 @@ class _LibraryFolderSettingsModalViewState
                             },
                       style: FilledButton.styleFrom(
                         backgroundColor: tokens.accent,
-                        foregroundColor: tokens.surfacePage,
+                        foregroundColor: tokens.onAccent,
                       ),
                       child: isUpdating
-                          ? _SmallProgress(color: tokens.surfacePage)
+                          ? _SmallProgress(color: tokens.onAccent)
                           : const Text('Atualizar nome'),
                     );
                   }),

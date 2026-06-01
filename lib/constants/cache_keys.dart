@@ -4,4 +4,5 @@ class CacheKeys {
   static const String precedentsLimit = 'intake:precedents_limit';
   static const String pushNotificationPermissionPromptAttempted =
       'notification:permission_prompt_attempted';
+  static const String themeMode = 'app:theme_mode';
 }
