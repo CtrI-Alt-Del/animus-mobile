@@ -27,6 +27,7 @@ import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/p
 import 'package:animus/ui/intake/widgets/components/case_summary_card/index.dart';
 import 'package:animus/ui/intake/widgets/components/document_file_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/components/regenerate_draft_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_presenter.dart';
 import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/generate_petition_draft_card/index.dart';
 import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_card/index.dart';
@@ -128,16 +129,49 @@ class _CaseAssessmentAnalysisScreenViewState
 
   Future<void> _showPetitionDraftModal(
     BuildContext context,
+    CaseAssessmentAnalysisScreenPresenter presenter,
     PetitionDraftDto draft,
   ) async {
     await Navigator.of(context, rootNavigator: true).push<void>(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
         builder: (BuildContext context) {
-          return PetitionDraftModal(draft: draft);
+          return PetitionDraftModal(
+            draft: draft,
+            onRegenerate: () {
+              return _showRegeneratePetitionDraftDialog(context, presenter);
+            },
+          );
         },
       ),
     );
+  }
+
+  Future<bool> _showRegeneratePetitionDraftDialog(
+    BuildContext context,
+    CaseAssessmentAnalysisScreenPresenter presenter,
+  ) async {
+    final bool? didConfirm = await showDialog<bool>(
+      context: context,
+      barrierColor: const Color(0x99000000),
+      builder: (BuildContext context) {
+        return RegenerateDraftDialog(
+          title: 'Regerar minuta de petição',
+          description:
+              'Descreva quais ajustes você deseja para gerar uma nova versão da minuta.',
+          textFieldLabel: 'O que deseja alterar?',
+          confirmLabel: 'Confirmar',
+          onConfirm: presenter.regeneratePetitionDraft,
+        );
+      },
+    );
+
+    if (didConfirm != true) {
+      return false;
+    }
+
+    _scheduleJumpToBottom();
+    return true;
   }
 
   Future<void> _showPrecedentsLimitDialog(
@@ -615,14 +649,18 @@ class _CaseAssessmentAnalysisScreenViewState
                                     draft: draft,
                                     onOpenModal: () {
                                       unawaited(
-                                        _showPetitionDraftModal(context, draft),
+                                        _showPetitionDraftModal(
+                                          context,
+                                          presenter,
+                                          draft,
+                                        ),
                                       );
                                     },
                                     onRegenerate: () {
-                                      unawaited(
-                                        presenter.regeneratePetitionDraft(),
+                                      return _showRegeneratePetitionDraftDialog(
+                                        context,
+                                        presenter,
                                       );
-                                      _scheduleJumpToBottom();
                                     },
                                   ),
                                 ),
@@ -717,9 +755,11 @@ class _CaseAssessmentAnalysisScreenViewState
                             : () {
                                 if (canRegeneratePetitionDraft) {
                                   unawaited(
-                                    presenter.regeneratePetitionDraft(),
+                                    _showRegeneratePetitionDraftDialog(
+                                      context,
+                                      presenter,
+                                    ),
                                   );
-                                  _scheduleJumpToBottom();
                                   return;
                                 }
 

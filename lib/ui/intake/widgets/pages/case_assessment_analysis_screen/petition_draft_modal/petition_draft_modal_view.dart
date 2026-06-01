@@ -5,8 +5,13 @@ import 'package:animus/theme.dart';
 
 class PetitionDraftModalView extends StatelessWidget {
   final PetitionDraftDto draft;
+  final Future<bool> Function()? onRegenerate;
 
-  const PetitionDraftModalView({required this.draft, super.key});
+  const PetitionDraftModalView({
+    required this.draft,
+    this.onRegenerate,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +35,49 @@ class PetitionDraftModalView extends StatelessWidget {
                 border: Border(bottom: BorderSide(color: tokens.borderSubtle)),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: Icon(Icons.arrow_back, color: tokens.textPrimary),
                   ),
                   Expanded(
-                    child: Text(
-                      'Minuta de petição',
-                      style: textTheme.titleLarge?.copyWith(
-                        color: tokens.textPrimary,
-                        fontWeight: FontWeight.w700,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            'Minuta de petição',
+                            style: textTheme.titleLarge?.copyWith(
+                              color: tokens.textPrimary,
+                              fontWeight: FontWeight.w700,
+                              height: 1.1,
+                            ),
+                          ),
+                          if (onRegenerate != null) ...<Widget>[
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton.icon(
+                                onPressed: () async {
+                                  final bool didConfirm = await onRegenerate!
+                                      .call();
+                                  if (!didConfirm || !context.mounted) {
+                                    return;
+                                  }
+
+                                  Navigator.of(context).pop();
+                                },
+                                icon: const Icon(
+                                  Icons.refresh_rounded,
+                                  size: 16,
+                                ),
+                                label: const Text('Regerar minuta'),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),

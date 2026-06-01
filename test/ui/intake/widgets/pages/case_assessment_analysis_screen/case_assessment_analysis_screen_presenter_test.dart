@@ -211,5 +211,126 @@ void main() {
         reason: 'Sem status DONE não exporta.',
       );
     });
+
+    test(
+      'regeneratePetitionDraft recarrega a minuta ao concluir a regeracao',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        const PetitionDraftDto previousDraft = PetitionDraftDto(
+          analysisId: 'analysis-1',
+          structuredFacts: 'Versao anterior.',
+          legalGrounds: 'Fundamentos anteriores.',
+          centralThesis: 'Tese anterior.',
+          requests: <String>['Pedido anterior'],
+          precedentCitations: <String>['Precedente anterior'],
+        );
+        const PetitionDraftDto regeneratedDraft = PetitionDraftDto(
+          analysisId: 'analysis-1',
+          structuredFacts: 'Versao nova.',
+          legalGrounds: 'Fundamentos novos.',
+          centralThesis: 'Tese nova.',
+          requests: <String>['Pedido novo'],
+          precedentCitations: <String>['Precedente novo'],
+        );
+
+        presenter.status.value = AnalysisStatusDto.done;
+        presenter.petitionDraft.value = previousDraft;
+
+        when(
+          () => intakeService.regeneratePetitionDraft(
+            analysisId: 'analysis-1',
+            comments: 'Ajustar a tese central.',
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              id: 'analysis-1',
+              type: AnalysisTypeDto.caseAssessment,
+              status: AnalysisStatusDto.done,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.getPetitionDraft(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<PetitionDraftDto>(
+            statusCode: 200,
+            body: regeneratedDraft,
+          ),
+        );
+
+        await presenter.regeneratePetitionDraft('Ajustar a tese central.');
+
+        expect(presenter.status.value, AnalysisStatusDto.done);
+        expect(presenter.generalError.value, isNull);
+        expect(
+          presenter.petitionDraft.value?.structuredFacts,
+          regeneratedDraft.structuredFacts,
+        );
+        verifyInOrder(<dynamic Function()>[
+          () => intakeService.regeneratePetitionDraft(
+            analysisId: 'analysis-1',
+            comments: 'Ajustar a tese central.',
+          ),
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+          () => intakeService.getPetitionDraft(analysisId: 'analysis-1'),
+        ]);
+      },
+    );
+
+    test(
+      'regeneratePetitionDraft preserva a minuta anterior quando a analise falha',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        const PetitionDraftDto previousDraft = PetitionDraftDto(
+          analysisId: 'analysis-1',
+          structuredFacts: 'Versao anterior.',
+          legalGrounds: 'Fundamentos anteriores.',
+          centralThesis: 'Tese anterior.',
+          requests: <String>['Pedido anterior'],
+          precedentCitations: <String>['Precedente anterior'],
+        );
+
+        presenter.status.value = AnalysisStatusDto.done;
+        presenter.petitionDraft.value = previousDraft;
+
+        when(
+          () => intakeService.regeneratePetitionDraft(
+            analysisId: 'analysis-1',
+            comments: 'Refazer minuta.',
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              id: 'analysis-1',
+              type: AnalysisTypeDto.caseAssessment,
+              status: AnalysisStatusDto.failed,
+            ),
+          ),
+        );
+
+        await presenter.regeneratePetitionDraft('Refazer minuta.');
+
+        expect(presenter.status.value, AnalysisStatusDto.failed);
+        expect(presenter.generalError.value, isNotNull);
+        expect(
+          presenter.petitionDraft.value?.structuredFacts,
+          previousDraft.structuredFacts,
+        );
+        verifyNever(
+          () => intakeService.getPetitionDraft(analysisId: 'analysis-1'),
+        );
+      },
+    );
   });
 }

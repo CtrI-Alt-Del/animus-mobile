@@ -380,15 +380,35 @@ class CaseAssessmentAnalysisScreenPresenter {
     }
   }
 
-  Future<void> regeneratePetitionDraft() async {
+  Future<void> regeneratePetitionDraft(String comments) async {
     if (!canRegeneratePetitionDraft.value) {
       return;
     }
 
     generalError.value = null;
     status.value = AnalysisStatusDto.generatingPetitionDraft;
-    petitionDraft.value = null;
-    await requestPetitionDraft(force: true);
+    isManagingAnalysis.value = true;
+
+    try {
+      final RestResponse<void> response = await _intakeService
+          .regeneratePetitionDraft(analysisId: analysisId, comments: comments)
+          .timeout(
+            requestTimeout,
+            onTimeout: () => RestResponse<void>(
+              statusCode: HttpStatus.requestTimeout,
+              errorMessage: _buildTimeoutMessage(),
+            ),
+          );
+
+      if (response.isFailure) {
+        await _applyFailure(response.errorMessage);
+        return;
+      }
+
+      await _pollUntilPetitionDraftReady(forceReloadOnDone: true);
+    } finally {
+      isManagingAnalysis.value = false;
+    }
   }
 
   Future<void> replaceDocument() async {
@@ -709,7 +729,9 @@ class CaseAssessmentAnalysisScreenPresenter {
     }
   }
 
-  Future<void> _pollUntilPetitionDraftReady() async {
+  Future<void> _pollUntilPetitionDraftReady({
+    bool forceReloadOnDone = false,
+  }) async {
     while (true) {
       final RestResponse<AnalysisDto> analysisResponse = await _intakeService
           .getAnalysis(analysisId: analysisId)
@@ -729,7 +751,7 @@ class CaseAssessmentAnalysisScreenPresenter {
       final AnalysisStatusDto currentStatus = analysisResponse.body.status;
 
       if (currentStatus == AnalysisStatusDto.done) {
-        if (petitionDraft.value != null) {
+        if (!forceReloadOnDone && petitionDraft.value != null) {
           status.value = currentStatus;
           generalError.value = null;
           return;

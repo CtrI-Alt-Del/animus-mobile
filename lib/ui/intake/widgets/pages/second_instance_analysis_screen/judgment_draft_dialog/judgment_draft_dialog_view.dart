@@ -6,8 +6,13 @@ import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/j
 
 class JudgmentDraftDialogView extends StatelessWidget {
   final SecondInstanceJudgmentDraftDto draft;
+  final Future<bool> Function()? onRegenerate;
 
-  const JudgmentDraftDialogView({required this.draft, super.key});
+  const JudgmentDraftDialogView({
+    required this.draft,
+    this.onRegenerate,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +39,49 @@ class JudgmentDraftDialogView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
                         icon: Icon(Icons.arrow_back, color: tokens.textPrimary),
                       ),
                       Expanded(
-                        child: Text(
-                          'Minuta de Sentença',
-                          style: textTheme.titleLarge?.copyWith(
-                            color: tokens.textPrimary,
-                            fontWeight: FontWeight.w700,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'Minuta de sentença',
+                                style: textTheme.titleLarge?.copyWith(
+                                  color: tokens.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.1,
+                                ),
+                              ),
+                              if (onRegenerate != null) ...<Widget>[
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton.icon(
+                                    onPressed: () async {
+                                      final bool didConfirm =
+                                          await onRegenerate!.call();
+                                      if (!didConfirm || !context.mounted) {
+                                        return;
+                                      }
+
+                                      Navigator.of(context).pop();
+                                    },
+                                    icon: const Icon(
+                                      Icons.refresh_rounded,
+                                      size: 16,
+                                    ),
+                                    label: const Text('Regerar minuta'),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),

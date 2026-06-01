@@ -26,6 +26,7 @@ import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/i
 import 'package:animus/ui/intake/widgets/components/case_summary_card/index.dart';
 import 'package:animus/ui/intake/widgets/components/document_file_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
+import 'package:animus/ui/intake/widgets/components/regenerate_draft_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/dot_grid_background/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedent_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/generate_judgment_draft_card/index.dart';
@@ -108,6 +109,33 @@ class _SecondInstanceAnalysisScreenViewState
         _jumpToBottom();
       });
     });
+  }
+
+  Future<bool> _showRegenerateJudgmentDraftDialog(
+    BuildContext context,
+    SecondInstanceAnalysisScreenPresenter presenter,
+  ) async {
+    final bool? didConfirm = await showDialog<bool>(
+      context: context,
+      barrierColor: const Color(0x99000000),
+      builder: (BuildContext context) {
+        return RegenerateDraftDialog(
+          title: 'Regerar minuta de sentença',
+          description:
+              'Descreva quais ajustes você deseja para gerar uma nova versão da minuta.',
+          textFieldLabel: 'O que deseja alterar?',
+          confirmLabel: 'Confirmar',
+          onConfirm: presenter.regenerateJudgmentDraft,
+        );
+      },
+    );
+
+    if (didConfirm != true) {
+      return false;
+    }
+
+    _scheduleJumpToBottom();
+    return true;
   }
 
   void _syncChosenPrecedentsIfNeeded(
@@ -669,7 +697,17 @@ class _SecondInstanceAnalysisScreenViewState
                                 const SizedBox(height: 12),
                               ],
                               if (showDraft) ...<Widget>[
-                                _animatedEntry(JudgmentDraftCard(draft: draft)),
+                                _animatedEntry(
+                                  JudgmentDraftCard(
+                                    draft: draft,
+                                    onRegenerate: () {
+                                      return _showRegenerateJudgmentDraftDialog(
+                                        context,
+                                        presenter,
+                                      );
+                                    },
+                                  ),
+                                ),
                                 const SizedBox(height: 12),
                               ],
                               if (generalError != null &&
@@ -744,9 +782,11 @@ class _SecondInstanceAnalysisScreenViewState
                             ? () {
                                 if (canRegenerate) {
                                   unawaited(
-                                    presenter.regenerateJudgmentDraft(),
+                                    _showRegenerateJudgmentDraftDialog(
+                                      context,
+                                      presenter,
+                                    ),
                                   );
-                                  _scheduleJumpToBottom();
                                   return;
                                 }
 
