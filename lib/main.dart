@@ -19,7 +19,11 @@ import 'package:animus/drivers/push-notification-driver/index.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+  const String envFile = String.fromEnvironment(
+    'ENV_FILE',
+    defaultValue: '.env',
+  );
+  await dotenv.load(fileName: envFile);
   const PushNotificationDriver pushNotificationDriver =
       OneSignalPushNotificationDriver();
   await pushNotificationDriver.initialize();

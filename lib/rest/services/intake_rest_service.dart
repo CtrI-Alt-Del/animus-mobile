@@ -497,14 +497,11 @@ class IntakeRestService extends Service implements IntakeService {
     required PrecedentIdentifierDto identifier,
   }) async {
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/intake/analyses/precedents',
+      '/intake/analyses/$analysisId/precedents',
       body: <String, dynamic>{
-        'analysis_id': analysisId,
-        'identifier': <String, dynamic>{
-          'court': identifier.court.value,
-          'kind': identifier.kind.value,
-          'number': identifier.number,
-        },
+        'court': identifier.court.value,
+        'kind': identifier.kind.value,
+        'number': identifier.number,
       },
     );
 
