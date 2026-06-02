@@ -81,14 +81,14 @@ class CheckEmailScreenView extends ConsumerWidget {
                         builder:
                             (BuildContext context, BoxConstraints constraints) {
                               final double fieldWidth =
-                                  ((constraints.maxWidth - 40) / 6).clamp(
-                                    40.0,
-                                    52.0,
-                                  );
+                                  (constraints.maxWidth / 6).clamp(32.0, 52.0);
 
                               return OtpTextField(
                                 numberOfFields: 6,
                                 fieldWidth: fieldWidth,
+                                margin: EdgeInsets.zero,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 keyboardType: TextInputType.number,
                                 borderRadius: BorderRadius.circular(12),
                                 borderColor: tokens.borderStrong,

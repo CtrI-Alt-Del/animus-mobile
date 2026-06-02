@@ -271,7 +271,6 @@ class RecentAnalysesSectionView extends StatelessWidget {
         analysis.type == AnalysisTypeDto.caseAssessment;
 
     switch (status) {
-      case AnalysisStatusDto.waitingPetition:
       case AnalysisStatusDto.waitingDocumentUpload:
         return isCaseAssessment
             ? 'Aguardando documento do caso'

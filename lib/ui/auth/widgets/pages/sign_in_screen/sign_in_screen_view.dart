@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:animus/constants/env.dart';
 import 'package:animus/theme.dart';
 import 'package:animus/ui/auth/widgets/components/auth_header/index.dart';
 import 'package:animus/ui/auth/widgets/pages/sign_in_screen/sign_in_form/index.dart';
