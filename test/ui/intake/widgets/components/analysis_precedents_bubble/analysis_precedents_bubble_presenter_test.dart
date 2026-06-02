@@ -45,7 +45,7 @@ void main() {
 
   group('AnalysisPrecedentsBubblePresenter', () {
     test(
-      'should trigger search on initialize when status is caseAnalyzed',
+      'should not trigger search on initialize when status is caseAnalyzed',
       () async {
         final presenter = createPresenter();
         addTearDown(presenter.dispose);
@@ -58,29 +58,44 @@ void main() {
             body: AnalysisDtoFaker.fake(status: AnalysisStatusDto.caseAnalyzed),
           ),
         );
-        when(
+        await presenter.initialize();
+
+        expect(
+          presenter.processingStatus.value,
+          AnalysisStatusDto.caseAnalyzed,
+        );
+        expect(presenter.isLoading.value, isFalse);
+        verify(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).called(1);
+        verifyNever(
           () => intakeService.searchAnalysisPrecedents(
             analysisId: 'analysis-1',
             filters: any(named: 'filters'),
           ),
-        ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+        );
+      },
+    );
 
-        await presenter.initialize();
+    test(
+      'should not retrigger search when syncing searching status on reentry',
+      () {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        presenter.syncAnalysisStatus(AnalysisStatusDto.searchingPrecedents);
 
         expect(
           presenter.processingStatus.value,
           AnalysisStatusDto.searchingPrecedents,
         );
         expect(presenter.isLoading.value, isTrue);
-        verify(
-          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
-        ).called(1);
-        verify(
+        verifyNever(
           () => intakeService.searchAnalysisPrecedents(
             analysisId: 'analysis-1',
             filters: any(named: 'filters'),
           ),
-        ).called(1);
+        );
       },
     );
 

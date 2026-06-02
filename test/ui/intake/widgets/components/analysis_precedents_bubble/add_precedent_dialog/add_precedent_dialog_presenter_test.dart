@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:animus/core/intake/dtos/court_dto.dart';
+import 'package:animus/core/intake/dtos/precedent_kind_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/ui/intake/widgets/components/analysis_precedents_bubble/add_precedent_dialog/add_precedent_dialog_presenter.dart';
@@ -39,8 +41,8 @@ void main() {
   Future<void> fillValidIdentifier(
     AddPrecedentDialogPresenter presenter,
   ) async {
-    presenter.courtControl.value = PrecedentIdentifierDtoFaker.fake().court;
-    presenter.kindControl.value = PrecedentIdentifierDtoFaker.fake().kind;
+    presenter.courtControl.value = CourtDto.stf;
+    presenter.kindControl.value = PrecedentKindDto.sum;
     presenter.numberControl.value = '123';
     await Future<void>.delayed(Duration.zero);
   }
@@ -100,14 +102,8 @@ void main() {
 
         await presenter.fetchPreview();
 
-        expect(
-          presenter.courtControl.value,
-          PrecedentIdentifierDtoFaker.fake().court,
-        );
-        expect(
-          presenter.kindControl.value,
-          PrecedentIdentifierDtoFaker.fake().kind,
-        );
+        expect(presenter.courtControl.value, CourtDto.stf);
+        expect(presenter.kindControl.value, PrecedentKindDto.sum);
         expect(presenter.numberControl.value, '123');
         expect(
           presenter.generalError.value,
@@ -180,6 +176,28 @@ void main() {
 
       expect(presenter.previewPrecedent.value, isNull);
       expect(presenter.generalError.value, isNull);
+    });
+
+    test('should clear invalid kind when court changes', () async {
+      final presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.courtControl.value = CourtDto.stf;
+      presenter.kindControl.value = PrecedentKindDto.adi;
+      await Future<void>.delayed(Duration.zero);
+
+      presenter.courtControl.value = CourtDto.trfs6;
+      await Future<void>.delayed(Duration.zero);
+
+      expect(presenter.kindControl.value, isNull);
+      expect(
+        presenter.supportedKindsForSelectedCourt.value,
+        contains(PrecedentKindDto.irdr),
+      );
+      expect(
+        presenter.supportedKindsForSelectedCourt.value,
+        isNot(contains(PrecedentKindDto.adi)),
+      );
     });
   });
 }

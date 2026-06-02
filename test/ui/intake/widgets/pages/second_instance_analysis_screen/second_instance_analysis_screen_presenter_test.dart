@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
+import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
@@ -23,6 +24,7 @@ import '../../../../../fakers/intake/analysis_precedent_dto_faker.dart';
 import '../../../../../fakers/intake/first_instance_analysis_report_dto_faker.dart';
 import '../../../../../fakers/intake/petition_summary_dto_faker.dart';
 import '../../../../../fakers/intake/second_instance_judgment_draft_dto_faker.dart';
+import '../../../../../fakers/storage/upload_url_dto_faker.dart';
 
 class _MockIntakeService extends Mock implements IntakeService {}
 
@@ -45,6 +47,14 @@ void main() {
   late _MockFile file;
 
   setUpAll(() {
+    registerFallbackValue(
+      const AnalysisDocumentDto(
+        analysisId: 'analysis-fallback',
+        uploadedAt: '2026-01-01T00:00:00Z',
+        filePath: 'uploads/fallback.pdf',
+        name: 'fallback.pdf',
+      ),
+    );
     registerFallbackValue(
       SecondInstanceAnalysisReportDto(
         analysis: AnalysisDtoFaker.fake(),
@@ -95,6 +105,114 @@ void main() {
     });
 
     test(
+      'should disable judgment draft generation while precedents are searching',
+      () {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        presenter.precedentsReady.value = true;
+        presenter.syncChosenPrecedents(<AnalysisPrecedentDto>[
+          AnalysisPrecedentDtoFaker.fake(isChosen: true),
+        ]);
+
+        presenter.markPrecedentsSearchStarted();
+
+        expect(presenter.status.value, AnalysisStatusDto.searchingPrecedents);
+        expect(presenter.precedentsReady.value, isFalse);
+        expect(presenter.hasChosenPrecedents.value, isFalse);
+        expect(presenter.canGenerateJudgmentDraft.value, isFalse);
+        expect(presenter.canPickDocument.value, isFalse);
+        expect(presenter.primaryActionLabel.value, 'Buscando precedentes');
+      },
+    );
+
+    test(
+      'should not restore draft generation action while precedents are searching on load',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              type: AnalysisTypeDto.secondInstance,
+              status: AnalysisStatusDto.searchingPrecedents,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse(
+            statusCode: 200,
+            body: AnalysisDocumentDtoFaker.fake(),
+          ),
+        );
+        when(
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async =>
+              RestResponse(statusCode: 200, body: CaseSummaryDtoFaker.fake()),
+        );
+        when(
+          () => intakeService.getSecondInstanceJudgmentDraft(
+            analysisId: 'analysis-1',
+          ),
+        ).thenAnswer(
+          (_) async => RestResponse(
+            statusCode: HttpStatus.notFound,
+            errorMessage: 'Nao encontrado',
+          ),
+        );
+
+        await presenter.load();
+
+        expect(presenter.status.value, AnalysisStatusDto.searchingPrecedents);
+        expect(presenter.precedentsReady.value, isFalse);
+        expect(presenter.canGenerateJudgmentDraft.value, isFalse);
+        expect(presenter.primaryActionLabel.value, 'Buscando precedentes');
+      },
+    );
+
+    test('should expose document pieces not found state on load', () async {
+      final presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      when(
+        () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+      ).thenAnswer(
+        (_) async => RestResponse<AnalysisDto>(
+          statusCode: 200,
+          body: AnalysisDtoFaker.fake(
+            type: AnalysisTypeDto.secondInstance,
+            status: AnalysisStatusDto.courtDocumentPiecesNotFound,
+          ),
+        ),
+      );
+      when(
+        () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
+      ).thenAnswer(
+        (_) async => RestResponse(
+          statusCode: 200,
+          body: AnalysisDocumentDtoFaker.fake(),
+        ),
+      );
+
+      await presenter.load();
+
+      expect(
+        presenter.status.value,
+        AnalysisStatusDto.courtDocumentPiecesNotFound,
+      );
+      expect(presenter.showCourtDocumentPiecesNotFound.value, isTrue);
+      expect(presenter.showCaseProcessingBubble.value, isFalse);
+      expect(presenter.primaryActionLabel.value, 'Selecionar processo');
+    });
+
+    test(
       'should not suggest generating draft again without chosen precedents',
       () {
         final presenter = createPresenter();
@@ -131,6 +249,45 @@ void main() {
       },
     );
 
+    test(
+      'should restore generate draft action when precedents become ready',
+      () {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        presenter.status.value = AnalysisStatusDto.searchingPrecedents;
+        presenter.syncChosenPrecedents(<AnalysisPrecedentDto>[
+          AnalysisPrecedentDtoFaker.fake(isChosen: true),
+        ]);
+
+        presenter.markPrecedentsReady();
+
+        expect(presenter.precedentsReady.value, isTrue);
+        expect(presenter.status.value, AnalysisStatusDto.precedentsSearched);
+        expect(presenter.canGenerateJudgmentDraft.value, isTrue);
+        expect(presenter.primaryActionLabel.value, 'Gerar minuta');
+      },
+    );
+
+    test(
+      'should block regenerate judgment draft when there is no chosen precedent',
+      () {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+
+        presenter.status.value = AnalysisStatusDto.done;
+        presenter.precedentsReady.value = true;
+        presenter.judgmentDraft.value =
+            SecondInstanceJudgmentDraftDtoFaker.fake();
+
+        expect(presenter.canRegenerateJudgmentDraft.value, isFalse);
+
+        presenter.hasChosenPrecedents.value = true;
+
+        expect(presenter.canRegenerateJudgmentDraft.value, isTrue);
+      },
+    );
+
     test('should reject files larger than 100MB before upload', () async {
       final presenter = createPresenter();
       addTearDown(presenter.dispose);
@@ -157,6 +314,63 @@ void main() {
         () => storageService.generateAnalysisDocumentUploadUrl(
           analysisId: any(named: 'analysisId'),
           documentType: any(named: 'documentType'),
+        ),
+      );
+    });
+
+    test('should delete remote document metadata when upload fails', () async {
+      final presenter = createPresenter();
+      addTearDown(presenter.dispose);
+      final uploadUrl = UploadUrlDtoFaker.fake();
+
+      when(
+        () => documentPickerDriver.pickDocument(
+          allowedExtensions:
+              SecondInstanceAnalysisScreenPresenter.allowedExtensions,
+        ),
+      ).thenAnswer((_) async => file);
+      when(() => file.path).thenReturn('processo.pdf');
+      when(() => file.length()).thenAnswer((_) async => 4096);
+      when(() => file.uri).thenReturn(Uri.parse('file:///processo.pdf'));
+      when(
+        () => storageService.generateAnalysisDocumentUploadUrl(
+          analysisId: 'analysis-1',
+          documentType: 'pdf',
+        ),
+      ).thenAnswer((_) async => RestResponse(statusCode: 200, body: uploadUrl));
+      when(
+        () => fileStorageDriver.uploadFile(
+          file,
+          uploadUrl,
+          onProgress: any(named: 'onProgress'),
+        ),
+      ).thenThrow(Exception('upload failed'));
+      when(
+        () => intakeService.deleteAnalysisDocument(
+          analysisId: 'analysis-1',
+          filePath: uploadUrl.filePath,
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<AnalysisStatusDto>(
+          statusCode: 200,
+          body: AnalysisStatusDto.waitingDocumentUpload,
+        ),
+      );
+
+      await presenter.pickDocument();
+
+      expect(presenter.status.value, AnalysisStatusDto.failed);
+      expect(presenter.uploadProgress.value, isNull);
+      verify(
+        () => intakeService.deleteAnalysisDocument(
+          analysisId: 'analysis-1',
+          filePath: uploadUrl.filePath,
+        ),
+      ).called(1);
+      verifyNever(
+        () => intakeService.createAnalysisDocument(
+          analysisId: any(named: 'analysisId'),
+          document: any(named: 'document'),
         ),
       );
     });
@@ -199,7 +413,9 @@ void main() {
 
         await presenter.load();
 
-        expect(presenter.precedentsReady.value, isTrue);
+        expect(presenter.precedentsReady.value, isFalse);
+        expect(presenter.canGenerateJudgmentDraft.value, isFalse);
+        expect(presenter.showJudgmentDraftProcessingBubble.value, isFalse);
         expect(presenter.judgmentDraft.value?.analysisId, draft.analysisId);
         verify(
           () => intakeService.getSecondInstanceJudgmentDraft(
@@ -297,6 +513,54 @@ void main() {
     );
 
     test(
+      'should resume case polling when analysis is still processing on load',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
+        final summary = CaseSummaryDtoFaker.fake(
+          caseSummary: 'Resumo finalizado',
+        );
+        int analysisRequests = 0;
+
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer((_) async {
+          analysisRequests++;
+
+          return RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              type: AnalysisTypeDto.secondInstance,
+              status: analysisRequests == 1
+                  ? AnalysisStatusDto.analyzingCase
+                  : AnalysisStatusDto.caseAnalyzed,
+            ),
+          );
+        });
+        when(
+          () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse(
+            statusCode: 200,
+            body: AnalysisDocumentDtoFaker.fake(),
+          ),
+        );
+        when(
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+        ).thenAnswer((_) async => RestResponse(statusCode: 200, body: summary));
+
+        await presenter.load();
+        await pumpEventQueue();
+
+        expect(presenter.status.value, AnalysisStatusDto.caseAnalyzed);
+        expect(presenter.caseSummary.value?.caseSummary, 'Resumo finalizado');
+        verify(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).called(2);
+      },
+    );
+
+    test(
       'should load missing case summary when status changes to caseAnalyzed',
       () async {
         final presenter = createPresenter();
@@ -335,6 +599,7 @@ void main() {
             );
 
         presenter.status.value = AnalysisStatusDto.done;
+        presenter.hasChosenPrecedents.value = true;
         presenter.judgmentDraft.value = previousDraft;
 
         when(
@@ -396,6 +661,7 @@ void main() {
             );
 
         presenter.status.value = AnalysisStatusDto.done;
+        presenter.hasChosenPrecedents.value = true;
         presenter.judgmentDraft.value = previousDraft;
 
         when(
@@ -442,6 +708,7 @@ void main() {
         int judgmentDraftRequests = 0;
 
         presenter.status.value = AnalysisStatusDto.done;
+        presenter.hasChosenPrecedents.value = true;
         presenter.judgmentDraft.value = previousDraft;
 
         when(
@@ -504,6 +771,7 @@ void main() {
             SecondInstanceJudgmentDraftDtoFaker.fake(report: 'Versao anterior');
 
         presenter.status.value = AnalysisStatusDto.done;
+        presenter.hasChosenPrecedents.value = true;
         presenter.judgmentDraft.value = previousDraft;
 
         when(

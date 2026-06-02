@@ -592,6 +592,64 @@ void main() {
       ).called(1);
     });
 
+    test('should delete remote document metadata when upload fails', () async {
+      final FirstInstanceAnalysisScreenPresenter presenter = createPresenter();
+      addTearDown(presenter.dispose);
+      final File file = await createFile('petition.pdf', 4096);
+      final uploadUrl = UploadUrlDtoFaker.fake();
+
+      when(
+        () => documentPickerDriver.pickDocument(
+          allowedExtensions:
+              FirstInstanceAnalysisScreenPresenter.allowedExtensions,
+        ),
+      ).thenAnswer((_) async => file);
+      when(
+        () => storageService.generateAnalysisDocumentUploadUrl(
+          analysisId: 'analysis-1',
+          documentType: 'pdf',
+        ),
+      ).thenAnswer((_) async => RestResponse(statusCode: 200, body: uploadUrl));
+      when(
+        () => fileStorageDriver.uploadFile(
+          file,
+          uploadUrl,
+          onProgress: any(named: 'onProgress'),
+        ),
+      ).thenThrow(Exception('upload failed'));
+      when(
+        () => intakeService.deleteAnalysisDocument(
+          analysisId: 'analysis-1',
+          filePath: uploadUrl.filePath,
+        ),
+      ).thenAnswer(
+        (_) async => RestResponse<AnalysisStatusDto>(
+          statusCode: 200,
+          body: AnalysisStatusDto.waitingDocumentUpload,
+        ),
+      );
+
+      await presenter.pickDocument();
+
+      expect(
+        presenter.generalError.value,
+        FirstInstanceAnalysisScreenPresenter.failedMessage,
+      );
+      expect(presenter.uploadProgress.value, isNull);
+      verify(
+        () => intakeService.deleteAnalysisDocument(
+          analysisId: 'analysis-1',
+          filePath: uploadUrl.filePath,
+        ),
+      ).called(1);
+      verifyNever(
+        () => intakeService.createAnalysisDocument(
+          analysisId: any(named: 'analysisId'),
+          document: any(named: 'document'),
+        ),
+      );
+    });
+
     test(
       'should reset to waiting petition when upload url request fails',
       () async {
