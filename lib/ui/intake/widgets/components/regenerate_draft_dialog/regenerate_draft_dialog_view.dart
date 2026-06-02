@@ -134,7 +134,7 @@ class RegenerateDraftDialogView extends ConsumerWidget {
                         minLines: 5,
                         maxLines: 8,
                         onChanged: presenter.updateComments,
-                        style: textTheme.bodySmall?.copyWith(
+                        style: textTheme.bodyMedium?.copyWith(
                           color: tokens.textPrimary,
                           height: 1.45,
                         ),

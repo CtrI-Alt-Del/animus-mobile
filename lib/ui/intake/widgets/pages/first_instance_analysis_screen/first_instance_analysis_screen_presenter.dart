@@ -49,9 +49,11 @@ class FirstInstanceAnalysisScreenPresenter {
   final FileStorageDriver _fileStorageDriver;
   final DocumentPickerDriver _documentPickerDriver;
   final String analysisId;
+  bool _isDisposed = false;
+  String? _pendingUploadDocumentFilePath;
 
   final Signal<AnalysisStatusDto> status = signal<AnalysisStatusDto>(
-    AnalysisStatusDto.waitingPetition,
+    AnalysisStatusDto.waitingDocumentUpload,
   );
   final Signal<File?> selectedFile = signal<File?>(null);
   final Signal<bool> isUploading = signal<bool>(false);
@@ -148,7 +150,7 @@ class FirstInstanceAnalysisScreenPresenter {
         .getAnalysis(analysisId: analysisId);
 
     if (analysisResponse.isFailure) {
-      status.value = AnalysisStatusDto.waitingPetition;
+      status.value = AnalysisStatusDto.waitingDocumentUpload;
       analysisDocument.value = null;
       summary.value = null;
       selectedFile.value = null;
@@ -181,7 +183,7 @@ class FirstInstanceAnalysisScreenPresenter {
       analysisDocument.value = null;
       summary.value = null;
       selectedFile.value = null;
-      status.value = AnalysisStatusDto.waitingPetition;
+      status.value = AnalysisStatusDto.waitingDocumentUpload;
       return;
     }
 
@@ -305,11 +307,16 @@ class FirstInstanceAnalysisScreenPresenter {
           documentType: documentType,
         );
 
+    if (_isDisposed) {
+      return;
+    }
+
     if (uploadUrlResponse.isFailure) {
       await _applyRemoteFailure(uploadUrlResponse.errorMessage);
       return;
     }
 
+    _pendingUploadDocumentFilePath = uploadUrlResponse.body.filePath;
     isUploading.value = true;
 
     try {
@@ -326,8 +333,18 @@ class FirstInstanceAnalysisScreenPresenter {
         },
       );
     } catch (_) {
+      await _deletePendingUploadDocument(updateLocalStatus: false);
+      if (_isDisposed) {
+        return;
+      }
+
       isUploading.value = false;
       await _applyRemoteFailure();
+      return;
+    }
+
+    if (_isDisposed) {
+      await _deletePendingUploadDocument(updateLocalStatus: false);
       return;
     }
 
@@ -348,10 +365,16 @@ class FirstInstanceAnalysisScreenPresenter {
         );
 
     if (petitionResponse.isFailure) {
+      await _deletePendingUploadDocument(updateLocalStatus: false);
+      if (_isDisposed) {
+        return;
+      }
+
       await _applyRemoteFailure(petitionResponse.errorMessage);
       return;
     }
 
+    _pendingUploadDocumentFilePath = null;
     analysisDocument.value = petitionResponse.body;
     selectedFile.value = null;
     summary.value = null;
@@ -372,7 +395,7 @@ class FirstInstanceAnalysisScreenPresenter {
     summary.value = null;
     uploadProgress.value = null;
     generalError.value = null;
-    status.value = AnalysisStatusDto.waitingPetition;
+    status.value = AnalysisStatusDto.waitingDocumentUpload;
     selectedFile.value = null;
 
     await pickDocument();
@@ -577,6 +600,9 @@ class FirstInstanceAnalysisScreenPresenter {
   }
 
   void dispose() {
+    _isDisposed = true;
+    unawaited(_deletePendingUploadDocument(updateLocalStatus: false));
+
     status.dispose();
     selectedFile.dispose();
     isUploading.dispose();
@@ -602,9 +628,34 @@ class FirstInstanceAnalysisScreenPresenter {
   }
 
   Future<void> _applyRemoteFailure([String? errorMessage]) async {
+    if (_isDisposed) {
+      return;
+    }
+
     isUploading.value = false;
     uploadProgress.value = null;
     await _resetFailedAnalysis(errorMessage: errorMessage);
+  }
+
+  Future<void> _deletePendingUploadDocument({
+    required bool updateLocalStatus,
+  }) async {
+    final String? filePath = _pendingUploadDocumentFilePath;
+    if (filePath == null) {
+      return;
+    }
+
+    _pendingUploadDocumentFilePath = null;
+    final RestResponse<AnalysisStatusDto> response = await _intakeService
+        .deleteAnalysisDocument(analysisId: analysisId, filePath: filePath);
+
+    if (!updateLocalStatus || _isDisposed || response.isFailure) {
+      return;
+    }
+
+    status.value = response.body;
+    analysisDocument.value = null;
+    selectedFile.value = null;
   }
 
   Future<void> _resetFailedAnalysis({String? errorMessage}) async {
@@ -616,7 +667,7 @@ class FirstInstanceAnalysisScreenPresenter {
     final RestResponse<AnalysisStatusDto> response = await _intakeService
         .updateAnalysisStatus(
           analysisId: analysisId,
-          status: AnalysisStatusDto.waitingPetition,
+          status: AnalysisStatusDto.waitingDocumentUpload,
         );
 
     analysisDocument.value = null;
@@ -625,7 +676,7 @@ class FirstInstanceAnalysisScreenPresenter {
     uploadProgress.value = null;
     status.value = response.isSuccessful
         ? response.body
-        : AnalysisStatusDto.waitingPetition;
+        : AnalysisStatusDto.waitingDocumentUpload;
     generalError.value = resolvedErrorMessage;
   }
 

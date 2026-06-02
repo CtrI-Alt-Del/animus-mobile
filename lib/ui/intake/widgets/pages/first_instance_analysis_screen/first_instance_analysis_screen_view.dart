@@ -482,7 +482,8 @@ class _FirstInstanceAnalysisScreenViewState
                               final AnalysisStatusDto status = presenter.status
                                   .watch(context);
 
-                              if (status != AnalysisStatusDto.waitingPetition) {
+                              if (status !=
+                                  AnalysisStatusDto.waitingDocumentUpload) {
                                 return const SizedBox(height: 16);
                               }
 
@@ -733,7 +734,7 @@ class _FirstInstanceAnalysisScreenViewState
                       }
 
                       final bool showFileAction =
-                          status == AnalysisStatusDto.waitingPetition ||
+                          status == AnalysisStatusDto.waitingDocumentUpload ||
                           status == AnalysisStatusDto.petitionUploaded ||
                           status == AnalysisStatusDto.caseAnalyzed;
                       final bool showPrimaryAction = true;
@@ -758,7 +759,16 @@ class _FirstInstanceAnalysisScreenViewState
                         onPrimaryAction: isUploading
                             ? null
                             : status == AnalysisStatusDto.caseAnalyzed
-                            ? presenter.confirmAndViewPrecedents
+                            ? () {
+                                final AnalysisPrecedentsBubblePresenter
+                                precedentsPresenter = ref.read(
+                                  analysisPrecedentsBubblePresenterProvider(
+                                    widget.analysisId,
+                                  ),
+                                );
+                                presenter.confirmAndViewPrecedents();
+                                unawaited(precedentsPresenter.retry());
+                              }
                             : canAnalyze
                             ? () {
                                 unawaited(presenter.analyze());

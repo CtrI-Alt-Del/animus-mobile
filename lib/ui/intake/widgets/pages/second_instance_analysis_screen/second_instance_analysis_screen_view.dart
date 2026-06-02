@@ -29,9 +29,9 @@ import 'package:animus/ui/intake/widgets/components/message_box/index.dart';
 import 'package:animus/ui/intake/widgets/components/regenerate_draft_dialog/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/dot_grid_background/index.dart';
 import 'package:animus/ui/intake/widgets/pages/first_instance_analysis_screen/precedent_dialog/index.dart';
+import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/document_pieces_not_found_state/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/generate_judgment_draft_card/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/judgment_draft_card/index.dart';
-import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/petition_not_found_state/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/processing_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart';
 
@@ -339,8 +339,6 @@ class _SecondInstanceAnalysisScreenViewState
     final SecondInstanceAnalysisScreenPresenter presenter = ref.watch(
       secondInstanceAnalysisScreenPresenterProvider(widget.analysisId),
     );
-    final AnalysisPrecedentsBubblePresenter precedentsBubblePresenter = ref
-        .watch(analysisPrecedentsBubblePresenterProvider(widget.analysisId));
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
@@ -379,13 +377,24 @@ class _SecondInstanceAnalysisScreenViewState
                           status == AnalysisStatusDto.done && hasJudgmentDraft;
                       final bool canExportReport = presenter.canExportReport
                           .watch(context);
-                      final int appliedFiltersCount =
-                          precedentsBubblePresenter.selectedCourts
-                              .watch(context)
-                              .length +
-                          precedentsBubblePresenter.selectedKinds
-                              .watch(context)
-                              .length;
+                      int appliedFiltersCount = 0;
+                      AnalysisPrecedentsBubblePresenter? precedentsPresenter;
+                      if (showPrecedentsActions) {
+                        final AnalysisPrecedentsBubblePresenter
+                        currentPrecedentsPresenter = ref.watch(
+                          analysisPrecedentsBubblePresenterProvider(
+                            widget.analysisId,
+                          ),
+                        );
+                        precedentsPresenter = currentPrecedentsPresenter;
+                        appliedFiltersCount =
+                            currentPrecedentsPresenter.selectedCourts
+                                .watch(context)
+                                .length +
+                            currentPrecedentsPresenter.selectedKinds
+                                .watch(context)
+                                .length;
+                      }
 
                       return AnalysisHeader(
                         onBack: () {
@@ -408,20 +417,24 @@ class _SecondInstanceAnalysisScreenViewState
                         onPrecedentsCount: isManaging || !showPrecedentsActions
                             ? null
                             : () {
+                                final AnalysisPrecedentsBubblePresenter
+                                presenter = precedentsPresenter!;
                                 unawaited(
                                   _showPrecedentsLimitDialog(
                                     context,
-                                    precedentsBubblePresenter,
+                                    presenter,
                                   ),
                                 );
                               },
                         onFilters: isManaging || !showPrecedentsActions
                             ? null
                             : () {
+                                final AnalysisPrecedentsBubblePresenter
+                                presenter = precedentsPresenter!;
                                 unawaited(
                                   _showPrecedentsFiltersDialog(
                                     context,
-                                    precedentsBubblePresenter,
+                                    presenter,
                                   ),
                                 );
                               },
@@ -516,10 +529,12 @@ class _SecondInstanceAnalysisScreenViewState
                           final bool showPetitionNotFound = presenter
                               .showPetitionNotFound
                               .watch(context);
+                          final bool showCourtDocumentPiecesNotFound = presenter
+                              .showCourtDocumentPiecesNotFound
+                              .watch(context);
                           final bool showDraftProcessing =
                               status ==
-                                  AnalysisStatusDto.generatingJudgmentDraft ||
-                              status == AnalysisStatusDto.generatingSynthesis;
+                              AnalysisStatusDto.generatingJudgmentDraft;
                           final summary = presenter.caseSummary.watch(context);
                           if (status == AnalysisStatusDto.caseAnalyzed &&
                               summary == null) {
@@ -549,6 +564,15 @@ class _SecondInstanceAnalysisScreenViewState
                                   AnalysisStatusDto.generatingJudgmentDraft ||
                               status == AnalysisStatusDto.generatingSynthesis ||
                               status == AnalysisStatusDto.done;
+                          AnalysisPrecedentsBubblePresenter?
+                          precedentsBubblePresenter;
+                          if (showPrecedents) {
+                            precedentsBubblePresenter = ref.watch(
+                              analysisPrecedentsBubblePresenterProvider(
+                                widget.analysisId,
+                              ),
+                            );
+                          }
 
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -614,7 +638,21 @@ class _SecondInstanceAnalysisScreenViewState
                               ],
                               if (showPetitionNotFound) ...<Widget>[
                                 _animatedEntry(
-                                  PetitionNotFoundState(
+                                  DocumentPiecesNotFoundState(
+                                    message:
+                                        'Não encontramos a petição inicial no PDF enviado. Reenvie um documento com texto selecionável e com a petição completa.',
+                                    onResendDocument: () {
+                                      unawaited(presenter.resendDocument());
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                              if (showCourtDocumentPiecesNotFound) ...<Widget>[
+                                _animatedEntry(
+                                  DocumentPiecesNotFoundState(
+                                    message:
+                                        'Não encontramos peças processuais utilizáveis no PDF enviado para prosseguir com a análise. Reenvie um documento com as peças completas e com texto selecionável.',
                                     onResendDocument: () {
                                       unawaited(presenter.resendDocument());
                                     },
@@ -660,7 +698,7 @@ class _SecondInstanceAnalysisScreenViewState
                                 const SizedBox(height: 12),
                                 Watch((BuildContext context) {
                                   final List<AnalysisPrecedentDto>
-                                  chosenPrecedents = precedentsBubblePresenter
+                                  chosenPrecedents = precedentsBubblePresenter!
                                       .chosenPrecedents
                                       .watch(context);
 
@@ -736,6 +774,11 @@ class _SecondInstanceAnalysisScreenViewState
                       final bool canRegenerate = presenter
                           .canRegenerateJudgmentDraft
                           .watch(context);
+                      final bool precedentsReady = presenter.precedentsReady
+                          .watch(context);
+                      final bool hasChosenPrecedents = presenter
+                          .hasChosenPrecedents
+                          .watch(context);
                       final bool canPick = presenter.canPickDocument.watch(
                         context,
                       );
@@ -747,24 +790,28 @@ class _SecondInstanceAnalysisScreenViewState
                       );
                       final bool isManaging = presenter.isManagingAnalysis
                           .watch(context);
+                      final bool isSearchingPrecedents =
+                          status == AnalysisStatusDto.searchingPrecedents;
                       final bool showPrimaryAction =
                           status != AnalysisStatusDto.waitingDocumentUpload;
                       final bool showFileAction =
                           !isUploading &&
                           (status == AnalysisStatusDto.waitingDocumentUpload ||
-                              status == AnalysisStatusDto.documentUploaded);
+                              status == AnalysisStatusDto.documentUploaded ||
+                              status == AnalysisStatusDto.petitionNotFound ||
+                              status ==
+                                  AnalysisStatusDto
+                                      .courtDocumentPiecesNotFound);
                       final bool hasPrimaryAction =
                           canRegenerate ||
                           canGenerate ||
                           canSearch ||
-                          canAnalyze ||
-                          canPick;
-                      final AnalysisPrecedentsBubblePresenter
-                      precedentsPresenter = ref.read(
-                        analysisPrecedentsBubblePresenterProvider(
-                          widget.analysisId,
-                        ),
-                      );
+                          canAnalyze;
+                      final bool shouldShowChoosePrecedentHelper =
+                          precedentsReady &&
+                          !hasChosenPrecedents &&
+                          !canGenerate &&
+                          !canRegenerate;
 
                       return AnalysisActionBar(
                         showFileAction: showFileAction,
@@ -798,9 +845,13 @@ class _SecondInstanceAnalysisScreenViewState
 
                                 if (status == AnalysisStatusDto.failed) {
                                   if (summary != null) {
-                                    presenter.markPrecedentsReady();
-                                    presenter.status.value =
-                                        AnalysisStatusDto.searchingPrecedents;
+                                    final AnalysisPrecedentsBubblePresenter
+                                    precedentsPresenter = ref.read(
+                                      analysisPrecedentsBubblePresenterProvider(
+                                        widget.analysisId,
+                                      ),
+                                    );
+                                    presenter.markPrecedentsSearchStarted();
                                     unawaited(precedentsPresenter.retry());
                                     _scheduleJumpToBottom();
                                     return;
@@ -814,9 +865,14 @@ class _SecondInstanceAnalysisScreenViewState
                                 }
 
                                 if (canSearch) {
-                                  presenter.markPrecedentsReady();
-                                  presenter.status.value =
-                                      AnalysisStatusDto.searchingPrecedents;
+                                  final AnalysisPrecedentsBubblePresenter
+                                  precedentsPresenter = ref.read(
+                                    analysisPrecedentsBubblePresenterProvider(
+                                      widget.analysisId,
+                                    ),
+                                  );
+                                  presenter.markPrecedentsSearchStarted();
+                                  unawaited(precedentsPresenter.retry());
                                   _scheduleJumpToBottom();
                                   return;
                                 }
@@ -826,15 +882,13 @@ class _SecondInstanceAnalysisScreenViewState
                                   _scheduleJumpToBottom();
                                   return;
                                 }
-
-                                if (canPick) {
-                                  unawaited(presenter.pickDocument());
-                                  _scheduleJumpToBottom();
-                                }
                               }
                             : null,
-                        isPrimaryBusy: isUploading || isManaging,
-                        helperText: showFileAction
+                        isPrimaryBusy:
+                            isUploading || isManaging || isSearchingPrecedents,
+                        helperText: shouldShowChoosePrecedentHelper
+                            ? 'É necessário marcar pelo menos um precedente como escolhido para gerar a minuta.'
+                            : showFileAction
                             ? 'Somente PDF com ate 100MB. O processamento pode levar alguns minutos.'
                             : null,
                       );

@@ -45,6 +45,8 @@ class CaseAssessmentAnalysisScreenPresenter {
   // ignore: unused_field
   final PdfDriver _pdfDriver;
   final String analysisId;
+  bool _isDisposed = false;
+  String? _pendingUploadDocumentFilePath;
 
   final Signal<AnalysisStatusDto> status = signal<AnalysisStatusDto>(
     AnalysisStatusDto.waitingDocumentUpload,
@@ -76,7 +78,8 @@ class CaseAssessmentAnalysisScreenPresenter {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
         !isProcessingCase &&
-        !isProcessingDraft;
+        !isProcessingDraft &&
+        !_isPrecedentsProcessingStatus(currentStatus);
   });
 
   late final ReadonlySignal<bool> canAnalyzeCase = computed(() {
@@ -105,6 +108,7 @@ class CaseAssessmentAnalysisScreenPresenter {
         !isManagingAnalysis.value &&
         precedentsReady.value &&
         hasChosenPrecedents.value &&
+        !_isPrecedentsProcessingStatus(status.value) &&
         status.value != AnalysisStatusDto.generatingPetitionDraft &&
         status.value != AnalysisStatusDto.generatingSynthesis;
   });
@@ -113,6 +117,7 @@ class CaseAssessmentAnalysisScreenPresenter {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
         status.value == AnalysisStatusDto.done &&
+        hasChosenPrecedents.value &&
         petitionDraft.value != null;
   });
 
@@ -132,7 +137,7 @@ class CaseAssessmentAnalysisScreenPresenter {
 
   late final ReadonlySignal<String> primaryActionLabel = computed(() {
     if (status.value == AnalysisStatusDto.failed) {
-      if (precedentsReady.value) {
+      if (precedentsReady.value && hasChosenPrecedents.value) {
         return 'Tentar gerar minuta novamente';
       }
 
@@ -147,8 +152,11 @@ class CaseAssessmentAnalysisScreenPresenter {
       return 'Regerar minuta';
     }
 
+    if (_isPrecedentsProcessingStatus(status.value)) {
+      return 'Buscando precedentes';
+    }
+
     if (status.value == AnalysisStatusDto.generatingPetitionDraft ||
-        status.value == AnalysisStatusDto.generatingSynthesis ||
         canGeneratePetitionDraft.value ||
         precedentsReady.value) {
       return 'Gerar minuta';
@@ -225,6 +233,10 @@ class CaseAssessmentAnalysisScreenPresenter {
         status.value = AnalysisStatusDto.generatingPetitionDraft;
         unawaited(_pollUntilPetitionDraftReady());
       }
+    }
+
+    if (analysis.status == AnalysisStatusDto.analyzingCase) {
+      unawaited(_pollUntilCaseReady());
     }
   }
 
@@ -328,6 +340,8 @@ class CaseAssessmentAnalysisScreenPresenter {
     }
 
     generalError.value = null;
+    precedentsReady.value = false;
+    hasChosenPrecedents.value = false;
     status.value = AnalysisStatusDto.searchingPrecedents;
   }
 
@@ -581,6 +595,9 @@ class CaseAssessmentAnalysisScreenPresenter {
   }
 
   void dispose() {
+    _isDisposed = true;
+    unawaited(_deletePendingUploadDocument(updateLocalStatus: false));
+
     status.dispose();
     selectedFile.dispose();
     analysisDocument.dispose();
@@ -618,12 +635,18 @@ class CaseAssessmentAnalysisScreenPresenter {
           documentType: _getExtension(file.path),
         );
 
+    if (_isDisposed) {
+      return;
+    }
+
     if (uploadUrlResponse.isFailure) {
       isUploading.value = false;
       uploadProgress.value = null;
       await _applyFailure(uploadUrlResponse.errorMessage);
       return;
     }
+
+    _pendingUploadDocumentFilePath = uploadUrlResponse.body.filePath;
 
     try {
       await _fileStorageDriver.uploadFile(
@@ -639,9 +662,19 @@ class CaseAssessmentAnalysisScreenPresenter {
         },
       );
     } catch (_) {
+      await _deletePendingUploadDocument(updateLocalStatus: true);
+      if (_isDisposed) {
+        return;
+      }
+
       isUploading.value = false;
       uploadProgress.value = null;
       await _applyFailure();
+      return;
+    }
+
+    if (_isDisposed) {
+      await _deletePendingUploadDocument(updateLocalStatus: false);
       return;
     }
 
@@ -657,12 +690,18 @@ class CaseAssessmentAnalysisScreenPresenter {
         );
 
     if (createDocumentResponse.isFailure) {
+      await _deletePendingUploadDocument(updateLocalStatus: true);
+      if (_isDisposed) {
+        return;
+      }
+
       isUploading.value = false;
       uploadProgress.value = null;
       await _applyFailure(createDocumentResponse.errorMessage);
       return;
     }
 
+    _pendingUploadDocumentFilePath = null;
     analysisDocument.value = createDocumentResponse.body;
     selectedFile.value = null;
 
@@ -799,11 +838,36 @@ class CaseAssessmentAnalysisScreenPresenter {
   }
 
   Future<void> _applyFailure([String? message]) async {
+    if (_isDisposed) {
+      return;
+    }
+
     final String errorMessage = message == null || message.isEmpty
         ? failedMessage
         : message;
     generalError.value = errorMessage;
     status.value = AnalysisStatusDto.failed;
+  }
+
+  Future<void> _deletePendingUploadDocument({
+    required bool updateLocalStatus,
+  }) async {
+    final String? filePath = _pendingUploadDocumentFilePath;
+    if (filePath == null) {
+      return;
+    }
+
+    _pendingUploadDocumentFilePath = null;
+    final RestResponse<AnalysisStatusDto> response = await _intakeService
+        .deleteAnalysisDocument(analysisId: analysisId, filePath: filePath);
+
+    if (!updateLocalStatus || _isDisposed || response.isFailure) {
+      return;
+    }
+
+    status.value = response.body;
+    analysisDocument.value = null;
+    selectedFile.value = null;
   }
 
   Future<void> _applyPetitionDraftFailure([String? message]) async {
@@ -832,18 +896,14 @@ class CaseAssessmentAnalysisScreenPresenter {
   }
 
   bool _shouldLoadPetitionDraft(AnalysisStatusDto value) {
-    return value == AnalysisStatusDto.searchingPrecedents ||
-        value == AnalysisStatusDto.precedentsSearched ||
-        value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
-        value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
-        value == AnalysisStatusDto.generatingSynthesis ||
-        value == AnalysisStatusDto.generatingPetitionDraft ||
+    return value == AnalysisStatusDto.generatingPetitionDraft ||
         value == AnalysisStatusDto.done;
   }
 
   bool _isPetitionDraftPendingStatus(AnalysisStatusDto value) {
     return value == AnalysisStatusDto.precedentsSearched ||
-        value == AnalysisStatusDto.generatingSynthesis;
+        value == AnalysisStatusDto.generatingSynthesis ||
+        value == AnalysisStatusDto.generatingPetitionDraft;
   }
 
   bool _shouldResumePetitionDraftPolling(AnalysisStatusDto value) {
@@ -852,13 +912,16 @@ class CaseAssessmentAnalysisScreenPresenter {
   }
 
   bool _isPrecedentsReadyStatus(AnalysisStatusDto value) {
-    return value == AnalysisStatusDto.searchingPrecedents ||
-        value == AnalysisStatusDto.precedentsSearched ||
-        value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
-        value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
-        value == AnalysisStatusDto.generatingSynthesis ||
+    return value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.generatingPetitionDraft ||
         value == AnalysisStatusDto.done;
+  }
+
+  bool _isPrecedentsProcessingStatus(AnalysisStatusDto value) {
+    return value == AnalysisStatusDto.searchingPrecedents ||
+        value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        value == AnalysisStatusDto.generatingSynthesis;
   }
 
   String _buildTimeoutMessage() {

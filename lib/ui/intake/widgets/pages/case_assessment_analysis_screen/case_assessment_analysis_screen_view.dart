@@ -48,6 +48,7 @@ class CaseAssessmentAnalysisScreenView extends ConsumerStatefulWidget {
 class _CaseAssessmentAnalysisScreenViewState
     extends ConsumerState<CaseAssessmentAnalysisScreenView> {
   final ScrollController _scrollController = ScrollController();
+  bool _wasShowingDraftProcessing = false;
 
   void _syncChosenPrecedentsIfNeeded(
     CaseAssessmentAnalysisScreenPresenter presenter,
@@ -322,8 +323,6 @@ class _CaseAssessmentAnalysisScreenViewState
     final CaseAssessmentAnalysisScreenPresenter presenter = ref.watch(
       caseAssessmentAnalysisScreenPresenterProvider(widget.analysisId),
     );
-    final AnalysisPrecedentsBubblePresenter precedentsBubblePresenter = ref
-        .watch(analysisPrecedentsBubblePresenterProvider(widget.analysisId));
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
 
@@ -360,13 +359,24 @@ class _CaseAssessmentAnalysisScreenViewState
                       final bool showPrecedentsActions = _isPrecedentsFlow(
                         status,
                       );
-                      final int appliedFiltersCount =
-                          precedentsBubblePresenter.selectedCourts
-                              .watch(context)
-                              .length +
-                          precedentsBubblePresenter.selectedKinds
-                              .watch(context)
-                              .length;
+                      int appliedFiltersCount = 0;
+                      AnalysisPrecedentsBubblePresenter? precedentsPresenter;
+                      if (showPrecedentsActions) {
+                        final AnalysisPrecedentsBubblePresenter
+                        currentPrecedentsPresenter = ref.watch(
+                          analysisPrecedentsBubblePresenterProvider(
+                            widget.analysisId,
+                          ),
+                        );
+                        precedentsPresenter = currentPrecedentsPresenter;
+                        appliedFiltersCount =
+                            currentPrecedentsPresenter.selectedCourts
+                                .watch(context)
+                                .length +
+                            currentPrecedentsPresenter.selectedKinds
+                                .watch(context)
+                                .length;
+                      }
 
                       return AnalysisHeader(
                         onBack: () {
@@ -392,7 +402,7 @@ class _CaseAssessmentAnalysisScreenViewState
                                 unawaited(
                                   _showPrecedentsLimitDialog(
                                     context,
-                                    precedentsBubblePresenter,
+                                    precedentsPresenter!,
                                   ),
                                 );
                               },
@@ -402,7 +412,7 @@ class _CaseAssessmentAnalysisScreenViewState
                                 unawaited(
                                   _showPrecedentsFiltersDialog(
                                     context,
-                                    precedentsBubblePresenter,
+                                    precedentsPresenter!,
                                   ),
                                 );
                               },
@@ -521,6 +531,28 @@ class _CaseAssessmentAnalysisScreenViewState
                                   AnalysisStatusDto.generatingPetitionDraft ||
                               status == AnalysisStatusDto.done;
 
+                          if (showDraftProcessing &&
+                              !_wasShowingDraftProcessing) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!mounted) {
+                                return;
+                              }
+
+                              _scheduleJumpToBottom();
+                            });
+                          }
+                          _wasShowingDraftProcessing = showDraftProcessing;
+
+                          AnalysisPrecedentsBubblePresenter?
+                          precedentsBubblePresenter;
+                          if (showPrecedents) {
+                            precedentsBubblePresenter = ref.watch(
+                              analysisPrecedentsBubblePresenterProvider(
+                                widget.analysisId,
+                              ),
+                            );
+                          }
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: <Widget>[
@@ -607,7 +639,7 @@ class _CaseAssessmentAnalysisScreenViewState
                                 const SizedBox(height: 12),
                                 Watch((BuildContext context) {
                                   final List<AnalysisPrecedentDto>
-                                  chosenPrecedents = precedentsBubblePresenter
+                                  chosenPrecedents = precedentsBubblePresenter!
                                       .chosenPrecedents
                                       .watch(context);
 
@@ -712,6 +744,14 @@ class _CaseAssessmentAnalysisScreenViewState
                           .watch(context);
                       final String fileActionLabel = presenter.fileActionLabel
                           .watch(context);
+                      final bool isProcessingPrecedents =
+                          status == AnalysisStatusDto.searchingPrecedents ||
+                          status ==
+                              AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+                          status ==
+                              AnalysisStatusDto
+                                  .analyzingPrecedentsApplicability ||
+                          status == AnalysisStatusDto.generatingSynthesis;
 
                       final bool showPrimaryAction =
                           status != AnalysisStatusDto.waitingDocumentUpload;
@@ -784,7 +824,14 @@ class _CaseAssessmentAnalysisScreenViewState
                                 }
 
                                 if (canSearchPrecedents) {
+                                  final AnalysisPrecedentsBubblePresenter
+                                  precedentsPresenter = ref.read(
+                                    analysisPrecedentsBubblePresenterProvider(
+                                      widget.analysisId,
+                                    ),
+                                  );
                                   presenter.confirmAndViewPrecedents();
+                                  unawaited(precedentsPresenter.retry());
                                   _scheduleJumpToBottom();
                                   return;
                                 }
@@ -795,7 +842,8 @@ class _CaseAssessmentAnalysisScreenViewState
                                   return;
                                 }
                               },
-                        isPrimaryBusy: isUploading || isManaging,
+                        isPrimaryBusy:
+                            isUploading || isManaging || isProcessingPrecedents,
                         helperText: shouldShowChoosePrecedentHelper
                             ? 'É necessário marcar pelo menos um precedente como escolhido para gerar a minuta.'
                             : showFileAction

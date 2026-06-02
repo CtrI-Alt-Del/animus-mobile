@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/document_pieces_not_found_state/document_pieces_not_found_state_view.dart';
+
+typedef DocumentPiecesNotFoundState = DocumentPiecesNotFoundStateView;

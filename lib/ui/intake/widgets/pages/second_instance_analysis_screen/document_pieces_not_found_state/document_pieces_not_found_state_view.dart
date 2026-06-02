@@ -2,21 +2,22 @@ import 'package:flutter/material.dart';
 
 import 'package:animus/ui/intake/widgets/components/ai_bubble/index.dart';
 
-class PetitionNotFoundStateView extends StatelessWidget {
+class DocumentPiecesNotFoundStateView extends StatelessWidget {
   final VoidCallback? onResendDocument;
+  final String message;
 
-  const PetitionNotFoundStateView({this.onResendDocument, super.key});
+  const DocumentPiecesNotFoundStateView({
+    this.onResendDocument,
+    required this.message,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        const AiBubble(
-          message:
-              'Não encontramos a petição inicial no PDF enviado. Reenvie um documento com texto selecionável e com a petição completa.',
-          isTyping: false,
-        ),
+        AiBubble(message: message, isTyping: false),
         const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerLeft,
