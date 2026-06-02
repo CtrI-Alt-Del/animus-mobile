@@ -488,7 +488,7 @@ class CaseAssessmentPdfGenerator {
 
   String _buildApplicabilityLabel(AnalysisPrecedentDto precedent) {
     if (precedent.isManuallyAdded) {
-      return 'Manualmente aplicavel';
+      return 'Adicionado manualmente';
     }
 
     switch (precedent.applicabilityLevel) {

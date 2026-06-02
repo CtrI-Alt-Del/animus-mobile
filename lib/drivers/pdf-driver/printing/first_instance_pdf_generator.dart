@@ -198,7 +198,6 @@ class FirstInstancePdfGenerator {
             ],
           ),
           pw.SizedBox(height: 10),
-          _buildApplicabilityLabel(precedent),
           pw.SizedBox(height: 12),
           _buildField(
             title: 'ENUNCIADO',
@@ -289,7 +288,7 @@ class FirstInstancePdfGenerator {
   _BadgeData _badgeData(AnalysisPrecedentDto precedent) {
     if (precedent.isManuallyAdded) {
       return _BadgeData(
-        label: 'Manualmente aplicavel',
+        label: 'Adicionado manualmente',
         background: _theme.pageBadgeFill,
         text: _theme.accentStrong,
       );
@@ -315,19 +314,6 @@ class FirstInstancePdfGenerator {
           text: _theme.danger,
         );
     }
-  }
-
-  pw.Widget _buildApplicabilityLabel(AnalysisPrecedentDto precedent) {
-    final _BadgeData badge = _badgeData(precedent);
-
-    return pw.Text(
-      'Nivel de aplicabilidade: ${badge.label}',
-      style: pw.TextStyle(
-        color: _theme.textMuted,
-        fontSize: 11,
-        fontWeight: pw.FontWeight.bold,
-      ),
-    );
   }
 
   pw.Widget _buildSectionTitle(String title, {double fontSize = 18}) {

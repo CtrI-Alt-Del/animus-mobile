@@ -263,15 +263,6 @@ class SecondInstancePdfGenerator {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: <pw.Widget>[_buildApplicabilityBadge(precedent)],
           ),
-          pw.SizedBox(height: 6),
-          pw.Text(
-            'Nivel de aplicabilidade: ${_buildApplicabilityLabel(precedent)}',
-            style: pw.TextStyle(
-              color: _theme.textMuted,
-              fontSize: 11,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
           pw.SizedBox(height: 12),
           _buildField(
             title: 'ENUNCIADO',
@@ -331,7 +322,7 @@ class SecondInstancePdfGenerator {
   _buildApplicabilityBadgeData(AnalysisPrecedentDto precedent) {
     if (precedent.isManuallyAdded) {
       return (
-        label: 'Manualmente aplicavel',
+        label: 'Adicionado manualmente',
         background: _theme.pageBadgeFill,
         text: _theme.accentStrong,
       );
@@ -357,10 +348,6 @@ class SecondInstancePdfGenerator {
           text: _theme.danger,
         );
     }
-  }
-
-  String _buildApplicabilityLabel(AnalysisPrecedentDto precedent) {
-    return _buildApplicabilityBadgeData(precedent).label;
   }
 
   pw.Widget _buildPrecedentChip(String label) {
