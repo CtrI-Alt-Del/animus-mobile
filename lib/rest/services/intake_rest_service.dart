@@ -156,6 +156,19 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
+  Future<RestResponse<AnalysisStatusDto>> deleteAnalysisDocument({
+    required String analysisId,
+    required String filePath,
+  }) async {
+    final RestResponse<Map<String, dynamic>> response = await restClient.delete(
+      '/intake/analyses/$analysisId/documents',
+      queryParams: <String, dynamic>{'file_path': filePath},
+    );
+
+    return response.mapBody<AnalysisStatusDto>(_mapAnalysisStatus);
+  }
+
+  @override
   Future<RestResponse<SecondInstanceAnalysisReportDto>>
   getSecondInstanceAnalysisReport({required String analysisId}) async {
     final RestResponse<Map<String, dynamic>> response = await restClient.get(

@@ -61,6 +61,8 @@ class AnalysisStatusDto {
   static const AnalysisStatusDto petitionNotFound = AnalysisStatusDto(
     'PETITION_NOT_FOUND',
   );
+  static const AnalysisStatusDto courtDocumentPiecesNotFound =
+      AnalysisStatusDto('COURT_DOCUMENT_PIECES_NOT_FOUND');
 
   static const List<AnalysisStatusDto> values = <AnalysisStatusDto>[
     waitingPetition,
@@ -83,6 +85,7 @@ class AnalysisStatusDto {
     generatingPetitionDraft,
     generatingJudgmentDraft,
     petitionNotFound,
+    courtDocumentPiecesNotFound,
   ];
 
   factory AnalysisStatusDto.caseAssessment(
@@ -121,7 +124,7 @@ class AnalysisStatusDto {
   ) {
     switch (value) {
       case FirstInstanceAnalysisStatusDto.waitingDocumentUpload:
-        return waitingPetition;
+        return waitingDocumentUpload;
       case FirstInstanceAnalysisStatusDto.documentUploaded:
         return petitionUploaded;
       case FirstInstanceAnalysisStatusDto.analyzingCase:
@@ -173,6 +176,8 @@ class AnalysisStatusDto {
         return generatingSynthesis;
       case SecondInstanceAnalysisStatusDto.petitionNotFound:
         return petitionNotFound;
+      case SecondInstanceAnalysisStatusDto.courtDocumentPiecesNotFound:
+        return courtDocumentPiecesNotFound;
       case SecondInstanceAnalysisStatusDto.done:
         return done;
       case SecondInstanceAnalysisStatusDto.failed:

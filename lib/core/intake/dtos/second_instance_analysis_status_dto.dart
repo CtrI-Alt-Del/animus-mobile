@@ -11,6 +11,7 @@ enum SecondInstanceAnalysisStatusDto {
   generatingJudgmentDraft('GENERATING_JUDGMENT_DRAFT'),
   generatingSynthesis('GENERATING_SYNTHESIS'),
   petitionNotFound('PETITION_NOT_FOUND'),
+  courtDocumentPiecesNotFound('COURT_DOCUMENT_PIECES_NOT_FOUND'),
   done('DONE'),
   failed('FAILED');
 

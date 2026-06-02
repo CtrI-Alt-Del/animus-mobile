@@ -51,6 +51,11 @@ abstract class IntakeService {
     required String analysisId,
   }) => throw UnimplementedError();
 
+  Future<RestResponse<AnalysisStatusDto>> deleteAnalysisDocument({
+    required String analysisId,
+    required String filePath,
+  }) => throw UnimplementedError();
+
   /// Retorna o payload agregado usado na exportacao do relatorio da 2a instancia.
   Future<RestResponse<SecondInstanceAnalysisReportDto>>
   getSecondInstanceAnalysisReport({required String analysisId});
