@@ -22,6 +22,7 @@ class AddPrecedentDialogPresenter {
   final String analysisId;
 
   StreamSubscription<Object?>? _identifierChangeSubscription;
+  StreamSubscription<CourtDto?>? _courtChangeSubscription;
   StreamSubscription<ControlStatus>? _formStatusSubscription;
 
   final Signal<bool> isFetchingPreview = signal<bool>(false);
@@ -57,6 +58,18 @@ class AddPrecedentDialogPresenter {
         previewPrecedent.value != null;
   });
 
+  late final ReadonlySignal<List<PrecedentKindDto>>
+  supportedKindsForSelectedCourt = computed(() {
+    final CourtDto? court = courtControl.value;
+    if (court == null) {
+      return supportedKinds;
+    }
+
+    return List<PrecedentKindDto>.unmodifiable(
+      PrecedentKindDto.getValidKindsForCourts(<CourtDto>[court]),
+    );
+  });
+
   AddPrecedentDialogPresenter({
     required IntakeService intakeService,
     required AnalysisPrecedentsBubblePresenter bubblePresenter,
@@ -65,6 +78,7 @@ class AddPrecedentDialogPresenter {
        _bubblePresenter = bubblePresenter {
     _syncFormState();
     clearPreviewOnIdentifierChange();
+    _syncKindForSelectedCourt();
   }
 
   FormControl<CourtDto> get courtControl =>
@@ -139,6 +153,14 @@ class AddPrecedentDialogPresenter {
   }
 
   void clearPreviewOnIdentifierChange() {
+    _courtChangeSubscription?.cancel();
+    _courtChangeSubscription = courtControl.valueChanges.listen((_) {
+      _syncKindForSelectedCourt();
+      _syncFormState();
+      previewPrecedent.value = null;
+      generalError.value = null;
+    });
+
     _identifierChangeSubscription?.cancel();
     _identifierChangeSubscription = form.valueChanges.listen((_) {
       _syncFormState();
@@ -187,8 +209,27 @@ class AddPrecedentDialogPresenter {
     hasValidIdentifier.value = hasValidCourt && hasValidKind && hasValidNumber;
   }
 
+  void _syncKindForSelectedCourt() {
+    final PrecedentKindDto? kind = kindControl.value;
+    if (kind == null) {
+      return;
+    }
+
+    final CourtDto? court = courtControl.value;
+    final List<PrecedentKindDto> validKinds = court == null
+        ? supportedKinds
+        : PrecedentKindDto.getValidKindsForCourts(<CourtDto>[court]);
+    if (validKinds.contains(kind)) {
+      return;
+    }
+
+    kindControl.value = null;
+    kindControl.markAsTouched();
+  }
+
   void dispose() {
     _identifierChangeSubscription?.cancel();
+    _courtChangeSubscription?.cancel();
     _formStatusSubscription?.cancel();
     isFetchingPreview.dispose();
     isSubmitting.dispose();
@@ -197,6 +238,7 @@ class AddPrecedentDialogPresenter {
     hasValidIdentifier.dispose();
     canFetchPreview.dispose();
     canSubmit.dispose();
+    supportedKindsForSelectedCourt.dispose();
     form.dispose();
   }
 }

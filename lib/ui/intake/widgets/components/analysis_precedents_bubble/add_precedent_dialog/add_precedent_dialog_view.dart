@@ -86,34 +86,40 @@ class AddPrecedentDialogView extends ConsumerWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-                ReactiveDropdownField<PrecedentKindDto>(
-                  formControlName: 'kind',
-                  decoration: _selectDecoration(
-                    context: context,
-                    label: 'Espécie',
-                  ),
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: tokens.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  dropdownColor: tokens.surfaceElevated,
-                  icon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: tokens.textSecondary,
-                  ),
-                  items: AddPrecedentDialogPresenter.supportedKinds
-                      .map(
-                        (PrecedentKindDto kind) =>
-                            DropdownMenuItem<PrecedentKindDto>(
-                              value: kind,
-                              child: Text(kind.value),
-                            ),
-                      )
-                      .toList(growable: false),
-                  validationMessages: <String, ValidationMessageFunction>{
-                    ValidationMessage.required: (_) => 'Campo obrigatorio.',
-                  },
-                ),
+                Watch((BuildContext context) {
+                  final List<PrecedentKindDto> supportedKinds = presenter
+                      .supportedKindsForSelectedCourt
+                      .watch(context);
+
+                  return ReactiveDropdownField<PrecedentKindDto>(
+                    formControlName: 'kind',
+                    decoration: _selectDecoration(
+                      context: context,
+                      label: 'Espécie',
+                    ),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: tokens.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    dropdownColor: tokens.surfaceElevated,
+                    icon: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: tokens.textSecondary,
+                    ),
+                    items: supportedKinds
+                        .map(
+                          (PrecedentKindDto kind) =>
+                              DropdownMenuItem<PrecedentKindDto>(
+                                value: kind,
+                                child: Text(kind.value),
+                              ),
+                        )
+                        .toList(growable: false),
+                    validationMessages: <String, ValidationMessageFunction>{
+                      ValidationMessage.required: (_) => 'Campo obrigatorio.',
+                    },
+                  );
+                }),
                 const SizedBox(height: 12),
                 ReactiveTextField<String>(
                   formControlName: 'number',
