@@ -112,7 +112,7 @@ class AnalysisPrecedentsBubblePresenter {
     final int currentFlowId = ++_flowId;
 
     try {
-      await _startFlow(currentFlowId: currentFlowId, canTriggerSearch: true);
+      await _startFlow(currentFlowId: currentFlowId, canTriggerSearch: false);
     } finally {
       _isInitializing = false;
     }
@@ -188,17 +188,6 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     final AnalysisStatusDto? currentStatus = processingStatus.value;
-
-    if (status == AnalysisStatusDto.searchingPrecedents &&
-        !_isLoadingOrPollingPrecedents() &&
-        !_hasLoadedPrecedents()) {
-      final int currentFlowId = ++_flowId;
-      processingStatus.value = status;
-      generalError.value = null;
-      isLoading.value = true;
-      unawaited(_triggerPrecedentSearch(currentFlowId: currentFlowId));
-      return;
-    }
 
     if (currentStatus != null &&
         _statusOrder(status) < _statusOrder(currentStatus)) {
@@ -646,16 +635,6 @@ class AnalysisPrecedentsBubblePresenter {
     return status == AnalysisStatusDto.caseAnalyzed ||
         _isProcessingStatus(status) ||
         _isFinalPrecedentStatus(status);
-  }
-
-  bool _isLoadingOrPollingPrecedents() {
-    return _isInitializing ||
-        _isPollingRequestInFlight ||
-        _pollingTimer != null;
-  }
-
-  bool _hasLoadedPrecedents() {
-    return precedents.value.isNotEmpty;
   }
 
   int _statusOrder(AnalysisStatusDto status) {
