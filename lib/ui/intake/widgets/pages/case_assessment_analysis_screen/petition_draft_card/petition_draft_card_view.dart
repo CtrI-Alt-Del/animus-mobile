@@ -8,12 +8,12 @@ import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/p
 
 class PetitionDraftCardView extends StatelessWidget {
   final PetitionDraftDto draft;
-  final VoidCallback onOpenModal;
+  final VoidCallback onOpenDialog;
   final Future<bool> Function()? onRegenerate;
 
   const PetitionDraftCardView({
     required this.draft,
-    required this.onOpenModal,
+    required this.onOpenDialog,
     this.onRegenerate,
     super.key,
   });
@@ -59,7 +59,7 @@ class PetitionDraftCardView extends StatelessWidget {
                     label: const Text('Regerar minuta'),
                   ),
                 TextButton.icon(
-                  onPressed: onOpenModal,
+                  onPressed: onOpenDialog,
                   icon: const Icon(Icons.open_in_full, size: 16),
                   label: const Text('Ver minuta'),
                 ),
