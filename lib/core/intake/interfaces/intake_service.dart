@@ -4,6 +4,7 @@ import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedents_search_filters_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
+import 'package:animus/core/intake/dtos/case_assessment_briefing_dto.dart';
 import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/first_instance_analysis_report_dto.dart';
@@ -11,6 +12,7 @@ import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_dto.dart';
 import 'package:animus/core/intake/dtos/precedent_identifier_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_decision_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
 import 'package:animus/core/shared/responses/cursor_pagination_response.dart';
 import 'package:animus/core/shared/responses/list_response.dart';
@@ -51,7 +53,16 @@ abstract class IntakeService {
     required String analysisId,
   }) => throw UnimplementedError();
 
-  Future<RestResponse<AnalysisStatusDto>> deleteAnalysisDocument({
+  Future<RestResponse<CaseAssessmentBriefingDto>> submitCaseAssessmentBriefing({
+    required String analysisId,
+    required CaseAssessmentBriefingDto briefing,
+  }) => throw UnimplementedError();
+
+  Future<RestResponse<CaseAssessmentBriefingDto>> getCaseAssessmentBriefing({
+    required String analysisId,
+  }) => throw UnimplementedError();
+
+  Future<RestResponse<void>> removeAnalysisDocument({
     required String analysisId,
     required String filePath,
   }) => throw UnimplementedError();
@@ -83,9 +94,31 @@ abstract class IntakeService {
     required String analysisId,
   });
 
+  Future<RestResponse<SecondInstanceDecisionDto>> createSecondInstanceDecision({
+    required String analysisId,
+    required String description,
+  }) => throw UnimplementedError();
+
+  Future<RestResponse<SecondInstanceDecisionDto>> getSecondInstanceDecision({
+    required String analysisId,
+  }) => throw UnimplementedError();
+
   Future<RestResponse<PetitionDraftDto>> getPetitionDraft({
     required String analysisId,
   });
+
+  Future<RestResponse<PetitionDraftDto>> updatePetitionDraft({
+    required String analysisId,
+    required PetitionDraftDto draft,
+  }) => throw UnimplementedError();
+
+  Future<RestResponse<AnalysisDocumentDto>> exportPetitionDraft({
+    required String analysisId,
+  }) => throw UnimplementedError();
+
+  Future<RestResponse<AnalysisDocumentDto>> exportJudgmentDraft({
+    required String analysisId,
+  }) => throw UnimplementedError();
 
   Future<RestResponse<void>> triggerFirstInstanceCaseSummarization({
     required String analysisId,
@@ -119,6 +152,12 @@ abstract class IntakeService {
 
   Future<RestResponse<SecondInstanceJudgmentDraftDto>>
   getSecondInstanceJudgmentDraft({required String analysisId});
+
+  Future<RestResponse<SecondInstanceJudgmentDraftDto>>
+  updateSecondInstanceJudgmentDraft({
+    required String analysisId,
+    required SecondInstanceJudgmentDraftDto dto,
+  }) => throw UnimplementedError();
 
   Future<RestResponse<void>> searchAnalysisPrecedents({
     required String analysisId,
