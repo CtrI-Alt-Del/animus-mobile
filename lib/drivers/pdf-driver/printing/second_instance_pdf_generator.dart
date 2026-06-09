@@ -183,6 +183,8 @@ class SecondInstancePdfGenerator {
             style: pw.TextStyle(color: _theme.textMuted, fontSize: 12),
           ),
           pw.SizedBox(height: 12),
+          _buildDecisionGuidanceSection(report),
+          pw.SizedBox(height: 12),
           _buildDivider(),
           pw.SizedBox(height: 12),
           pw.Column(
@@ -221,6 +223,26 @@ class SecondInstancePdfGenerator {
           ),
         ];
       },
+    );
+  }
+
+  pw.Widget _buildDecisionGuidanceSection(
+    SecondInstanceAnalysisReportDto report,
+  ) {
+    final String decisionDescription = report.decision.description;
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: <pw.Widget>[
+        _buildEyebrow('ORIENTAÇÃO DA DECISÃO'),
+        pw.SizedBox(height: 8),
+        if (_hasContent(decisionDescription))
+          _buildHighlightTextCard(decisionDescription)
+        else
+          _buildTextCard(
+            'Nenhuma orientação de decisão foi informada para esta análise.',
+          ),
+      ],
     );
   }
 

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_applicability_level_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
@@ -53,7 +54,7 @@ class CaseAssessmentPdfGenerator {
         return <pw.Widget>[
           _buildTitle('Relatório de análise do caso'),
           pw.SizedBox(height: 8),
-          _buildSubtitle('Documento: ${_safe(report.document.name)}'),
+          _buildSubtitle(_documentsSubtitle(report.documents)),
           pw.SizedBox(height: 20),
           _buildSectionLabel('DADOS DA ANÁLISE'),
           pw.SizedBox(height: 10),
@@ -66,19 +67,25 @@ class CaseAssessmentPdfGenerator {
             (label: 'Gerado em', value: _formatDateTime(generatedAt)),
           ]),
           pw.SizedBox(height: 16),
-          _buildSectionLabel('DADOS DO DOCUMENTO'),
+          _buildSectionLabel('DADOS DO BRIEFING'),
           pw.SizedBox(height: 10),
           _buildInfoCard(<({String label, String value})>[
-            (label: 'Arquivo', value: _safe(report.document.name)),
+            (label: 'Área jurídica', value: report.briefing.legalArea.value),
             (
-              label: 'Upload em',
-              value: _formatDateTime(_parseDate(report.document.uploadedAt)),
+              label: 'Tribunal/órgão',
+              value: report.briefing.courtJurisdiction.value,
             ),
             (
               label: 'Precedentes escolhidos',
               value: precedentsCountLabel(report.precedents),
             ),
           ]),
+          pw.SizedBox(height: 16),
+          _buildLabeledText('PEDIDOS PRINCIPAIS', report.briefing.mainClaims),
+          _buildLabeledText('TESE PRETENDIDA', report.briefing.intendedThesis),
+          _buildSectionLabel('DOCUMENTOS DE APOIO'),
+          pw.SizedBox(height: 10),
+          _buildDocumentsCard(report.documents),
         ];
       },
     );
@@ -305,6 +312,58 @@ class CaseAssessmentPdfGenerator {
     );
   }
 
+  pw.Widget _buildDocumentsCard(List<AnalysisDocumentDto> documents) {
+    if (documents.isEmpty) {
+      return _buildBodyCard('Nenhum documento de apoio informado.');
+    }
+
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(14),
+      decoration: pw.BoxDecoration(
+        color: _theme.surfaceCard,
+        border: pw.Border.all(color: _theme.divider, width: 0.8),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(12)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: documents
+            .asMap()
+            .entries
+            .map((entry) {
+              final int index = entry.key;
+              final AnalysisDocumentDto document = entry.value;
+
+              return pw.Padding(
+                padding: const pw.EdgeInsets.only(bottom: 8),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: <pw.Widget>[
+                    pw.Text(
+                      '${index + 1}. ${_safe(document.name)}',
+                      style: pw.TextStyle(
+                        fontSize: 12,
+                        fontWeight: pw.FontWeight.bold,
+                        color: _theme.textPrimary,
+                      ),
+                    ),
+                    pw.SizedBox(height: 3),
+                    pw.Text(
+                      'Upload em: ${_formatDateTime(_parseDate(document.uploadedAt))}',
+                      style: pw.TextStyle(
+                        fontSize: 11,
+                        color: _theme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })
+            .toList(growable: false),
+      ),
+    );
+  }
+
   pw.Widget _buildLabeledText(String label, String text) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 12),
@@ -484,6 +543,18 @@ class CaseAssessmentPdfGenerator {
         .length;
 
     return '$chosenCount selecionado(s)';
+  }
+
+  String _documentsSubtitle(List<AnalysisDocumentDto> documents) {
+    if (documents.isEmpty) {
+      return 'Documentos de apoio: nenhum';
+    }
+
+    if (documents.length == 1) {
+      return 'Documento de apoio: ${_safe(documents.first.name)}';
+    }
+
+    return 'Documentos de apoio: ${documents.length} arquivos';
   }
 
   String _buildApplicabilityLabel(AnalysisPrecedentDto precedent) {
