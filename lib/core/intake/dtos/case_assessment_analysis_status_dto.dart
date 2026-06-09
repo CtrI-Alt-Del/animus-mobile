@@ -1,4 +1,6 @@
 enum CaseAssessmentAnalysisStatusDto {
+  waitingBriefing('WAITING_BRIEFING'),
+  briefingSubmitted('BRIEFING_SUBMITTED'),
   waitingDocumentUpload('WAITING_DOCUMENT_UPLOAD'),
   documentUploaded('DOCUMENT_UPLOADED'),
   analyzingCase('ANALYZING_CASE'),

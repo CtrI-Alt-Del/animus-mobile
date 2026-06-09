@@ -6,6 +6,7 @@ import 'package:animus/rest/mappers/intake/analysis_document_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
 import 'package:animus/rest/mappers/intake/case_summary_mapper.dart';
+import 'package:animus/rest/mappers/intake/second_instance_decision_mapper.dart';
 import 'package:animus/rest/mappers/intake/second_instance_judgment_draft_mapper.dart';
 
 final class SecondInstanceAnalysisReportMapper {
@@ -16,6 +17,9 @@ final class SecondInstanceAnalysisReportMapper {
       analysis: AnalysisMapper.toDto(_toJsonField(json['analysis'])),
       document: AnalysisDocumentMapper.toDto(_toJsonField(json['document'])),
       caseSummary: CaseSummaryMapper.toDto(_toJsonField(json['case_summary'])),
+      decision: SecondInstanceDecisionMapper.toDto(
+        _toJsonField(json['decision']),
+      ),
       precedents: _toDtoList(json['precedents']),
       judgmentDraft: SecondInstanceJudgmentDraftMapper.toDto(
         _toJsonField(json['judgment_draft']),

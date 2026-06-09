@@ -1,3 +1,4 @@
+import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/case_assessment_analysis_report_dto.dart';
 import 'package:animus/core/shared/types/json.dart';
@@ -5,6 +6,7 @@ import 'package:animus/core/shared/types/json.dart';
 import 'package:animus/rest/mappers/intake/analysis_document_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_mapper.dart';
 import 'package:animus/rest/mappers/intake/analysis_precedent_mapper.dart';
+import 'package:animus/rest/mappers/intake/case_assessment_briefing_mapper.dart';
 import 'package:animus/rest/mappers/intake/case_summary_mapper.dart';
 import 'package:animus/rest/mappers/intake/petition_draft_mapper.dart';
 
@@ -14,13 +16,27 @@ final class CaseAssessmentAnalysisReportMapper {
   static CaseAssessmentAnalysisReportDto toDto(Json json) {
     return CaseAssessmentAnalysisReportDto(
       analysis: AnalysisMapper.toDto(_toJsonField(json['analysis'])),
-      document: AnalysisDocumentMapper.toDto(_toJsonField(json['document'])),
+      documents: _toDocuments(json['documents']),
       caseSummary: CaseSummaryMapper.toDto(_toJsonField(json['case_summary'])),
+      briefing: CaseAssessmentBriefingMapper.toDto(
+        _toJsonField(json['briefing']),
+      ),
       precedents: _toPrecedents(json['precedents']),
       petitionDraft: PetitionDraftMapper.toDto(
         _toJsonField(json['petition_draft']),
       ),
     );
+  }
+
+  static List<AnalysisDocumentDto> _toDocuments(dynamic value) {
+    if (value is! List<dynamic>) {
+      return const <AnalysisDocumentDto>[];
+    }
+
+    return value
+        .whereType<Json>()
+        .map(AnalysisDocumentMapper.toDto)
+        .toList(growable: false);
   }
 
   static List<AnalysisPrecedentDto> _toPrecedents(dynamic value) {

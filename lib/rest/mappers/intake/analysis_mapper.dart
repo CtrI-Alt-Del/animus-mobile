@@ -51,7 +51,7 @@ final class AnalysisMapper {
       final CaseAssessmentAnalysisStatusDto status =
           CaseAssessmentAnalysisStatusDto.values.firstWhere(
             (CaseAssessmentAnalysisStatusDto item) => item.value == value,
-            orElse: () => CaseAssessmentAnalysisStatusDto.waitingDocumentUpload,
+            orElse: () => CaseAssessmentAnalysisStatusDto.waitingBriefing,
           );
 
       return AnalysisStatusDto.caseAssessment(status);
@@ -70,6 +70,12 @@ final class AnalysisMapper {
     if (value == AnalysisStatusDto.petitionNotFound.value) {
       return AnalysisStatusDto.secondInstance(
         SecondInstanceAnalysisStatusDto.petitionNotFound,
+      );
+    }
+
+    if (value == AnalysisStatusDto.decisionSubmitted.value) {
+      return AnalysisStatusDto.secondInstance(
+        SecondInstanceAnalysisStatusDto.decisionSubmitted,
       );
     }
 

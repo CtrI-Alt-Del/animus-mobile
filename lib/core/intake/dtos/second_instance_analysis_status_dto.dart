@@ -4,6 +4,7 @@ enum SecondInstanceAnalysisStatusDto {
   extractingPetition('EXTRACTING_PETITION'),
   analyzingCase('ANALYZING_CASE'),
   caseAnalyzed('CASE_ANALYZED'),
+  decisionSubmitted('DECISION_SUBMITTED'),
   searchingPrecedents('SEARCHING_PRECEDENTS'),
   precedentsSearched('PRECEDENTS_SEARCHED'),
   analyzingPrecedentsSimilarity('ANALYZING_PRECEDENTS_SIMILARITY'),

@@ -16,6 +16,12 @@ class AnalysisStatusDto {
   static const AnalysisStatusDto waitingDocumentUpload = AnalysisStatusDto(
     'WAITING_DOCUMENT_UPLOAD',
   );
+  static const AnalysisStatusDto waitingBriefing = AnalysisStatusDto(
+    'WAITING_BRIEFING',
+  );
+  static const AnalysisStatusDto briefingSubmitted = AnalysisStatusDto(
+    'BRIEFING_SUBMITTED',
+  );
   static const AnalysisStatusDto documentUploaded = AnalysisStatusDto(
     'DOCUMENT_UPLOADED',
   );
@@ -52,6 +58,9 @@ class AnalysisStatusDto {
   static const AnalysisStatusDto caseAnalyzed = AnalysisStatusDto(
     'CASE_ANALYZED',
   );
+  static const AnalysisStatusDto decisionSubmitted = AnalysisStatusDto(
+    'DECISION_SUBMITTED',
+  );
   static const AnalysisStatusDto generatingPetitionDraft = AnalysisStatusDto(
     'GENERATING_PETITION_DRAFT',
   );
@@ -68,6 +77,8 @@ class AnalysisStatusDto {
     waitingPetition,
     petitionUploaded,
     waitingDocumentUpload,
+    waitingBriefing,
+    briefingSubmitted,
     documentUploaded,
     analyzingPetition,
     searchingPrecedents,
@@ -82,6 +93,7 @@ class AnalysisStatusDto {
     extractingPetition,
     analyzingCase,
     caseAnalyzed,
+    decisionSubmitted,
     generatingPetitionDraft,
     generatingJudgmentDraft,
     petitionNotFound,
@@ -94,6 +106,10 @@ class AnalysisStatusDto {
     switch (value) {
       case CaseAssessmentAnalysisStatusDto.waitingDocumentUpload:
         return waitingDocumentUpload;
+      case CaseAssessmentAnalysisStatusDto.waitingBriefing:
+        return waitingBriefing;
+      case CaseAssessmentAnalysisStatusDto.briefingSubmitted:
+        return briefingSubmitted;
       case CaseAssessmentAnalysisStatusDto.documentUploaded:
         return documentUploaded;
       case CaseAssessmentAnalysisStatusDto.analyzingCase:
@@ -162,6 +178,8 @@ class AnalysisStatusDto {
         return analyzingCase;
       case SecondInstanceAnalysisStatusDto.caseAnalyzed:
         return caseAnalyzed;
+      case SecondInstanceAnalysisStatusDto.decisionSubmitted:
+        return decisionSubmitted;
       case SecondInstanceAnalysisStatusDto.searchingPrecedents:
         return searchingPrecedents;
       case SecondInstanceAnalysisStatusDto.precedentsSearched:
