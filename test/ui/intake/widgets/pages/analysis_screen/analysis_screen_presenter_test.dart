@@ -618,7 +618,7 @@ void main() {
         ),
       ).thenThrow(Exception('upload failed'));
       when(
-        () => intakeService.deleteAnalysisDocument(
+        () => intakeService.removeAnalysisDocument(
           analysisId: 'analysis-1',
           filePath: uploadUrl.filePath,
         ),
@@ -637,7 +637,7 @@ void main() {
       );
       expect(presenter.uploadProgress.value, isNull);
       verify(
-        () => intakeService.deleteAnalysisDocument(
+        () => intakeService.removeAnalysisDocument(
           analysisId: 'analysis-1',
           filePath: uploadUrl.filePath,
         ),

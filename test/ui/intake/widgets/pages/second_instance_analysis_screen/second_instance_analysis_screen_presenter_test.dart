@@ -7,6 +7,7 @@ import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_decision_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
@@ -60,6 +61,10 @@ void main() {
         analysis: AnalysisDtoFaker.fake(),
         document: FirstInstanceAnalysisReportDtoFaker.fake().document,
         caseSummary: PetitionSummaryDtoFaker.fake(),
+        decision: const SecondInstanceDecisionDto(
+          analysisId: 'analysis-fallback',
+          description: 'Decisão fallback',
+        ),
         precedents: const <AnalysisPrecedentDto>[],
         judgmentDraft: SecondInstanceJudgmentDraftDtoFaker.fake(),
       ),
@@ -346,7 +351,7 @@ void main() {
         ),
       ).thenThrow(Exception('upload failed'));
       when(
-        () => intakeService.deleteAnalysisDocument(
+        () => intakeService.removeAnalysisDocument(
           analysisId: 'analysis-1',
           filePath: uploadUrl.filePath,
         ),
@@ -362,7 +367,7 @@ void main() {
       expect(presenter.status.value, AnalysisStatusDto.failed);
       expect(presenter.uploadProgress.value, isNull);
       verify(
-        () => intakeService.deleteAnalysisDocument(
+        () => intakeService.removeAnalysisDocument(
           analysisId: 'analysis-1',
           filePath: uploadUrl.filePath,
         ),
@@ -879,6 +884,10 @@ void main() {
               ),
               document: AnalysisDocumentDtoFaker.fake(),
               caseSummary: CaseSummaryDtoFaker.fake(),
+              decision: const SecondInstanceDecisionDto(
+                analysisId: 'analysis-1',
+                description: 'Decisão exportada',
+              ),
               precedents: <AnalysisPrecedentDto>[
                 AnalysisPrecedentDtoFaker.fake(isChosen: true),
               ],
@@ -950,6 +959,10 @@ void main() {
                 ),
                 document: AnalysisDocumentDtoFaker.fake(),
                 caseSummary: CaseSummaryDtoFaker.fake(),
+                decision: const SecondInstanceDecisionDto(
+                  analysisId: 'analysis-1',
+                  description: 'Decisão vazia',
+                ),
                 precedents: <AnalysisPrecedentDto>[
                   AnalysisPrecedentDtoFaker.fake(isChosen: true),
                 ],
@@ -1029,6 +1042,10 @@ void main() {
                 ),
                 document: AnalysisDocumentDtoFaker.fake(),
                 caseSummary: CaseSummaryDtoFaker.fake(),
+                decision: const SecondInstanceDecisionDto(
+                  analysisId: 'analysis-1',
+                  description: 'Decisão vazia',
+                ),
                 precedents: <AnalysisPrecedentDto>[
                   AnalysisPrecedentDtoFaker.fake(isChosen: true),
                 ],
@@ -1099,6 +1116,10 @@ void main() {
                 ),
                 document: AnalysisDocumentDtoFaker.fake(),
                 caseSummary: CaseSummaryDtoFaker.fake(),
+                decision: const SecondInstanceDecisionDto(
+                  analysisId: 'analysis-1',
+                  description: 'Decisão concorrente',
+                ),
                 precedents: <AnalysisPrecedentDto>[
                   AnalysisPrecedentDtoFaker.fake(isChosen: true),
                 ],

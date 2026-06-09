@@ -1,18 +1,15 @@
-import 'dart:io';
-
 import 'package:animus/core/intake/dtos/analysis_dto.dart';
-import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_type_dto.dart';
+import 'package:animus/core/intake/dtos/case_assessment_briefing_dto.dart';
+import 'package:animus/core/intake/dtos/court_dto.dart';
+import 'package:animus/core/intake/dtos/legal_area_dto.dart';
 import 'package:animus/core/intake/dtos/petition_draft_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/cache_driver.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
-import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
-import 'package:animus/core/storage/interfaces/drivers/file_storage_driver.dart';
-import 'package:animus/core/storage/interfaces/storage_service.dart';
 import 'package:animus/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -20,56 +17,44 @@ import 'package:mocktail/mocktail.dart';
 import '../../../../../fakers/intake/analysis_dto_faker.dart';
 import '../../../../../fakers/intake/analysis_precedent_dto_faker.dart';
 import '../../../../../fakers/intake/petition_summary_dto_faker.dart';
-import '../../../../../fakers/storage/upload_url_dto_faker.dart';
 
 class _MockIntakeService extends Mock implements IntakeService {}
-
-class _MockStorageService extends Mock implements StorageService {}
-
-class _MockFileStorageDriver extends Mock implements FileStorageDriver {}
-
-class _MockDocumentPickerDriver extends Mock implements DocumentPickerDriver {}
 
 class _MockCacheDriver extends Mock implements CacheDriver {}
 
 class _MockPdfDriver extends Mock implements PdfDriver {}
 
-class _MockFile extends Mock implements File {}
+const CaseAssessmentBriefingDto _briefing = CaseAssessmentBriefingDto(
+  analysisId: 'analysis-1',
+  legalArea: LegalAreaDto.civil,
+  courtJurisdiction: CourtDto.tjsp,
+  mainClaims: 'Pedido principal',
+  intendedThesis: 'Tese pretendida',
+);
 
 void main() {
   late _MockIntakeService intakeService;
-  late _MockStorageService storageService;
-  late _MockFileStorageDriver fileStorageDriver;
-  late _MockDocumentPickerDriver documentPickerDriver;
   late _MockCacheDriver cacheDriver;
   late _MockPdfDriver pdfDriver;
 
-  setUpAll(() {
-    registerFallbackValue(
-      const AnalysisDocumentDto(
-        analysisId: 'analysis-fallback',
-        uploadedAt: '2026-01-01T00:00:00Z',
-        filePath: 'uploads/fallback.pdf',
-        name: 'fallback.pdf',
-      ),
-    );
-  });
-
   setUp(() {
     intakeService = _MockIntakeService();
-    storageService = _MockStorageService();
-    fileStorageDriver = _MockFileStorageDriver();
-    documentPickerDriver = _MockDocumentPickerDriver();
     cacheDriver = _MockCacheDriver();
     pdfDriver = _MockPdfDriver();
+
+    when(
+      () => intakeService.getCaseAssessmentBriefing(analysisId: 'analysis-1'),
+    ).thenAnswer(
+      (_) async => RestResponse<CaseAssessmentBriefingDto>(
+        statusCode: 200,
+        body: _briefing,
+      ),
+    );
   });
 
   CaseAssessmentAnalysisScreenPresenter createPresenter() {
     return CaseAssessmentAnalysisScreenPresenter(
       intakeService: intakeService,
-      storageService: storageService,
-      fileStorageDriver: fileStorageDriver,
-      documentPickerDriver: documentPickerDriver,
       cacheDriver: cacheDriver,
       pdfDriver: pdfDriver,
       analysisId: 'analysis-1',
@@ -77,12 +62,25 @@ void main() {
   }
 
   group('CaseAssessmentAnalysisScreenPresenter', () {
-    test('inicia com status waitingDocumentUpload', () {
+    test('inicia com status waitingBriefing', () {
       final presenter = createPresenter();
       addTearDown(presenter.dispose);
 
-      expect(presenter.status.value, AnalysisStatusDto.waitingDocumentUpload);
-      expect(presenter.fileActionLabel.value, 'Selecionar documento do caso');
+      expect(presenter.status.value, AnalysisStatusDto.waitingBriefing);
+      expect(presenter.briefing.value, isNull);
+      expect(presenter.primaryActionLabel.value, 'Analisar');
+      expect(presenter.canAnalyzeCase.value, isFalse);
+    });
+
+    test('libera análise após briefing submetido', () {
+      final presenter = createPresenter();
+      addTearDown(presenter.dispose);
+
+      presenter.markBriefingSubmitted(_briefing);
+
+      expect(presenter.briefing.value, _briefing);
+      expect(presenter.status.value, AnalysisStatusDto.briefingSubmitted);
+      expect(presenter.canAnalyzeCase.value, isTrue);
       expect(presenter.primaryActionLabel.value, 'Analisar');
     });
 
@@ -149,7 +147,6 @@ void main() {
       expect(presenter.precedentsReady.value, isFalse);
       expect(presenter.hasChosenPrecedents.value, isFalse);
       expect(presenter.canGeneratePetitionDraft.value, isFalse);
-      expect(presenter.canPickDocument.value, isFalse);
       expect(presenter.primaryActionLabel.value, 'Buscando precedentes');
     });
 
@@ -276,14 +273,6 @@ void main() {
         ),
       );
       when(
-        () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
-      ).thenAnswer(
-        (_) async => RestResponse<AnalysisDocumentDto>(
-          statusCode: 404,
-          errorMessage: 'Nao encontrado',
-        ),
-      );
-      when(
         () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
       ).thenAnswer(
         (_) async =>
@@ -321,14 +310,6 @@ void main() {
         );
       });
       when(
-        () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
-      ).thenAnswer(
-        (_) async => RestResponse<AnalysisDocumentDto>(
-          statusCode: 404,
-          errorMessage: 'Nao encontrado',
-        ),
-      );
-      when(
         () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
       ).thenAnswer(
         (_) async =>
@@ -346,63 +327,58 @@ void main() {
       expect(presenter.caseSummary.value, isNotNull);
     });
 
-    test('remove metadados remotos quando upload do documento falha', () async {
-      final presenter = createPresenter();
-      addTearDown(presenter.dispose);
-      final file = _MockFile();
-      final uploadUrl = UploadUrlDtoFaker.fake();
+    test(
+      'reanalyzeCase preserva briefing e limpa resultados derivados',
+      () async {
+        final presenter = createPresenter();
+        addTearDown(presenter.dispose);
 
-      when(
-        () => documentPickerDriver.pickDocument(
-          allowedExtensions:
-              CaseAssessmentAnalysisScreenPresenter.allowedExtensions,
-        ),
-      ).thenAnswer((_) async => file);
-      when(() => file.path).thenReturn('processo.pdf');
-      when(() => file.length()).thenAnswer((_) async => 4096);
-      when(() => file.uri).thenReturn(Uri.parse('file:///processo.pdf'));
-      when(
-        () => storageService.generateAnalysisDocumentUploadUrl(
+        presenter.markBriefingSubmitted(_briefing);
+        presenter.status.value = AnalysisStatusDto.caseAnalyzed;
+        presenter.caseSummary.value = CaseSummaryDtoFaker.fake();
+        presenter.petitionDraft.value = const PetitionDraftDto(
           analysisId: 'analysis-1',
-          documentType: 'pdf',
-        ),
-      ).thenAnswer((_) async => RestResponse(statusCode: 200, body: uploadUrl));
-      when(
-        () => fileStorageDriver.uploadFile(
-          file,
-          uploadUrl,
-          onProgress: any(named: 'onProgress'),
-        ),
-      ).thenThrow(Exception('upload failed'));
-      when(
-        () => intakeService.deleteAnalysisDocument(
-          analysisId: 'analysis-1',
-          filePath: uploadUrl.filePath,
-        ),
-      ).thenAnswer(
-        (_) async => RestResponse<AnalysisStatusDto>(
-          statusCode: 200,
-          body: AnalysisStatusDto.waitingDocumentUpload,
-        ),
-      );
+          structuredFacts: 'Versao anterior.',
+          legalGrounds: 'Fundamentos anteriores.',
+          centralThesis: 'Tese anterior.',
+          requests: <String>['Pedido anterior'],
+          precedentCitations: <String>['Precedente anterior'],
+        );
+        presenter.precedentsReady.value = true;
+        presenter.hasChosenPrecedents.value = true;
 
-      await presenter.pickDocument();
+        when(
+          () => intakeService.triggerCaseAssessmentCaseSummarization(
+            analysisId: 'analysis-1',
+          ),
+        ).thenAnswer((_) async => RestResponse<void>(statusCode: 202));
+        when(
+          () => intakeService.getAnalysis(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async => RestResponse<AnalysisDto>(
+            statusCode: 200,
+            body: AnalysisDtoFaker.fake(
+              type: AnalysisTypeDto.caseAssessment,
+              status: AnalysisStatusDto.caseAnalyzed,
+            ),
+          ),
+        );
+        when(
+          () => intakeService.getCaseSummary(analysisId: 'analysis-1'),
+        ).thenAnswer(
+          (_) async =>
+              RestResponse(statusCode: 200, body: CaseSummaryDtoFaker.fake()),
+        );
 
-      expect(presenter.status.value, AnalysisStatusDto.failed);
-      expect(presenter.uploadProgress.value, isNull);
-      verify(
-        () => intakeService.deleteAnalysisDocument(
-          analysisId: 'analysis-1',
-          filePath: uploadUrl.filePath,
-        ),
-      ).called(1);
-      verifyNever(
-        () => intakeService.createAnalysisDocument(
-          analysisId: any(named: 'analysisId'),
-          document: any(named: 'document'),
-        ),
-      );
-    });
+        await presenter.reanalyzeCase();
+
+        expect(presenter.briefing.value, _briefing);
+        expect(presenter.status.value, AnalysisStatusDto.caseAnalyzed);
+        expect(presenter.precedentsReady.value, isFalse);
+        expect(presenter.hasChosenPrecedents.value, isFalse);
+        expect(presenter.caseSummary.value, isNotNull);
+      },
+    );
 
     test('retry contextual em FAILED escolhe label conforme etapa', () {
       final presenter = createPresenter();
@@ -453,11 +429,6 @@ void main() {
             status: AnalysisStatusDto.done,
           ),
         ),
-      );
-      when(
-        () => intakeService.getAnalysisDocument(analysisId: 'analysis-1'),
-      ).thenAnswer(
-        (_) async => RestResponse(statusCode: 404, errorMessage: 'sem doc'),
       );
       when(
         () => intakeService.getCaseSummary(analysisId: 'analysis-1'),

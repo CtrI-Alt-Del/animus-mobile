@@ -24,7 +24,11 @@ void main() {
 
       expect(dto.analysis.type, AnalysisTypeDto.caseAssessment);
       expect(dto.analysis.status, AnalysisStatusDto.generatingPetitionDraft);
-      expect(dto.document.name, 'documento.pdf');
+      expect(dto.documents, hasLength(2));
+      expect(dto.documents.first.name, 'documento.pdf');
+      expect(dto.documents.last.name, 'documento-complementar.pdf');
+      expect(dto.briefing.mainClaims, 'Pedidos principais');
+      expect(dto.briefing.intendedThesis, 'Tese pretendida');
       expect(dto.caseSummary.caseSummary, 'Resumo do caso');
       expect(dto.precedents.single.analysisId, 'analysis-1');
       expect(dto.petitionDraft.analysisId, 'analysis-1');
@@ -50,11 +54,26 @@ Map<String, dynamic> _reportJson({
       'summary': 'Resumo',
       'created_at': '2026-05-12T10:00:00.000Z',
     },
-    'document': <String, dynamic>{
+    'documents': <dynamic>[
+      <String, dynamic>{
+        'analysis_id': 'analysis-1',
+        'uploaded_at': '2026-05-12T10:00:00.000Z',
+        'file_path': 'uploads/documento.pdf',
+        'name': 'documento.pdf',
+      },
+      <String, dynamic>{
+        'analysis_id': 'analysis-1',
+        'uploaded_at': '2026-05-12T10:01:00.000Z',
+        'file_path': 'uploads/documento-complementar.pdf',
+        'name': 'documento-complementar.pdf',
+      },
+    ],
+    'briefing': <String, dynamic>{
       'analysis_id': 'analysis-1',
-      'uploaded_at': '2026-05-12T10:00:00.000Z',
-      'file_path': 'uploads/documento.pdf',
-      'name': 'documento.pdf',
+      'legal_area': 'CIVIL',
+      'court_jurisdiction': 'STJ',
+      'main_claims': 'Pedidos principais',
+      'intended_thesis': 'Tese pretendida',
     },
     'case_summary': <String, dynamic>{
       'case_summary': 'Resumo do caso',
