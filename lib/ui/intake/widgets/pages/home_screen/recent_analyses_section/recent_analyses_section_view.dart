@@ -275,6 +275,10 @@ class RecentAnalysesSectionView extends StatelessWidget {
         return isCaseAssessment
             ? 'Aguardando documento do caso'
             : 'Aguardando petição';
+      case AnalysisStatusDto.waitingBriefing:
+        return 'Aguardando briefing';
+      case AnalysisStatusDto.briefingSubmitted:
+        return 'Briefing enviado';
       case AnalysisStatusDto.petitionUploaded:
       case AnalysisStatusDto.documentUploaded:
         return isCaseAssessment

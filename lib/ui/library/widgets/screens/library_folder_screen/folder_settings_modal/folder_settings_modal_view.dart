@@ -77,117 +77,125 @@ class _FolderSettingsModalViewState
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: tokens.surfacePage,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Text(
-                'Configuracoes da pasta',
-                style: textTheme.titleMedium?.copyWith(
-                  color: tokens.textPrimary,
-                  fontWeight: FontWeight.w700,
-                ),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Container(
+            decoration: BoxDecoration(
+              color: tokens.surfacePage,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
-              const SizedBox(height: 18),
-              TextField(
-                controller: _controller,
-                autofocus: true,
-                enabled: !isSavingName && !isArchivingFolder,
-                onChanged: presenter.setName,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: tokens.textPrimary,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'Nome da pasta',
-                  hintText: 'Ex: Trabalhista',
-                  errorText: nameError,
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (generalError != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    generalError,
-                    style: textTheme.bodySmall?.copyWith(color: tokens.danger),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text(
+                  'Configuracoes da pasta',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: tokens.textPrimary,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              FilledButton(
-                onPressed: !canSaveName || isSavingName || isArchivingFolder
-                    ? null
-                    : () => _handleRename(presenter),
-                child: isSavingName
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Atualizar nome'),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: tokens.danger.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: tokens.danger.withValues(alpha: 0.24),
+                const SizedBox(height: 18),
+                TextField(
+                  controller: _controller,
+                  autofocus: true,
+                  enabled: !isSavingName && !isArchivingFolder,
+                  onChanged: presenter.setName,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: tokens.textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Nome da pasta',
+                    hintText: 'Ex: Trabalhista',
+                    errorText: nameError,
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Text(
-                      'Area de perigo',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: tokens.textPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Ao arquivar a pasta, as análises deixam de pertencer a ela e voltam para Sem pasta.',
+                const SizedBox(height: 16),
+                if (generalError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      generalError,
                       style: textTheme.bodySmall?.copyWith(
-                        color: tokens.textMuted,
-                        height: 1.45,
+                        color: tokens.danger,
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    FilledButton(
-                      onPressed: isSavingName || isArchivingFolder
-                          ? null
-                          : () => _handleArchive(presenter),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: tokens.danger,
-                        foregroundColor: tokens.white,
-                      ),
-                      child: isArchivingFolder
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Arquivar pasta'),
-                    ),
-                  ],
+                  ),
+                FilledButton(
+                  onPressed: !canSaveName || isSavingName || isArchivingFolder
+                      ? null
+                      : () => _handleRename(presenter),
+                  child: isSavingName
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Atualizar nome'),
                 ),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: isSavingName || isArchivingFolder
-                    ? null
-                    : () => Navigator.of(context).pop(),
-                child: const Text('Cancelar'),
-              ),
-            ],
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: tokens.danger.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: tokens.danger.withValues(alpha: 0.24),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Text(
+                        'Area de perigo',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: tokens.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Ao arquivar a pasta, as análises deixam de pertencer a ela e voltam para Sem pasta.',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: tokens.textMuted,
+                          height: 1.45,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      FilledButton(
+                        onPressed: isSavingName || isArchivingFolder
+                            ? null
+                            : () => _handleArchive(presenter),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: tokens.danger,
+                          foregroundColor: tokens.white,
+                        ),
+                        child: isArchivingFolder
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Arquivar pasta'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton(
+                  onPressed: isSavingName || isArchivingFolder
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

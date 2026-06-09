@@ -646,14 +646,14 @@ class FirstInstanceAnalysisScreenPresenter {
     }
 
     _pendingUploadDocumentFilePath = null;
-    final RestResponse<AnalysisStatusDto> response = await _intakeService
-        .deleteAnalysisDocument(analysisId: analysisId, filePath: filePath);
+    final RestResponse<void> response = await _intakeService
+        .removeAnalysisDocument(analysisId: analysisId, filePath: filePath);
 
     if (!updateLocalStatus || _isDisposed || response.isFailure) {
       return;
     }
 
-    status.value = response.body;
+    status.value = AnalysisStatusDto.waitingDocumentUpload;
     analysisDocument.value = null;
     selectedFile.value = null;
   }
