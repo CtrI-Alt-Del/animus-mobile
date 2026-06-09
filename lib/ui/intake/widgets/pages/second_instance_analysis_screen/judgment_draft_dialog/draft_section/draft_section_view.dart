@@ -9,6 +9,7 @@ class DraftSectionView extends StatelessWidget {
   final String emptyText;
   final bool emphasize;
   final Color? accentColor;
+  final Widget? editableContent;
 
   const DraftSectionView({
     required this.icon,
@@ -17,6 +18,7 @@ class DraftSectionView extends StatelessWidget {
     required this.emptyText,
     this.emphasize = false,
     this.accentColor,
+    this.editableContent,
     super.key,
   });
 
@@ -56,13 +58,16 @@ class DraftSectionView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Text(
-            normalizedContent.isEmpty ? emptyText : normalizedContent,
-            style: textTheme.bodyMedium?.copyWith(
-              color: tokens.textSecondary,
-              height: 1.55,
+          if (editableContent != null)
+            editableContent!
+          else
+            Text(
+              normalizedContent.isEmpty ? emptyText : normalizedContent,
+              style: textTheme.bodyMedium?.copyWith(
+                color: tokens.textSecondary,
+                height: 1.55,
+              ),
             ),
-          ),
         ],
       ),
     );

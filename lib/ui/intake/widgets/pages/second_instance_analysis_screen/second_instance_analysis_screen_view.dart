@@ -34,6 +34,8 @@ import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/g
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/judgment_draft_card/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/processing_bubble/index.dart';
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_analysis_screen_presenter.dart';
+import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_decision_card/index.dart';
+import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_decision_dialog/index.dart';
 
 class SecondInstanceAnalysisScreenView extends ConsumerStatefulWidget {
   final String analysisId;
@@ -308,6 +310,23 @@ class _SecondInstanceAnalysisScreenViewState
     presenter.syncSelectedFilters(courts: result.courts, kinds: result.kinds);
   }
 
+  Future<void> _showDecisionDialog(
+    BuildContext context,
+    SecondInstanceAnalysisScreenPresenter presenter,
+  ) async {
+    await Navigator.of(context, rootNavigator: true).push<void>(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (BuildContext context) {
+          return SecondInstanceDecisionDialog(
+            initialDescription: presenter.decision.value?.description ?? '',
+            onConfirm: presenter.createDecision,
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _handleExportReport(
     BuildContext context,
     SecondInstanceAnalysisScreenPresenter presenter,
@@ -345,559 +364,652 @@ class _SecondInstanceAnalysisScreenViewState
     return Scaffold(
       backgroundColor: tokens.surfacePage,
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 402),
-            child: Stack(
-              children: <Widget>[
-                const Positioned.fill(child: DotGridBackground()),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints viewport) {
+            return Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints.tightFor(
+                  width: viewport.maxWidth > 402 ? 402 : viewport.maxWidth,
+                  height: viewport.maxHeight,
+                ),
+                child: Stack(
                   children: <Widget>[
-                    Watch((BuildContext context) {
-                      final String analysisName = presenter.analysisName.watch(
-                        context,
-                      );
-                      final bool isArchived = presenter.isArchived.watch(
-                        context,
-                      );
-                      final bool isManaging = presenter.isManagingAnalysis
-                          .watch(context);
-                      final bool isExportingReport = presenter.isExportingReport
-                          .watch(context);
-                      final AnalysisStatusDto status = presenter.status.watch(
-                        context,
-                      );
-                      final bool hasJudgmentDraft =
-                          presenter.judgmentDraft.watch(context) != null;
-                      final bool showPrecedentsActions = _isPrecedentsFlow(
-                        status,
-                      );
-                      final bool showExportReport =
-                          status == AnalysisStatusDto.done && hasJudgmentDraft;
-                      final bool canExportReport = presenter.canExportReport
-                          .watch(context);
-                      int appliedFiltersCount = 0;
-                      AnalysisPrecedentsBubblePresenter? precedentsPresenter;
-                      if (showPrecedentsActions) {
-                        final AnalysisPrecedentsBubblePresenter
-                        currentPrecedentsPresenter = ref.watch(
-                          analysisPrecedentsBubblePresenterProvider(
-                            widget.analysisId,
-                          ),
-                        );
-                        precedentsPresenter = currentPrecedentsPresenter;
-                        appliedFiltersCount =
-                            currentPrecedentsPresenter.selectedCourts
-                                .watch(context)
-                                .length +
-                            currentPrecedentsPresenter.selectedKinds
-                                .watch(context)
-                                .length;
-                      }
-
-                      return AnalysisHeader(
-                        onBack: () {
-                          if (Navigator.of(context).canPop()) {
-                            Navigator.of(context).pop();
-                            return;
-                          }
-
-                          context.go(Routes.home);
-                        },
-                        onExportReport: canExportReport
-                            ? () {
-                                unawaited(
-                                  _handleExportReport(context, presenter),
-                                );
-                              }
-                            : null,
-                        title: analysisName,
-                        isArchived: isArchived,
-                        onPrecedentsCount: isManaging || !showPrecedentsActions
-                            ? null
-                            : () {
-                                final AnalysisPrecedentsBubblePresenter
-                                presenter = precedentsPresenter!;
-                                unawaited(
-                                  _showPrecedentsLimitDialog(
-                                    context,
-                                    presenter,
-                                  ),
-                                );
-                              },
-                        onFilters: isManaging || !showPrecedentsActions
-                            ? null
-                            : () {
-                                final AnalysisPrecedentsBubblePresenter
-                                presenter = precedentsPresenter!;
-                                unawaited(
-                                  _showPrecedentsFiltersDialog(
-                                    context,
-                                    presenter,
-                                  ),
-                                );
-                              },
-                        onRename: isManaging
-                            ? null
-                            : () async {
-                                final BuildContext dialogContext = Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).context;
-
-                                final String? newName =
-                                    await showDialog<String>(
-                                      context: dialogContext,
-                                      barrierColor:
-                                          (Theme.of(context)
-                                              .extension<AppThemeTokens>()
-                                              ?.scrim ??
-                                          AppTheme.tokens.scrim),
-                                      builder: (_) => RenameAnalysisDialog(
-                                        initialName:
-                                            presenter.analysisName.value,
-                                      ),
-                                    );
-
-                                if (newName == null) {
-                                  return;
-                                }
-
-                                await presenter.renameAnalysis(newName);
-                              },
-                        onArchive: isManaging
-                            ? null
-                            : () async {
-                                final BuildContext dialogContext = Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).context;
-
-                                final bool? confirm = await showDialog<bool>(
-                                  context: dialogContext,
-                                  barrierColor:
-                                      (Theme.of(
-                                        context,
-                                      ).extension<AppThemeTokens>()?.scrim ??
-                                      AppTheme.tokens.scrim),
-                                  builder: (_) => isArchived
-                                      ? const UnarchiveAnalysisDialog()
-                                      : const ArchiveAnalysisDialog(),
-                                );
-
-                                if (confirm == true) {
-                                  final bool changed = isArchived
-                                      ? await presenter.unarchiveAnalysis()
-                                      : await presenter.archiveAnalysis();
-                                  if (!context.mounted || !changed) {
-                                    return;
-                                  }
-
-                                  if (!isArchived) {
-                                    Navigator.of(context).maybePop();
-                                  }
-                                }
-                              },
-                        appliedFiltersCount: appliedFiltersCount,
-                        isMenuEnabled: !isManaging || isExportingReport,
-                        showExportReport: showExportReport,
-                        isExportingReport: isExportingReport,
-                      );
-                    }),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
-                        child: Watch((BuildContext context) {
-                          final AnalysisStatusDto status = presenter.status
+                    const Positioned.fill(child: DotGridBackground()),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Watch((BuildContext context) {
+                          final String analysisName = presenter.analysisName
                               .watch(context);
-                          final File? selectedFile = presenter.selectedFile
-                              .watch(context);
-                          final analysisDocument = presenter.analysisDocument
-                              .watch(context);
-                          final bool isUploading = presenter.isUploading.watch(
+                          final bool isArchived = presenter.isArchived.watch(
                             context,
                           );
-                          final double? progress = presenter.uploadProgress
+                          final bool isManaging = presenter.isManagingAnalysis
                               .watch(context);
-                          final String? generalError = presenter.generalError
+                          final bool isExportingReport = presenter
+                              .isExportingReport
                               .watch(context);
-                          final bool showProcessing = presenter
-                              .showCaseProcessingBubble
+                          final AnalysisStatusDto status = presenter.status
                               .watch(context);
-                          final bool showPetitionNotFound = presenter
-                              .showPetitionNotFound
+                          final bool hasJudgmentDraft =
+                              presenter.judgmentDraft.watch(context) != null;
+                          final bool showPrecedentsActions = _isPrecedentsFlow(
+                            status,
+                          );
+                          final bool showExportReport =
+                              status == AnalysisStatusDto.done &&
+                              hasJudgmentDraft;
+                          final bool canExportReport = presenter.canExportReport
                               .watch(context);
-                          final bool showCourtDocumentPiecesNotFound = presenter
-                              .showCourtDocumentPiecesNotFound
-                              .watch(context);
-                          final bool showDraftProcessing =
-                              status ==
-                              AnalysisStatusDto.generatingJudgmentDraft;
-                          final summary = presenter.caseSummary.watch(context);
-                          if (status == AnalysisStatusDto.caseAnalyzed &&
-                              summary == null) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (!mounted) {
-                                return;
-                              }
-
-                              unawaited(presenter.ensureCaseSummaryLoaded());
-                            });
-                          }
-
-                          final bool showSummary = summary != null;
-                          final draft = presenter.judgmentDraft.watch(context);
-                          final bool showDraft =
-                              draft != null && !showDraftProcessing;
-                          final bool showPrecedents =
-                              status == AnalysisStatusDto.searchingPrecedents ||
-                              status == AnalysisStatusDto.precedentsSearched ||
-                              status ==
-                                  AnalysisStatusDto
-                                      .analyzingPrecedentsSimilarity ||
-                              status ==
-                                  AnalysisStatusDto
-                                      .analyzingPrecedentsApplicability ||
-                              status ==
-                                  AnalysisStatusDto.generatingJudgmentDraft ||
-                              status == AnalysisStatusDto.generatingSynthesis ||
-                              status == AnalysisStatusDto.done;
+                          int appliedFiltersCount = 0;
                           AnalysisPrecedentsBubblePresenter?
-                          precedentsBubblePresenter;
-                          if (showPrecedents) {
-                            precedentsBubblePresenter = ref.watch(
+                          precedentsPresenter;
+                          if (showPrecedentsActions) {
+                            final AnalysisPrecedentsBubblePresenter
+                            currentPrecedentsPresenter = ref.watch(
                               analysisPrecedentsBubblePresenterProvider(
                                 widget.analysisId,
                               ),
                             );
+                            precedentsPresenter = currentPrecedentsPresenter;
+                            appliedFiltersCount =
+                                currentPrecedentsPresenter.selectedCourts
+                                    .watch(context)
+                                    .length +
+                                currentPrecedentsPresenter.selectedKinds
+                                    .watch(context)
+                                    .length;
                           }
 
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: <Widget>[
-                              if (selectedFile == null &&
-                                  analysisDocument == null &&
-                                  !showProcessing)
-                                _animatedEntry(
-                                  const AiBubble(
-                                    message:
-                                        'Envie os autos em PDF para iniciar a analise de segunda instancia.',
-                                    isTyping: false,
-                                  ),
-                                ),
-                              if (selectedFile != null ||
-                                  analysisDocument != null) ...<Widget>[
-                                if (selectedFile != null)
-                                  _animatedEntry(
-                                    Builder(
-                                      builder: (BuildContext context) {
-                                        final int fileSize = selectedFile
-                                            .lengthSync();
-                                        final String fileSizeLabel = isUploading
-                                            ? progress == null
-                                                  ? 'Enviando arquivo...'
-                                                  : 'Enviando ${(progress * 100).toStringAsFixed(0)}%'
-                                            : presenter.formatFileSize(
-                                                fileSize,
-                                              );
+                          return AnalysisHeader(
+                            onBack: () {
+                              if (Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop();
+                                return;
+                              }
 
-                                        return DocumentFileBubble(
-                                          fileName: presenter.fileName(
-                                            selectedFile,
-                                          ),
-                                          fileSizeLabel: fileSizeLabel,
-                                          isLoading: isUploading,
-                                        );
-                                      },
-                                    ),
-                                  )
-                                else
-                                  _animatedEntry(
-                                    DocumentFileBubble(
-                                      fileName: analysisDocument!.name,
-                                      fileSizeLabel: 'Documento enviado',
-                                    ),
-                                  ),
-                                const SizedBox(height: 12),
-                              ],
-                              if (showProcessing) ...<Widget>[
-                                _animatedEntry(
-                                  ProcessingBubble(
-                                    message:
-                                        status ==
-                                            AnalysisStatusDto.extractingPetition
-                                        ? 'Extraindo a peticao inicial dos autos enviados.'
-                                        : 'Analisando o caso e estruturando a sintese juridica.',
-                                    footerText:
-                                        'Isso pode levar alguns instantes.',
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              if (showPetitionNotFound) ...<Widget>[
-                                _animatedEntry(
-                                  DocumentPiecesNotFoundState(
-                                    message:
-                                        'Não encontramos a petição inicial no PDF enviado. Reenvie um documento com texto selecionável e com a petição completa.',
-                                    onResendDocument: () {
-                                      unawaited(presenter.resendDocument());
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              if (showCourtDocumentPiecesNotFound) ...<Widget>[
-                                _animatedEntry(
-                                  DocumentPiecesNotFoundState(
-                                    message:
-                                        'Não encontramos peças processuais utilizáveis no PDF enviado para prosseguir com a análise. Reenvie um documento com as peças completas e com texto selecionável.',
-                                    onResendDocument: () {
-                                      unawaited(presenter.resendDocument());
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              if (showSummary) ...<Widget>[
-                                const SizedBox(height: 12),
-                                _animatedEntry(
-                                  CaseSummaryCard(summary: summary),
-                                ),
-                                Watch((BuildContext context) {
-                                  final bool canReanalyze = presenter
-                                      .canRegenerateSummary
-                                      .watch(context);
-
-                                  if (!canReanalyze) {
-                                    return const SizedBox.shrink();
+                              context.go(Routes.home);
+                            },
+                            onExportReport: canExportReport
+                                ? () {
+                                    unawaited(
+                                      _handleExportReport(context, presenter),
+                                    );
                                   }
-
-                                  return Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(top: 10),
-                                      child: TextButton.icon(
-                                        onPressed: () {
-                                          unawaited(presenter.reanalyzeCase());
-                                        },
-                                        icon: const Icon(
-                                          Icons.refresh,
-                                          size: 16,
-                                        ),
-                                        label: const Text(
-                                          'Regerar análise do processo',
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ],
-                              if (showPrecedents) ...<Widget>[
-                                const SizedBox(height: 12),
-                                Watch((BuildContext context) {
-                                  final List<AnalysisPrecedentDto>
-                                  chosenPrecedents = precedentsBubblePresenter!
-                                      .chosenPrecedents
-                                      .watch(context);
-
-                                  _syncChosenPrecedentsIfNeeded(
-                                    presenter,
-                                    chosenPrecedents,
-                                  );
-
-                                  return const SizedBox.shrink();
-                                }),
-                                _animatedEntry(
-                                  AnalysisPrecedentsBubble(
-                                    analysisId: widget.analysisId,
-                                    analysisStatus: status,
-                                    onPrecedentsReady:
-                                        presenter.markPrecedentsReady,
-                                    onPrecedentTap:
-                                        (AnalysisPrecedentDto precedent) {
-                                          unawaited(
-                                            _showPrecedentDialog(
-                                              context,
-                                              precedent,
-                                            ),
-                                          );
-                                        },
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              if (showDraftProcessing) ...<Widget>[
-                                _animatedEntry(
-                                  const GenerateJudgmentDraftCard(),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              if (showDraft) ...<Widget>[
-                                _animatedEntry(
-                                  JudgmentDraftCard(
-                                    draft: draft,
-                                    onRegenerate: () {
-                                      return _showRegenerateJudgmentDraftDialog(
+                                : null,
+                            title: analysisName,
+                            isArchived: isArchived,
+                            onPrecedentsCount:
+                                isManaging || !showPrecedentsActions
+                                ? null
+                                : () {
+                                    final AnalysisPrecedentsBubblePresenter
+                                    presenter = precedentsPresenter!;
+                                    unawaited(
+                                      _showPrecedentsLimitDialog(
                                         context,
                                         presenter,
-                                      );
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              if (generalError != null &&
-                                  generalError.isNotEmpty)
-                                _animatedEntry(
-                                  MessageBox(
-                                    message: generalError,
-                                    color: tokens.danger,
-                                  ),
-                                ),
-                            ],
-                          );
-                        }),
-                      ),
-                    ),
-                    Watch((BuildContext context) {
-                      final bool canAnalyze = presenter.canAnalyzeCase.watch(
-                        context,
-                      );
-                      final summary = presenter.caseSummary.watch(context);
-                      final bool canSearch = presenter.canSearchPrecedents
-                          .watch(context);
-                      final bool canGenerate = presenter
-                          .canGenerateJudgmentDraft
-                          .watch(context);
-                      final bool canRegenerate = presenter
-                          .canRegenerateJudgmentDraft
-                          .watch(context);
-                      final bool precedentsReady = presenter.precedentsReady
-                          .watch(context);
-                      final bool hasChosenPrecedents = presenter
-                          .hasChosenPrecedents
-                          .watch(context);
-                      final bool canPick = presenter.canPickDocument.watch(
-                        context,
-                      );
-                      final bool isUploading = presenter.isUploading.watch(
-                        context,
-                      );
-                      final AnalysisStatusDto status = presenter.status.watch(
-                        context,
-                      );
-                      final bool isManaging = presenter.isManagingAnalysis
-                          .watch(context);
-                      final bool isSearchingPrecedents =
-                          status == AnalysisStatusDto.searchingPrecedents;
-                      final bool showPrimaryAction =
-                          status != AnalysisStatusDto.waitingDocumentUpload;
-                      final bool showFileAction =
-                          !isUploading &&
-                          (status == AnalysisStatusDto.waitingDocumentUpload ||
-                              status == AnalysisStatusDto.documentUploaded ||
-                              status == AnalysisStatusDto.petitionNotFound ||
-                              status ==
-                                  AnalysisStatusDto
-                                      .courtDocumentPiecesNotFound);
-                      final bool hasPrimaryAction =
-                          canRegenerate ||
-                          canGenerate ||
-                          canSearch ||
-                          canAnalyze;
-                      final bool shouldShowChoosePrecedentHelper =
-                          precedentsReady &&
-                          !hasChosenPrecedents &&
-                          !canGenerate &&
-                          !canRegenerate;
-
-                      return AnalysisActionBar(
-                        showFileAction: showFileAction,
-                        fileActionLabel: 'Selecionar processo',
-                        onFileAction: canPick
-                            ? () {
-                                unawaited(presenter.pickDocument());
-                              }
-                            : null,
-                        primaryActionLabel: presenter.primaryActionLabel.watch(
-                          context,
-                        ),
-                        showPrimaryAction: showPrimaryAction,
-                        onPrimaryAction: hasPrimaryAction
-                            ? () {
-                                if (canRegenerate) {
-                                  unawaited(
-                                    _showRegenerateJudgmentDraftDialog(
-                                      context,
-                                      presenter,
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                if (canGenerate) {
-                                  unawaited(presenter.requestJudgmentDraft());
-                                  _scheduleJumpToBottom();
-                                  return;
-                                }
-
-                                if (status == AnalysisStatusDto.failed) {
-                                  if (summary != null) {
-                                    final AnalysisPrecedentsBubblePresenter
-                                    precedentsPresenter = ref.read(
-                                      analysisPrecedentsBubblePresenterProvider(
-                                        widget.analysisId,
                                       ),
                                     );
-                                    presenter.markPrecedentsSearchStarted();
-                                    unawaited(precedentsPresenter.retry());
-                                    _scheduleJumpToBottom();
+                                  },
+                            onFilters: isManaging || !showPrecedentsActions
+                                ? null
+                                : () {
+                                    final AnalysisPrecedentsBubblePresenter
+                                    presenter = precedentsPresenter!;
+                                    unawaited(
+                                      _showPrecedentsFiltersDialog(
+                                        context,
+                                        presenter,
+                                      ),
+                                    );
+                                  },
+                            onRename: isManaging
+                                ? null
+                                : () async {
+                                    final BuildContext dialogContext =
+                                        Navigator.of(
+                                          context,
+                                          rootNavigator: true,
+                                        ).context;
+
+                                    final String? newName =
+                                        await showDialog<String>(
+                                          context: dialogContext,
+                                          barrierColor:
+                                              (Theme.of(context)
+                                                  .extension<AppThemeTokens>()
+                                                  ?.scrim ??
+                                              AppTheme.tokens.scrim),
+                                          builder: (_) => RenameAnalysisDialog(
+                                            initialName:
+                                                presenter.analysisName.value,
+                                          ),
+                                        );
+
+                                    if (newName == null) {
+                                      return;
+                                    }
+
+                                    await presenter.renameAnalysis(newName);
+                                  },
+                            onArchive: isManaging
+                                ? null
+                                : () async {
+                                    final BuildContext dialogContext =
+                                        Navigator.of(
+                                          context,
+                                          rootNavigator: true,
+                                        ).context;
+
+                                    final bool? confirm =
+                                        await showDialog<bool>(
+                                          context: dialogContext,
+                                          barrierColor:
+                                              (Theme.of(context)
+                                                  .extension<AppThemeTokens>()
+                                                  ?.scrim ??
+                                              AppTheme.tokens.scrim),
+                                          builder: (_) => isArchived
+                                              ? const UnarchiveAnalysisDialog()
+                                              : const ArchiveAnalysisDialog(),
+                                        );
+
+                                    if (confirm == true) {
+                                      final bool changed = isArchived
+                                          ? await presenter.unarchiveAnalysis()
+                                          : await presenter.archiveAnalysis();
+                                      if (!context.mounted || !changed) {
+                                        return;
+                                      }
+
+                                      if (!isArchived) {
+                                        Navigator.of(context).maybePop();
+                                      }
+                                    }
+                                  },
+                            appliedFiltersCount: appliedFiltersCount,
+                            isMenuEnabled: !isManaging || isExportingReport,
+                            showExportReport: showExportReport,
+                            isExportingReport: isExportingReport,
+                          );
+                        }),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+                            child: Watch((BuildContext context) {
+                              final AnalysisStatusDto status = presenter.status
+                                  .watch(context);
+                              final File? selectedFile = presenter.selectedFile
+                                  .watch(context);
+                              final analysisDocument = presenter
+                                  .analysisDocument
+                                  .watch(context);
+                              final bool isUploading = presenter.isUploading
+                                  .watch(context);
+                              final double? progress = presenter.uploadProgress
+                                  .watch(context);
+                              final String? generalError = presenter
+                                  .generalError
+                                  .watch(context);
+                              final bool showProcessing = presenter
+                                  .showCaseProcessingBubble
+                                  .watch(context);
+                              final bool showPetitionNotFound = presenter
+                                  .showPetitionNotFound
+                                  .watch(context);
+                              final bool showCourtDocumentPiecesNotFound =
+                                  presenter.showCourtDocumentPiecesNotFound
+                                      .watch(context);
+                              final bool showDraftProcessing =
+                                  status ==
+                                  AnalysisStatusDto.generatingJudgmentDraft;
+                              final summary = presenter.caseSummary.watch(
+                                context,
+                              );
+                              final decision = presenter.decision.watch(
+                                context,
+                              );
+                              final bool isSubmittingDecision = presenter
+                                  .isSubmittingDecision
+                                  .watch(context);
+                              final bool canEditDecision = presenter
+                                  .canEditDecision
+                                  .watch(context);
+                              if (status == AnalysisStatusDto.caseAnalyzed &&
+                                  summary == null) {
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  if (!mounted) {
                                     return;
                                   }
 
-                                  if (canAnalyze) {
-                                    unawaited(presenter.analyzeCase());
-                                    _scheduleJumpToBottom();
-                                    return;
-                                  }
-                                }
-
-                                if (canSearch) {
-                                  final AnalysisPrecedentsBubblePresenter
-                                  precedentsPresenter = ref.read(
-                                    analysisPrecedentsBubblePresenterProvider(
-                                      widget.analysisId,
-                                    ),
+                                  unawaited(
+                                    presenter.ensureCaseSummaryLoaded(),
                                   );
-                                  presenter.markPrecedentsSearchStarted();
-                                  unawaited(precedentsPresenter.retry());
-                                  _scheduleJumpToBottom();
-                                  return;
-                                }
-
-                                if (canAnalyze) {
-                                  unawaited(presenter.analyzeCase());
-                                  _scheduleJumpToBottom();
-                                  return;
-                                }
+                                });
                               }
-                            : null,
-                        isPrimaryBusy:
-                            isUploading || isManaging || isSearchingPrecedents,
-                        helperText: shouldShowChoosePrecedentHelper
-                            ? 'É necessário marcar pelo menos um precedente como escolhido para gerar a minuta.'
-                            : showFileAction
-                            ? 'Somente PDF com ate 100MB. O processamento pode levar alguns minutos.'
-                            : null,
-                      );
-                    }),
+
+                              final bool showSummary = summary != null;
+                              final draft = presenter.judgmentDraft.watch(
+                                context,
+                              );
+                              final bool showDraft =
+                                  draft != null && !showDraftProcessing;
+                              final bool showPrecedents =
+                                  status ==
+                                      AnalysisStatusDto.searchingPrecedents ||
+                                  status ==
+                                      AnalysisStatusDto.precedentsSearched ||
+                                  status ==
+                                      AnalysisStatusDto
+                                          .analyzingPrecedentsSimilarity ||
+                                  status ==
+                                      AnalysisStatusDto
+                                          .analyzingPrecedentsApplicability ||
+                                  status ==
+                                      AnalysisStatusDto
+                                          .generatingJudgmentDraft ||
+                                  status ==
+                                      AnalysisStatusDto.generatingSynthesis ||
+                                  status == AnalysisStatusDto.done;
+                              final bool showDecisionCard =
+                                  status == AnalysisStatusDto.caseAnalyzed ||
+                                  status ==
+                                      AnalysisStatusDto.decisionSubmitted ||
+                                  decision != null ||
+                                  showPrecedents;
+                              AnalysisPrecedentsBubblePresenter?
+                              precedentsBubblePresenter;
+                              if (showPrecedents) {
+                                precedentsBubblePresenter = ref.watch(
+                                  analysisPrecedentsBubblePresenterProvider(
+                                    widget.analysisId,
+                                  ),
+                                );
+                              }
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: <Widget>[
+                                  if (selectedFile == null &&
+                                      analysisDocument == null &&
+                                      !showProcessing)
+                                    _animatedEntry(
+                                      const AiBubble(
+                                        message:
+                                            'Envie os autos em PDF para iniciar a analise de segunda instancia.',
+                                        isTyping: false,
+                                      ),
+                                    ),
+                                  if (selectedFile != null ||
+                                      analysisDocument != null) ...<Widget>[
+                                    if (selectedFile != null)
+                                      _animatedEntry(
+                                        Builder(
+                                          builder: (BuildContext context) {
+                                            final int fileSize = selectedFile
+                                                .lengthSync();
+                                            final String fileSizeLabel =
+                                                isUploading
+                                                ? progress == null
+                                                      ? 'Enviando arquivo...'
+                                                      : 'Enviando ${(progress * 100).toStringAsFixed(0)}%'
+                                                : presenter.formatFileSize(
+                                                    fileSize,
+                                                  );
+
+                                            return DocumentFileBubble(
+                                              fileName: presenter.fileName(
+                                                selectedFile,
+                                              ),
+                                              fileSizeLabel: fileSizeLabel,
+                                              isLoading: isUploading,
+                                            );
+                                          },
+                                        ),
+                                      )
+                                    else
+                                      _animatedEntry(
+                                        DocumentFileBubble(
+                                          fileName: analysisDocument!.name,
+                                          fileSizeLabel: 'Documento enviado',
+                                        ),
+                                      ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  if (showProcessing) ...<Widget>[
+                                    _animatedEntry(
+                                      ProcessingBubble(
+                                        message:
+                                            status ==
+                                                AnalysisStatusDto
+                                                    .extractingPetition
+                                            ? 'Extraindo a peticao inicial dos autos enviados.'
+                                            : 'Analisando o caso e estruturando a sintese juridica.',
+                                        footerText:
+                                            'Isso pode levar alguns instantes.',
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  if (showPetitionNotFound) ...<Widget>[
+                                    _animatedEntry(
+                                      DocumentPiecesNotFoundState(
+                                        message:
+                                            'Não encontramos a petição inicial no PDF enviado. Reenvie um documento com texto selecionável e com a petição completa.',
+                                        onResendDocument: () {
+                                          unawaited(presenter.resendDocument());
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  if (showCourtDocumentPiecesNotFound) ...<
+                                    Widget
+                                  >[
+                                    _animatedEntry(
+                                      DocumentPiecesNotFoundState(
+                                        message:
+                                            'Não encontramos peças processuais utilizáveis no PDF enviado para prosseguir com a análise. Reenvie um documento com as peças completas e com texto selecionável.',
+                                        onResendDocument: () {
+                                          unawaited(presenter.resendDocument());
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  if (showSummary) ...<Widget>[
+                                    const SizedBox(height: 12),
+                                    _animatedEntry(
+                                      CaseSummaryCard(summary: summary),
+                                    ),
+                                    Watch((BuildContext context) {
+                                      final bool canReanalyze = presenter
+                                          .canRegenerateSummary
+                                          .watch(context);
+
+                                      if (!canReanalyze) {
+                                        return const SizedBox.shrink();
+                                      }
+
+                                      return Align(
+                                        alignment: Alignment.centerRight,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 10,
+                                          ),
+                                          child: TextButton.icon(
+                                            onPressed: () {
+                                              unawaited(
+                                                presenter.reanalyzeCase(),
+                                              );
+                                            },
+                                            icon: const Icon(
+                                              Icons.refresh,
+                                              size: 16,
+                                            ),
+                                            label: const Text(
+                                              'Regerar análise do processo',
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                  if (showDecisionCard) ...<Widget>[
+                                    const SizedBox(height: 12),
+                                    _animatedEntry(
+                                      SecondInstanceDecisionCard(
+                                        decision: decision,
+                                        isLoading: isSubmittingDecision,
+                                        onPressed: canEditDecision
+                                            ? () {
+                                                unawaited(
+                                                  _showDecisionDialog(
+                                                    context,
+                                                    presenter,
+                                                  ),
+                                                );
+                                              }
+                                            : null,
+                                      ),
+                                    ),
+                                  ],
+                                  if (showPrecedents) ...<Widget>[
+                                    const SizedBox(height: 12),
+                                    Watch((BuildContext context) {
+                                      final List<AnalysisPrecedentDto>
+                                      chosenPrecedents =
+                                          precedentsBubblePresenter!
+                                              .chosenPrecedents
+                                              .watch(context);
+
+                                      _syncChosenPrecedentsIfNeeded(
+                                        presenter,
+                                        chosenPrecedents,
+                                      );
+
+                                      return const SizedBox.shrink();
+                                    }),
+                                    _animatedEntry(
+                                      AnalysisPrecedentsBubble(
+                                        analysisId: widget.analysisId,
+                                        analysisStatus: status,
+                                        onPrecedentsReady:
+                                            presenter.markPrecedentsReady,
+                                        onPrecedentTap:
+                                            (AnalysisPrecedentDto precedent) {
+                                              unawaited(
+                                                _showPrecedentDialog(
+                                                  context,
+                                                  precedent,
+                                                ),
+                                              );
+                                            },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  if (showDraftProcessing) ...<Widget>[
+                                    _animatedEntry(
+                                      const GenerateJudgmentDraftCard(),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  if (showDraft) ...<Widget>[
+                                    _animatedEntry(
+                                      JudgmentDraftCard(
+                                        analysisId: widget.analysisId,
+                                        draft: draft,
+                                        onDraftUpdated: presenter
+                                            .updateJudgmentDraftLocally,
+                                        onRegenerate: () {
+                                          return _showRegenerateJudgmentDraftDialog(
+                                            context,
+                                            presenter,
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  if (generalError != null &&
+                                      generalError.isNotEmpty)
+                                    _animatedEntry(
+                                      MessageBox(
+                                        message: generalError,
+                                        color: tokens.danger,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            }),
+                          ),
+                        ),
+                        Watch((BuildContext context) {
+                          final bool canAnalyze = presenter.canAnalyzeCase
+                              .watch(context);
+                          final summary = presenter.caseSummary.watch(context);
+                          final bool canSearch = presenter.canSearchPrecedents
+                              .watch(context);
+                          final bool canGenerate = presenter
+                              .canGenerateJudgmentDraft
+                              .watch(context);
+                          final bool canRegenerate = presenter
+                              .canRegenerateJudgmentDraft
+                              .watch(context);
+                          final bool precedentsReady = presenter.precedentsReady
+                              .watch(context);
+                          final bool hasChosenPrecedents = presenter
+                              .hasChosenPrecedents
+                              .watch(context);
+                          final bool shouldShowSearchDecisionHelper = presenter
+                              .shouldShowSearchDecisionHelper
+                              .watch(context);
+                          final bool canPick = presenter.canPickDocument.watch(
+                            context,
+                          );
+                          final bool isUploading = presenter.isUploading.watch(
+                            context,
+                          );
+                          final AnalysisStatusDto status = presenter.status
+                              .watch(context);
+                          final bool isManaging = presenter.isManagingAnalysis
+                              .watch(context);
+                          final bool isSearchingPrecedents =
+                              status == AnalysisStatusDto.searchingPrecedents;
+                          final bool showPrimaryAction =
+                              status != AnalysisStatusDto.waitingDocumentUpload;
+                          final bool showFileAction =
+                              !isUploading &&
+                              (status ==
+                                      AnalysisStatusDto.waitingDocumentUpload ||
+                                  status ==
+                                      AnalysisStatusDto.documentUploaded ||
+                                  status == AnalysisStatusDto.failed ||
+                                  status ==
+                                      AnalysisStatusDto.petitionNotFound ||
+                                  status ==
+                                      AnalysisStatusDto
+                                          .courtDocumentPiecesNotFound);
+                          final bool shouldReplaceDocument =
+                              status == AnalysisStatusDto.documentUploaded ||
+                              status == AnalysisStatusDto.failed;
+                          final String fileActionLabel = shouldReplaceDocument
+                              ? 'Enviar outro documento'
+                              : 'Selecionar processo';
+                          final bool hasPrimaryAction =
+                              canRegenerate ||
+                              canGenerate ||
+                              canSearch ||
+                              canAnalyze;
+                          final bool shouldShowChoosePrecedentHelper =
+                              precedentsReady &&
+                              !hasChosenPrecedents &&
+                              !canGenerate &&
+                              !canRegenerate;
+
+                          return AnalysisActionBar(
+                            showFileAction: showFileAction,
+                            fileActionLabel: fileActionLabel,
+                            onFileAction: canPick
+                                ? () {
+                                    if (shouldReplaceDocument) {
+                                      unawaited(presenter.resendDocument());
+                                      return;
+                                    }
+
+                                    unawaited(presenter.pickDocument());
+                                  }
+                                : null,
+                            primaryActionLabel: presenter.primaryActionLabel
+                                .watch(context),
+                            showPrimaryAction: showPrimaryAction,
+                            onPrimaryAction: hasPrimaryAction
+                                ? () {
+                                    if (canRegenerate) {
+                                      unawaited(
+                                        _showRegenerateJudgmentDraftDialog(
+                                          context,
+                                          presenter,
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    if (canGenerate) {
+                                      unawaited(
+                                        presenter.requestJudgmentDraft(),
+                                      );
+                                      _scheduleJumpToBottom();
+                                      return;
+                                    }
+
+                                    if (status == AnalysisStatusDto.failed) {
+                                      if (summary != null) {
+                                        final AnalysisPrecedentsBubblePresenter
+                                        precedentsPresenter = ref.read(
+                                          analysisPrecedentsBubblePresenterProvider(
+                                            widget.analysisId,
+                                          ),
+                                        );
+                                        presenter.markPrecedentsSearchStarted();
+                                        unawaited(precedentsPresenter.retry());
+                                        _scheduleJumpToBottom();
+                                        return;
+                                      }
+
+                                      if (canAnalyze) {
+                                        unawaited(presenter.analyzeCase());
+                                        _scheduleJumpToBottom();
+                                        return;
+                                      }
+                                    }
+
+                                    if (canSearch) {
+                                      final AnalysisPrecedentsBubblePresenter
+                                      precedentsPresenter = ref.read(
+                                        analysisPrecedentsBubblePresenterProvider(
+                                          widget.analysisId,
+                                        ),
+                                      );
+                                      presenter.markPrecedentsSearchStarted();
+                                      unawaited(precedentsPresenter.retry());
+                                      _scheduleJumpToBottom();
+                                      return;
+                                    }
+
+                                    if (canAnalyze) {
+                                      unawaited(presenter.analyzeCase());
+                                      _scheduleJumpToBottom();
+                                      return;
+                                    }
+                                  }
+                                : null,
+                            isPrimaryBusy:
+                                isUploading ||
+                                isManaging ||
+                                isSearchingPrecedents,
+                            helperText: shouldShowChoosePrecedentHelper
+                                ? 'É necessário marcar pelo menos um precedente como escolhido para gerar a minuta.'
+                                : shouldShowSearchDecisionHelper
+                                ? 'Descreva a orientação da decisão para liberar a busca de precedentes.'
+                                : showFileAction
+                                ? 'Somente PDF com ate 100MB. O processamento pode levar alguns minutos.'
+                                : null,
+                          );
+                        }),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

@@ -11,6 +11,7 @@ import 'package:animus/core/intake/dtos/analysis_precedent_dto.dart';
 import 'package:animus/core/intake/dtos/analysis_status_dto.dart';
 import 'package:animus/core/intake/dtos/case_summary_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_analysis_report_dto.dart';
+import 'package:animus/core/intake/dtos/second_instance_decision_dto.dart';
 import 'package:animus/core/intake/dtos/second_instance_judgment_draft_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
 import 'package:animus/core/shared/interfaces/pdf_driver.dart';
@@ -55,6 +56,8 @@ class SecondInstanceAnalysisScreenPresenter {
   final Signal<bool> isUploading = signal<bool>(false);
   final Signal<double?> uploadProgress = signal<double?>(null);
   final Signal<CaseSummaryDto?> caseSummary = signal<CaseSummaryDto?>(null);
+  final Signal<SecondInstanceDecisionDto?> decision =
+      signal<SecondInstanceDecisionDto?>(null);
   final Signal<SecondInstanceJudgmentDraftDto?> judgmentDraft =
       signal<SecondInstanceJudgmentDraftDto?>(null);
   final Signal<String?> generalError = signal<String?>(null);
@@ -62,6 +65,7 @@ class SecondInstanceAnalysisScreenPresenter {
   final Signal<bool> isArchived = signal<bool>(false);
   final Signal<bool> isManagingAnalysis = signal<bool>(false);
   final Signal<bool> isExportingReport = signal<bool>(false);
+  final Signal<bool> isSubmittingDecision = signal<bool>(false);
   final Signal<bool> precedentsReady = signal<bool>(false);
   final Signal<bool> hasChosenPrecedents = signal<bool>(false);
 
@@ -101,8 +105,20 @@ class SecondInstanceAnalysisScreenPresenter {
     return !isUploading.value &&
         !isManagingAnalysis.value &&
         !isExportingReport.value &&
-        status.value == AnalysisStatusDto.caseAnalyzed &&
-        caseSummary.value != null;
+        caseSummary.value != null &&
+        decision.value != null &&
+        _canSearchPrecedentsAtStatus(status.value);
+  });
+
+  late final ReadonlySignal<bool> canEditDecision = computed(() {
+    return !isSubmittingDecision.value &&
+        _hasReachedDecisionEditingStatus(status.value);
+  });
+
+  late final ReadonlySignal<bool> shouldShowSearchDecisionHelper = computed(() {
+    return caseSummary.value != null &&
+        decision.value == null &&
+        _canSearchPrecedentsAtStatus(status.value);
   });
 
   late final ReadonlySignal<bool> canGenerateJudgmentDraft = computed(() {
@@ -181,7 +197,8 @@ class SecondInstanceAnalysisScreenPresenter {
       return 'Gerar minuta';
     }
 
-    if (canSearchPrecedents.value) {
+    if (caseSummary.value != null &&
+        _canSearchPrecedentsAtStatus(status.value)) {
       return 'Buscar precedentes';
     }
 
@@ -240,6 +257,13 @@ class SecondInstanceAnalysisScreenPresenter {
 
     if (_shouldLoadSummary(analysis.status)) {
       await _loadCaseSummary();
+    }
+
+    if (_shouldLoadDecision(analysis.status)) {
+      final bool didLoadDecision = await _loadDecision();
+      if (_isDisposed || !didLoadDecision) {
+        return;
+      }
     }
 
     if (_shouldResumeCasePolling(analysis.status)) {
@@ -331,6 +355,54 @@ class SecondInstanceAnalysisScreenPresenter {
     precedentsReady.value = false;
     status.value = AnalysisStatusDto.documentUploaded;
     await analyzeCase();
+  }
+
+  void updateJudgmentDraftLocally(SecondInstanceJudgmentDraftDto dto) {
+    if (_isDisposed) {
+      return;
+    }
+
+    judgmentDraft.value = dto;
+  }
+
+  Future<String?> createDecision(String description) async {
+    if (!canEditDecision.value) {
+      return failedMessage;
+    }
+
+    final String normalizedDescription = description.trim();
+    if (normalizedDescription.isEmpty) {
+      return 'Descreva a decisão antes de continuar.';
+    }
+
+    isSubmittingDecision.value = true;
+
+    try {
+      final RestResponse<SecondInstanceDecisionDto> response =
+          await _intakeService.createSecondInstanceDecision(
+            analysisId: analysisId,
+            description: normalizedDescription,
+          );
+
+      if (_isDisposed) {
+        return failedMessage;
+      }
+
+      if (response.isFailure) {
+        return response.errorMessage;
+      }
+
+      decision.value = response.body;
+      if (status.value == AnalysisStatusDto.caseAnalyzed) {
+        status.value = AnalysisStatusDto.decisionSubmitted;
+      }
+      generalError.value = null;
+      return null;
+    } finally {
+      if (!_isDisposed) {
+        isSubmittingDecision.value = false;
+      }
+    }
   }
 
   Future<void> requestJudgmentDraft({bool force = false}) async {
@@ -601,18 +673,22 @@ class SecondInstanceAnalysisScreenPresenter {
     isUploading.dispose();
     uploadProgress.dispose();
     caseSummary.dispose();
+    decision.dispose();
     judgmentDraft.dispose();
     generalError.dispose();
     analysisName.dispose();
     isArchived.dispose();
     isManagingAnalysis.dispose();
     isExportingReport.dispose();
+    isSubmittingDecision.dispose();
     precedentsReady.dispose();
     hasChosenPrecedents.dispose();
     canPickDocument.dispose();
     canAnalyzeCase.dispose();
     canRegenerateSummary.dispose();
     canSearchPrecedents.dispose();
+    canEditDecision.dispose();
+    shouldShowSearchDecisionHelper.dispose();
     canGenerateJudgmentDraft.dispose();
     canRegenerateJudgmentDraft.dispose();
     canExportReport.dispose();
@@ -652,6 +728,7 @@ class SecondInstanceAnalysisScreenPresenter {
       analysis: report.analysis,
       document: report.document,
       caseSummary: report.caseSummary,
+      decision: report.decision,
       precedents: report.precedents,
       judgmentDraft: currentDraft,
     );
@@ -931,14 +1008,14 @@ class SecondInstanceAnalysisScreenPresenter {
     }
 
     _pendingUploadDocumentFilePath = null;
-    final RestResponse<AnalysisStatusDto> response = await _intakeService
-        .deleteAnalysisDocument(analysisId: analysisId, filePath: filePath);
+    final RestResponse<void> response = await _intakeService
+        .removeAnalysisDocument(analysisId: analysisId, filePath: filePath);
 
     if (!updateLocalStatus || _isDisposed || response.isFailure) {
       return;
     }
 
-    status.value = response.body;
+    status.value = AnalysisStatusDto.waitingDocumentUpload;
     analysisDocument.value = null;
     selectedFile.value = null;
   }
@@ -967,6 +1044,29 @@ class SecondInstanceAnalysisScreenPresenter {
     return request;
   }
 
+  Future<bool> _loadDecision() async {
+    final RestResponse<SecondInstanceDecisionDto> response =
+        await _intakeService.getSecondInstanceDecision(analysisId: analysisId);
+
+    if (_isDisposed) {
+      return false;
+    }
+
+    if (response.isSuccessful) {
+      decision.value = response.body;
+      generalError.value = null;
+      return true;
+    }
+
+    if (response.statusCode == HttpStatus.notFound) {
+      decision.value = null;
+      return true;
+    }
+
+    generalError.value = response.errorMessage;
+    return false;
+  }
+
   void _applyRemoteStatus(AnalysisStatusDto value) {
     if (status.value == AnalysisStatusDto.done &&
         _isJudgmentDraftLoadingStatus(value)) {
@@ -978,6 +1078,18 @@ class SecondInstanceAnalysisScreenPresenter {
 
   bool _shouldLoadSummary(AnalysisStatusDto value) {
     return value == AnalysisStatusDto.caseAnalyzed ||
+        value == AnalysisStatusDto.decisionSubmitted ||
+        value == AnalysisStatusDto.searchingPrecedents ||
+        value == AnalysisStatusDto.precedentsSearched ||
+        value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        value == AnalysisStatusDto.generatingJudgmentDraft ||
+        value == AnalysisStatusDto.generatingSynthesis ||
+        value == AnalysisStatusDto.done;
+  }
+
+  bool _shouldLoadDecision(AnalysisStatusDto value) {
+    return value == AnalysisStatusDto.decisionSubmitted ||
         value == AnalysisStatusDto.searchingPrecedents ||
         value == AnalysisStatusDto.precedentsSearched ||
         value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
@@ -1011,6 +1123,24 @@ class SecondInstanceAnalysisScreenPresenter {
         value == AnalysisStatusDto.generatingJudgmentDraft ||
         value == AnalysisStatusDto.generatingSynthesis ||
         value == AnalysisStatusDto.done;
+  }
+
+  bool _hasReachedDecisionEditingStatus(AnalysisStatusDto value) {
+    return value == AnalysisStatusDto.caseAnalyzed ||
+        value == AnalysisStatusDto.decisionSubmitted ||
+        value == AnalysisStatusDto.searchingPrecedents ||
+        value == AnalysisStatusDto.precedentsSearched ||
+        value == AnalysisStatusDto.analyzingPrecedentsSimilarity ||
+        value == AnalysisStatusDto.analyzingPrecedentsApplicability ||
+        value == AnalysisStatusDto.generatingJudgmentDraft ||
+        value == AnalysisStatusDto.generatingSynthesis ||
+        value == AnalysisStatusDto.done ||
+        value == AnalysisStatusDto.failed;
+  }
+
+  bool _canSearchPrecedentsAtStatus(AnalysisStatusDto value) {
+    return value == AnalysisStatusDto.caseAnalyzed ||
+        value == AnalysisStatusDto.decisionSubmitted;
   }
 
   bool _isJudgmentDraftPendingStatus(AnalysisStatusDto value) {

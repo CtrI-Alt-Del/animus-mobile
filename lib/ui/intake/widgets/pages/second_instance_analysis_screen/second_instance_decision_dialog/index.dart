@@ -1,0 +1,3 @@
+import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/second_instance_decision_dialog/second_instance_decision_dialog_view.dart';
+
+typedef SecondInstanceDecisionDialog = SecondInstanceDecisionDialogView;

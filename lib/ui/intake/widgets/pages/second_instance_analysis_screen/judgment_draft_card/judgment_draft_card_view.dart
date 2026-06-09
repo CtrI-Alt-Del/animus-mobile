@@ -8,11 +8,15 @@ import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/j
 import 'package:animus/ui/intake/widgets/pages/second_instance_analysis_screen/judgment_draft_card/preview_section/index.dart';
 
 class JudgmentDraftCardView extends StatelessWidget {
+  final String analysisId;
   final SecondInstanceJudgmentDraftDto draft;
+  final void Function(SecondInstanceJudgmentDraftDto draft)? onDraftUpdated;
   final Future<bool> Function()? onRegenerate;
 
   const JudgmentDraftCardView({
+    required this.analysisId,
     required this.draft,
+    this.onDraftUpdated,
     this.onRegenerate,
     super.key,
   });
@@ -63,7 +67,9 @@ class JudgmentDraftCardView extends StatelessWidget {
                       MaterialPageRoute<void>(
                         builder: (BuildContext context) {
                           return JudgmentDraftDialog(
+                            analysisId: analysisId,
                             draft: draft,
+                            onDraftUpdated: onDraftUpdated,
                             onRegenerate: onRegenerate,
                           );
                         },
