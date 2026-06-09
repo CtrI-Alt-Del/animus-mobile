@@ -1,418 +1,353 @@
 ---
-description: Prompt para criar uma especificação técnica detalhada com base no PRD e na arquitetura do animus.
+title: Edição manual da minuta de petição no PetitionDraftDialog
+prd: ../prd.md
+ticket: N/A
+last_updated_at: 2026-06-05
+status: draft
 ---
 
-# Prompt: Criar Spec
+# 1. Objetivo
 
-**Objetivo:** Detalhar a implementação técnica de uma feature, fix ou
-refatoração no `animus`, atuando como um Tech Lead Sênior. O documento
-deve servir como uma ponte estritamente definida entre o PRD e o código, com
-nível de detalhe suficiente para que a implementação seja direta e sem
-ambiguidades.
-
-## Entrada
-
-- **PRD:** deve existir e estar finalizado antes de iniciar a spec.
-- **Esboço da tarefa:** descrição da feature, fix ou refatoração a implementar.
-- **Acesso à codebase:** necessário para pesquisa e validação de padrões.
-- **`screen_id` no Google Stitch** *(opcional):* quando houver impacto visual,
-  informe o ID da tela para validação de layout e hierarquia de widgets.
-
-> Se o PRD estiver ausente ou incompleto, não inicie a spec.
-> Registre a lacuna em **Pendências / Dúvidas** e use a tool `question`.
+Tornar o `PetitionDraftDialog` (atualmente `PetitionDraftModal`, renomeado por padronização com `JudgmentDraftDialog`) editável, permitindo que o advogado edite cada campo da minuta diretamente no app com salvamento automático via debounce. Cada campo de texto é um `ReactiveTextField`, campos de lista (`requests` e `precedent_citations`) são renderizados como TextFields separados com opção de adicionar/remover itens. O dialog ganha presenter próprio com `FormGroup`, debounce e indicador discreto de salvamento no header.
 
 ---
 
-## Diretrizes de Execução
-
-### 1. Pesquisa e Contextualização
-
-**1.1 Leitura obrigatória antes de escrever:**
-
-- PRD associado à spec (localizado um nível acima na árvore de documentos).
-- `documentation/architecture.md` — fluxo de dados, princípios e armadilhas.
-- `documentation/rules/rules.md` — índice de regras; leia os docs acionados
-  pelas camadas impactadas.
-
-**1.2 Identificação de camadas impactadas**
-
-Com base no PRD e no esboço da tarefa, classifique as camadas envolvidas:
-
-| Camada | Localização | Responsabilidade |
-|---|---|---|
-| `core` | `lib/core/` | DTOs, interfaces (contratos), tipos de resposta (`RestResponse`) |
-| `rest` | `lib/rest/` | Implementações HTTP, Services, Mappers (Dio + API RESTful) |
-| `drivers` | `lib/drivers/` | Adaptadores de infraestrutura (env, navegação, cache, media picker, storage) |
-| `ui` | `lib/ui/` | Widgets, telas e presenters (padrão MVP, Riverpod, Signals) |
-
-Consulte as regras específicas por camada conforme o escopo:
-
-- `documentation/rules/ui-layer-rules.md` — MVP, Material UI, Signals, Riverpod
-- `documentation/rules/core-layer-rules.md` — DTOs, interfaces, tipos de resposta
-- `documentation/rules/rest-layer-rules.md` — Services, Mappers, RestClient, Dio
-- `documentation/rules/drivers-layer-rules.md` — adaptadores de infra externos
-- `documentation/rules/code-conventions-rules.md` — nomenclatura, barrel files, organização
-
-**1.3 Mapeamento da codebase**
-
-Use **Serena** para localizar arquivos e implementações similares. Reporte:
-
-- Arquivos e módulos diretamente relacionados à feature (caminhos relativos reais)
-- Implementações análogas que devem servir de referência
-- Contratos existentes que a feature deve respeitar (interfaces, DTOs)
-- Fluxo de dados atual e onde ele precisa ser estendido ou alterado
-- Pontos de atenção: acoplamentos, riscos, arquivos que serão impactados
-- Lacunas: o que não foi encontrado e seria esperado
-
-**1.4 Layout e hierarquia visual (quando aplicável)**
-
-Se houver `screen_id` informado, use **Google Stitch** para:
-
-- Validar a hierarquia de widgets e componentes visuais
-- Identificar subwidgets que precisarão de pasta própria
-- Confirmar estados visuais (loading, error, empty, content)
-
-**1.5 Síntese e decisões**
-
-Com base na pesquisa, tome as decisões de implementação:
-
-- Defina o que será criado, modificado e removido — com justificativa baseada
-  nas evidências coletadas
-- Reutilize/estenda componentes existentes; evite duplicidade de `Presenter`,
-  `Widget`, `DTO`, `Service` e `Driver`
-- Mapeie o fluxo de dados principal da feature:
-  `View → Presenter → Provider → Interface de Serviço → Implementação REST/Driver → RestClient → API`
-- Mapeie proativamente os widgets internos da tela — não espere o widget pai
-  crescer. Qualquer seção da UI com responsabilidade própria (estado, handlers,
-  forma visual isolada) já nasce como widget interno com pasta dedicada.
-- Todo widget interno deve seguir o padrão `View + Presenter`, sendo o
-  `Presenter` opcional apenas quando o widget for puramente visual e sem estado.
-- Planeje a estrutura de pastas completa antes de detalhar cada componente.
-- Registre em **Pendências / Dúvidas** (seção 11) tudo que não teve evidência
-  suficiente para decidir
-
----
-
-### 2. Uso de Ferramentas Auxiliares
-
-- **MCP Serena:** use para localizar arquivos e implementações similares na
-  codebase. Acione sempre na fase de pesquisa.
-- **MCP Context7:** use quando houver dúvida sobre uso correto de uma biblioteca
-  específica (ex: `signals`, `go_router`, `dio`, `riverpod`,
-  `reactive_forms`). Não use para decisões de arquitetura.
-- **Google Stitch:** use quando houver `screen_id` para validar layout e
-  hierarquia visual antes de detalhar widgets.
-- **Tool `question`:** use quando houver lacunas no PRD, incongruências com a
-  codebase ou decisões críticas sem evidência suficiente. Não avance sem
-  resposta quando o impacto for alto.
-
----
-
-### 3. Qualidade e Densidade
-
-- Seja direto; prefira listas e tabelas a blocos longos de texto.
-- Use **negrito** para conceitos/decisões e `code` para termos técnicos
-  (ex: `Riverpod`, `Signals`, `GoRouter`, `Dio`, `DTO`).
-- Escreva em PT-BR; mantenha termos de programação em inglês e em `code`.
-- **Nível de detalhe esperado em métodos:** descreva a assinatura Dart (nome,
-  parâmetros tipados e retorno) e uma linha de responsabilidade. Não escreva
-  implementação — a spec define contratos, não código.
-
-  Exemplo: `Future<void> submit()` — valida o form, chama `AuthService.signIn`,
-  persiste o token via `CacheDriver` e navega para `Routes.home`; trata erros
-  de campo e exibe `generalError` em caso de falha inesperada.
-
----
-
-## Estrutura do Documento (modelo obrigatório)
-
-Use frontmatter e hierarquia de cabeçalhos sem pular níveis.
-
-### Cabeçalho (Frontmatter)
-
-```md
----
-title: <Título claro>
-prd: <caminho para o PRD referente à spec, localizado um nível acima do diretório da spec>
-ticket: <link do ticket da tarefa no Jira>
-last_updated_at: <YYYY-MM-DD>
----
-```
-
----
-
-# 1. Objetivo (Obrigatório)
-
-[Resumo claro em um parágrafo do que será entregue funcionalmente e tecnicamente.]
-
----
-
-# 2. Escopo (Obrigatório)
+# 2. Escopo
 
 ## 2.1 In-scope
 
-[Liste o que está contemplado por esta spec.]
+- Renomear `PetitionDraftModal` → `PetitionDraftDialog` (pasta, arquivos, typedef, imports)
+- Criar `PetitionDraftDialogPresenter` com `FormGroup` do `reactive_forms`, debounce e chamada ao endpoint de update
+- Adicionar método `updatePetitionDraft(...)` ao `IntakeService`
+- Implementar no `IntakeRestService`: `PUT /intake/analyses/{analysis_id}/petition-drafts` (status 200)
+- Tornar cada seção da minuta editável com `ReactiveTextField`
+- Campos de lista (`requests`, `precedent_citations`): cada item como `ReactiveTextField` separado + botões de adicionar/remover item
+- Validação: nenhum campo vazio (strings não-blank, listas não-vazias, itens não-blank)
+- Salvamento automático com debounce ao detectar mudança via `valueChanges`
+- Indicador discreto no header do dialog ("Salvo" ✓ / "Salvando..." ↻ / "Erro" ✕)
+- Criar widgets internos reutilizáveis: `DynamicListField`, `SaveStatusIndicator`
+- Atualizar `PetitionDraftCard` na screen para refletir edições ao fechar o dialog
 
 ## 2.2 Out-of-scope
 
-[Liste explicitamente o que não será tratado nesta spec.]
+- Regeneração da minuta com comentários (já existe, coberta em ANI-127)
+- Exportação DOCX (ticket separado)
+- Backend / endpoint `PUT /petition-drafts` (já implementado)
+- Edição da minuta de sentença de 2ª instância (ticket separado)
+- Testes automatizados
 
 ---
 
-# 3. Requisitos (Obrigatório)
+# 3. Requisitos
 
 ## 3.1 Funcionais
 
-[Liste os requisitos funcionais relevantes para implementação, resumidos a partir do PRD.]
+- Cada seção da minuta (`structuredFacts`, `legalGrounds`, `centralThesis`, `requests`, `precedentCitations`) deve ser editável individualmente no dialog fullscreen.
+- Campos de texto: `ReactiveTextField` multilinha.
+- Campos de lista: cada item como `TextField` separado, com botões de adicionar novo item e remover item existente.
+- Remoção de item de lista bloqueada quando restar apenas 1 item.
+- Nenhum campo pode ficar vazio — validação inline com mensagem de erro.
+- Alterações são salvas automaticamente com debounce (~2s), sem ação explícita do advogado.
+- Indicador discreto no header reflete o estado de salvamento: idle, salvando, salvo, erro.
+- Regeneração com comentários sobrescreve todas as edições manuais com aviso prévio (comportamento existente, sem mudança).
+- Ao fechar o dialog, o `PetitionDraftCard` na screen deve refletir as edições.
 
 ## 3.2 Não funcionais
 
-[Liste apenas requisitos técnicos verificáveis/mensuráveis, quando aplicável.]
-
-Categorias relevantes para o mobile (usar apenas se aplicável):
-
-- **Performance:** ex: tempo de renderização, tamanho de payload
-- **Acessibilidade:** semântica, contraste, tamanho de toque
-- **Offline/Conectividade:** comportamento sem rede
-- **Segurança:** armazenamento de tokens, dados sensíveis em cache
-- **Compatibilidade:** versão mínima de Android/iOS
-
-> Evite requisitos vagos (ex: "ser rápido"). Prefira critérios verificáveis.
+Não aplicável.
 
 ---
 
-# 4. O que já existe? (Obrigatório)
+# 4. O que já existe?
 
-[Liste recursos da codebase que serão utilizados ou impactados. Inclua apenas
-itens realmente relevantes para implementar a mudança.]
+## Core
 
-## [Nome da Camada]
+- **`PetitionDraftDto`** (`lib/core/intake/dtos/petition_draft_dto.dart`) — DTO com `analysisId`, `structuredFacts`, `legalGrounds`, `centralThesis`, `requests`, `precedentCitations`.
+- **`IntakeService`** (`lib/core/intake/interfaces/intake_service.dart`) — contrato com `getPetitionDraft(...)`. Não possui `updatePetitionDraft(...)` ainda.
 
-- **`NomeDaClasseOuInterface`** (`lib/camada/modulo/arquivo.dart`) — *[Breve
-  descrição do uso (ex: interface a implementar, service a chamar, DTO base).]*
+## REST
+
+- **`IntakeRestService`** (`lib/rest/services/intake_rest_service.dart`) — implementação HTTP do `IntakeService`.
+- **`PetitionDraftMapper`** (`lib/rest/mappers/intake/petition_draft_mapper.dart`) — mapper existente para `PetitionDraftDto` (snake_case ↔ camelCase).
+
+## UI
+
+- **`PetitionDraftModalView`** (`lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_modal/petition_draft_modal_view.dart`) — `StatelessWidget` somente leitura. Renderiza `Scaffold` fullscreen com `_buildSection` (texto) e `_buildListSection` (listas). Props: `draft: PetitionDraftDto`, `onRegenerate: Future<bool> Function()?`.
+- **`PetitionDraftModal` typedef** (`lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_modal/index.dart`) — `typedef PetitionDraftModal = PetitionDraftModalView`.
+- **`PetitionDraftCardView`** (`lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_card/petition_draft_card_view.dart`) — card visual com preview truncado e botão "Ver minuta" que abre o dialog.
+- **`CaseAssessmentAnalysisScreenView`** (`lib/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_view.dart`) — view da tela; método `_showPetitionDraftModal(...)` abre o dialog via `Navigator.push` com `fullscreenDialog: true`.
+- **`CaseAssessmentAnalysisScreenPresenter`** (`lib/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_presenter.dart`) — presenter da tela; possui `petitionDraft: Signal<PetitionDraftDto?>` e `_tryLoadPetitionDraft()`.
+- **`JudgmentDraftDialogView`** (`lib/ui/intake/widgets/pages/second_instance_analysis_screen/judgment_draft_dialog/judgment_draft_dialog_view.dart`) — referência de padrão visual para o dialog editável; usa `DraftSection` widget para cada seção.
 
 ---
 
-# 5. O que deve ser criado? (Depende da tarefa)
-
-[Descreva novos componentes dividindo por camadas. Para cada arquivo novo,
-detalhe e marque explicitamente como **novo arquivo**.]
-
-> Se uma camada não se aplicar, **não inclua ela na spec**.
-
-## Camada Core (DTOs)
-
-- **Localização:** `lib/core/<modulo>/dtos/` (**novo arquivo** se aplicável)
-- **Atributos:** propriedades com tipos Dart (`final`)
-- **Factory `fromJson` (se aplicável):** assinatura e campos mapeados
+# 5. O que deve ser criado?
 
 ## Camada Core (Interfaces / Contratos)
 
-- **Localização:** `lib/core/<modulo>/interfaces/` (**novo arquivo** se aplicável)
-- **Métodos:** assinatura Dart com tipos e uma linha de responsabilidade
+- **Arquivo:** `lib/core/intake/interfaces/intake_service.dart` (**modificação**)
+- **Método novo:**
+  - `Future<RestResponse<PetitionDraftDto>> updatePetitionDraft({required String analysisId, required PetitionDraftDto draft})` — envia o draft completo para o backend via PUT e retorna o draft atualizado.
 
 ## Camada REST (Services)
 
-- **Localização:** `lib/rest/<modulo>/services/` (**novo arquivo** se aplicável)
-- **Interface implementada:** port do `core`
-- **Dependências:** `RestClient`, outros services ou drivers necessários
-- **Métodos:** assinatura com tipos e responsabilidade; retorno como
-  `RestResponse<T>` ou `Future<T>`
-
-## Camada REST (Mappers)
-
-- **Localização:** `lib/rest/<modulo>/mappers/` (**novo arquivo** se aplicável)
-- **Métodos:**
-  - `toDto(Map<String, dynamic> json) -> XxxDto` — assinatura e campos mapeados
-  - `toJson(XxxDto dto) -> Map<String, dynamic>` — se aplicável
-
-## Camada Drivers (Adaptadores)
-
-- **Localização:** `lib/drivers/<nome>-driver/<implementacao>/` (**novo arquivo** se aplicável)
-- **Interface implementada (port do `core`):** ex: `NavigationDriver`, `CacheDriver`, `MediaPickerDriver`
-- **Biblioteca/pacote utilizado:** ex: `go_router`, `shared_preferences`, `image_picker`
-- **Métodos:** assinatura com tipos e responsabilidade
+- **Arquivo:** `lib/rest/services/intake_rest_service.dart` (**modificação**)
+- **Método novo:**
+  - `Future<RestResponse<PetitionDraftDto>> updatePetitionDraft({required String analysisId, required PetitionDraftDto draft})` — chama `PUT /intake/analyses/$analysisId/petition-drafts` com body mapeado via `PetitionDraftMapper.toJson(draft)`, retorna `toResponse(response, PetitionDraftMapper.toDto)`.
 
 ## Camada UI (Presenters)
 
-- **Localização:** `lib/ui/<modulo>/widgets/<pasta>/<nome>_presenter.dart` (**novo arquivo** se aplicável)
-- **Dependências injetadas:** services e drivers consumidos (via Riverpod provider)
+### `PetitionDraftDialogPresenter`
+
+- **Localização:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_dialog/petition_draft_dialog_presenter.dart` (**novo arquivo**)
+- **Dependências injetadas:** `IntakeService`, `analysisId: String`, `initialDraft: PetitionDraftDto`
 - **Estado (`signals`):**
-  - Signals simples: `signal<T>` — nome e tipo
-  - Signals assíncronos: `futureSignal<T>` — nome e tipo
-  - Computeds: `computed<T>` — nome, tipo e lógica derivada
-- **Provider Riverpod:** nome do provider e dependências injetadas
-- **Métodos:** assinatura Dart e responsabilidade
+  - `requests: Signal<List<String>>` — inicializado com `initialDraft.requests`
+  - `precedentCitations: Signal<List<String>>` — inicializado com `initialDraft.precedentCitations`
+  - `saveStatus: Signal<SaveStatus>` — enum `idle`, `saving`, `saved`, `error`
+- **FormGroup (`reactive_forms`):**
+
+```dart
+FormGroup({
+  'structuredFacts': FormControl<String>(
+    value: initialDraft.structuredFacts,
+    validators: [Validators.required],
+  ),
+  'legalGrounds': FormControl<String>(
+    value: initialDraft.legalGrounds,
+    validators: [Validators.required],
+  ),
+  'centralThesis': FormControl<String>(
+    value: initialDraft.centralThesis,
+    validators: [Validators.required],
+  ),
+});
+```
+
+- **Provider:** `petitionDraftDialogPresenterProvider` (`Provider.autoDispose.family<PetitionDraftDialogPresenter, ({String analysisId, PetitionDraftDto initialDraft})>`)
+- **Métodos:**
+  - `void init()` — escuta `form.valueChanges` e mudanças nos signals de listas com debounce (~2s); dispara `_save()` automaticamente.
+  - `Future<void> _save()` — valida `form.valid` e listas não-vazias com itens não-blank; se válido, seta `saveStatus = saving`, monta `PetitionDraftDto` completo, chama `IntakeService.updatePetitionDraft(...)`, seta `saveStatus = saved`; se falha, seta `saveStatus = error`.
+  - `void addRequest()` — adiciona string vazia à lista `requests`.
+  - `void removeRequest(int index)` — remove item no índice (bloqueado se `requests.length == 1`).
+  - `void updateRequest(int index, String value)` — atualiza item no índice.
+  - `void addPrecedentCitation()` — adiciona string vazia à lista `precedentCitations`.
+  - `void removePrecedentCitation(int index)` — remove item no índice (bloqueado se `precedentCitations.length == 1`).
+  - `void updatePrecedentCitation(int index, String value)` — atualiza item no índice.
+  - `PetitionDraftDto get currentDraft` — monta o `PetitionDraftDto` a partir do estado atual do form + listas.
+  - `void dispose()` — cancela subscriptions do debounce.
 
 ## Camada UI (Views)
 
-- **Localização:** `lib/ui/<modulo>/widgets/<pasta>/<nome>_view.dart` (**novo arquivo** se aplicável)
-- **Base class:** `ConsumerWidget` | `StatelessWidget`
-- **Props:** parâmetros recebidos com tipos
-- **Bibliotecas de UI:** ex: `flutter_riverpod`, `signals_flutter`, `reactive_forms`
-- **Estados visuais** *(quando aplicável):* Loading, Error, Empty, Content
+### `PetitionDraftDialogView`
+
+- **Localização:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_dialog/petition_draft_dialog_view.dart` (**substituição de `petition_draft_modal_view.dart`**)
+- **Base class:** `ConsumerStatefulWidget`
+- **Props:** `final String analysisId`, `final PetitionDraftDto initialDraft`, `final Future<bool> Function()? onRegenerate`
+- **Bibliotecas de UI:** `flutter_riverpod`, `signals_flutter`, `reactive_forms`
+- **Estados visuais:**
+  - **Content:** formulário editável com todas as seções + `SaveStatusIndicator` no header
+  - **Error de save:** `SaveStatusIndicator` exibe "Erro ao salvar"; formulário permanece editável
 
 ## Camada UI (Widgets Internos)
 
-> Para cada widget interno, detalhe separadamente. Widgets internos devem ser
-> planejados proativamente — não apenas quando o widget pai crescer demais.
-> Qualquer seção da tela com responsabilidade própria já nasce como widget
-> interno com pasta dedicada.
+### `DynamicListField`
 
-> **Padrão obrigatório:** todo widget interno deve ter `*_view.dart`. O
-> `*_presenter.dart` é obrigatório quando houver estado, handlers ou lógica;
-> opcional apenas em widgets puramente visuais sem comportamento.
+- **Localização:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_dialog/dynamic_list_field/` (**novo arquivo**)
+- **Arquivos:** `index.dart`, `dynamic_list_field_view.dart`
+- **Tipo:** `View only`
+- **Props:**
+  - `final List<String> items`
+  - `final ValueChanged<int> onRemove`
+  - `final void Function(int index, String value) onUpdate`
+  - `final VoidCallback onAdd`
+  - `final String addLabel` — ex: "Adicionar pedido"
+  - `final bool canRemove` — `true` se `items.length > 1`
+- **Responsabilidade:** renderiza N `TextField` verticais, cada um com botão de remover (ícone X, desabilitado se `canRemove == false`). Botão "Adicionar" no final da lista. Validação inline: borda de erro se o item estiver vazio.
 
-- **Localização:** `lib/ui/<modulo>/widgets/<tela>/<componente>/` (**novo arquivo**)
-- **Tipo:** `View only` | `View + Presenter` *(Presenter obrigatório se houver estado ou lógica)*
-- **Props:** parâmetros recebidos com tipos
-- **Responsabilidade:** o que renderiza ou orquestra
+### `SaveStatusIndicator`
+
+- **Localização:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_dialog/save_status_indicator/` (**novo arquivo**)
+- **Arquivos:** `index.dart`, `save_status_indicator_view.dart`
+- **Tipo:** `View only`
+- **Props:** `final SaveStatus status`
+- **Responsabilidade:** ícone discreto no `AppBar`:
+  - `idle` — não exibe nada
+  - `saving` — `SizedBox(16x16)` com `CircularProgressIndicator` + texto "Salvando..."
+  - `saved` — ícone ✓ com texto "Salvo" (desaparece após ~3s via `Timer`)
+  - `error` — ícone ✕ com texto "Erro ao salvar" em `tokens.danger`
 
 ## Camada UI (Barrel Files / `index.dart`)
 
-- **Localização:** `lib/ui/<modulo>/widgets/<pasta>/index.dart` (**novo arquivo** se aplicável)
-- **`typedef` exportado:** ex: `typedef SignInScreen = SignInScreenView`
-- **Widgets internos exportados:** lista de subwidgets encapsulados
+### `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_dialog/index.dart`
 
-## Camada UI (Providers Riverpod — se isolados)
+- **Localização:** (**substituição de `petition_draft_modal/index.dart`**)
+- **`typedef` exportado:** `typedef PetitionDraftDialog = PetitionDraftDialogView`
+- **Exports:** `PetitionDraftDialogPresenter`, `petitionDraftDialogPresenterProvider`
 
-- **Localização:** onde declarado (presenter ou arquivo dedicado)
-- **Nome do provider:** ex: `signInScreenPresenterProvider`
-- **Tipo:** `Provider`, `AutoDisposeProvider`, `ChangeNotifierProvider`, etc.
-- **Dependências:** providers consumidos via `ref.watch` / `ref.read`
-
-## Rotas (`go_router`) — se aplicável
-
-- **Localização:** `lib/router.dart` ou arquivo de rotas do módulo
-- **Caminho da rota:** ex: `/horses/:id`
-- **Widget principal:** widget de tela registrado na rota
-- **Guards / redirecionamentos:** lógica de proteção de rota, se houver
-
-## Estrutura de Pastas (Obrigatório quando há widgets internos)
-
-[Quando a feature criar widgets internos, inclua um diagrama ASCII com a
-estrutura completa de pastas e arquivos.]
+## Estrutura de Pastas
 
 ```text
-lib/ui/<modulo>/widgets/screens/<tela>/
-  index.dart
-  <tela>_screen_view.dart
-  <tela>_screen_presenter.dart       ← orquestra apenas o fluxo de entrada da rota
-  <componente_interno>/              ← toda seção com responsabilidade própria vira widget interno
-    index.dart
-    <componente_interno>_view.dart
-    <componente_interno>_presenter.dart  ← obrigatório se houver estado, handlers ou lógica
-  <outro_componente>/                ← widgets puramente visuais podem ter apenas _view.dart
-    index.dart
-    <outro_componente>_view.dart
+lib/ui/intake/widgets/pages/case_assessment_analysis_screen/
+  petition_draft_dialog/                            ← renomeado de petition_draft_modal/
+    index.dart                                      ← atualizado
+    petition_draft_dialog_view.dart                  ← substituição de petition_draft_modal_view.dart
+    petition_draft_dialog_presenter.dart             ← NOVO
+    dynamic_list_field/                             ← NOVO
+      index.dart
+      dynamic_list_field_view.dart
+    save_status_indicator/                          ← NOVO
+      index.dart
+      save_status_indicator_view.dart
 ```
 
 ---
 
-# 6. O que deve ser modificado? (Depende da tarefa)
+# 6. O que deve ser modificado?
 
-[Descreva alterações em código existente.]
+## Camada Core
 
-## [Nome da Camada]
+- **Arquivo:** `lib/core/intake/interfaces/intake_service.dart`
+- **Mudança:** adicionar contrato `updatePetitionDraft(...)`.
+- **Justificativa:** presenter consome interface do `core`, não `RestClient`.
 
-- **Arquivo:** `lib/camada/modulo/arquivo.dart`
-- **Mudança:** [Descreva a mudança específica]
-- **Justificativa:** [Por que a mudança é necessária]
+## Camada REST
 
-> Se não houver alterações em código existente, escrever: **Não aplicável**.
+- **Arquivo:** `lib/rest/services/intake_rest_service.dart`
+- **Mudança:** implementar `updatePetitionDraft(...)` — `PUT /intake/analyses/$analysisId/petition-drafts`.
+- **Justificativa:** endpoint já disponível no backend.
 
----
+## Camada UI
 
-# 7. O que deve ser removido? (Depende da tarefa)
+- **Arquivo:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_view.dart`
+- **Mudança:** renomear referência de `PetitionDraftModal` para `PetitionDraftDialog`; atualizar `_showPetitionDraftModal` para `_showPetitionDraftDialog`; passar `analysisId` como prop adicional; ao retorno do `Navigator.pop`, chamar `presenter._tryLoadPetitionDraft()` para recarregar o draft editado.
+- **Justificativa:** o dialog agora edita o draft; ao fechar, o card precisa refletir as mudanças.
 
-[Descreva remoções de código legado, widgets obsoletos ou limpeza de
-refatoração.]
+- **Arquivo:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/case_assessment_analysis_screen_presenter.dart`
+- **Mudança:** expor `reloadPetitionDraft()` como método público (wrapper de `_tryLoadPetitionDraft`) para que a view chame ao fechar o dialog.
+- **Justificativa:** `_tryLoadPetitionDraft` é privado; a view precisa de acesso público.
 
-## [Nome da Camada]
-
-- **Arquivo:** `lib/camada/modulo/arquivo.dart`
-- **Motivo da remoção:** [Por que pode ser removido]
-- **Impacto esperado:** [Dependências que precisam ser atualizadas]
-
-> Se não houver remoções, escrever: **Não aplicável**.
-
----
-
-# 8. Decisões Técnicas e Trade-offs (Obrigatório)
-
-[Registre decisões relevantes para revisão futura.]
-
-Para cada decisão importante:
-
-- **Decisão**
-- **Alternativas consideradas**
-- **Motivo da escolha**
-- **Impactos / trade-offs**
+- **Arquivo:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_card/petition_draft_card_view.dart`
+- **Mudança:** atualizar referência de `PetitionDraftModal` para `PetitionDraftDialog` nos imports.
+- **Justificativa:** rename de consistência.
 
 ---
 
-# 9. Diagramas e Referências (Obrigatório)
+# 7. O que deve ser removido?
 
-- **Fluxo de dados:** diagrama em notação ASCII mostrando a interação entre
-  camadas para o fluxo principal da feature. Ex:
+## Camada UI
+
+- **Arquivo:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_modal/petition_draft_modal_view.dart`
+- **Motivo da remoção:** substituído por `petition_draft_dialog/petition_draft_dialog_view.dart`.
+- **Impacto esperado:** atualizar imports em `case_assessment_analysis_screen_view.dart` e `petition_draft_card_view.dart`.
+
+- **Arquivo:** `lib/ui/intake/widgets/pages/case_assessment_analysis_screen/petition_draft_modal/index.dart`
+- **Motivo da remoção:** substituído por `petition_draft_dialog/index.dart`.
+- **Impacto esperado:** atualizar typedef de `PetitionDraftModal` para `PetitionDraftDialog`.
+
+---
+
+# 8. Decisões Técnicas e Trade-offs
+
+## 8.1 `reactive_forms` para campos de texto, signals para listas
+
+- **Decisão:** usar `FormGroup` do `reactive_forms` para os 3 campos de texto (`structuredFacts`, `legalGrounds`, `centralThesis`) e `Signal<List<String>>` para os 2 campos de lista (`requests`, `precedentCitations`).
+- **Alternativas consideradas:** (a) `reactive_forms` para tudo, incluindo listas com `FormArray`; (b) signals para tudo, sem `reactive_forms`.
+- **Motivo da escolha:** `FormArray` do `reactive_forms` adiciona complexidade para listas dinâmicas com add/remove; signals são mais diretos para listas mutáveis. Os campos de texto se beneficiam de `validationMessages` declarativos do `reactive_forms`. Abordagem híbrida equilibra simplicidade e validação.
+- **Impactos / trade-offs:** o debounce precisa escutar dois streams (form.valueChanges + signal effects), mas a lógica no presenter permanece enxuta.
+
+## 8.2 PUT com draft completo em vez de PATCH parcial
+
+- **Decisão:** o mobile envia o draft inteiro a cada save (debounce), não apenas o campo alterado.
+- **Alternativas consideradas:** PATCH parcial por campo.
+- **Motivo da escolha:** alinhado com o contrato do backend (`PUT` com `PetitionDraftDto` completo); simplifica o presenter (não precisa rastrear qual campo mudou); `PetitionDraftsRepository.replace(...)` já faz update completo.
+- **Impactos / trade-offs:** payload maior por request, mas o draft tem ~5 campos — overhead negligível.
+
+## 8.3 Rename `PetitionDraftModal` → `PetitionDraftDialog`
+
+- **Decisão:** renomear para alinhar com `JudgmentDraftDialog` da 2ª instância.
+- **Alternativas consideradas:** manter `Modal`.
+- **Motivo da escolha:** padronização de nomenclatura — ambos são fullscreen dialogs via `Navigator.push(fullscreenDialog: true)`.
+- **Impactos / trade-offs:** rename de pasta, arquivos, typedef e imports; impacto localizado na tela de Case Assessment.
+
+## 8.4 Presenter próprio no dialog
+
+- **Decisão:** `PetitionDraftDialogPresenter` separado do `CaseAssessmentAnalysisScreenPresenter`.
+- **Alternativas consideradas:** lógica de edição no presenter da screen.
+- **Motivo da escolha:** o dialog é fullscreen com ciclo de vida próprio (`Navigator.push/pop`); o `FormGroup`, debounce e save status são responsabilidades isoladas que não devem poluir o presenter da screen.
+- **Impactos / trade-offs:** ao fechar o dialog, a screen precisa recarregar o draft via `reloadPetitionDraft()`.
+
+---
+
+# 9. Diagramas e Referências
+
+## 9.1 Fluxo de dados
 
 ```text
-View → Presenter → presenterProvider → AuthService (interface)
-     ↓                                      ↓
-signals (isLoading, form)        AuthServiceImpl (rest)
-                                       ↓
-                                 RestClient (Dio) → API
+PetitionDraftDialogView
+  → PetitionDraftDialogPresenter
+      → petitionDraftDialogPresenterProvider
+          → form.valueChanges + signals (debounce ~2s)
+          → IntakeService.updatePetitionDraft(...)
+              → IntakeRestService
+                  → RestClient.put('/intake/analyses/$id/petition-drafts')
+          → saveStatus signal (idle → saving → saved | error)
+
+CaseAssessmentAnalysisScreenView
+  → Navigator.push(PetitionDraftDialog)
+  → await Navigator.pop
+  → presenter.reloadPetitionDraft()
+      → IntakeService.getPetitionDraft(...)
+      → petitionDraft.value = response.body
 ```
 
-- **Hierarquia de widgets (se aplicável):** diagrama ASCII mostrando a composição
-  da tela e seus subwidgets.
-- **Referências:** caminhos de arquivos similares na codebase para servir de
-  exemplo de implementação.
+## 9.2 Hierarquia de widgets
+
+```text
+PetitionDraftDialogView (ConsumerStatefulWidget)
+  Scaffold
+    AppBar
+      título "Minuta de petição"
+      SaveStatusIndicator(status: presenter.saveStatus)
+      TextButton.icon "Regerar minuta" (quando onRegenerate != null)
+    SingleChildScrollView
+      ReactiveForm(formGroup: presenter.form)
+        SectionLabel("Fatos estruturados")
+        ReactiveTextField(formControlName: 'structuredFacts', minLines: 5, maxLines: null)
+
+        SectionLabel("Fundamentos jurídicos")
+        ReactiveTextField(formControlName: 'legalGrounds', minLines: 5, maxLines: null)
+
+        SectionLabel("Tese central")
+        ReactiveTextField(formControlName: 'centralThesis', minLines: 3, maxLines: null)
+
+        SectionLabel("Pedidos")
+        Watch → DynamicListField(items: presenter.requests, ...)
+
+        SectionLabel("Citações de precedentes")
+        Watch → DynamicListField(items: presenter.precedentCitations, ...)
+```
+
+## 9.3 Referências
+
+- `lib/ui/intake/widgets/pages/second_instance_analysis_screen/judgment_draft_dialog/judgment_draft_dialog_view.dart` — referência visual do dialog fullscreen com seções (`DraftSection`).
+- `lib/ui/intake/widgets/components/regenerate_draft_dialog/regenerate_draft_dialog_view.dart` — referência de dialog com `TextField` + presenter com validação + signals.
+- `lib/ui/auth/widgets/pages/sign_up_screen/sign_up_form/sign_up_form_view.dart` — referência de `ReactiveForm` + `ReactiveTextField` + `validationMessages`.
 
 ---
 
-# 10. Pendências / Dúvidas (Quando aplicável)
+# 10. Pendências / Dúvidas
 
-[Liste perguntas em aberto, incongruências e pontos que dependem de
-confirmação.]
-
-Para cada item:
-
-- **Descrição da pendência**
-- **Impacto na implementação**
-- **Ação sugerida:** (ex: usar tool `question`, validar com produto, validar
-  com design no Stitch)
-
-> Se não houver pendências, escrever: **Sem pendências**.
+Sem pendências.
 
 ---
 
-# Restrições (Obrigatório)
+# Restrições
 
-- **Não inclua testes automatizados na spec.**
-- A `View` não deve conter lógica de negócio — toda orquestração fica no
-  `Presenter`. Se a spec violar isso, corrija antes de escrever.
-- Presenters não fazem chamadas diretas a `RestClient` — consomem sempre uma
-  interface de serviço do `core`.
-- Todos os caminhos citados devem existir no projeto **ou** estar
-  explicitamente marcados como **novo arquivo**.
-- **Não invente** arquivos, métodos, contratos, DTOs ou integrações sem
-  evidência no PRD ou na codebase.
-- Quando faltar informação suficiente, registrar em **Pendências / Dúvidas** e
-  usar a tool `question` se necessário.
-- Toda referência a código existente deve incluir caminho relativo real
-  (`lib/...`).
-- Se uma seção não se aplicar, preencher explicitamente com **Não aplicável**.
-- **Todo widget novo deve seguir o padrão `View + Presenter`.** O `Presenter`
-  é opcional apenas em widgets puramente visuais sem estado, handlers ou lógica.
-- Widgets internos devem ser planejados proativamente na spec. Não é aceitável
-  descrever uma tela como um único bloco monolítico quando há seções com
-  responsabilidade distinta.
-- O `Presenter` da `Screen` deve ser enxuto e orquestrador. Lógica específica
-  de uma seção da tela pertence ao `Presenter` do widget interno correspondente.
-- Toda widget com lógica ou subwidgets complexos deve ter pasta própria com
-  `index.dart`, `*_view.dart` e `*_presenter.dart` (quando houver estado).
-- Use componentes Flutter Material alinhados ao tema do projeto.
-- A spec deve ser consistente com os padrões da codebase (nomenclatura
-  `snake_case` para arquivos, `PascalCase` para classes, barrel files por
-  widget).
+- A `View` não contém lógica de negócio — toda orquestração fica no `Presenter`.
+- O `Presenter` consome apenas a interface `IntakeService`, nunca `RestClient` diretamente.
+- Nomes de arquivos em `snake_case`; classes em `PascalCase`; presenters, providers, métodos em `camelCase`.
+- Strings da UI em PT-BR acentuadas, alinhadas ao padrão do app.
+- Todo widget novo segue `View + Presenter`; o `Presenter` é opcional apenas em widgets puramente visuais.
+- Cada widget interno tem seu próprio `index.dart` com `typedef`.
+- Não inclua testes automatizados.

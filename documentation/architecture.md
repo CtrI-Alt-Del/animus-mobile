@@ -60,6 +60,7 @@ O Animus Mobile usa arquitetura em camadas inspirada em Clean Architecture e em 
 | **Info de build** | package_info_plus | Versao do app |
 | **Documentos PDF** | pdf | Montagem de relatorios exportaveis em memoria |
 | **Compartilhamento de PDF** | printing | Share sheet nativo para exportacao de relatorios |
+| **Compartilhamento de arquivos** | share_plus | Share sheet nativo para exportacao de DOCX e outros arquivos |
 | **Testes** | flutter_test | Suite de testes |
 | **Lint** | flutter_lints | Padroes de qualidade |
 
@@ -162,6 +163,41 @@ Quando o usuario precisa pedir ajustes em uma minuta ja gerada, o app mantem a m
 4. `IntakeRestService` encapsula `POST /intake/analyses/{analysisId}/petition-drafts/regenerate` e `POST /intake/analyses/{analysisId}/judgment-drafts/regenerate`, montando o payload `{ comments }` na borda REST.
 5. O polling existente de `getAnalysis` continua com intervalo de 3 segundos; ao chegar em `DONE`, os presenters recarregam obrigatoriamente `getPetitionDraft` ou `getSecondInstanceJudgmentDraft` para substituir a versao anterior.
 6. Em `FAILED`, a minuta anterior permanece disponivel na UI e o erro continua recuperavel por novo disparo do dialog, sem persistencia local dos comentarios.
+
+## Fluxo de Edicao Manual da Minuta de Peticao
+
+Quando a minuta de peticao ja existe no `Case Assessment`, o app permite refinamento manual mantendo a mesma separacao arquitetural entre UI, Core e REST:
+
+1. `CaseAssessmentAnalysisScreenView` abre `PetitionDraftDialog` com o draft atual e, ao fechar o fullscreen, aciona `reloadPetitionDraft()` para atualizar o `PetitionDraftCard` da tela.
+2. `PetitionDraftDialogPresenter` concentra o `FormGroup`, o estado reativo das listas (`requests` e `precedentCitations`), a validacao inline e o autosave com debounce de 2 segundos.
+3. `DynamicListFieldView` renderiza os campos repetiveis da minuta e respeita o minimo de um item por lista, enquanto `SaveStatusIndicatorView` traduz `idle`, `saving`, `saved` e `error` em feedback discreto no header.
+4. `IntakeService` publica o contrato tipado `updatePetitionDraft`, sem expor endpoint, payload HTTP ou serializacao para a UI.
+5. `IntakeRestService` encapsula `PUT /intake/analyses/{analysisId}/petition-drafts`, montando o payload `snake_case` na borda REST e devolvendo `PetitionDraftDto` tipado apos cada salvamento.
+6. Quando o usuario tenta fechar o dialog com alteracoes invalidas, o presenter bloqueia o fechamento localmente; quando ha alteracoes validas pendentes, ele faz o flush antes de liberar a saida.
+
+## Fluxo de Exportacao da Minuta de Peticao em DOCX
+
+Quando a minuta da analise inicial ja foi gerada, o app permite exportar o estado atual do texto em DOCX sem misturar esse fluxo com a exportacao do relatorio em PDF:
+
+1. `PetitionDraftDialogHeaderView` expoe a acao `Exportar minuta` no header do editor em tela cheia.
+2. `PetitionDraftDialogPresenter` valida o formulario, garante o autosave pendente e bloqueia tentativas concorrentes durante a exportacao.
+3. `IntakeService` publica o contrato tipado `exportPetitionDraft`, reutilizando `AnalysisDocumentDto` para manter consistencia com os demais contratos de documento do dominio.
+4. `IntakeRestService` encapsula `POST /intake/analyses/{analysisId}/petition-drafts/export` e traduz a resposta com `AnalysisDocumentMapper`.
+5. `FileStorageDriver` baixa o arquivo do storage remoto para um arquivo temporario local sem expor SDKs concretos para a UI.
+6. `FileShareDriver` encapsula o share sheet generico via `share_plus`, permitindo compartilhar DOCX sem acoplar a UI ao fluxo de PDF do `Printing`.
+7. O nome compartilhado segue o padrao `[Nome da analise] — Minuta.docx`, preservando o contexto visivel ao advogado.
+
+## Fluxo de Briefing no Case Assessment
+
+O fluxo de `Case Assessment` agora passa a iniciar por um briefing estruturado, mantendo a mesma separacao entre UI, Core, REST e Drivers:
+
+1. `CaseAssessmentAnalysisScreenView` exibe a entrada conversacional (`AiBubble`), o `BriefingFormCard` e a `AnalysisActionBar` como ponto de partida da analise.
+2. `BriefingFormCardPresenter` concentra validacao do `reactive_forms`, mensagens inline, carga do briefing existente e submissao do briefing tipado.
+3. `SupportDocumentsSectionPresenter` isola a selecao e o upload de anexos opcionais de apoio, reutilizando `StorageService`, `DocumentPickerDriver`, `FileStorageDriver` e `IntakeService` sem devolver essa responsabilidade ao presenter da tela.
+4. `CaseAssessmentAnalysisScreenPresenter` permanece enxuto e orquestrador: sincroniza o briefing submetido, dispara a sumarizacao, faz polling do status e preserva resumo, precedentes e minuta no restante do fluxo.
+5. `IntakeService` publica no `core` os contratos tipados de `submitCaseAssessmentBriefing` e `getCaseAssessmentBriefing`, sem expor payload remoto para a UI.
+6. `IntakeRestService` encapsula `POST /intake/analyses/{analysisId}/case-assessment-briefing` e `GET /intake/analyses/{analysisId}/case-assessment-briefing`, usando `CaseAssessmentBriefingMapper` para traduzir `snake_case` e enums do backend.
+7. O briefing nao e persistido em cache local: o estado fica restrito ao formulario em memoria e ao backend, enquanto os anexos de apoio seguem o fluxo de upload remoto ja existente.
 
 ## Fluxo da Tela de Pasta da Biblioteca
 

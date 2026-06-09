@@ -142,8 +142,6 @@ Após montar o mapa, identifique explicitamente os **gargalos do plano**: tarefa
 
 ### 8. Formato da saída (obrigatório)
 
-> ⚠️ **Regra crítica:** Não salve o plano em um arquivo `plan.md`. Responda diretamente no chat, seguindo a estrutura abaixo.
-
 O plano deve seguir **exatamente** esta estrutura:
 
 ```markdown
