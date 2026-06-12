@@ -951,14 +951,7 @@ class _SecondInstanceAnalysisScreenViewState
 
                                     if (status == AnalysisStatusDto.failed) {
                                       if (summary != null) {
-                                        final AnalysisPrecedentsBubblePresenter
-                                        precedentsPresenter = ref.read(
-                                          analysisPrecedentsBubblePresenterProvider(
-                                            widget.analysisId,
-                                          ),
-                                        );
                                         presenter.markPrecedentsSearchStarted();
-                                        unawaited(precedentsPresenter.retry());
                                         _scheduleJumpToBottom();
                                         return;
                                       }
@@ -971,14 +964,7 @@ class _SecondInstanceAnalysisScreenViewState
                                     }
 
                                     if (canSearch) {
-                                      final AnalysisPrecedentsBubblePresenter
-                                      precedentsPresenter = ref.read(
-                                        analysisPrecedentsBubblePresenterProvider(
-                                          widget.analysisId,
-                                        ),
-                                      );
                                       presenter.markPrecedentsSearchStarted();
-                                      unawaited(precedentsPresenter.retry());
                                       _scheduleJumpToBottom();
                                       return;
                                     }

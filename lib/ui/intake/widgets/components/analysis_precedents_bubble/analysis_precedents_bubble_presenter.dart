@@ -189,6 +189,13 @@ class AnalysisPrecedentsBubblePresenter {
 
     final AnalysisStatusDto? currentStatus = processingStatus.value;
 
+    if (status == AnalysisStatusDto.searchingPrecedents &&
+        (currentStatus == null ||
+            currentStatus == AnalysisStatusDto.caseAnalyzed)) {
+      _startSearchFromSyncedStatus();
+      return;
+    }
+
     if (currentStatus != null &&
         _statusOrder(status) < _statusOrder(currentStatus)) {
       return;
@@ -208,6 +215,19 @@ class AnalysisPrecedentsBubblePresenter {
     }
 
     isLoading.value = false;
+  }
+
+  void _startSearchFromSyncedStatus() {
+    final int currentFlowId = ++_flowId;
+    _stopPolling();
+    _isPollingRequestInFlight = false;
+    precedents.value = const <AnalysisPrecedentDto>[];
+    focusedPrecedent.value = null;
+    processingStatus.value = AnalysisStatusDto.searchingPrecedents;
+    generalError.value = null;
+    isLoading.value = true;
+
+    unawaited(_triggerPrecedentSearch(currentFlowId: currentFlowId));
   }
 
   void focusPrecedent(AnalysisPrecedentDto precedent) {

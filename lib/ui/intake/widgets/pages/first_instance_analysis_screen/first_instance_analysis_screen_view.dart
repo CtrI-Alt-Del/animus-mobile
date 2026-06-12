@@ -784,14 +784,7 @@ class _FirstInstanceAnalysisScreenViewState
                                 ? null
                                 : status == AnalysisStatusDto.caseAnalyzed
                                 ? () {
-                                    final AnalysisPrecedentsBubblePresenter
-                                    precedentsPresenter = ref.read(
-                                      analysisPrecedentsBubblePresenterProvider(
-                                        widget.analysisId,
-                                      ),
-                                    );
                                     presenter.confirmAndViewPrecedents();
-                                    unawaited(precedentsPresenter.retry());
                                   }
                                 : canAnalyze
                                 ? () {

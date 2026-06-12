@@ -875,14 +875,7 @@ class _CaseAssessmentAnalysisScreenViewState
                                       }
 
                                       if (summary != null) {
-                                        final AnalysisPrecedentsBubblePresenter
-                                        precedentsPresenter = ref.read(
-                                          analysisPrecedentsBubblePresenterProvider(
-                                            widget.analysisId,
-                                          ),
-                                        );
                                         presenter.confirmAndViewPrecedents();
-                                        unawaited(precedentsPresenter.retry());
                                         _scheduleJumpToBottom();
                                         return;
                                       }
@@ -896,14 +889,7 @@ class _CaseAssessmentAnalysisScreenViewState
                                     }
 
                                     if (canSearchPrecedents) {
-                                      final AnalysisPrecedentsBubblePresenter
-                                      precedentsPresenter = ref.read(
-                                        analysisPrecedentsBubblePresenterProvider(
-                                          widget.analysisId,
-                                        ),
-                                      );
                                       presenter.confirmAndViewPrecedents();
-                                      unawaited(precedentsPresenter.retry());
                                       _scheduleJumpToBottom();
                                       return;
                                     }
