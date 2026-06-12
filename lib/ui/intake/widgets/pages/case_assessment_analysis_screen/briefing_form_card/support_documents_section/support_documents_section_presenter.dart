@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:animus/core/intake/dtos/analysis_document_dto.dart';
 import 'package:animus/core/intake/interfaces/intake_service.dart';
+import 'package:animus/core/shared/responses/list_response.dart';
 import 'package:animus/core/shared/responses/rest_response.dart';
 import 'package:animus/core/storage/dtos/upload_url_dto.dart';
 import 'package:animus/core/storage/interfaces/drivers/document_picker_driver.dart';
@@ -51,6 +53,31 @@ class SupportDocumentsSectionPresenter {
        _intakeService = intakeService,
        _documentPickerDriver = documentPickerDriver,
        _fileStorageDriver = fileStorageDriver;
+
+  Future<void> load() async {
+    generalError.value = null;
+
+    final RestResponse<ListResponse<AnalysisDocumentDto>> response =
+        await _intakeService.listAnalysisDocuments(analysisId: analysisId);
+
+    if (_isDisposed) {
+      return;
+    }
+
+    if (response.isFailure) {
+      if (response.statusCode == HttpStatus.notFound) {
+        documents.value = const <AnalysisDocumentDto>[];
+        return;
+      }
+
+      generalError.value = response.errorMessage.isNotEmpty
+          ? response.errorMessage
+          : failedMessage;
+      return;
+    }
+
+    documents.value = response.body.items;
+  }
 
   Future<void> addSupportDocument() async {
     if (!canAddDocument.value) {
@@ -281,6 +308,7 @@ final supportDocumentsSectionPresenterProvider = Provider.autoDispose
             analysisId: analysisId,
           );
 
+      unawaited(presenter.load());
       ref.onDispose(presenter.dispose);
       return presenter;
     });
