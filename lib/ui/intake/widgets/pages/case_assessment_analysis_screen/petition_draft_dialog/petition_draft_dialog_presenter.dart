@@ -290,13 +290,14 @@ class PetitionDraftDialogPresenter {
           .exportPetitionDraft(analysisId: analysisId);
 
       if (response.isFailure || response.body.filePath.trim().isEmpty) {
-        generalError.value = _exportFailedMessage;
+        generalError.value = response.errorMessage;
         return false;
       }
 
       final File? file = await _fileStorageDriver.getFile(
         response.body.filePath,
       );
+
       if (file == null) {
         generalError.value = _exportFailedMessage;
         return false;
