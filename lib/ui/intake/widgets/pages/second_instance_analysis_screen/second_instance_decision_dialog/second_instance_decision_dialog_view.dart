@@ -100,7 +100,7 @@ class _SecondInstanceDecisionDialogViewState
                   ),
                   decoration: InputDecoration(
                     hintText: 'Descreva a orientação da sua decisão...',
-                    hintStyle: textTheme.bodyMedium?.copyWith(
+                    hintStyle: textTheme.bodySmall?.copyWith(
                       color: tokens.textMuted,
                       height: 1.5,
                     ),

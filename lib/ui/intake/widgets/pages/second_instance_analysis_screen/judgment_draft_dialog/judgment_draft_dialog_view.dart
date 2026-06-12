@@ -437,9 +437,11 @@ class _JudgmentDraftDialogViewState
   }) {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     return InputDecoration(
       hintText: hint,
+      hintStyle: textTheme.bodySmall?.copyWith(color: tokens.textTertiary),
       alignLabelWithHint: true,
       filled: true,
       fillColor: tokens.surfaceElevated,

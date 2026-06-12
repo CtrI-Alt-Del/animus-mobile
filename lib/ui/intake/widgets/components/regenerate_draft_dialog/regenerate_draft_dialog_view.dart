@@ -141,7 +141,7 @@ class RegenerateDraftDialogView extends ConsumerWidget {
                         decoration: InputDecoration(
                           hintText:
                               'Descreva os ajustes esperados na nova minuta.',
-                          hintStyle: textTheme.bodyMedium?.copyWith(
+                          hintStyle: textTheme.bodySmall?.copyWith(
                             color: tokens.textMuted,
                             height: 1.45,
                           ),

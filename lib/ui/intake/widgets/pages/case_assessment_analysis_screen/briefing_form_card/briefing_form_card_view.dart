@@ -278,6 +278,7 @@ class BriefingFormCardView extends ConsumerWidget {
   }) {
     final AppThemeTokens tokens =
         Theme.of(context).extension<AppThemeTokens>() ?? AppTheme.tokens;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     return InputDecoration(
       labelText: label,
@@ -285,6 +286,7 @@ class BriefingFormCardView extends ConsumerWidget {
       alignLabelWithHint: true,
       filled: true,
       fillColor: tokens.surfaceElevated,
+      hintStyle: textTheme.bodySmall?.copyWith(color: tokens.textTertiary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: tokens.borderStrong),
