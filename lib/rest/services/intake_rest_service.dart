@@ -160,6 +160,23 @@ class IntakeRestService extends Service implements IntakeService {
   }
 
   @override
+  Future<RestResponse<ListResponse<AnalysisDocumentDto>>>
+  listAnalysisDocuments({required String analysisId}) async {
+    final RestResponse<Map<String, dynamic>> response = await restClient.get(
+      '/intake/analyses/$analysisId/documents/all',
+    );
+
+    return response.mapBody<ListResponse<AnalysisDocumentDto>>((Json json) {
+      final dynamic itemsValue =
+          json['items'] ?? json['documents'] ?? json['data'];
+
+      return ListResponse<AnalysisDocumentDto>(
+        items: _toAnalysisDocuments(itemsValue ?? json),
+      );
+    });
+  }
+
+  @override
   Future<RestResponse<CaseAssessmentBriefingDto>> submitCaseAssessmentBriefing({
     required String analysisId,
     required CaseAssessmentBriefingDto briefing,
@@ -411,7 +428,7 @@ class IntakeRestService extends Service implements IntakeService {
     required String analysisId,
   }) async {
     final RestResponse<Map<String, dynamic>> response = await restClient.post(
-      '/intake/analyses/$analysisId/petition-drafts/export',
+      '/intake/analyses/$analysisId/petition-drafts/docx',
     );
 
     return response.mapBody<AnalysisDocumentDto>(AnalysisDocumentMapper.toDto);
@@ -595,6 +612,22 @@ class IntakeRestService extends Service implements IntakeService {
     return value
         .whereType<Json>()
         .map(AnalysisPrecedentMapper.toDto)
+        .toList(growable: false);
+  }
+
+  static List<AnalysisDocumentDto> _toAnalysisDocuments(dynamic value) {
+    if (value is Json &&
+        (value.containsKey('file_path') || value.containsKey('name'))) {
+      return <AnalysisDocumentDto>[AnalysisDocumentMapper.toDto(value)];
+    }
+
+    if (value is! List<dynamic>) {
+      return <AnalysisDocumentDto>[];
+    }
+
+    return value
+        .whereType<Json>()
+        .map(AnalysisDocumentMapper.toDto)
         .toList(growable: false);
   }
 

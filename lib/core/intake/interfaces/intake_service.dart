@@ -53,6 +53,10 @@ abstract class IntakeService {
     required String analysisId,
   }) => throw UnimplementedError();
 
+  Future<RestResponse<ListResponse<AnalysisDocumentDto>>>
+  listAnalysisDocuments({required String analysisId}) =>
+      throw UnimplementedError();
+
   Future<RestResponse<CaseAssessmentBriefingDto>> submitCaseAssessmentBriefing({
     required String analysisId,
     required CaseAssessmentBriefingDto briefing,
