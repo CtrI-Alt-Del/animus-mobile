@@ -51,23 +51,7 @@ class GcsFileStorageDriver implements FileStorageDriver {
 
   @override
   Future<File?> getFile(String filePath) async {
-    final String encodedFilePath = filePath
-        .split('/')
-        .map(Uri.encodeComponent)
-        .join('/');
-    final Uri fileUri = _resolveDownloadUri(
-      Uri.parse(Env.gcsUrl).replace(
-        pathSegments: <String>[
-          'download',
-          'storage',
-          'v1',
-          'b',
-          Env.supabaseStorageBucket,
-          'o',
-          encodedFilePath,
-        ],
-      ),
-    );
+    final Uri fileUri = _buildDownloadUri(filePath);
     final HttpClient httpClient = HttpClient();
 
     try {
@@ -130,6 +114,21 @@ class GcsFileStorageDriver implements FileStorageDriver {
     }
 
     return uri.replace(host: '10.0.2.2').toString();
+  }
+
+  Uri _buildDownloadUri(String filePath) {
+    final Uri baseUri = Uri.parse(Env.gcsUrl);
+    final List<String> baseSegments = baseUri.pathSegments
+        .where((String segment) => segment.isNotEmpty)
+        .toList(growable: false);
+    final List<String> fileSegments = filePath
+        .split('/')
+        .where((String segment) => segment.isNotEmpty)
+        .toList(growable: false);
+
+    return _resolveDownloadUri(
+      baseUri.replace(pathSegments: <String>[...baseSegments, ...fileSegments]),
+    );
   }
 
   Uri _resolveDownloadUri(Uri uri) {
